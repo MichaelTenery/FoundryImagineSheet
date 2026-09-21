@@ -101,6 +101,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Apocritara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Insectoid(Wings)",
@@ -287,6 +289,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Arachen",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Arachen",
@@ -487,6 +491,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Avian(Dark)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -661,6 +667,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Avian(Forest)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -872,6 +880,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Avian(Mountain)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -1055,6 +1065,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Ba’Cora",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -1253,6 +1265,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Beastman",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -1448,6 +1462,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Brachara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Brachara",
@@ -1638,6 +1654,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Brok",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -1815,6 +1833,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Brownie",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -1891,13 +1911,17 @@
       ],
       "immunities": [],
       "fertileWith": [
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 18,
@@ -2010,6 +2034,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Centaur",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Centaur",
@@ -2196,6 +2222,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Cervara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Hooves/Tail)",
@@ -2382,6 +2410,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Changeling",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -2531,6 +2561,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Chetahl",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -2717,6 +2749,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Crystori",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -2917,6 +2951,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dao",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -3097,6 +3133,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Djinn",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -3278,6 +3316,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dryad",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -3475,6 +3515,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dwarf(Civilized)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -3678,6 +3720,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dwarf(Dark)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -3882,6 +3926,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dwarf(Fire)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -4091,6 +4137,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dwarf(Iron)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -4319,6 +4367,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dwarf(Mountain)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -4526,6 +4576,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Dwarf(Stone)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -4759,6 +4811,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Dark)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -4980,6 +5034,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Desert)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -5198,6 +5254,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Dread)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -5402,6 +5460,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Gray)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -5602,6 +5662,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(High)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -5803,6 +5865,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Ice)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -6009,6 +6073,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Sea)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -6225,6 +6291,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Shadow)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -6447,6 +6515,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Silver)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -6669,6 +6739,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Wild)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -6890,6 +6962,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Elf(Wood)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -7107,6 +7181,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Equara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Hooves)",
@@ -7285,6 +7361,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Gaunt",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -7494,6 +7572,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Geebra",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -7689,6 +7769,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Giant(Civilized)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -7881,6 +7963,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Giant(Civilized:Seafaring)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -8073,6 +8157,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Giant(True)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -8280,6 +8366,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Gnome",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -8382,15 +8470,19 @@
       ],
       "immunities": [],
       "fertileWith": [
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
         "Nixie",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
@@ -8503,6 +8595,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Goblin(Forest)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -8718,6 +8812,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Goblin(Mountain)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -8909,6 +9005,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Goblin(Mountain:Magic)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -9109,6 +9207,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Goblin(Plains)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -9308,6 +9408,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Grahl",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -9528,6 +9630,8 @@
         ],
         "canSwim": true
       },
+      "sourceRace": "Gremlin",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -9606,15 +9710,19 @@
       ],
       "immunities": [],
       "fertileWith": [
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Leprechaun",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
         "Nixie",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
@@ -9726,6 +9834,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Grethen",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -9910,6 +10020,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Gryphara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -10097,6 +10209,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Hippotara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -10289,6 +10403,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Hobgoblin",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -10492,6 +10608,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Human(Barbaric)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -10722,6 +10840,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Human(Civilized:City)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -10951,6 +11071,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Human(Civilized:Port)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -11181,6 +11303,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Human(Civilized:Town)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -11387,6 +11511,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Human(Civilized:Village)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -11609,6 +11735,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Ifrit",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -11788,6 +11916,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Jumara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Hooves/Tail)",
@@ -11972,6 +12102,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Katara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Centaur",
@@ -12161,6 +12293,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Kenku",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -12346,6 +12480,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Kerasara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -12537,6 +12673,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Lagara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -12723,6 +12861,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Leprechaun",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -12810,15 +12950,19 @@
       ],
       "immunities": [],
       "fertileWith": [
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
         "Nixie",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
@@ -12931,6 +13075,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Lissara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -13107,6 +13253,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Lotara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -13286,6 +13434,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Loxodara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -13464,6 +13614,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Lutrinara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -13642,6 +13794,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Marid",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -13830,6 +13984,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Mechanos",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -14037,6 +14193,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Mellivara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -14216,6 +14374,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Mephyt(Fire)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -14302,15 +14462,19 @@
         "Fire Hardened"
       ],
       "fertileWith": [
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Ice)",
         "Nixie",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
@@ -14423,6 +14587,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Mephyt(Ice)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings)",
@@ -14514,15 +14680,19 @@
         "Frost Hardened"
       ],
       "fertileWith": [
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Fire)",
         "Nixie",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
@@ -14635,6 +14805,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Merfolk",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -14854,6 +15026,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Midfolk(Forest)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -15074,6 +15248,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Midfolk(River)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -15282,6 +15458,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Midfolk(Town)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -15490,6 +15668,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Nixie",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -15577,15 +15757,19 @@
         "Pressure"
       ],
       "fertileWith": [
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
@@ -15698,6 +15882,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Nymph",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -15899,6 +16085,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Ogre",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -16099,6 +16287,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Ogre(Magic)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -16308,6 +16498,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Planar",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -16489,6 +16681,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Ratahl",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -16682,6 +16876,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "S’rett",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Saurian",
@@ -16873,6 +17069,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Sasquatch/Yeti",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -17060,6 +17258,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Satyr/Fawn",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Hooves)",
@@ -17259,6 +17459,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Saurian",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Saurian",
@@ -17457,6 +17659,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Scethen",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Scethen",
@@ -17650,6 +17854,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Se’eth",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Snake(Arms)",
@@ -17845,6 +18051,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Sha’Cora",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -18016,6 +18224,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Sura’keth",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Wings/Large Tail)",
@@ -18216,6 +18426,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Sura’rath",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Saurian",
@@ -18405,6 +18617,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Susara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Hooves/Tail)",
@@ -18587,6 +18801,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Sylph",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -18780,6 +18996,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Taurian",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Hooves)",
@@ -18953,6 +19171,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Testudara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid(Tail)",
@@ -19126,6 +19346,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Troll",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -19300,6 +19522,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Troll(Ice)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -19502,6 +19726,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Troll(Rock)",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": false,
       "bodyType": "Humanoid",
@@ -19681,6 +19907,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Ursara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Tail)",
@@ -19864,6 +20092,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Vulpara",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid(Large Tail)",
@@ -20045,6 +20275,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Whalrog",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -20226,6 +20458,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Wildling",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -20436,6 +20670,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Wolfen",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -20627,6 +20863,8 @@
         "racialSkills": [],
         "canSwim": false
       },
+      "sourceRace": "Xar’Xeth",
+      "physiqueLock": "",
       "formless": false,
       "canSwim": true,
       "bodyType": "Insectoid",
@@ -20718,10 +20956,430 @@
     }
   },
   {
-    "name": "Fairy",
+    "name": "Maginos",
     "type": "race",
     "system": {
-      "description": "Fortune is rolled when this race is applied rather than being fixed: a d6 decides high or low, then 1d10 gives the size, for a result between -10 and +10. The Fortune modifier below is left at 0 until that roll is made. His sheet splits this race by physique, and only the slight-physique form has wings -- the ordinary form has no special movement at all. The port has no slight-physique option yet, so the figures below are the ordinary, wingless form. Awaiting the developer.",
+      "description": "A Maginos is built of a material, and each is a race of its own: Maginos(Clay), Maginos(Metal), Maginos(Stone), Maginos(Wood). This entry is the [Other] material his sheet offers for one made of something unlisted; its figures are his Clay ones.",
+      "attributeMods": {
+        "str": 2,
+        "agl": -1,
+        "vit": 2,
+        "int": 0,
+        "wis": -2,
+        "knw": 3,
+        "app": -2,
+        "chm": -2,
+        "soc": 0,
+        "aur": -4,
+        "pty": 0,
+        "wil": 2
+      },
+      "attributeLimits": {
+        "str": 21,
+        "agl": 18,
+        "vit": 21,
+        "int": 20,
+        "wis": 18,
+        "knw": 21,
+        "app": 12,
+        "chm": 16,
+        "soc": 19,
+        "aur": 15,
+        "pty": 20,
+        "wil": 21
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": 2,
+        "titleFormula": "1d4+1",
+        "titleDice": "1",
+        "titleMax": 4,
+        "titleMod": 1
+      },
+      "characteristicMods": {
+        "perception": -5,
+        "affinity": -5,
+        "fortune": -5
+      },
+      "resistanceMods": {
+        "magic": 0,
+        "illusion": -20,
+        "control": 0,
+        "poison": 0,
+        "disease": 0
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "jog": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "run": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": 0,
+        "jumpUp": 0
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Maginos",
+      "physiqueLock": "",
+      "formless": false,
+      "canSwim": false,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Body Control",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Brace",
+          "bonus": ""
+        },
+        {
+          "name": "Climb",
+          "bonus": ""
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Direction Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Distance Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Force",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Life Sense",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Listen",
+          "bonus": ""
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [],
+        "eyes": [],
+        "skin": [
+          "Bone",
+          "Horn",
+          "Earthern",
+          "Cloth",
+          "Hide",
+          "Crystal"
+        ]
+      },
+      "abilities": [
+        "Breathless",
+        "Construct Mind",
+        "Construct Form",
+        "Hide(1/6)",
+        "Magical Hearing",
+        "Magical Sight",
+        "Magical Touch",
+        "Magical Voice"
+      ],
+      "disabilities": [
+        "Construct Spirit",
+        "Infertile",
+        "No Intake",
+        "No Sense of Smell",
+        "No Sense of Taste",
+        "Cannot Swim"
+      ],
+      "immunities": [
+        "Aging",
+        "Disease",
+        "Fatigue",
+        "Fear",
+        "Fire Hardened",
+        "Frost Hardened",
+        "Poison(Greater)",
+        "Hold",
+        "Sleep",
+        "Transformation of Form(Lesser)"
+      ],
+      "fertileWith": [],
+      "ages": {
+        "startLow": 10,
+        "startHigh": 40,
+        "maxAge": "1000"
+      },
+      "sourcebook": "Imagine Master Index",
+      "page": "208"
+    }
+  },
+  {
+    "name": "Fairy(Winged)",
+    "type": "race",
+    "system": {
+      "description": "Fortune is rolled when this race is applied rather than being fixed: a d6 decides high or low, then 1d10 gives the size, for a result between -10 and +10. The Fortune modifier below is left at 0 until that roll is made. This is the winged form. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is always of slight physique (-1 Strength, +1 Agility) and the generator does not offer the choice.",
+      "attributeMods": {
+        "str": -4,
+        "agl": 2,
+        "vit": -4,
+        "int": 1,
+        "wis": 0,
+        "knw": 2,
+        "app": 2,
+        "chm": 0,
+        "soc": 0,
+        "aur": 4,
+        "pty": 0,
+        "wil": 0
+      },
+      "attributeLimits": {
+        "str": 10,
+        "agl": 21,
+        "vit": 12,
+        "int": 20,
+        "wis": 18,
+        "knw": 22,
+        "app": 21,
+        "chm": 20,
+        "soc": 20,
+        "aur": 22,
+        "pty": 20,
+        "wil": 20
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": -6,
+        "titleFormula": "1d2",
+        "titleDice": "1",
+        "titleMax": 2,
+        "titleMod": 0
+      },
+      "characteristicMods": {
+        "perception": 10,
+        "affinity": 0,
+        "fortune": 0
+      },
+      "resistanceMods": {
+        "magic": 25,
+        "illusion": 0,
+        "control": 10,
+        "poison": -15,
+        "disease": -15
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": -3,
+          "tenSec": -30,
+          "oneSec": -3
+        },
+        "jog": {
+          "hourly": -6,
+          "tenSec": -60,
+          "oneSec": -6
+        },
+        "run": {
+          "hourly": -9,
+          "tenSec": -90,
+          "oneSec": -9
+        },
+        "specialName": "Fly:",
+        "special": {
+          "hourly": "Run",
+          "hourlyMultiplier": 3,
+          "hourlyMod": 0,
+          "tenSec": "Run",
+          "tenSecMultiplier": 3,
+          "tenSecMod": 0,
+          "oneSec": "Run",
+          "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "jumpStand": -4,
+        "jumpUp": -2
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Fairy",
+      "physiqueLock": "slight",
+      "formless": false,
+      "canSwim": true,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Animal Shape",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Area Sense",
+          "bonus": ""
+        },
+        {
+          "name": "Blend",
+          "bonus": ""
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Herb Lore",
+          "bonus": ""
+        },
+        {
+          "name": "Levitation",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Mimic",
+          "bonus": ""
+        },
+        {
+          "name": "Move Unheard",
+          "bonus": ""
+        },
+        {
+          "name": "Phase",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Sing",
+          "bonus": ""
+        },
+        {
+          "name": "Telekinesis",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Wood Lore",
+          "bonus": "+10%"
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [
+          "Black",
+          "Dark Brown",
+          "Brown",
+          "Dark Blonde",
+          "Blonde",
+          "Mixed",
+          "White",
+          "Green"
+        ],
+        "eyes": [
+          "Brown",
+          "Hazel",
+          "Black",
+          "Blue/Green",
+          "Green",
+          "Blue",
+          "Violet",
+          "White",
+          "Red",
+          "Silver"
+        ],
+        "skin": [
+          "Light Blue",
+          "Pale(Flesh)",
+          "Olive",
+          "Green",
+          "Pink",
+          "Tan",
+          "Black"
+        ]
+      },
+      "abilities": [
+        "Exceptional Sight",
+        "Special Shape"
+      ],
+      "disabilities": [
+        "Requires Fairy Weapons"
+      ],
+      "immunities": [],
+      "fertileWith": [
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
+        "Gnome",
+        "Gremlin",
+        "Leprechaun",
+        "Mephyt(Fire)",
+        "Mephyt(Ice)",
+        "Nixie",
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)",
+        "Fairy(Wingless)"
+      ],
+      "ages": {
+        "startLow": 16,
+        "startHigh": 5000,
+        "maxAge": "5000"
+      },
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Fairy(Wingless)",
+    "type": "race",
+    "system": {
+      "description": "Fortune is rolled when this race is applied rather than being fixed: a d6 decides high or low, then 1d10 gives the size, for a result between -10 and +10. The Fortune modifier below is left at 0 until that roll is made. This is the wingless form, which has no special movement at all. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is never of slight physique and the generator does not offer the choice.",
       "attributeMods": {
         "str": -4,
         "agl": 2,
@@ -20803,71 +21461,24 @@
         "jumpUp": -2
       },
       "slightPhysique": {
-        "hasVariant": true,
-        "specialName": "Fly:",
+        "hasVariant": false,
+        "specialName": "",
         "special": {
-          "hourly": "Run",
-          "hourlyMultiplier": 3,
+          "hourly": "",
+          "hourlyMultiplier": 0,
           "hourlyMod": 0,
-          "tenSec": "Run",
-          "tenSecMultiplier": 3,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
           "tenSecMod": 0,
-          "oneSec": "Run",
-          "oneSecMultiplier": 3,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
-        "racialSkills": [
-          {
-            "name": "Animal Shape",
-            "bonus": "+20%"
-          },
-          {
-            "name": "Area Sense",
-            "bonus": ""
-          },
-          {
-            "name": "Blend",
-            "bonus": ""
-          },
-          {
-            "name": "Detect Magic",
-            "bonus": ""
-          },
-          {
-            "name": "Herb Lore",
-            "bonus": ""
-          },
-          {
-            "name": "Levitation",
-            "bonus": "+10%"
-          },
-          {
-            "name": "Mimic",
-            "bonus": ""
-          },
-          {
-            "name": "Move Unheard",
-            "bonus": ""
-          },
-          {
-            "name": "Phase",
-            "bonus": "+10%"
-          },
-          {
-            "name": "Sing",
-            "bonus": ""
-          },
-          {
-            "name": "Telekinesis",
-            "bonus": "+10%"
-          },
-          {
-            "name": "Wood Lore",
-            "bonus": "+10%"
-          }
-        ],
-        "canSwim": true
+        "racialSkills": [],
+        "canSwim": false
       },
+      "sourceRace": "Fairy",
+      "physiqueLock": "ordinary",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -20972,30 +21583,243 @@
       ],
       "immunities": [],
       "fertileWith": [
-        "Fairy(Dark)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
         "Nixie",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)",
+        "Fairy(Winged)"
       ],
       "ages": {
         "startLow": 16,
         "startHigh": 5000,
         "maxAge": "5000"
       },
-      "sourcebook": "Imagine Master Index",
-      "page": "70"
+      "sourcebook": "XXX"
     }
   },
   {
-    "name": "Fairy(Dark)",
+    "name": "Fairy(Dark Winged)",
     "type": "race",
     "system": {
-      "description": "His sheet splits this race by physique, and only the slight-physique form has wings -- the ordinary form has no special movement at all. The port has no slight-physique option yet, so the figures below are the ordinary, wingless form. Awaiting the developer.",
+      "description": "This is the winged form. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is always of slight physique (-1 Strength, +1 Agility) and the generator does not offer the choice.",
+      "attributeMods": {
+        "str": -4,
+        "agl": 2,
+        "vit": -4,
+        "int": 2,
+        "wis": 0,
+        "knw": 1,
+        "app": 0,
+        "chm": 0,
+        "soc": 0,
+        "aur": 4,
+        "pty": 0,
+        "wil": 0
+      },
+      "attributeLimits": {
+        "str": 11,
+        "agl": 21,
+        "vit": 12,
+        "int": 22,
+        "wis": 18,
+        "knw": 20,
+        "app": 19,
+        "chm": 18,
+        "soc": 20,
+        "aur": 22,
+        "pty": 20,
+        "wil": 20
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": -4,
+        "titleFormula": "1d2",
+        "titleDice": "1",
+        "titleMax": 2,
+        "titleMod": 0
+      },
+      "characteristicMods": {
+        "perception": 10,
+        "affinity": -10,
+        "fortune": 5
+      },
+      "resistanceMods": {
+        "magic": 20,
+        "illusion": 0,
+        "control": 15,
+        "poison": -15,
+        "disease": -15
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": -3,
+          "tenSec": -30,
+          "oneSec": -3
+        },
+        "jog": {
+          "hourly": -6,
+          "tenSec": -60,
+          "oneSec": -6
+        },
+        "run": {
+          "hourly": -9,
+          "tenSec": -90,
+          "oneSec": -9
+        },
+        "specialName": "Fly:",
+        "special": {
+          "hourly": "Run",
+          "hourlyMultiplier": 3,
+          "hourlyMod": 0,
+          "tenSec": "Run",
+          "tenSecMultiplier": 3,
+          "tenSecMod": 0,
+          "oneSec": "Run",
+          "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "jumpStand": -4,
+        "jumpUp": -2
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Fairy(Dark)",
+      "physiqueLock": "slight",
+      "formless": false,
+      "canSwim": true,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Darkness",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Blend",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Levitation",
+          "bonus": ""
+        },
+        {
+          "name": "Mimic",
+          "bonus": ""
+        },
+        {
+          "name": "Move Unheard",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Phase",
+          "bonus": ""
+        },
+        {
+          "name": "Sing",
+          "bonus": ""
+        },
+        {
+          "name": "Telekinesis",
+          "bonus": ""
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [
+          "Black",
+          "Dark Brown",
+          "Brown",
+          "Dark Blonde",
+          "Blonde",
+          "Mixed",
+          "White",
+          "Green"
+        ],
+        "eyes": [
+          "Brown",
+          "Hazel",
+          "Black",
+          "Blue/Green",
+          "Green",
+          "Blue",
+          "Violet",
+          "White",
+          "Red",
+          "Silver"
+        ],
+        "skin": [
+          "Light Blue",
+          "Pale(Flesh)",
+          "Olive",
+          "Green",
+          "Pink",
+          "Tan",
+          "Black"
+        ]
+      },
+      "abilities": [
+        "Exceptional Sight",
+        "Special Dark Shape"
+      ],
+      "disabilities": [
+        "Requires Fairy Weapons"
+      ],
+      "immunities": [],
+      "fertileWith": [
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Gnome",
+        "Gremlin",
+        "Leprechaun",
+        "Mephyt(Fire)",
+        "Mephyt(Ice)",
+        "Nixie",
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)",
+        "Fairy(Dark Wingless)"
+      ],
+      "ages": {
+        "startLow": 16,
+        "startHigh": 5000,
+        "maxAge": "5000"
+      },
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Fairy(Dark Wingless)",
+    "type": "race",
+    "system": {
+      "description": "This is the wingless form, which has no special movement at all. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is never of slight physique and the generator does not offer the choice.",
       "attributeMods": {
         "str": -4,
         "agl": 2,
@@ -21077,59 +21901,24 @@
         "jumpUp": -2
       },
       "slightPhysique": {
-        "hasVariant": true,
-        "specialName": "Fly:",
+        "hasVariant": false,
+        "specialName": "",
         "special": {
-          "hourly": "Run",
-          "hourlyMultiplier": 3,
+          "hourly": "",
+          "hourlyMultiplier": 0,
           "hourlyMod": 0,
-          "tenSec": "Run",
-          "tenSecMultiplier": 3,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
           "tenSecMod": 0,
-          "oneSec": "Run",
-          "oneSecMultiplier": 3,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
-        "racialSkills": [
-          {
-            "name": "Darkness",
-            "bonus": "+10%"
-          },
-          {
-            "name": "Blend",
-            "bonus": "+20%"
-          },
-          {
-            "name": "Detect Magic",
-            "bonus": ""
-          },
-          {
-            "name": "Levitation",
-            "bonus": ""
-          },
-          {
-            "name": "Mimic",
-            "bonus": ""
-          },
-          {
-            "name": "Move Unheard",
-            "bonus": "+10%"
-          },
-          {
-            "name": "Phase",
-            "bonus": ""
-          },
-          {
-            "name": "Sing",
-            "bonus": ""
-          },
-          {
-            "name": "Telekinesis",
-            "bonus": ""
-          }
-        ],
-        "canSwim": true
+        "racialSkills": [],
+        "canSwim": false
       },
+      "sourceRace": "Fairy(Dark)",
+      "physiqueLock": "ordinary",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -21218,225 +22007,33 @@
       ],
       "immunities": [],
       "fertileWith": [
-        "Fairy",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
         "Nixie",
-        "Podling",
-        "Sporeling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)",
+        "Fairy(Dark Winged)"
       ],
       "ages": {
         "startLow": 16,
         "startHigh": 5000,
         "maxAge": "5000"
       },
-      "sourcebook": "Aspects of the Wild"
+      "sourcebook": "XXX"
     }
   },
   {
-    "name": "Maginos",
+    "name": "Podling(Winged)",
     "type": "race",
     "system": {
-      "description": "Clay: endurance 2, +1d4+1 per title (max 4, mod 1). Sinks. Metal: endurance 4, +1d6+2 per title (max 6, mod 2). Sinks. Stone: endurance 3, +1d6+1 per title (max 6, mod 1). Sinks. Wood: endurance 2, +1d4+2 per title (max 4, mod 2). Floats.",
-      "attributeMods": {
-        "str": 2,
-        "agl": -1,
-        "vit": 2,
-        "int": 0,
-        "wis": -2,
-        "knw": 3,
-        "app": -2,
-        "chm": -2,
-        "soc": 0,
-        "aur": -4,
-        "pty": 0,
-        "wil": 2
-      },
-      "attributeLimits": {
-        "str": 21,
-        "agl": 18,
-        "vit": 21,
-        "int": 20,
-        "wis": 18,
-        "knw": 21,
-        "app": 12,
-        "chm": 16,
-        "soc": 19,
-        "aur": 15,
-        "pty": 20,
-        "wil": 21
-      },
-      "endurance": {
-        "startFormula": "",
-        "startMod": 2,
-        "titleFormula": "1d4+1",
-        "titleDice": "1",
-        "titleMax": 4,
-        "titleMod": 1
-      },
-      "characteristicMods": {
-        "perception": -5,
-        "affinity": -5,
-        "fortune": -5
-      },
-      "resistanceMods": {
-        "magic": 0,
-        "illusion": -20,
-        "control": 0,
-        "poison": 0,
-        "disease": 0
-      },
-      "movement": {
-        "speedMultiplier": 0,
-        "walk": {
-          "hourly": 0,
-          "tenSec": 0,
-          "oneSec": 0
-        },
-        "jog": {
-          "hourly": 0,
-          "tenSec": 0,
-          "oneSec": 0
-        },
-        "run": {
-          "hourly": 0,
-          "tenSec": 0,
-          "oneSec": 0
-        },
-        "specialName": "None:",
-        "special": {
-          "hourly": "",
-          "hourlyMultiplier": 0,
-          "hourlyMod": 0,
-          "tenSec": "",
-          "tenSecMultiplier": 0,
-          "tenSecMod": 0,
-          "oneSec": "",
-          "oneSecMultiplier": 0,
-          "oneSecMod": 0
-        },
-        "jumpStand": 0,
-        "jumpUp": 0
-      },
-      "slightPhysique": {
-        "hasVariant": false,
-        "specialName": "",
-        "special": {
-          "hourly": "",
-          "hourlyMultiplier": 0,
-          "hourlyMod": 0,
-          "tenSec": "",
-          "tenSecMultiplier": 0,
-          "tenSecMod": 0,
-          "oneSec": "",
-          "oneSecMultiplier": 0,
-          "oneSecMod": 0
-        },
-        "racialSkills": [],
-        "canSwim": false
-      },
-      "formless": false,
-      "canSwim": false,
-      "bodyType": "Humanoid",
-      "racialSkills": [
-        {
-          "name": "Body Control",
-          "bonus": "+20%"
-        },
-        {
-          "name": "Brace",
-          "bonus": ""
-        },
-        {
-          "name": "Climb",
-          "bonus": ""
-        },
-        {
-          "name": "Detect Magic",
-          "bonus": ""
-        },
-        {
-          "name": "Direction Knowledge",
-          "bonus": "+10%"
-        },
-        {
-          "name": "Distance Knowledge",
-          "bonus": "+10%"
-        },
-        {
-          "name": "Force",
-          "bonus": "+10%"
-        },
-        {
-          "name": "Life Sense",
-          "bonus": "+20%"
-        },
-        {
-          "name": "Listen",
-          "bonus": ""
-        }
-      ],
-      "racialSkillNote": "",
-      "features": {
-        "hair": [],
-        "eyes": [],
-        "skin": [
-          "Bone",
-          "Horn",
-          "Earthern",
-          "Cloth",
-          "Hide",
-          "Crystal"
-        ]
-      },
-      "abilities": [
-        "Breathless",
-        "Construct Mind",
-        "Construct Form",
-        "Hide(1/6)",
-        "Magical Hearing",
-        "Magical Sight",
-        "Magical Touch",
-        "Magical Voice"
-      ],
-      "disabilities": [
-        "Construct Spirit",
-        "Infertile",
-        "No Intake",
-        "No Sense of Smell",
-        "No Sense of Taste",
-        "Cannot Swim"
-      ],
-      "immunities": [
-        "Aging",
-        "Disease",
-        "Fatigue",
-        "Fear",
-        "Fire Hardened",
-        "Frost Hardened",
-        "Poison(Greater)",
-        "Hold",
-        "Sleep",
-        "Transformation of Form(Lesser)"
-      ],
-      "fertileWith": [],
-      "ages": {
-        "startLow": 10,
-        "startHigh": 40,
-        "maxAge": "1000"
-      },
-      "sourcebook": "Imagine Master Index",
-      "page": "208"
-    }
-  },
-  {
-    "name": "Podling",
-    "type": "race",
-    "system": {
-      "description": "His sheet splits this race by physique, and only the slight-physique form has wings -- the ordinary form has no special movement at all. The port has no slight-physique option yet, so the figures below are the ordinary, wingless form. Awaiting the developer.",
+      "description": "This is the winged form. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is always of slight physique (-1 Strength, +1 Agility) and the generator does not offer the choice.",
       "attributeMods": {
         "str": -4,
         "agl": 3,
@@ -21502,23 +22099,6 @@
           "tenSec": -90,
           "oneSec": -9
         },
-        "specialName": "None:",
-        "special": {
-          "hourly": "",
-          "hourlyMultiplier": 0,
-          "hourlyMod": 0,
-          "tenSec": "",
-          "tenSecMultiplier": 0,
-          "tenSecMod": 0,
-          "oneSec": "",
-          "oneSecMultiplier": 0,
-          "oneSecMod": 0
-        },
-        "jumpStand": -4,
-        "jumpUp": -2
-      },
-      "slightPhysique": {
-        "hasVariant": true,
         "specialName": "Fly:",
         "special": {
           "hourly": "Run",
@@ -21531,9 +22111,28 @@
           "oneSecMultiplier": 3,
           "oneSecMod": 0
         },
-        "racialSkills": [],
-        "canSwim": true
+        "jumpStand": -4,
+        "jumpUp": -2
       },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Podling",
+      "physiqueLock": "slight",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -21637,30 +22236,262 @@
       "immunities": [],
       "fertileWith": [
         "Brownie",
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
         "Nixie",
-        "Sporeling"
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)",
+        "Podling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
         "startHigh": 5000,
         "maxAge": "5000"
       },
-      "sourcebook": "Imagine Master Index",
-      "page": "210"
+      "sourcebook": "XXX"
     }
   },
   {
-    "name": "Sporeling",
+    "name": "Podling(Wingless)",
     "type": "race",
     "system": {
-      "description": "His sheet splits this race by physique, and only the slight-physique form has wings -- the ordinary form has no special movement at all. The port has no slight-physique option yet, so the figures below are the ordinary, wingless form. Awaiting the developer.",
+      "description": "This is the wingless form, which has no special movement at all. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is never of slight physique and the generator does not offer the choice.",
+      "attributeMods": {
+        "str": -4,
+        "agl": 3,
+        "vit": -2,
+        "int": 1,
+        "wis": 2,
+        "knw": 1,
+        "app": 2,
+        "chm": -1,
+        "soc": 0,
+        "aur": 1,
+        "pty": 0,
+        "wil": 3
+      },
+      "attributeLimits": {
+        "str": 9,
+        "agl": 21,
+        "vit": 16,
+        "int": 20,
+        "wis": 22,
+        "knw": 20,
+        "app": 20,
+        "chm": 16,
+        "soc": 17,
+        "aur": 20,
+        "pty": 20,
+        "wil": 21
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": -2,
+        "titleFormula": "1d2",
+        "titleDice": "1",
+        "titleMax": 2,
+        "titleMod": 0
+      },
+      "characteristicMods": {
+        "perception": 10,
+        "affinity": -10,
+        "fortune": 0
+      },
+      "resistanceMods": {
+        "magic": 20,
+        "illusion": 0,
+        "control": 10,
+        "poison": 5,
+        "disease": -10
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": -3,
+          "tenSec": -30,
+          "oneSec": -3
+        },
+        "jog": {
+          "hourly": -6,
+          "tenSec": -60,
+          "oneSec": -60
+        },
+        "run": {
+          "hourly": -9,
+          "tenSec": -90,
+          "oneSec": -9
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": -4,
+        "jumpUp": -2
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Podling",
+      "physiqueLock": "ordinary",
+      "formless": false,
+      "canSwim": true,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Animal Shape",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Area Sense",
+          "bonus": ""
+        },
+        {
+          "name": "Blend",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Herb Lore",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Speak to Animal",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Listen",
+          "bonus": ""
+        },
+        {
+          "name": "Mimic",
+          "bonus": ""
+        },
+        {
+          "name": "Move Unheard",
+          "bonus": ""
+        },
+        {
+          "name": "Sing",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Summon Animal",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Tame Animal",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Track",
+          "bonus": "+20%"
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [
+          "Black",
+          "Dark Brown",
+          "Brown",
+          "Dark Blonde",
+          "Blonde",
+          "Mixed",
+          "White",
+          "Green"
+        ],
+        "eyes": [
+          "Brown",
+          "Hazel",
+          "Black",
+          "Blue/Green",
+          "Green",
+          "Blue",
+          "Violet",
+          "White",
+          "Red",
+          "Silver"
+        ],
+        "skin": [
+          "Light Blue",
+          "Pale(Flesh)",
+          "Olive",
+          "Green",
+          "Pink",
+          "Tan",
+          "Black"
+        ]
+      },
+      "abilities": [
+        "Night Vision(Enhanced)",
+        "Animal Friendship",
+        "Animal Shape",
+        "Regeneration(Natural)"
+      ],
+      "disabilities": [
+        "Requires Fairy Weapons"
+      ],
+      "immunities": [],
+      "fertileWith": [
+        "Brownie",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
+        "Gnome",
+        "Gremlin",
+        "Leprechaun",
+        "Mephyt(Fire)",
+        "Mephyt(Ice)",
+        "Nixie",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)",
+        "Podling(Winged)"
+      ],
+      "ages": {
+        "startLow": 16,
+        "startHigh": 5000,
+        "maxAge": "5000"
+      },
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Sporeling(Winged)",
+    "type": "race",
+    "system": {
+      "description": "This is the winged form. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is always of slight physique (-1 Strength, +1 Agility) and the generator does not offer the choice.",
       "attributeMods": {
         "str": -4,
         "agl": 3,
@@ -21726,23 +22557,6 @@
           "tenSec": -90,
           "oneSec": -9
         },
-        "specialName": "None:",
-        "special": {
-          "hourly": "",
-          "hourlyMultiplier": 0,
-          "hourlyMod": 0,
-          "tenSec": "",
-          "tenSecMultiplier": 0,
-          "tenSecMod": 0,
-          "oneSec": "",
-          "oneSecMultiplier": 0,
-          "oneSecMod": 0
-        },
-        "jumpStand": -4,
-        "jumpUp": -2
-      },
-      "slightPhysique": {
-        "hasVariant": true,
         "specialName": "Fly:",
         "special": {
           "hourly": "Run",
@@ -21755,9 +22569,28 @@
           "oneSecMultiplier": 3,
           "oneSecMod": 0
         },
-        "racialSkills": [],
-        "canSwim": true
+        "jumpStand": -4,
+        "jumpUp": -2
       },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Sporeling",
+      "physiqueLock": "slight",
       "formless": false,
       "canSwim": true,
       "bodyType": "Humanoid",
@@ -21848,23 +22681,1030 @@
       "immunities": [],
       "fertileWith": [
         "Brownie",
-        "Fairy",
-        "Fairy(Dark)",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
         "Gnome",
         "Gremlin",
         "Leprechaun",
         "Mephyt(Fire)",
         "Mephyt(Ice)",
         "Nixie",
-        "Podling"
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Wingless)"
       ],
       "ages": {
         "startLow": 16,
         "startHigh": 5000,
         "maxAge": "5000"
       },
-      "sourcebook": "Imagine Master Index",
-      "page": "71"
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Sporeling(Wingless)",
+    "type": "race",
+    "system": {
+      "description": "This is the wingless form, which has no special movement at all. In his sheet wings belong to the slight-physique branch of this race, so a character of this race is never of slight physique and the generator does not offer the choice.",
+      "attributeMods": {
+        "str": -4,
+        "agl": 3,
+        "vit": -2,
+        "int": 1,
+        "wis": 2,
+        "knw": 1,
+        "app": 0,
+        "chm": -1,
+        "soc": 0,
+        "aur": 2,
+        "pty": 0,
+        "wil": 0
+      },
+      "attributeLimits": {
+        "str": 11,
+        "agl": 20,
+        "vit": 18,
+        "int": 20,
+        "wis": 22,
+        "knw": 20,
+        "app": 18,
+        "chm": 16,
+        "soc": 16,
+        "aur": 21,
+        "pty": 20,
+        "wil": 20
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": -2,
+        "titleFormula": "1d2",
+        "titleDice": "1",
+        "titleMax": 2,
+        "titleMod": 0
+      },
+      "characteristicMods": {
+        "perception": 10,
+        "affinity": -10,
+        "fortune": 0
+      },
+      "resistanceMods": {
+        "magic": -10,
+        "illusion": 0,
+        "control": 0,
+        "poison": 20,
+        "disease": 30
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": -3,
+          "tenSec": -30,
+          "oneSec": -3
+        },
+        "jog": {
+          "hourly": -6,
+          "tenSec": -60,
+          "oneSec": -6
+        },
+        "run": {
+          "hourly": -9,
+          "tenSec": -90,
+          "oneSec": -9
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": -4,
+        "jumpUp": -2
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Sporeling",
+      "physiqueLock": "ordinary",
+      "formless": false,
+      "canSwim": true,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Area Sense",
+          "bonus": ""
+        },
+        {
+          "name": "Blend",
+          "bonus": "+25%"
+        },
+        {
+          "name": "Climb",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Control Growth",
+          "bonus": "+30%"
+        },
+        {
+          "name": "Crystal Lore",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Herb Lore",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Listen",
+          "bonus": ""
+        },
+        {
+          "name": "Move Unheard",
+          "bonus": ""
+        },
+        {
+          "name": "Plant Speak",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Plant Shape",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Stone Lore",
+          "bonus": ""
+        }
+      ],
+      "racialSkillNote": "Growth,Speak,Shape(mushroom/fungus only)",
+      "features": {
+        "hair": [
+          "Black",
+          "Brown",
+          "Auburn",
+          "White",
+          "Green",
+          "Gray"
+        ],
+        "eyes": [
+          "Brown",
+          "Black",
+          "Green",
+          "White",
+          "Tan",
+          "Gray"
+        ],
+        "skin": [
+          "Pale",
+          "Olive",
+          "Green",
+          "Pink",
+          "Ruddy",
+          "Tan",
+          "Light Brown",
+          "Brown",
+          "Black"
+        ]
+      },
+      "abilities": [
+        "Ultravision",
+        "Infravision180"
+      ],
+      "disabilities": [
+        "Easily Dehydrated",
+        "Requires Fairy Weapons"
+      ],
+      "immunities": [],
+      "fertileWith": [
+        "Brownie",
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
+        "Gnome",
+        "Gremlin",
+        "Leprechaun",
+        "Mephyt(Fire)",
+        "Mephyt(Ice)",
+        "Nixie",
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Sporeling(Winged)"
+      ],
+      "ages": {
+        "startLow": 16,
+        "startHigh": 5000,
+        "maxAge": "5000"
+      },
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Maginos(Clay)",
+    "type": "race",
+    "system": {
+      "description": "",
+      "attributeMods": {
+        "str": 2,
+        "agl": -1,
+        "vit": 2,
+        "int": 0,
+        "wis": -2,
+        "knw": 3,
+        "app": -2,
+        "chm": -2,
+        "soc": 0,
+        "aur": -4,
+        "pty": 0,
+        "wil": 2
+      },
+      "attributeLimits": {
+        "str": 21,
+        "agl": 18,
+        "vit": 21,
+        "int": 20,
+        "wis": 18,
+        "knw": 21,
+        "app": 12,
+        "chm": 16,
+        "soc": 19,
+        "aur": 15,
+        "pty": 20,
+        "wil": 21
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": 2,
+        "titleFormula": "1d4+1",
+        "titleDice": "1",
+        "titleMax": 4,
+        "titleMod": 1
+      },
+      "characteristicMods": {
+        "perception": -5,
+        "affinity": -5,
+        "fortune": -5
+      },
+      "resistanceMods": {
+        "magic": 0,
+        "illusion": -20,
+        "control": 0,
+        "poison": 0,
+        "disease": 0
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "jog": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "run": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": 0,
+        "jumpUp": 0
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Maginos",
+      "physiqueLock": "",
+      "formless": false,
+      "canSwim": false,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Body Control",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Brace",
+          "bonus": ""
+        },
+        {
+          "name": "Climb",
+          "bonus": ""
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Direction Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Distance Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Force",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Life Sense",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Listen",
+          "bonus": ""
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [],
+        "eyes": [],
+        "skin": [
+          "Bone",
+          "Horn",
+          "Earthern",
+          "Cloth",
+          "Hide",
+          "Crystal"
+        ]
+      },
+      "abilities": [
+        "Breathless",
+        "Construct Mind",
+        "Construct Form",
+        "Hide(1/6)",
+        "Magical Hearing",
+        "Magical Sight",
+        "Magical Touch",
+        "Magical Voice"
+      ],
+      "disabilities": [
+        "Construct Spirit",
+        "Infertile",
+        "No Intake",
+        "No Sense of Smell",
+        "No Sense of Taste",
+        "Cannot Swim"
+      ],
+      "immunities": [
+        "Aging",
+        "Disease",
+        "Fatigue",
+        "Fear",
+        "Fire Hardened",
+        "Frost Hardened",
+        "Poison(Greater)",
+        "Hold",
+        "Sleep",
+        "Transformation of Form(Lesser)"
+      ],
+      "fertileWith": [],
+      "ages": {
+        "startLow": 10,
+        "startHigh": 40,
+        "maxAge": "1000"
+      },
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Maginos(Metal)",
+    "type": "race",
+    "system": {
+      "description": "",
+      "attributeMods": {
+        "str": 2,
+        "agl": -1,
+        "vit": 2,
+        "int": 0,
+        "wis": -2,
+        "knw": 3,
+        "app": -2,
+        "chm": -2,
+        "soc": 0,
+        "aur": -4,
+        "pty": 0,
+        "wil": 2
+      },
+      "attributeLimits": {
+        "str": 21,
+        "agl": 18,
+        "vit": 21,
+        "int": 20,
+        "wis": 18,
+        "knw": 21,
+        "app": 12,
+        "chm": 16,
+        "soc": 19,
+        "aur": 15,
+        "pty": 20,
+        "wil": 21
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": 4,
+        "titleFormula": "1d6+2",
+        "titleDice": "1",
+        "titleMax": 6,
+        "titleMod": 2
+      },
+      "characteristicMods": {
+        "perception": -5,
+        "affinity": -5,
+        "fortune": -5
+      },
+      "resistanceMods": {
+        "magic": 0,
+        "illusion": -20,
+        "control": 0,
+        "poison": 0,
+        "disease": 0
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "jog": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "run": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": 0,
+        "jumpUp": 0
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Maginos",
+      "physiqueLock": "",
+      "formless": false,
+      "canSwim": false,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Body Control",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Brace",
+          "bonus": ""
+        },
+        {
+          "name": "Climb",
+          "bonus": ""
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Direction Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Distance Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Force",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Life Sense",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Listen",
+          "bonus": ""
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [],
+        "eyes": [],
+        "skin": [
+          "Bone",
+          "Horn",
+          "Earthern",
+          "Cloth",
+          "Hide",
+          "Crystal"
+        ]
+      },
+      "abilities": [
+        "Breathless",
+        "Construct Mind",
+        "Construct Form",
+        "Hide(1/6)",
+        "Magical Hearing",
+        "Magical Sight",
+        "Magical Touch",
+        "Magical Voice"
+      ],
+      "disabilities": [
+        "Construct Spirit",
+        "Infertile",
+        "No Intake",
+        "No Sense of Smell",
+        "No Sense of Taste",
+        "Cannot Swim"
+      ],
+      "immunities": [
+        "Aging",
+        "Disease",
+        "Fatigue",
+        "Fear",
+        "Fire Hardened",
+        "Frost Hardened",
+        "Poison(Greater)",
+        "Hold",
+        "Sleep",
+        "Transformation of Form(Lesser)"
+      ],
+      "fertileWith": [],
+      "ages": {
+        "startLow": 10,
+        "startHigh": 40,
+        "maxAge": "1000"
+      },
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Maginos(Stone)",
+    "type": "race",
+    "system": {
+      "description": "",
+      "attributeMods": {
+        "str": 2,
+        "agl": -1,
+        "vit": 2,
+        "int": 0,
+        "wis": -2,
+        "knw": 3,
+        "app": -2,
+        "chm": -2,
+        "soc": 0,
+        "aur": -4,
+        "pty": 0,
+        "wil": 2
+      },
+      "attributeLimits": {
+        "str": 21,
+        "agl": 18,
+        "vit": 21,
+        "int": 20,
+        "wis": 18,
+        "knw": 21,
+        "app": 12,
+        "chm": 16,
+        "soc": 19,
+        "aur": 15,
+        "pty": 20,
+        "wil": 21
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": 3,
+        "titleFormula": "1d6+1",
+        "titleDice": "1",
+        "titleMax": 6,
+        "titleMod": 1
+      },
+      "characteristicMods": {
+        "perception": -5,
+        "affinity": -5,
+        "fortune": -5
+      },
+      "resistanceMods": {
+        "magic": 0,
+        "illusion": -20,
+        "control": 0,
+        "poison": 0,
+        "disease": 0
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "jog": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "run": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": 0,
+        "jumpUp": 0
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Maginos",
+      "physiqueLock": "",
+      "formless": false,
+      "canSwim": false,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Body Control",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Brace",
+          "bonus": ""
+        },
+        {
+          "name": "Climb",
+          "bonus": ""
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Direction Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Distance Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Force",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Life Sense",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Listen",
+          "bonus": ""
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [],
+        "eyes": [],
+        "skin": [
+          "Bone",
+          "Horn",
+          "Earthern",
+          "Cloth",
+          "Hide",
+          "Crystal"
+        ]
+      },
+      "abilities": [
+        "Breathless",
+        "Construct Mind",
+        "Construct Form",
+        "Hide(1/6)",
+        "Magical Hearing",
+        "Magical Sight",
+        "Magical Touch",
+        "Magical Voice"
+      ],
+      "disabilities": [
+        "Construct Spirit",
+        "Infertile",
+        "No Intake",
+        "No Sense of Smell",
+        "No Sense of Taste",
+        "Cannot Swim"
+      ],
+      "immunities": [
+        "Aging",
+        "Disease",
+        "Fatigue",
+        "Fear",
+        "Fire Hardened",
+        "Frost Hardened",
+        "Poison(Greater)",
+        "Hold",
+        "Sleep",
+        "Transformation of Form(Lesser)"
+      ],
+      "fertileWith": [],
+      "ages": {
+        "startLow": 10,
+        "startHigh": 40,
+        "maxAge": "1000"
+      },
+      "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Maginos(Wood)",
+    "type": "race",
+    "system": {
+      "description": "",
+      "attributeMods": {
+        "str": 2,
+        "agl": -1,
+        "vit": 2,
+        "int": 0,
+        "wis": -2,
+        "knw": 3,
+        "app": -2,
+        "chm": -2,
+        "soc": 0,
+        "aur": -4,
+        "pty": 0,
+        "wil": 2
+      },
+      "attributeLimits": {
+        "str": 21,
+        "agl": 18,
+        "vit": 21,
+        "int": 20,
+        "wis": 18,
+        "knw": 21,
+        "app": 12,
+        "chm": 16,
+        "soc": 19,
+        "aur": 15,
+        "pty": 20,
+        "wil": 21
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": 2,
+        "titleFormula": "1d4+2",
+        "titleDice": "1",
+        "titleMax": 4,
+        "titleMod": 2
+      },
+      "characteristicMods": {
+        "perception": -5,
+        "affinity": -5,
+        "fortune": -5
+      },
+      "resistanceMods": {
+        "magic": 0,
+        "illusion": -20,
+        "control": 0,
+        "poison": 0,
+        "disease": 0
+      },
+      "movement": {
+        "speedMultiplier": 0,
+        "walk": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "jog": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "run": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": 0,
+        "jumpUp": 0
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Maginos",
+      "physiqueLock": "",
+      "formless": false,
+      "canSwim": true,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Body Control",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Brace",
+          "bonus": ""
+        },
+        {
+          "name": "Climb",
+          "bonus": ""
+        },
+        {
+          "name": "Detect Magic",
+          "bonus": ""
+        },
+        {
+          "name": "Direction Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Distance Knowledge",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Force",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Life Sense",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Listen",
+          "bonus": ""
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [],
+        "eyes": [],
+        "skin": [
+          "Bone",
+          "Horn",
+          "Earthern",
+          "Cloth",
+          "Hide",
+          "Crystal"
+        ]
+      },
+      "abilities": [
+        "Breathless",
+        "Construct Mind",
+        "Construct Form",
+        "Hide(1/6)",
+        "Magical Hearing",
+        "Magical Sight",
+        "Magical Touch",
+        "Magical Voice"
+      ],
+      "disabilities": [
+        "Construct Spirit",
+        "Infertile",
+        "No Intake",
+        "No Sense of Smell",
+        "No Sense of Taste",
+        "Cannot Swim"
+      ],
+      "immunities": [
+        "Aging",
+        "Disease",
+        "Fatigue",
+        "Fear",
+        "Fire Hardened",
+        "Frost Hardened",
+        "Poison(Greater)",
+        "Hold",
+        "Sleep",
+        "Transformation of Form(Lesser)"
+      ],
+      "fertileWith": [],
+      "ages": {
+        "startLow": 10,
+        "startHigh": 40,
+        "maxAge": "1000"
+      },
+      "sourcebook": "XXX"
     }
   }
 ]

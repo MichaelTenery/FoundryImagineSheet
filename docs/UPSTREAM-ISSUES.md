@@ -1346,3 +1346,73 @@ your data and was only made after you confirmed it, and this would be a second s
 word and it becomes a one-line entry in `ROW_REPAIRS` beside Monk's, applied on load and printed on
 every extraction run. Meanwhile the Items directory files Beguiler under "Other" rather than
 creating a folder titled with a paragraph, and the class is otherwise complete and playable.
+
+## 45. Two race names in `racefertiledict` are malformed
+
+**Status:** open · **Severity:** two Half Race pairings are silently impossible; the intent is obvious but the text is yours
+
+Found 2026-09-21 by a new check (`check_race_references` in `build_documents.py`), which follows
+every race NAMED by a fertility list or a class's barred-race list and reports any that names no
+race that exists. It was written because splitting the faeries into winged and wingless races moved
+four names, and nothing would have caught a list left pointing at the old one. It found two faults
+of yours on its first run:
+
+```
+racefertiledict  Elf(Sea)               ... ,Elf(Wood))          -- one bracket too many
+racefertiledict  Human(Civilized:City)  ... ,Human(Barbaric)Human(Civilized:Port), ...
+                                                                -- two names, no comma between them
+```
+
+Neither is ambiguous: a Sea Elf is meant to be fertile with `Elf(Wood)`, and a City Human with both
+`Human(Barbaric)` and `Human(Civilized:Port)`. The effect is small and one-directional — the Half
+Race picker offers the first race's partners, so a Sea Elf is not offered a Wood Elf, though a Wood
+Elf *is* offered a Sea Elf, because the Wood Elf's own list is spelt correctly. So the pairing is
+reachable from one side only.
+
+**The port has not repaired either**, on the same footing as Monk and Beguiler: a repair edits your
+data, and the two that exist were both made on your explicit word. Say so and they become two lines
+in `ROW_REPAIRS`, applied on load and printed on every run.
+
+**The same check also reports `Famorian` (7 classes) and `Formless` (11 classes) as barred races
+that do not exist**, which is not a fault of yours — it is the port's own gap, those two races not
+being built yet, and it is tracked on the board rather than here. It is worth recording that your
+class data has always expected them.
+
+## 46. `setFormlessStartingRace` has `case "Fairy"` twice, and no case for Sporeling
+
+**Status:** open · **Severity:** a Formless inhabiting a Sporeling gets the previous host's body; the intended row is unambiguous
+
+Found 2026-09-21 while specifying the Formless race. `setFormlessStartingRace`
+(`sheet-worker.js:34880`) opens with a guard naming four hosts:
+
+```js
+if (tmphost=="Fairy" || tmphost=="Fairy(Dark)" || tmphost=="Sporeling" || tmphost=="Podling") {
+```
+
+The switch inside it then has these four cases:
+
+```
+line 34891   case "Fairy":
+line 34898   case "Fairy(Dark)":
+line 34905   case "Podling":
+line 34912   case "Fairy":        <-- meant to be "Sporeling"
+```
+
+So a Formless whose host is a Sporeling passes the guard, matches no case, and leaves
+`tempRaceDetails` holding whatever the last host set — or nothing at all on a fresh sheet. The
+fourth case is unreachable, because the first `case "Fairy"` already caught it.
+
+**The intended row is not in doubt.** The numbers in the fourth case are Sporeling's:
+`[-4,3,-2,0,0,11,20,18,18,16,"",-2,...]` — a starting Endurance modifier of −2 and limits of
+11/20/18 match `Sporeling` in `raceStatsAndMoveDetails` and match no Fairy. The case was evidently
+copied from the one above it and the label was not changed.
+
+**Not repaired**, on the same footing as Monk, Beguiler and item 45: it edits your data. It is a
+one-word change (`case "Fairy"` to `case "Sporeling"` at line 34912) and nothing else in the
+function needs touching. Say the word and it becomes an entry in `ROW_REPAIRS`, applied on load and
+printed on every extraction run.
+
+**Not yet reachable in the port either way** — Formless is not built (it takes its whole physical
+half from a host race and needs runtime logic, not a row), so this is recorded now, while it is in
+front of us, rather than found again later. The spec that will consume this row is
+`docs/sonnet/2026-09-21-race-forms.md`.

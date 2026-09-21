@@ -164,6 +164,33 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 				canSwim: new fields.BooleanField({ required: true, initial: false })
 			}),
 
+			// @MARKER RACE FORMS
+			// Five of his races are one dictionary entry and more than one race a character can be,
+			// because his sheet asks a SECOND question beside the race picker and writes the answer
+			// into the name: "Maginos[Clay]", or the slight-physique tick for the faeries. A Foundry
+			// race is an Item with no second dropdown to hang off it, so each form is a race
+			// document of its own -- the call already made for the classes that split on good/evil.
+			//
+			// sourceRace is HIS name for the race, and it is what every table keyed by race name is
+			// looked up under: the racial skills, the abilities, the fertility list, the ages, the
+			// body type, the colours, and the height band. For every other race it is the race's own
+			// name, so a reader never has to know which kind they are holding.
+			sourceRace: new fields.StringField({ required: true, initial: "" }),
+
+			// Which physique this form is, where the form IS a physique -- "slight" for a winged
+			// faerie, "ordinary" for a wingless one, empty for every other race.
+			//
+			// In his code the slight-physique branch of Fairy, Fairy(Dark), Podling and Sporeling is
+			// the branch that sets "Fly:" and the ordinary branch sets "None:", so for those four,
+			// slight build is what wings ARE. Michael's call, 2026-09-21: the two are one choice.
+			// The generator therefore forces the tick on for a winged form and off for a wingless
+			// one, and does not offer it. Gremlin is not one of these -- it flies either way -- and
+			// keeps the free choice.
+			physiqueLock: new fields.StringField({
+				required: true, initial: "", blank: true,
+				choices: ["", "slight", "ordinary"]
+			}),
+
 			// @MARKER TRAITS
 			// formless marks a race with no fixed body, which matters to the body chart and to
 			// transformation. canSwim is stored per race because it is not universal.

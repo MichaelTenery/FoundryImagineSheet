@@ -302,7 +302,9 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		// height, and with no height there is no weight either. That is Daryl's "Rolling Age works.
 		// Rolling Height does not" on 2026-09-20: age is rolled from the race's own ages object and
 		// was never affected.
-		var tmprolled = rollPhysique(tmpderived.raceNames ?? [],
+		// HIS names for the races, not the port's: a split form (Fairy(Winged), Maginos(Clay)) is a
+		// name of ours and his getRaceHeightType and getRaceFrameType have never heard of it.
+		var tmprolled = rollPhysique(tmpderived.raceSourceNames ?? tmpderived.raceNames ?? [],
 			tmpfinals.str?.final ?? 0, tmpfinals.agl?.final ?? 0, ImagineCharacterGenerator.#die);
 
 		if (tmprolled.height) {

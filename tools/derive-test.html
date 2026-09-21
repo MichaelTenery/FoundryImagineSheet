@@ -1298,6 +1298,118 @@ check("...but each of its paths does, and names it as the base",
 	["Elementalist(Call of Death)", "Elementalist(Call of Life)"]);
 check("a class that does not split is its own base",
 	classByName("Warrior").system.baseClass, "Warrior");
+
+// --- the split races: winged faeries and Maginos materials --------------------------------------
+// Five of his races are ONE dictionary entry and more than one race a character can be, because
+// his sheet asks a second question beside the race picker. Each form is now a document of its own.
+// See DECISIONS.md 2026-09-21 and the @MARKER RACE FORMS notes in build_documents.py and item-race.mjs.
+const raceDocs = await (await fetch("../src/packs/documents/races.json")).json();
+const raceByName = (n) => raceDocs.find(d => d.name === n);
+
+check("118 race documents: his 110, less the four faeries, plus their eight forms and four Maginos materials",
+	raceDocs.length, 118);
+check("a race he split with a second dropdown has no document under his own name",
+	["Fairy", "Fairy(Dark)", "Podling", "Sporeling"].filter(n => raceByName(n)), []);
+check("...but Maginos keeps one, because his sheet offers an [Other] material",
+	!!raceByName("Maginos"), true);
+check("every form says which of his races its other tables come from",
+	["Fairy(Winged)", "Fairy(Dark Wingless)", "Podling(Winged)", "Maginos(Metal)"]
+		.map(n => raceByName(n).system.sourceRace),
+	["Fairy", "Fairy(Dark)", "Podling", "Maginos"]);
+check("a race that was never split is its own source",
+	raceByName("Nixie").system.sourceRace, "Nixie");
+
+// The whole point of the split: in his code the wings ARE the slight-physique branch.
+check("a winged form flies and a wingless one has no special movement at all",
+	["Fairy(Winged)", "Fairy(Wingless)", "Podling(Winged)", "Podling(Wingless)"]
+		.map(n => raceByName(n).system.movement.specialName),
+	["Fly:", "None:", "Fly:", "None:"]);
+check("a winged form is locked to slight physique and a wingless one out of it",
+	["Fairy(Winged)", "Fairy(Wingless)", "Sporeling(Winged)", "Sporeling(Wingless)"]
+		.map(n => raceByName(n).system.physiqueLock),
+	["slight", "ordinary", "slight", "ordinary"]);
+// Gremlin has a slight-physique variant too and flies EITHER way, so it was deliberately NOT split
+// and its tick stays the free choice it has always been.
+check("Gremlin is not split, flies anyway, and locks nothing",
+	[raceByName("Gremlin").system.physiqueLock, raceByName("Gremlin").system.movement.specialName],
+	["", "Fly:"]);
+// The trade his data records: a wingless faerie gains skills instead of flight.
+check("a wingless Fairy gains Climb and Cover Tracks, which the winged form does not have",
+	raceByName("Fairy(Wingless)").system.racialSkills.map(s => s.name)
+		.filter(n => !raceByName("Fairy(Winged)").system.racialSkills.map(s => s.name).includes(n)),
+	["Climb", "Cover Tracks"]);
+// Wood Lore is off the Dark Fairy at the developer's instruction (src/packs/manual/races.json),
+// and that override is of the WINGLESS form -- it never applied to the winged one.
+check("a wingless Dark Fairy gains Climb and NOT Wood Lore, the override having followed the split",
+	raceByName("Fairy(Dark Wingless)").system.racialSkills.map(s => s.name)
+		.filter(n => !raceByName("Fairy(Dark Winged)").system.racialSkills.map(s => s.name).includes(n)),
+	["Climb"]);
+// Empty means "the same list", not "none" -- getting that backwards would strip a Podling of all
+// thirteen of its skills for being winged.
+check("Podling's two forms have the same thirteen skills; only the wings differ",
+	[raceByName("Podling(Winged)").system.racialSkills.length,
+	 raceByName("Podling(Wingless)").system.racialSkills.length], [13, 13]);
+// A split form is a finished race: the overlay must not be waiting to fire a second time on it.
+check("a split form carries no second form of its own",
+	["Fairy(Winged)", "Fairy(Wingless)", "Podling(Winged)"]
+		.map(n => raceByName(n).system.slightPhysique.hasVariant), [false, false, false]);
+
+// The four Maginos materials are four full rows of his, differing only in endurance and floating.
+check("the four materials differ in starting endurance, and his bare row is the Clay one",
+	["Maginos", "Maginos(Clay)", "Maginos(Metal)", "Maginos(Stone)", "Maginos(Wood)"]
+		.map(n => raceByName(n).system.endurance.startMod), [2, 2, 4, 3, 2]);
+check("only a wooden Maginos floats",
+	["Maginos(Clay)", "Maginos(Metal)", "Maginos(Stone)", "Maginos(Wood)"]
+		.map(n => raceByName(n).system.canSwim), [false, false, false, true]);
+
+// Every list that NAMES a race had to be rewritten, or it points at nothing.
+check("a race whose fertility list named a faerie now names both its forms",
+	raceByName("Brownie").system.fertileWith.filter(n => n.startsWith("Fairy")),
+	["Fairy(Winged)", "Fairy(Wingless)", "Fairy(Dark Winged)", "Fairy(Dark Wingless)"]);
+// His rule is that a race is always fertile with itself, which is why no list names its own race.
+// Splitting one race into two names breaks that silently, so the siblings are added by hand.
+check("two forms of one race can still have children together",
+	[raceByName("Fairy(Winged)").system.fertileWith.includes("Fairy(Wingless)"),
+	 raceByName("Podling(Wingless)").system.fertileWith.includes("Podling(Winged)")], [true, true]);
+check("...but a Maginos still breeds with nothing, four materials or not",
+	raceByName("Maginos(Wood)").system.fertileWith, []);
+check("no fertility list anywhere names a race that no longer exists",
+	raceDocs.flatMap(d => d.system.fertileWith
+		.filter(n => ["Fairy", "Fairy(Dark)", "Podling", "Sporeling"].includes(n))), []);
+check("a class barred to a faerie is barred to both of its forms",
+	classByName("Acrobat").system.blockedRaces.filter(n => n.startsWith("Fairy")),
+	["Fairy(Winged)", "Fairy(Wingless)"]);
+
+// --- the physique lock at runtime ---------------------------------------------------------------
+check("a race with no lock leaves the choice with the player",
+	RR.resolvePhysiqueLock([raceByName("Nixie").system]).locked, false);
+check("a winged race forces the tick on",
+	[RR.resolvePhysiqueLock([raceByName("Fairy(Winged)").system]).locked,
+	 RR.resolvePhysiqueLock([raceByName("Fairy(Winged)").system]).value], [true, true]);
+check("a wingless race forces it off",
+	[RR.resolvePhysiqueLock([raceByName("Fairy(Wingless)").system]).locked,
+	 RR.resolvePhysiqueLock([raceByName("Fairy(Wingless)").system]).value], [true, false]);
+check("a locked race half decides it for a half race whose other half is free",
+	[RR.resolvePhysiqueLock([raceByName("Fairy(Winged)").system, raceByName("Gnome").system]).locked,
+	 RR.resolvePhysiqueLock([raceByName("Fairy(Winged)").system, raceByName("Gnome").system]).value],
+	[true, true]);
+// A winged parent and a wingless one is a pair with no right answer. Reported, never refused --
+// the call already made for a barred class and an infertile pair.
+check("a winged half and a wingless half is a conflict, and the choice goes back to the player",
+	[RR.resolvePhysiqueLock([raceByName("Fairy(Winged)").system, raceByName("Podling(Wingless)").system]).conflict,
+	 RR.resolvePhysiqueLock([raceByName("Fairy(Winged)").system, raceByName("Podling(Wingless)").system]).locked],
+	[true, false]);
+check("nothing at all is not a lock", RR.resolvePhysiqueLock([]).locked, false);
+check("...and neither is a missing race", RR.resolvePhysiqueLock([null, undefined]).locked, false);
+
+// His height and frame tables are keyed by HIS names, so a form has to be looked up under its
+// source race or a character of one gets no height and therefore no weight.
+const PT = await import("../module/physique-tables.mjs");
+check("his height table has never heard of the port's own names for the faerie forms",
+	["Fairy(Winged)", "Podling(Wingless)"].filter(n => PT.HEIGHT_TYPE_BY_RACE[n]), []);
+check("...so each form's sourceRace is a name it does have",
+	["Fairy(Winged)", "Fairy(Dark Wingless)", "Podling(Winged)", "Sporeling(Wingless)", "Maginos(Metal)"]
+		.filter(n => !PT.HEIGHT_TYPE_BY_RACE[raceByName(n).system.sourceRace]), []);
 check("Elementalist's death path carries his alignment requirement",
 	classByName("Elementalist(Call of Death)").system.requirements.alignment,
 	"True Neutral or Neutral Evil");

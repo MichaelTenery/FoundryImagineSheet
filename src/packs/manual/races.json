@@ -41,9 +41,9 @@
     }
   },
   "entries": {
-    "Fairy(Dark)": {
+    "Fairy(Dark Wingless)": {
       "_override": true,
-      "_why": "Wood Lore removed from the Dark Fairy's racial skills at the developer's instruction, 2026-09-21. His raceSkillDetailValues gives the WINGLESS form eleven skills, two of which -- Climb and Wood Lore +10% -- the winged form does not get; this drops Wood Lore from that list. Climb is left, because only Wood Lore was asked for. The winged (slight-physique) form never had it and is untouched. Remove this entry to go back to what his sheet says.",
+      "_why": "Wood Lore removed from the Dark Fairy's racial skills at the developer's instruction, 2026-09-21. His raceSkillDetailValues gives the WINGLESS form eleven skills, two of which -- Climb and Wood Lore +10% -- the winged form does not get; this drops Wood Lore from that list. Climb is left, because only Wood Lore was asked for. The winged form never had it and is untouched. Retargeted from \"Fairy(Dark)\" to \"Fairy(Dark Wingless)\" on 2026-09-21, when the faeries were split into winged and wingless races -- this was always an override of the wingless form and his own name for the race no longer names one. Remove this entry to go back to what his sheet says.",
       "racialSkills": [
         {
           "name": "Darkness",

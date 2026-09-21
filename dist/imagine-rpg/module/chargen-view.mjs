@@ -18,7 +18,7 @@
 //==================================================================================================================
 
 import { ATTRIBUTE_TABLES } from "./config-tables.mjs";
-import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique } from "./race-rules.mjs";
+import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePhysiqueLock } from "./race-rules.mjs";
 import { buildStartingKit } from "./starting-kit.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
@@ -89,10 +89,23 @@ import {
 		var tmpRace1 = tmpFind(tmpContent.races, tmpState.race1);
 		var tmpRace2 = tmpState.race2 ? tmpFind(tmpContent.races, tmpState.race2) : null;
 		var tmpRaceNames = [tmpRace1?.name, tmpRace2?.name].filter(tmpName => tmpName);
+		// HIS name for each race, which is what the height and frame tables are keyed by. A split
+		// form -- Fairy(Winged), Maginos(Clay) -- is a name of the port's own, and his getRaceHeightType
+		// has never heard of it; sourceRace is the race it was split from. Every other race gives
+		// back its own name, so this is the same list for all but the twelve.
+		var tmpRaceSourceNames = [tmpRace1, tmpRace2]
+			.filter(tmpDoc => tmpDoc).map(tmpDoc => tmpDoc.system?.sourceRace || tmpDoc.name);
+
+		// @MARKER RACE FORMS
+		// A winged race is always of slight physique and a wingless one never is, so where the race
+		// says which, the tick is not the player's to set and its value comes from here instead.
+		var tmpPhysique = resolvePhysiqueLock([tmpRace1?.system, tmpRace2?.system]);
+		var tmpIsSlight = tmpPhysique.locked ? tmpPhysique.value : tmpState.slightPhysique;
+
 		// The slight-physique form is chosen BEFORE the two halves are combined, so a half race
 		// gets the right form of each parent rather than the ordinary form of both.
-		var tmpSystem1 = tmpRace1 ? applySlightPhysique(tmpRace1.system, tmpState.slightPhysique) : null;
-		var tmpSystem2 = tmpRace2 ? applySlightPhysique(tmpRace2.system, tmpState.slightPhysique) : null;
+		var tmpSystem1 = tmpRace1 ? applySlightPhysique(tmpRace1.system, tmpIsSlight) : null;
+		var tmpSystem2 = tmpRace2 ? applySlightPhysique(tmpRace2.system, tmpIsSlight) : null;
 		var tmpRace = tmpSystem1 ? (tmpSystem2 ? combineHalfRace(tmpSystem1, tmpSystem2) : tmpSystem1) : null;
 
 		var tmpType = CHARACTER_TYPES[tmpState.charType] ?? CHARACTER_TYPES.adventurer;
@@ -103,7 +116,7 @@ import {
 
 		var tmpHuman = getCivilizedHumanAllowance(tmpRaceNames);
 		var tmpBuilt = buildRatings({
-			base: tmpNumericBase, slightPhysique: tmpState.slightPhysique, ratio: tmpType.ratio,
+			base: tmpNumericBase, slightPhysique: tmpIsSlight, ratio: tmpType.ratio,
 			swaps: tmpState.swaps,
 			humanBonuses: tmpState.humanBonuses.slice(0, tmpHuman.bonus),
 			humanMoves: tmpState.humanMoves.slice(0, tmpHuman.moves)
@@ -122,6 +135,7 @@ import {
 
 		return {
 			race1: tmpRace1, race2: tmpRace2, raceNames: tmpRaceNames, race: tmpRace,
+			raceSourceNames: tmpRaceSourceNames, physique: tmpPhysique, slightPhysique: tmpIsSlight,
 			type: tmpType, hasBase: tmpHasBase, ratings: tmpBuilt.ratings, ratingIssues: tmpBuilt.issues,
 			finals: tmpFinals, human: tmpHuman,
 			klass: tmpClass, blocked: tmpBlocked, classIssues: tmpClassIssues, cannotCast: tmpCannotCast,
@@ -187,6 +201,13 @@ import {
 		};
 
 		// @MARKER BASICS
+		// The tick is on this step and the race is chosen on the next, so a player may tick it and
+		// then choose a race that decides it for them. The DERIVED value is what the character is
+		// built from either way; coming back here shows the tick locked and says what locked it.
+		tmpView.slightPhysique = tmpD.slightPhysique;
+		tmpView.physiqueLocked = tmpD.physique.locked;
+		tmpView.physiqueConflict = tmpD.physique.conflict;
+		tmpView.physiqueReason = tmpD.physique.reason;
 		tmpView.charTypes = Object.entries(CHARACTER_TYPES).map(([tmpKey, tmpDef]) => tmpOption(tmpKey,
 			`${tmpDef.label} -- ${tmpDef.sets == 1 ? "one roll" : tmpDef.sets + " rolls, best kept"}, ${tmpDef.ratio}:1`
 			+ (tmpDef.fromBook ? " (Player's Guide; not on his sheet)" : ""), tmpState.charType));
@@ -365,7 +386,8 @@ import {
 	// takes. Kept here, beside the view, so the window and the preview make identical characters.
 	export function choicesFromState(tmpState, tmpDerived) {
 		return {
-			name: tmpState.name, gender: tmpState.gender, slightPhysique: tmpState.slightPhysique,
+			// The DERIVED physique, not the ticked one: a winged race sets it for the character.
+			name: tmpState.name, gender: tmpState.gender, slightPhysique: tmpDerived.slightPhysique,
 			raceNames: tmpDerived.raceNames, className: tmpState.className,
 			ratings: tmpDerived.ratings,
 			classSkills: tmpDerived.classSkills,

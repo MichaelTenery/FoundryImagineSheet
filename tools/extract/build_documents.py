@@ -410,6 +410,82 @@ def build_slight_physique(tmpname, tmprow, tmpslightstats, tmpslightskills):
     }
 
 
+# @MARKER RACE FORMS
+# Five races are ONE entry in his dictionaries and MORE THAN ONE race a character can actually be.
+# His sheet handles that with a SECOND dropdown beside the race picker -- maginos_material, and the
+# slight-physique tick -- and writes the answer into the name as "Maginos[Clay]". A Foundry race is
+# an Item, and there is no second dropdown to hang off it, so each form becomes a race document of
+# its own. That is the call already made for the classes that split on a good/evil choice
+# (Knight(Templar) and Knight(Dark Templar)), and these are named the same way.
+#
+# THE FOUR WINGED FAERIES. In his code the slight-physique branch of Fairy, Fairy(Dark), Podling and
+# Sporeling is the one that sets "Fly:", and the ordinary branch sets "None:" -- so among these four,
+# slight build IS what wings mean, and the two were never independent choices. Michael's call,
+# 2026-09-21: tie them together. A winged form is locked to slight physique and a wingless one is
+# locked out of it, which `physiqueLock` carries through to the generator.
+#
+# Gremlin is deliberately NOT here. It has a slight-physique variant too, and it flies EITHER way --
+# the difference is a racial skill going the other way, its ordinary form gaining Climb -- so there
+# is no winged/wingless split to make and its tick stays the free choice it has always been.
+#
+# THE FOUR MAGINOS MATERIALS are four full rows of his own, differing only in endurance and in
+# whether the thing floats. His bare "Maginos" row is identical to his Clay one and is kept as the
+# [Other] material his sheet offers for a Maginos built of something he does not list, so that race
+# is added to rather than replaced. Its materials are read from the data rather than named here.
+#
+#                 the form's name              built from    locks the tick to
+RACE_FORMS = {
+    "Fairy":       [("Fairy(Winged)",          "slight",   "slight"),
+                    ("Fairy(Wingless)",        "ordinary", "ordinary")],
+    "Fairy(Dark)": [("Fairy(Dark Winged)",     "slight",   "slight"),
+                    ("Fairy(Dark Wingless)",   "ordinary", "ordinary")],
+    "Podling":     [("Podling(Winged)",        "slight",   "slight"),
+                    ("Podling(Wingless)",      "ordinary", "ordinary")],
+    "Sporeling":   [("Sporeling(Winged)",      "slight",   "slight"),
+                    ("Sporeling(Wingless)",    "ordinary", "ordinary")],
+}
+
+
+def race_form_names():
+    """His name for a race -> the names it is actually built under.
+
+    A race he split with a second dropdown no longer exists under his own name, so every list that
+    NAMES a race -- a fertility list, a class's barred races -- has to be rewritten or it points at
+    nothing. A race that was added to rather than replaced keeps its own name in the list as well.
+    """
+    tmpmap = {tmpbase: [tmpform[0] for tmpform in tmpforms]
+              for tmpbase, tmpforms in RACE_FORMS.items()}
+    for tmpinline in ((load_named("inlineRaceStats") or {}).get("entries", {})):
+        tmpbase, tmpsep, tmpmaterial = tmpinline.partition("(")
+        if tmpbase == "Maginos" and tmpsep:
+            tmpmap.setdefault(tmpbase, [tmpbase]).append(tmpinline)
+    return tmpmap
+
+
+def expand_race_names(tmpnames, tmpmap):
+    """Rewrite a list of race names through race_form_names, keeping his order and dropping none."""
+    tmpout = []
+    for tmpname in tmpnames:
+        for tmpexpanded in tmpmap.get(tmpname, [tmpname]):
+            if tmpexpanded not in tmpout:
+                tmpout.append(tmpexpanded)
+    return tmpout
+
+
+def race_form_siblings(tmpfertile, tmpname, tmpkey, tmpmap):
+    """Add a split form's OTHER forms to its fertility list, where the race breeds at all.
+
+    His sheet never lists a race in its own fertility list because a race is always fertile with
+    itself -- canRacesBreed says yes before it reads the list. Splitting one race into two names
+    breaks that silently, so the siblings are put in by hand. A race whose list is empty is one
+    that does not breed, and stays that way.
+    """
+    if not tmpfertile or tmpname == tmpkey:
+        return tmpfertile
+    return tmpfertile + [tmpsibling for tmpsibling in tmpmap.get(tmpkey, [])
+                         if tmpsibling != tmpname and tmpsibling not in tmpfertile]
+
+
 def build_races():
     payload = load_named("raceStatsAndMoveDetails")
     if not payload:
@@ -460,9 +536,6 @@ def build_races():
     # shipping them with a row of zeros would give a character limits of 0 in every attribute --
     # worse than the race being absent. Their other tables are all present and waiting.
     #
-    # The four Maginos material variants are NOT races of their own -- they are not in specieslist,
-    # and are picked separately the way Changeling's forms are -- so they are carried on the
-    # Maginos race as variants rather than becoming four more entries in the picker.
     rows = dict(payload["entries"])
     # The slight-physique half of each inline row and of the inline skill rows. Four races have a
     # genuinely different second form -- see the @MARKER SLIGHT PHYSIQUE note in item-race.mjs --
@@ -483,43 +556,84 @@ def build_races():
                  "also in raceStatsAndMoveDetails; the inline row is the one his code uses")
         rows[tmpinline] = tmprow
 
+    # Which dictionary key each document's OTHER tables come from, and which physique the form is
+    # locked to. Every table but the stat row -- skills, abilities, fertility, ages, body type, the
+    # colours -- is keyed by his name for the race, so a form has to say where to look.
+    tmpsourcerace = {}
+    tmpformlock = {}
+    tmpformmap = race_form_names()
+    for tmpbase, tmpforms in RACE_FORMS.items():
+        if tmpbase not in rows:
+            note("race-form-base-missing", "raceStatsAndMoveDetails/%s" % tmpbase,
+                 "no row to split into forms; the forms are not built")
+            continue
+        tmpbaserow = rows.pop(tmpbase)
+        for tmpformname, tmpbranch, tmplock in tmpforms:
+            # The slight branch is a full row of his, so it is used whole rather than overlaid.
+            rows[tmpformname] = (tmpslightstats.get(tmpbase) or tmpbaserow) \
+                if tmpbranch == "slight" else tmpbaserow
+            tmpsourcerace[tmpformname] = tmpbase
+            tmpformlock[tmpformname] = tmplock
+        note("race-split-into-forms", "raceStatsAndMoveDetails/%s" % tmpbase,
+             "replaced by %s; his slight-physique branch is the winged one, so the two are "
+             "locked together" % ", ".join(f[0] for f in tmpforms))
+
+    for tmpbase, tmpmaterials in sorted(tmpvariants.items()):
+        for tmpmaterial, tmpmaterialrow in sorted(tmpmaterials.items()):
+            tmpformname = "%s(%s)" % (tmpbase, tmpmaterial)
+            rows[tmpformname] = tmpmaterialrow
+            tmpsourcerace[tmpformname] = tmpbase
+        note("race-split-into-forms", "inlineRaceStats/%s" % tmpbase,
+             "the material variants (%s) become races of their own; the bare %s stays as the "
+             "[Other] material his sheet offers"
+             % (", ".join(sorted(tmpmaterials)), tmpbase))
+
     docs = []
     for tmpname, tmprow in rows.items():
+        # His key for this race, which is the document's own name for every race but a split form.
+        tmpkey = tmpsourcerace.get(tmpname, tmpname)
+        tmplock = tmpformlock.get(tmpname, "")
         where = "raceStatsAndMoveDetails/%s" % tmpname
         for tmptable, tmpsource in (("raceSkillDetailValues", raceskills), ("raceFeatureAbilities", racefeatures),
                                     ("racefertiledict", racefertile), ("getAge", raceages)):
-            if tmpname in tmpsource:
+            if tmpkey in tmpsource:
                 continue
             # Changeling's racial skills depend on the FORM it is wearing, so his sheet keeps them
             # in a dictionary of their own keyed by form (changelingRaceSkillDetailValues, 41 of
             # them) rather than one list. There is nothing to put in racialSkills for it, and that
             # is the answer rather than a gap -- so it is said once, plainly, instead of being
             # reported as missing data every run.
-            if tmpname == "Changeling" and tmptable == "raceSkillDetailValues":
+            if tmpkey == "Changeling" and tmptable == "raceSkillDetailValues":
                 note("race-by-form", where,
                      "racial skills depend on the form worn; his changelingRaceSkillDetailValues "
                      "holds one list per form. Carried as a note on the race, not as a list.")
                 continue
             note("race-missing-from-table", where, "no entry in %s" % tmptable)
 
-        tmpskillrow = raceskills.get(tmpname, ["", [], ""])
+        tmpskillrow = raceskills.get(tmpkey, ["", [], ""])
+        # A winged form takes the slight branch's own skill list where there is one. His slight
+        # rows are stored only where they DIFFER, so an absent one means "the same list", never
+        # "no skills" -- getting that backwards would strip a Podling of all thirteen of its
+        # skills for being winged. Same rule as applySlightPhysique in module/race-rules.mjs.
+        if tmplock == "slight" and (tmpslightskills.get(tmpkey) or [None, []])[1]:
+            tmpskillrow = tmpslightskills[tmpkey]
         tmpracialskills = [{"name": clean_text(s[0]), "bonus": clean_text(str(s[1] or ""))}
                            for s in (tmpskillrow[1] or []) if s and s[0]]
         tmpskillnote = clean_text(str(tmpskillrow[2] if len(tmpskillrow) > 2 else ""))
-        if tmpname == "Changeling":
+        if tmpkey == "Changeling":
             tmpskillnote = ("This race's skills depend on the form it wears: his "
                             "changelingRaceSkillDetailValues holds a list for each of 41 forms. "
                             "Choosing them belongs to the form swap, which is not built yet.")
         if tmpskillnote == "None":
             tmpskillnote = ""
-        tmpfeatures = racefeatures.get(tmpname, ["", "", ""])
-        tmpages = raceages.get(tmpname, {})
+        tmpfeatures = racefeatures.get(tmpkey, ["", "", ""])
+        tmpages = raceages.get(tmpkey, {})
 
-        if tmpname not in bodymap:
+        if tmpkey not in bodymap:
             note("race-body-type-defaulted", where, "no case in getRacialBodyType; using Humanoid")
-        if tmpname in conditional:
+        if tmpkey in conditional:
             note("race-body-type-conditional", where,
-                 "body type depends on more than the race in his code; using %s" % bodymap.get(tmpname))
+                 "body type depends on more than the race in his code; using %s" % bodymap.get(tmpkey))
 
         tmpmods = {}
         tmplimits = {}
@@ -551,28 +665,25 @@ def build_races():
                             "between -10 and +10. The Fortune modifier below is left at 0 until "
                             "that roll is made.")
 
-        # The material a Maginos is built from changes only its endurance and whether it floats.
+        # The material a Maginos is built from changes only its endurance and whether it floats,
+        # and the bare race is the [Other] material for one built of something he does not list.
         if tmpname in tmpvariants:
-            for tmpform, tmpformrow in sorted(tmpvariants[tmpname].items()):
-                tmpnotes.append("%s: endurance %s, +%s per title (max %s%s). %s."
-                                % (tmpform,
-                                   tmpformrow.get("startEnduranceMod"),
-                                   tmpformrow.get("titleEnduranceFormula"),
-                                   tmpformrow.get("titleEnduranceMax"),
-                                   ", mod %s" % tmpformrow.get("titleEnduranceMod")
-                                   if tmpformrow.get("titleEnduranceMod") else "",
-                                   "Floats" if to_bool(tmpformrow.get("canSwim")) else "Sinks"))
-            note("race-by-variant", where,
-                 "the material variants (%s) differ only in endurance and swimming; carried as a "
-                 "note on the race, as Changeling's forms are"
-                 % ", ".join(sorted(tmpvariants[tmpname])))
+            tmpnotes.append("A Maginos is built of a material, and each is a race of its own: %s. "
+                            "This entry is the [Other] material his sheet offers for one made of "
+                            "something unlisted; its figures are his Clay ones."
+                            % ", ".join("%s(%s)" % (tmpname, m) for m in sorted(tmpvariants[tmpname])))
 
-        # The winged form of these four is the slight-physique one, which the port does not carry.
-        if tmpname in ("Fairy", "Fairy(Dark)", "Podling", "Sporeling"):
-            tmpnotes.append("His sheet splits this race by physique, and only the slight-physique "
-                            "form has wings -- the ordinary form has no special movement at all. "
-                            "The port has no slight-physique option yet, so the figures below are "
-                            "the ordinary, wingless form. Awaiting the developer.")
+        # The winged form of these four IS the slight-physique one, so the two are one choice.
+        if tmplock == "slight":
+            tmpnotes.append("This is the winged form. In his sheet wings belong to the "
+                            "slight-physique branch of this race, so a character of this race is "
+                            "always of slight physique (-1 Strength, +1 Agility) and the "
+                            "generator does not offer the choice.")
+        elif tmplock == "ordinary":
+            tmpnotes.append("This is the wingless form, which has no special movement at all. In "
+                            "his sheet wings belong to the slight-physique branch of this race, so "
+                            "a character of this race is never of slight physique and the "
+                            "generator does not offer the choice.")
 
         docs.append(make_doc(tmpname, "race", {
             "description": " ".join(tmpnotes),
@@ -618,21 +729,38 @@ def build_races():
                 "jumpStand": to_number(tmprow.get("jumpStand"), where, "jumpStand"),
                 "jumpUp": to_number(tmprow.get("jumpUp"), where, "jumpUp"),
             },
-            "slightPhysique": build_slight_physique(tmpname, tmprow, tmpslightstats, tmpslightskills),
+            # A split form has its physique baked into the row above, so there is no second form
+            # left to choose between and the overlay must not fire a second time.
+            "slightPhysique": build_slight_physique("" if tmplock else tmpname, tmprow,
+                                                    tmpslightstats, tmpslightskills),
+            "sourceRace": tmpkey,
+            "physiqueLock": tmplock,
             "formless": to_bool(tmprow.get("formless")),
             "canSwim": to_bool(tmprow.get("canSwim")),
-            "bodyType": bodymap.get(tmpname, "Humanoid"),
+            "bodyType": bodymap.get(tmpkey, "Humanoid"),
             "racialSkills": tmpracialskills,
             "racialSkillNote": tmpskillnote,
             "features": {
-                "hair": feature_colours(racehair.get(tmpname)),
-                "eyes": feature_colours(raceeyes.get(tmpname)),
-                "skin": feature_colours(raceskin.get(tmpname)),
+                "hair": feature_colours(racehair.get(tmpkey)),
+                "eyes": feature_colours(raceeyes.get(tmpkey)),
+                "skin": feature_colours(raceskin.get(tmpkey)),
             },
             "abilities": [clean_text(a) for a in split_list(tmpfeatures[0])],
             "disabilities": [clean_text(a) for a in split_list(tmpfeatures[1] if len(tmpfeatures) > 1 else "")],
             "immunities": [clean_text(a) for a in split_list(tmpfeatures[2] if len(tmpfeatures) > 2 else "")],
-            "fertileWith": [clean_text(a) for a in split_list(",".join(racefertile.get(tmpname, [])))],
+            # Eleven races name a faerie in their fertility list, and those names have just moved,
+            # so every list is rewritten. A Half Race picker offering "Fairy" would offer nothing.
+            #
+            # A form's SIBLINGS are added as well. His rule is that a race is always fertile with
+            # itself -- which is why no fertility list names its own race, and why canRacesBreed
+            # answers yes before it looks at the list -- and two forms of one race are still one
+            # race. Without this a winged Fairy could not have children with a wingless one, which
+            # is his data saying the opposite of what it says. Only where the race breeds at all:
+            # a Maginos is a construct, his list is "None", and four materials do not change that.
+            "fertileWith": race_form_siblings(
+                expand_race_names([clean_text(a) for a in split_list(",".join(racefertile.get(tmpkey, [])))],
+                                  tmpformmap),
+                tmpname, tmpkey, tmpformmap),
             "ages": {
                 "startLow": tmpages.get("startLow", 0),
                 "startHigh": tmpages.get("startHigh", 0),
@@ -803,7 +931,10 @@ def build_classes():
             "skillSlotsNeeded": to_number(slotsmap.get(tmpbasename, 0), where, "skillSlotsNeeded"),
             "classType": clean_text(str(tmprow.get("classType", ""))),
             "description": clean_text(str(tmprow.get("description", ""))),
-            "blockedRaces": [clean_text(r) for r in blockedraces.get(tmpbasename, [])],
+            # A class barred to "Fairy" is barred to both forms of one: his own name for a race
+            # he split with a second dropdown is not a race any character can now hold.
+            "blockedRaces": expand_race_names(
+                [clean_text(r) for r in blockedraces.get(tmpbasename, [])], race_form_names()),
             "baseClass": tmpbasename,
             "path": tmppath or "",
             "nonClassed": tmpbasename in NON_CLASSED,
@@ -1198,6 +1329,35 @@ def check_skill_references(tmpbuilt):
              % (tmpname, len(tmpwanted[tmpname])))
 
 
+def check_race_references(tmpbuilt):
+    """Every race NAMED by a fertility list or a class's barred races must be a race that exists.
+
+    Written when the faeries were split into winged and wingless races (2026-09-21): renaming a
+    race silently turns every list that names it into a list that names nothing, and there was no
+    check that would have caught it. It found two faults of HIS at once, which is why it stays --
+    see UPSTREAM-ISSUES.md. A name is reported, never repaired: guessing what he meant by
+    "Human(Barbaric)Human(Civilized:Port)" is his call, not the port's.
+    """
+    tmpraces = {tmpdoc["name"] for tmpdoc in tmpbuilt.get("races", [])}
+    if not tmpraces:
+        return
+
+    tmpwanted = {}
+    for tmpdoc in tmpbuilt.get("races", []):
+        for tmpname in tmpdoc["system"].get("fertileWith", []):
+            tmpwanted.setdefault(tmpname, []).append("race %s (fertileWith)" % tmpdoc["name"])
+    for tmpdoc in tmpbuilt.get("classes", []):
+        for tmpname in tmpdoc["system"].get("blockedRaces", []):
+            tmpwanted.setdefault(tmpname, []).append("class %s (blockedRaces)" % tmpdoc["name"])
+
+    tmpmissing = sorted(tmpname for tmpname in tmpwanted if tmpname not in tmpraces)
+    print("  race references checked: %d name(s), %d unresolved" % (len(tmpwanted), len(tmpmissing)))
+    for tmpname in tmpmissing:
+        note("race-reference-missing", tmpwanted[tmpname][0],
+             "%r is named but no race of that name is built (%d reference(s))"
+             % (tmpname, len(tmpwanted[tmpname])))
+
+
 # @MARKER SOURCE ATTRIBUTION
 # Which book each document comes from, out of src/packs/named/itemSources.json -- built from the
 # Source column of HIS Master Index by tools/extract/extract_sources.py, which see.
@@ -1352,6 +1512,7 @@ def main():
     print(f"{'total':14} {total:10}")
 
     check_skill_references(tmpbuilt)
+    check_race_references(tmpbuilt)
 
     if args.write:
         tmpmarked = write_unattributed_report(tmpbuilt)

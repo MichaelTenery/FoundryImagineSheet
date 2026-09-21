@@ -182,6 +182,45 @@
 	//     Podling, Sporeling   wings in the slight form, no skill difference
 	//     Gremlin              flies either way; the ORDINARY form gains Climb
 	//
+	// @MARKER RACE FORMS
+	// This is the function which says whether a character's race decides their physique for them.
+	//
+	// Four faerie races are split into a winged form and a wingless one, because in his code the
+	// wings ARE the slight-physique branch -- his slight branch sets "Fly:" where his ordinary one
+	// sets "None:". Michael's call, 2026-09-21: they are one choice, not two. So a winged form
+	// forces the tick on and a wingless form forces it off, and the generator stops offering it.
+	//
+	// Takes the race systems a character holds -- one, or the two halves of a Half Race, BEFORE
+	// they are combined, since combining loses which document each half came from. Returns what the
+	// tick must be, whether it is the character's to set, and why.
+	//
+	// A Half Race can hold one of each, and there is no answer that is not wrong for one parent.
+	// That is REPORTED rather than refused, which is what the port already does with a barred class
+	// and an infertile pair: the tick is left as the player set it and the header says so.
+	export function resolvePhysiqueLock(tmpRaceSystems) {
+		var tmpLocks = (tmpRaceSystems ?? []).filter(tmpSystem => tmpSystem)
+			.map(tmpSystem => tmpSystem.physiqueLock ?? "")
+			.filter(tmpLock => tmpLock);
+		if (!tmpLocks.length) { return { locked: false, value: null, conflict: false, reason: "" }; }
+		if (tmpLocks.includes("slight") && tmpLocks.includes("ordinary")) {
+			return {
+				locked: false, value: null, conflict: true,
+				reason: "One of these races is winged and the other wingless, and the wings are the "
+					+ "slight physique. Neither form can be right for both halves; the choice is "
+					+ "left with you and the Game Master."
+			};
+		}
+		var tmpIsSlight = tmpLocks[0] == "slight";
+		return {
+			locked: true, value: tmpIsSlight, conflict: false,
+			reason: tmpIsSlight
+				? "This race is the winged form, and its wings are its slight physique, so it is "
+					+ "always of slight build (-1 Strength, +1 Agility)."
+				: "This race is the wingless form. Wings are the slight physique for it, so it is "
+					+ "never of slight build."
+		};
+	}
+
 	// Returns the race untouched when it has no second form, so a caller may pass anything.
 	export function applySlightPhysique(tmpRaceSystem, tmpIsSlight) {
 		if (!tmpIsSlight || !tmpRaceSystem?.slightPhysique?.hasVariant) { return tmpRaceSystem; }

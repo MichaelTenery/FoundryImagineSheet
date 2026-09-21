@@ -3628,3 +3628,99 @@ it, so it cannot drift from the content it describes.
 Verified: 98% on the skills ground truth, unchanged; 1,163 checks across eight suites passing;
 41 modules parsing. Version 0.11.1.
 
+
+## The races he split with a second dropdown become races of their own (2026-09-21)
+
+Asked for directly, with Michael's reasoning relayed: the winged faerie types need a split type,
+"Fairy (Winged)" and "Fairy (Wingless)", and it should be tied to Slight Physique -- a winged form
+cannot be anything but slight, a wingless one cannot choose it. Maginos should split by the material
+it is built from. Famorian and Formless are missing. Undead transformations are missing, which is
+expected: they are not in his sheet yet.
+
+**Why there was anything to split.** Five of his races are ONE entry in his dictionaries and more
+than one race a character can actually be, because his sheet asks a SECOND question beside the race
+picker and writes the answer into the name: `maginos_material` gives "Maginos[Clay]", and the
+slight-physique tick decides whether a faerie has wings. A Foundry race is an Item. There is no
+second dropdown to hang off it, and an Item cannot ask a question. So each form becomes a document
+of its own -- which is the call already made for the seven classes that split on a good/evil choice,
+and these are named the same way: Fairy(Winged), Fairy(Dark Winged), Maginos(Metal).
+
+**The wings ARE the slight physique, and that is his code, not an interpretation.** In
+`applySingleRaceToAttribs` the slight-physique branch of Fairy, Fairy(Dark), Podling and Sporeling
+sets "Fly:" and the ordinary branch sets "None:". The two rows are otherwise identical -- the
+-1 Strength / +1 Agility comes from `phystrmod`/`physaglmod` elsewhere, not from the race row. So
+"winged" and "of slight build" were never two choices; they were one choice read twice. Michael's
+call ties them together, and the port can honour it exactly: a winged document carries
+`physiqueLock: "slight"` and a wingless one `"ordinary"`, `resolvePhysiqueLock` reads it, and the
+generator forces the tick and stops offering it. A winged Fairy therefore gets -1 STR / +1 AGL
+whether or not the box was ever ticked, and a wingless one never does however hard it is ticked.
+Verified against the real modules and the real content: Fairy(Winged) with the tick OFF comes out
+at STR 11 / AGL 13 from a base of 12, flying, with 12 racial skills; Fairy(Wingless) with the tick
+ON comes out at 12 / 12, flightless, with 14.
+
+**Gremlin is deliberately NOT split**, and it is the case that would have been got wrong by
+reasoning from "faeries have wings". It has a slight-physique variant too and it flies EITHER way;
+the difference is a racial skill going the other direction, its ORDINARY form gaining Climb. There
+is no winged/wingless split to make, so its tick stays the free choice it has always been. The four
+that split are the four the user named, and no more.
+
+**Maginos is added to rather than replaced.** Its four material rows are four full rows of his,
+differing only in starting endurance (2/4/3/2 for Clay/Metal/Stone/Wood) and in whether the thing
+floats (only Wood does). His bare Maginos row is byte-identical to his Clay one, and his sheet
+offers [Other] for a Maginos built of something he does not list -- so the bare race stays, as that
+option, and says so in its description. The four rows had in fact been extracted for months and
+thrown away: `build_races` collected them into a local `tmpvariants` and never read it, writing a
+one-line note on the base race instead. That is why Daryl could not pick a material.
+
+**`sourceRace` is the mechanism, not string-stripping.** Every table but the stat row is keyed by
+HIS name for the race -- racial skills, abilities, disabilities, immunities, fertility, ages, body
+type, the hair/eye/skin colours, and the height and frame bands. A form is a name of the port's own
+that his `getRaceHeightType` has never heard of, so each document records the race it was split
+from and every lookup goes through that. Nothing parses a name to find a base, because Fairy(Dark)
+would parse to Fairy and quietly hand a Dark Fairy the wrong race's skills. The generator passes
+`raceSourceNames` to `rollPhysique` for the same reason; without it a split race would roll no
+height, and with no height there is no weight either, which is exactly the failure mode Daryl
+reported on 2026-09-20 from a different cause.
+
+**Two lists that NAME races had to be rewritten, and one of them hid a bug.** Eleven races name a
+faerie in their fertility list and 36 classes bar one, so all of those were expanded through the
+split. The bug: his rule is that a race is always fertile with ITSELF, which is why no fertility
+list ever names its own race and why `canRacesBreed` answers yes before it reads the list. Two forms
+of one race are still one race -- but they now have different names, so a winged Fairy could not
+have children with a wingless one. The siblings are added explicitly, and only where the race breeds
+at all: a Maginos is a construct, his list is None, and four materials do not change that.
+
+**The Wood Lore override followed the split.** `src/packs/manual/races.json` overrode Fairy(Dark) to
+take Wood Lore off it (2026-09-21, at the developer's instruction). That was always an override of
+the WINGLESS form -- his `raceSkillDetailValues` gives Wood Lore to the wingless branch and the
+winged form never had it -- so it is retargeted to Fairy(Dark Wingless) with the reason recorded in
+the entry. Left alone it would have become a *new* Custom race called Fairy(Dark), silently, and the
+real wingless Dark Fairy would have got Wood Lore back. The build reports it as an override rather
+than an addition, which is how it was caught.
+
+**A new check, and it found four things.** `check_race_references` follows every race named by a
+fertility list or a barred-race list and reports any that names nothing -- the same shape as the
+skill-reference check added on 2026-09-21, and written because nothing would otherwise have caught a
+list left pointing at Fairy. On its first run it found two malformed names of his (Elf(Wood)) with a
+bracket too many, and Human(Barbaric)Human(Civilized:Port) with no comma between two names --
+`UPSTREAM-ISSUES.md` item 45, not repaired, on the same footing as Monk and Beguiler), and it put a
+number on the Famorian and Formless gap: **7 classes bar Famorian and 11 bar Formless**, so his
+class data has always expected both races to exist.
+
+**Races go 110 to 118**: less the four faerie bases, plus their eight forms, plus four Maginos
+materials. Suites: derivation **392** (28 new, covering the documents, the lock, the conflict and
+the source-race lookup), combat 411, creature 145, advancement 101, character generation 75,
+availability 46, level-up walk 37, best armour 21 -- 1,228 checks over eight suites, all passing, 41
+modules parse.
+
+**Famorian and Formless are NOT built, and are now specified rather than merely absent.** Neither is
+a row: Famorian rolls 1d3 apiece into STR/AGL/VIT from whichever of ~130 "evoke" checkboxes are
+ticked and needs an animal type before it will apply at all, and Formless takes its whole physical
+half from a host race. Both are subsystems, and shipping either as a row of zeros would give a
+character an attribute limit of 0 in all twelve -- worse than an honest gap. What this pass did find
+is that **Formless's mental half IS a literal block** in his code (33625-33650): INT +2, WIS -2,
+KNW +5, CHM -2, WIL +4, AUR and PTY 0; limits 20/17/22/18/20/20/20; starting Endurance formula "1",
+one die, max 1; Affinity -10, Fortune +10; poison +5, disease +10, the other three resistances 0.
+That is recorded in `docs/sonnet/2026-09-21-race-forms.md` so the next pass on it starts from the
+numbers rather than from the search. **Undead transformations** are confirmed absent from his sheet
+and are not a port gap.
