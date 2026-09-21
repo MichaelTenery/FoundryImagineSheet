@@ -113,12 +113,40 @@ for every one.
 
 ---
 
+## Route 3: saying which book something came from
+
+A sourcebook and page are not content, so they have a file of their own: **`src/packs/manual/sources.json`**.
+
+```json
+"entries": {
+  "Nixie":     { "sourcebook": "Legends of the Unknown", "page": "33" },
+  "Stonefolk": { "sourcebook": "Aspects of the Wild",    "page": "12" }
+}
+```
+
+Keyed by the document's exact name, for any pack. It **wins over everything else**, including the
+generated `src/packs/named/itemSources.json` — which is built from the Master Index by
+`extract_sources.py` and, for a great many entries, names the Index itself rather than the book the
+thing came from. Someone who has looked it up in the actual book knows better, so their answer wins.
+
+Do not hand-edit `src/packs/named/itemSources.json` for this: it is generated too, and re-running
+the extractor throws the edits away.
+
+`docs/UNATTRIBUTED.md` lists everything still marked `XXX`, and is rewritten by every build, so it
+is the worklist.
+
+---
+
 ## Which is the source of truth
 
-The developer's Roll20 sheet is. Everything in `src/packs/documents/` is generated from it by
-`tools/extract/`, and nothing there should be edited by hand, since the next build overwrites it. Hand
-content lives only in `src/packs/manual/` (Route 2) or in your own compendiums (Route 1). His data
-is never changed except by an `_override` that says so on every build.
+**His errata first, then the Roll20 sheet, then the books** — see `CLAUDE.md` and `docs/ERRATA.md`;
+the errata was ranked above the sheet on 2026-09-21.
+
+Everything in `src/packs/documents/` is **generated**, and nothing there should be edited by hand:
+the next build overwrites it without warning, and that is not a hypothetical — it is what would
+have happened to the race attribution contributed on 2026-09-21, which is why Route 3 exists.
+Hand content lives only in `src/packs/manual/` (Routes 2 and 3) or in your own compendiums
+(Route 1). His data is never changed except by an `_override` that says so on every build.
 
 **Not verified:** Route 1 depends on Foundry V14's own item creation and compendium tools, which
 have not yet been exercised against this system in a running V14 install. Route 2 is tested

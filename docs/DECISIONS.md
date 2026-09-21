@@ -3965,3 +3965,56 @@ have:**
 Until one of them is done, the honest statement is: an update offered within roughly ten minutes of
 a push may fetch the previous archive. Recorded here rather than discovered by someone whose
 install ends up a version behind with no explanation.
+
+## Daryl's race attribution, and a home for a hand-written source (2026-09-21)
+
+Daryl (Arikail) pushed `patch-1` to his fork on 2026-09-21: "Update races.json — Added/updated
+Sourcebook and page reference for the available races." It is **all 110 races attributed by hand**
+to the book they actually come from, with a page number on each. That is real work and it fills a
+real gap: the port had 87 of them pointing at the **Master Index**, which names itself as the
+source, and 14 marked XXX.
+
+**It could not be merged as it stood, for three reasons, none of them about the data:**
+
+1. **`src/packs/documents/races.json` is GENERATED.** The next `build_documents.py --write` would
+   have erased every edit without a word. This is the one that matters: the work was good and its
+   home was wrong.
+2. **It was based on the old main**, before the faeries were split and Formless and Famorian were
+   built. Merging it would have reverted 120 races to 110 and taken ten races out of the system.
+3. **The JSON does not parse.** Six commas are missing between `"sourcebook"` and `"page"`, so
+   `json.loads` fails at the first one. The content importer reads these files directly; a merge
+   would have meant no races imported at all.
+
+**There was also nothing to approve.** No pull request was ever opened — the branch sits on his
+fork, which is what GitHub's "compare & pull request" banner offers rather than something already
+submitted. Worth saying back to him plainly.
+
+**So the data was ported rather than the branch merged**, and a place was built for it to live:
+`src/packs/manual/sources.json`, read by `apply_sources` and **winning over** the generated
+`itemSources.json`. That matters because `itemSources.json` is itself generated, from his Master
+Index, by `extract_sources.py` — anything hand-written into it is lost the next time that runs.
+A hand-written source beating a generated one is also right on the merits: someone who has looked a
+race up in the book it came from knows better than an index that names itself.
+
+His 110 names map onto the port's 120 through the same expansion every other race-name list uses,
+so each split form inherits its base race's attribution — a Fairy(Winged) and a Fairy(Wingless)
+both come from wherever Fairy did. **118 of the 120 were his.**
+
+**The last two were found in his own books.** Famorian is **Aspects of the Wild page 6**, from that
+book's contents page; Formless is **Epitaph of the Fallen page 6**, from the Epitaph errata's own
+`Pg: 6 / Formless:` heading. So every race now carries a real book and a real page, and no race is
+marked XXX.
+
+**Two independent confirmations of today's work fell out of looking.** Aspects, describing the
+Famorian: *"Perception: +5% Affinity: -10% Fortune: -5% | Endurance Modifier: Starting Endurance +1,
+Title Bonus (1d4)"* — which is exactly the base this pass derived from the ELSE branches of his
+sheet, arrived at independently and agreeing to the number. And the Epitaph errata says Formless's
+*"Wisdom Racial Maximum should be 17 (not 22), Knowledge Racial Maximum should be 22 (not 17)"* —
+and his sheet's Formless case already sets 17 and 22. Both are evidence for the same thing: the
+else-branch reading was right, and he keeps his sheet current with his errata.
+
+**A near-miss worth recording about the tooling, not the data.** The first build after adding the
+manual layer appeared to do nothing, and the reason was a `NameError` on an undefined `ROOT` —
+invisible because the command was piped through `grep ... | head`, which swallowed the traceback
+and still exited 0. The check that caught it was looking at the actual output rather than the exit
+status. Pipe a build through a filter and it will lie to you about having succeeded.

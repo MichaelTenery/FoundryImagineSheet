@@ -18,6 +18,32 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.15.0 — 2026-09-21
+
+**Every race now says which book it comes from, and on what page.** 87 of them used to point at the
+Master Index, which names itself as the source, and 14 said nothing at all. All 120 now name a real
+book and a real page:
+
+| Book | Races |
+|---|---|
+| Mysteries of the Planes | 47 |
+| Player's Guide | 22 |
+| Aspects of the Wild | 18 |
+| Legends of the Unknown | 15 |
+| Master's Manual | 13 |
+| Epitaph of the Fallen | 5 |
+
+**118 of those are Daryl's**, attributed by hand on his fork. Famorian (Aspects of the Wild p.6) and
+Formless (Epitaph of the Fallen p.6) were added afterwards, since neither race existed when he did
+the work.
+
+**New: `src/packs/manual/sources.json`.** A sourcebook and page can now be written by hand for any
+document, in any pack, and it **wins** over the table generated from the Master Index. This is where
+attribution belongs — `src/packs/documents/*.json` is generated and the next build overwrites it.
+See `docs/ADDING-CONTENT.md`, Route 3.
+
+---
+
 ## What to look at in 0.14.0, if you are testing
 
 Coming from **0.11.1**, which is the version the last bug report was against.

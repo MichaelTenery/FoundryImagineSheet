@@ -1652,10 +1652,11 @@ def check_race_references(tmpbuilt):
 # matches by name, so a renamed document would be DUPLICATED by the next import rather than
 # updated). The mark goes in the field, and the item sheet shows it in red.
 SOURCE_MAP = None
+MANUAL_SOURCE_MAP = None
 
 
 def apply_sources(tmpdocs):
-    global SOURCE_MAP
+    global SOURCE_MAP, MANUAL_SOURCE_MAP
     if SOURCE_MAP is None:
         tmppath = os.path.join(NAMED, "itemSources.json")
         if os.path.exists(tmppath):
@@ -1667,8 +1668,37 @@ def apply_sources(tmpdocs):
                  "not there -- every document will be marked XXX; "
                  "rebuild it with tools/extract/extract_sources.py")
 
+        # @MARKER HAND-WRITTEN SOURCES
+        # itemSources.json is GENERATED from his Master Index by extract_sources.py, so anything
+        # written into it by hand is lost the next time that runs. src/packs/manual/sources.json
+        # is where a person's own attribution goes instead, and it WINS over the generated table:
+        # the Master Index names itself as the source for a great many entries, and someone who
+        # has looked the thing up in the book it actually came from knows better.
+        #
+        # This exists because Daryl attributed all 110 races by hand on 2026-09-21 and did it by
+        # editing src/packs/documents/races.json -- a generated file, which the next build would
+        # have overwritten without a word. The work was good; only its home was wrong.
+        MANUAL_SOURCE_MAP = {}
+        tmpmanual = os.path.join(HERE, "..", "..", "src", "packs", "manual", "sources.json")
+        if os.path.exists(tmpmanual):
+            with open(tmpmanual, encoding="utf-8") as fh:
+                MANUAL_SOURCE_MAP = {tmpkey: tmpvalue
+                                     for tmpkey, tmpvalue in json.load(fh).get("entries", {}).items()
+                                     if not tmpkey.startswith("_")}
+            if MANUAL_SOURCE_MAP:
+                note("sources-by-hand", "manual/sources.json",
+                     "%d document(s) carry a hand-written source, which wins over the Master Index"
+                     % len(MANUAL_SOURCE_MAP))
+
     for tmpdoc in tmpdocs:
         tmpsystem = tmpdoc.get("system", {})
+        # A hand-written source beats everything, including a source the document already carries.
+        tmphand = MANUAL_SOURCE_MAP.get(tmpdoc["name"])
+        if tmphand:
+            tmpsystem["sourcebook"] = tmphand["sourcebook"]
+            if tmphand.get("page"):
+                tmpsystem["page"] = str(tmphand["page"])
+            continue
         # Most builders never emit the two fields at all -- every item data model declares them
         # and they fall back to the schema's "" on import, which is why a weapon's sheet showed
         # two empty boxes. Absent is treated as empty here, not as a document to leave alone.

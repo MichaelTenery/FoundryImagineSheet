@@ -1,0 +1,493 @@
+{
+  "_about": "Hand-written sourcebook and page for individual documents, merged by tools/extract/build_documents.py (apply_sources). THIS WINS over src/packs/named/itemSources.json, which is generated from the Master Index by extract_sources.py and names the Index itself as the source for a great many entries. Put entries under \"entries\", keyed by the document's exact name, as {\"sourcebook\": \"...\", \"page\": \"...\"}. Do NOT hand-edit src/packs/documents/*.json: those are generated and the next build overwrites them. Rebuild with: python tools/extract/build_documents.py --write",
+  "_credit": "The races were attributed by Daryl (Arikail) on 2026-09-21, on the branch patch-1 of his fork. He edited the generated races.json, which would have been overwritten; the data is his and is reproduced here unchanged except that the four races since split into winged and wingless forms, and the Maginos materials, each inherit their base race's attribution. Famorian and Formless were added afterwards, since they did not exist when he made the change: Aspects of the Wild page 6 from that book's own contents page, and Epitaph of the Fallen page 6 from the Epitaph errata, which gives a 'Pg: 6 Formless' heading.",
+  "_example": {
+    "_note": "Copy an entry into \"entries\" to use it.",
+    "Stonefolk": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "12"
+    }
+  },
+  "entries": {
+    "Apocritara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "4"
+    },
+    "Arachen": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "24"
+    },
+    "Avian(Dark)": {
+      "sourcebook": "Master's Manual",
+      "page": "23"
+    },
+    "Avian(Forest)": {
+      "sourcebook": "Player's Guide",
+      "page": "27"
+    },
+    "Avian(Mountain)": {
+      "sourcebook": "Player's Guide",
+      "page": "26"
+    },
+    "Ba’Cora": {
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "3"
+    },
+    "Beastman": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "1"
+    },
+    "Brachara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "5"
+    },
+    "Brok": {
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "4"
+    },
+    "Brownie": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "2"
+    },
+    "Centaur": {
+      "sourcebook": "Player's Guide",
+      "page": "30"
+    },
+    "Cervara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "6"
+    },
+    "Changeling": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "3"
+    },
+    "Chetahl": {
+      "sourcebook": "Master's Manual",
+      "page": "22"
+    },
+    "Crystori": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "7"
+    },
+    "Dao": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "8"
+    },
+    "Djinn": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "9"
+    },
+    "Dryad": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "5"
+    },
+    "Dwarf(Civilized)": {
+      "sourcebook": "Player's Guide",
+      "page": "20"
+    },
+    "Dwarf(Dark)": {
+      "sourcebook": "Player's Guide",
+      "page": "22"
+    },
+    "Dwarf(Fire)": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "25"
+    },
+    "Dwarf(Iron)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "10"
+    },
+    "Dwarf(Mountain)": {
+      "sourcebook": "Player's Guide",
+      "page": "21"
+    },
+    "Dwarf(Stone)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "11"
+    },
+    "Elf(Dark)": {
+      "sourcebook": "Player's Guide",
+      "page": "19"
+    },
+    "Elf(Desert)": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "26"
+    },
+    "Elf(Dread)": {
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "5"
+    },
+    "Elf(Gray)": {
+      "sourcebook": "Player's Guide",
+      "page": "17"
+    },
+    "Elf(High)": {
+      "sourcebook": "Player's Guide",
+      "page": "16"
+    },
+    "Elf(Ice)": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "27"
+    },
+    "Elf(Sea)": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "28"
+    },
+    "Elf(Shadow)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "12"
+    },
+    "Elf(Silver)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "13"
+    },
+    "Elf(Wild)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "14"
+    },
+    "Elf(Wood)": {
+      "sourcebook": "Player's Guide",
+      "page": "18"
+    },
+    "Equara": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "29"
+    },
+    "Fairy(Dark Winged)": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "4"
+    },
+    "Fairy(Dark Wingless)": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "4"
+    },
+    "Fairy(Winged)": {
+      "sourcebook": "Master's Manual",
+      "page": "24"
+    },
+    "Fairy(Wingless)": {
+      "sourcebook": "Master's Manual",
+      "page": "24"
+    },
+    "Famorian": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "6"
+    },
+    "Formless": {
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "6"
+    },
+    "Gaunt": {
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "7"
+    },
+    "Geebra": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "15"
+    },
+    "Giant(Civilized)": {
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    },
+    "Giant(Civilized:Seafaring)": {
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    },
+    "Giant(True)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "16"
+    },
+    "Gnome": {
+      "sourcebook": "Master's Manual",
+      "page": "26"
+    },
+    "Goblin(Forest)": {
+      "sourcebook": "Master's Manual",
+      "page": "27"
+    },
+    "Goblin(Mountain)": {
+      "sourcebook": "Master's Manual",
+      "page": "28"
+    },
+    "Goblin(Mountain:Magic)": {
+      "sourcebook": "Master's Manual",
+      "page": "28"
+    },
+    "Goblin(Plains)": {
+      "sourcebook": "Player's Guide",
+      "page": "28"
+    },
+    "Grahl": {
+      "sourcebook": "Master's Manual",
+      "page": "29"
+    },
+    "Gremlin": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "7"
+    },
+    "Grethen": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "18"
+    },
+    "Gryphara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "19"
+    },
+    "Hippotara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "20"
+    },
+    "Hobgoblin": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "21"
+    },
+    "Human(Barbaric)": {
+      "sourcebook": "Player's Guide",
+      "page": "15"
+    },
+    "Human(Civilized:City)": {
+      "sourcebook": "Player's Guide",
+      "page": "14"
+    },
+    "Human(Civilized:Port)": {
+      "sourcebook": "Player's Guide",
+      "page": "14"
+    },
+    "Human(Civilized:Town)": {
+      "sourcebook": "Player's Guide",
+      "page": "14"
+    },
+    "Human(Civilized:Village)": {
+      "sourcebook": "Player's Guide",
+      "page": "14"
+    },
+    "Ifrit": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "22"
+    },
+    "Jumara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "23"
+    },
+    "Katara": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "9"
+    },
+    "Kenku": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "8"
+    },
+    "Kerasara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "24"
+    },
+    "Lagara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "25"
+    },
+    "Leprechaun": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "10"
+    },
+    "Lissara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "26"
+    },
+    "Lotara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "27"
+    },
+    "Loxodara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "28"
+    },
+    "Lutrinara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "29"
+    },
+    "Maginos": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "30"
+    },
+    "Maginos(Clay)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "30"
+    },
+    "Maginos(Metal)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "30"
+    },
+    "Maginos(Stone)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "30"
+    },
+    "Maginos(Wood)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "30"
+    },
+    "Marid": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "31"
+    },
+    "Mechanos": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "32"
+    },
+    "Mellivara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "33"
+    },
+    "Mephyt(Fire)": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "30"
+    },
+    "Mephyt(Ice)": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "31"
+    },
+    "Merfolk": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "32"
+    },
+    "Midfolk(Forest)": {
+      "sourcebook": "Player's Guide",
+      "page": "24"
+    },
+    "Midfolk(River)": {
+      "sourcebook": "Player's Guide",
+      "page": "25"
+    },
+    "Midfolk(Town)": {
+      "sourcebook": "Player's Guide",
+      "page": "23"
+    },
+    "Nixie": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "33"
+    },
+    "Nymph": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "34"
+    },
+    "Ogre": {
+      "sourcebook": "Player's Guide",
+      "page": "29"
+    },
+    "Ogre(Magic)": {
+      "sourcebook": "Player's Guide",
+      "page": "29"
+    },
+    "Planar": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "35"
+    },
+    "Podling(Winged)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "36"
+    },
+    "Podling(Wingless)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "36"
+    },
+    "Ratahl": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "11"
+    },
+    "Sasquatch/Yeti": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "12"
+    },
+    "Satyr/Fawn": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "13"
+    },
+    "Saurian": {
+      "sourcebook": "Player's Guide",
+      "page": "31"
+    },
+    "Scethen": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "34"
+    },
+    "Se’eth": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "14"
+    },
+    "Sha’Cora": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "35"
+    },
+    "Sporeling(Winged)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "36"
+    },
+    "Sporeling(Wingless)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "36"
+    },
+    "Sura’keth": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "38"
+    },
+    "Sura’rath": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "39"
+    },
+    "Susara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "40"
+    },
+    "Sylph": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "16"
+    },
+    "S’rett": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "15"
+    },
+    "Taurian": {
+      "sourcebook": "Aspects of the Wild",
+      "page": "17"
+    },
+    "Testudara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "41"
+    },
+    "Troll": {
+      "sourcebook": "Master's Manual",
+      "page": "30"
+    },
+    "Troll(Ice)": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "42"
+    },
+    "Troll(Rock)": {
+      "sourcebook": "Master's Manual",
+      "page": "31"
+    },
+    "Ursara": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "43"
+    },
+    "Vulpara": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "36"
+    },
+    "Whalrog": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "37"
+    },
+    "Wildling": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "44"
+    },
+    "Wolfen": {
+      "sourcebook": "Mysteries of the Planes",
+      "page": "45"
+    },
+    "Xar’Xeth": {
+      "sourcebook": "Legends of the Unknown",
+      "page": "38"
+    }
+  }
+}
