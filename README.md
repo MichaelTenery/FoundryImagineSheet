@@ -33,6 +33,7 @@ Foundry VTT **V14+**. No legacy/back-compat support — built exclusively on cur
 - `tools/extract/` — the build-time extraction: parsers, column maps and document builders. Not shipped with the system
 - `tools/*.html` — browser test suites and previews. They stub Foundry, so they run over any static server; see the test routine at the foot of `docs/PROGRESS.md`
 - `ImagineRoll20CharacterSheet-main/` — the original Roll20 sheet export, the source material
+- `CHANGELOG.md` — **what changed in each released version, and what to look at if you are testing**
 - `docs/DECISIONS.md` — append-only log of architectural and scope decisions, with rationale
 - `docs/PROGRESS.md` — agile-style board (epics/stories/status) tracking the build
 - `docs/FIRST-RUN.md` — **what was checked against the V14 API, and the smoke test to run the first time the system is loaded**, in the order things will break
