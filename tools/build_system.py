@@ -253,6 +253,31 @@ def main():
     print("  total documents: %d" % sum(tmpcounts.values()))
     print("  every referenced path checked: %d" % len(tmpwanted | tmpreferenced))
 
+    # @MARKER SYNTAX-CHECK DRIFT
+    # tools/syntax-check.html holds a HARDCODED list of modules, because a static page cannot glob
+    # its own directory -- so a module added without touching that list is never parse-checked, and
+    # says nothing about it. Seven had drifted out of it by 2026-09-21, two of them written that
+    # day and five months older, and the suite reported a cheerful 41 modules the whole time.
+    # Reported here rather than left to be noticed again.
+    tmpchecked = set(re.findall(r'"\.\./(module/[^"]+\.mjs)"',
+                                open(os.path.join(ROOT, "tools", "syntax-check.html"),
+                                     encoding="utf-8").read()))
+    tmpmodules = set()
+    for tmpdir, _, tmpfiles in os.walk(os.path.join(ROOT, "module")):
+        for tmpfile in tmpfiles:
+            if tmpfile.endswith(".mjs"):
+                tmpmodules.add(os.path.relpath(os.path.join(tmpdir, tmpfile), ROOT).replace("\\", "/"))
+    tmpunchecked = sorted(tmpmodules - tmpchecked)
+    tmpstale = sorted(tmpchecked - tmpmodules)
+    if tmpunchecked or tmpstale:
+        print("  WARNING: tools/syntax-check.html is out of step with module/")
+        for tmpname in tmpunchecked:
+            print("     never parse-checked: %s" % tmpname)
+        for tmpname in tmpstale:
+            print("     listed but missing:  %s" % tmpname)
+    else:
+        print("  syntax-check covers all %d modules" % len(tmpmodules))
+
     if problems:
         print("\n  %d PROBLEM(S):" % len(problems))
         for tmpproblem in problems:

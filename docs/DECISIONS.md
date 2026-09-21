@@ -3846,3 +3846,80 @@ found.
 
 **`todo.txt` in that set is his own working list**, not errata -- things he intends to change and
 has not. It must not be built from.
+
+## Famorian is built, and the race layer is finished (2026-09-21)
+
+The last unbuilt race, and the opposite problem to Formless: a Formless is half a race waiting for
+a body, a Famorian is a whole race whose body is BUILT.
+
+**His 593-line case divides cleanly in two, and that is the whole insight.** Every evoke test in
+`applySingleRaceToAttribs` case "Famorian" (33032) has the shape
+
+    if (values.famorian_evoke_end=="on") { ...the evoke's figures... }
+    else                                 { ...what the race is without it... }
+
+so the ELSE branches, taken together, are an ordinary race document -- a Famorian that has taken no
+evokes -- and the IF branches are what each evoke does. Getting that round the wrong way was the
+first attempt: taking the first write gave a Famorian +20% poison resistance and a 1d4+2 Endurance
+roll it had not paid an evoke for, and taking the last picked up whichever evoke branch happened to
+come last. Neither is the race. The extractor now tracks which branch it is in.
+
+**A Famorian with no evokes is -4 Social Class and nothing else**, with mental limits of 19, beauty
+and charm capped at 15, Social Class at 12, +5 Perception, -10 Affinity, -5 Fortune, +10% magic
+resistance and **-10% disease resistance**, a 1d4 Endurance roll a title, and no special movement at
+all. That last is his own: the case zeroes all nine movement figures and says "Non special
+movement", so a Famorian's ordinary movement is Agility's alone.
+
+**Of about 120 evokes, FIFTEEN change a number.** Three roll 1d3 onto Strength, Agility and
+Vitality; the rest alter Endurance, a resistance, the special movement, the speed multiplier or the
+jump. The other ~105 are described abilities with no figure attached, and they are listed on the
+character rather than applied -- which is the call already made for racial abilities generally, not
+a new compromise. `module/famorian-rules.mjs` holds the fifteen with his line number on each, so
+they can be checked against his code rather than trusted.
+
+**Order matters twice, and it is his order.** Four evokes write the same special-movement slots,
+and his own comment on the first says "set fins first (swimming is of least importance)" -- so a
+later one overwrites an earlier one and a Famorian with both fins and wings flies. Three evokes
+write the speed multiplier, same rule. The port applies them in his order rather than the order a
+player happened to tick them, so the answer does not depend on the sheet's row ordering.
+
+**His resistance figures are absolute, not deltas**, which looks wrong until the base is in view:
+Enhanced Disease Resist advertises "+20%" on his sheet and writes **10** -- over a base of **-10**.
+The swing is 20. Writing it as +20 would have given a Famorian +10% instead of +10.
+
+**The breed is rolled, with a setting to choose**, as the user directed and exactly as handedness
+was done on 2026-09-20. His d100 gives Hidden Breed 1-10 (1 evoke, and only under stress), Trace
+11-20 (1d2), Low 21-40 (1d4), Breed 41-60 (1d4+1), High 61-90 (1d6+1), True 91-95 (**All**) and
+Inbreed 96-100 (1d6+2). "All" is an ABSENCE of a ceiling rather than a large number, because his own
+gate reads `famorian_tmp_evoke_num != "All"` before it compares anything.
+
+**The evokes are an array on the actor**, as the user chose -- closest to his own
+`famorian_evoke_*_final` flags. The three 1d3 bonuses are rolled once and KEPT on the character
+rather than re-derived, because a modifier that changed on every re-render would not be a modifier.
+Over-budget is reported, never refused, which is the skill-slot call; so is a Famorian with no
+animal type, which his sheet refuses outright (4546).
+
+**A third copy-paste slip of his, and the port does not reproduce it.** The block that writes
+Regeneration(Budding) tests `famorian_evoke_regen_NATURAL`, the same checkbox as the block above it,
+so Budding can never be listed and Natural lists both. The extractor notices one checkbox producing
+two different labels, hands the second to the next evoke his own `getAttrs` declares, and prints
+what it did. `UPSTREAM-ISSUES.md` item 49, after item 46 (`case "Fairy"` twice) and item 45 (two
+run-together race names) -- all three in long hand-written blocks of near-identical lines.
+
+**Races reach 120 and the race layer is complete**: every race in his `specieslist` now exists as a
+document. `check_race_references` is down to his two malformed names and nothing else.
+
+## Seven modules were never being parse-checked (2026-09-21)
+
+`tools/syntax-check.html` holds a HARDCODED list of modules, because a static page cannot glob its
+own directory. Adding a module without touching that list means it is never parsed, and the suite
+says nothing -- it reported a cheerful "41 modules" while there were 48 on disk.
+
+Found because `famorian-rules.mjs` and `resistance-rules.mjs` were both written today and the count
+did not move. **Five of the seven were months old**: `apps/item-picker.mjs`, `item-directory.mjs`,
+`sheet-theme.mjs`, `starting-kit.mjs` and `starting-kit-tables.mjs` -- the item picker and the Items
+directory among them, both shipped and both reported as working.
+
+All 48 are listed now, and `tools/build_system.py` compares the list against `module/` on every
+build and names anything unchecked or stale, so the drift cannot recur silently. A self-check that
+quietly stops covering new code is worse than no self-check, because it is trusted.

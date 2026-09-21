@@ -1306,8 +1306,8 @@ check("a class that does not split is its own base",
 const raceDocs = await (await fetch("../src/packs/documents/races.json")).json();
 const raceByName = (n) => raceDocs.find(d => d.name === n);
 
-check("119 race documents: his 110, less the four faeries, plus their eight forms, four Maginos materials and Formless",
-	raceDocs.length, 119);
+check("120 race documents: his 110, less the four faeries, plus their eight forms, four Maginos materials, Formless and Famorian",
+	raceDocs.length, 120);
 check("a race he split with a second dropdown has no document under his own name",
 	["Fairy", "Fairy(Dark)", "Podling", "Sporeling"].filter(n => raceByName(n)), []);
 check("...but Maginos keeps one, because his sheet offers an [Other] material",
@@ -1547,6 +1547,111 @@ check("a host his sheet DOES offer raises nothing",
 check("Formless has no height band of its own, which is why the host supplies one",
 	[PT.HEIGHT_TYPE_BY_RACE["Formless"] ?? "", !!PT.HEIGHT_TYPE_BY_RACE["Dwarf(Mountain)"]],
 	["N/A", true]);
+
+// --- Famorian: a race whose body is built ---------------------------------------------------
+// Not a row either, but for the opposite reason to Formless: a Formless is half a race waiting for
+// a body, a Famorian is a whole race whose body is built out of "evokes". See DECISIONS.md.
+const FAM = await import("../module/famorian-rules.mjs");
+const famorian = raceByName("Famorian").system;
+
+check("the Famorian race exists and is marked as one",
+	[!!famorian, famorian.famorian.isFamorian], [true, true]);
+// His ELSE branches: a Famorian that has taken no evokes at all.
+check("with no evokes it is -4 Social Class and nothing else",
+	Object.entries(famorian.attributeMods).filter(([k, v]) => v != 0), [["soc", -4]]);
+check("...and its limits are his: 19s in the mind, 15 beauty and charm, 12 social",
+	[famorian.attributeLimits.int, famorian.attributeLimits.app, famorian.attributeLimits.soc,
+	 famorian.attributeLimits.str], [19, 15, 12, 20]);
+check("...with a 1d4 Endurance roll a title and +1 to start",
+	[famorian.endurance.titleFormula, famorian.endurance.startMod], ["1d4", 1]);
+check("...and -10% disease resistance, which only an evoke moves",
+	[famorian.resistanceMods.disease, famorian.resistanceMods.poison,
+	 famorian.resistanceMods.control, famorian.resistanceMods.magic], [-10, 0, 0, 10]);
+check("it has no special movement until an evoke gives it one",
+	famorian.movement.specialName, "None:");
+check("his seven breeds are all there, spanning 1 to 100 with no gap",
+	[famorian.famorian.breeds.length, famorian.famorian.breeds[0].low,
+	 famorian.famorian.breeds[6].high,
+	 famorian.famorian.breeds.every((b, i, a) => i === 0 || b.low === a[i - 1].high + 1)],
+	[7, 1, 100, true]);
+check("...with his own budgets, written as the dice they are",
+	famorian.famorian.breeds.map(b => `${b.breed} ${b.evokes}`),
+	["Hidden Breed 1", "Trace Breed 1d2", "Low Breed 1d4", "Breed 1d4+1", "High Breed 1d6+1",
+	 "True Breed All", "Inbreed 1d6+2"]);
+check("all 120 evokes are catalogued", famorian.famorian.evokes.length, 120);
+// One of his `if`s tests the wrong checkbox, so Budding could never be listed -- UPSTREAM item 49.
+check("Regeneration(Budding) survived the misgated `if` that hides it in his sheet",
+	famorian.famorian.evokes.find(e => e.key === "regen_budding")?.label, "Regeneration,Budding");
+
+// The breed roll and its budget.
+check("the d100 lands in his bands",
+	[FAM.getFamorianBreed(famorian.famorian.breeds, 1).breed,
+	 FAM.getFamorianBreed(famorian.famorian.breeds, 11).breed,
+	 FAM.getFamorianBreed(famorian.famorian.breeds, 41).breed,
+	 FAM.getFamorianBreed(famorian.famorian.breeds, 100).breed],
+	["Hidden Breed", "Trace Breed", "Breed", "Inbreed"]);
+const breedOf = (n) => famorian.famorian.breeds.find(b => b.breed === n);
+check("a flat budget needs no die", FAM.rollEvokeBudget(breedOf("Hidden Breed"), () => 3), 1);
+check("1d4+1 rolls one die and adds one", FAM.rollEvokeBudget(breedOf("Breed"), () => 3), 4);
+check("1d6+2 likewise", FAM.rollEvokeBudget(breedOf("Inbreed"), () => 4), 6);
+// "All" is an ABSENCE of a ceiling, not a big number: his own check reads `!= "All"` first.
+check("a True Breed has no ceiling at all", FAM.rollEvokeBudget(breedOf("True Breed"), () => 6), null);
+check("over budget is reported, never refused",
+	[FAM.checkEvokeBudget(["wings", "fins", "speed"], 2).issue.includes("allows 2"),
+	 FAM.checkEvokeBudget(["wings"], 2).issue,
+	 FAM.checkEvokeBudget(["a", "b", "c"], null).issue],
+	[true, "", ""]);
+
+// The fifteen that change a number.
+check("exactly fifteen evokes change a number; the other 105 are described, not applied",
+	Object.keys(FAM.FAMORIAN_NUMERIC_EVOKES).length, 15);
+const built = (keys, bonuses) => FAM.applyFamorianEvokes(famorian, keys, bonuses ?? {});
+check("the three attribute evokes add the 1d3 kept on the character",
+	[built(["str", "vit"], { str: 3, vit: 1 }).attributeMods.str,
+	 built(["str", "vit"], { str: 3, vit: 1 }).attributeMods.vit,
+	 built(["str"], { str: 3 }).attributeMods.agl], [3, 1, 0]);
+check("the Endurance evoke replaces the roll outright",
+	[built(["end"]).endurance.titleFormula, built(["end"]).endurance.startMod,
+	 built(["end"]).endurance.titleMod], ["1d4+2", 3, 2]);
+// His resistance figures are ABSOLUTE, which is why "+20%" on the sheet writes 10 over a base of -10.
+check("Enhanced Disease Resist writes 10 over a base of -10, a swing of the 20% it advertises",
+	[famorian.resistanceMods.disease, built(["disease_resist"]).resistanceMods.disease], [-10, 10]);
+check("...and the other two resistance evokes set theirs",
+	[built(["poison_resist"]).resistanceMods.poison, built(["stubborn"]).resistanceMods.control],
+	[20, 20]);
+// Four evokes write the same movement slots, and his own comment says swimming is least important.
+check("wings beat legs beat insect legs beat fins, which is his order",
+	[built(["fins"]).movement.specialName,
+	 built(["fins", "extra_insect_legs"]).movement.specialName,
+	 built(["fins", "extra_insect_legs", "extra_legs"]).movement.specialName,
+	 built(["fins", "extra_insect_legs", "extra_legs", "wings"]).movement.specialName],
+	["Swim:", "Scurry:", "Gallop:", "Fly:"]);
+check("...and taking wings alone still flies, whatever order they are listed in",
+	built(["wings", "fins"]).movement.specialName, "Fly:");
+check("Scurry carries his odd 10-second modifier of 40",
+	[built(["extra_insect_legs"]).movement.special.tenSecMod,
+	 built(["extra_insect_legs"]).movement.special.hourlyMod], [40, 4]);
+check("the speed evokes write the multiplier, last one winning",
+	[built(["speed"]).movement.speedMultiplier,
+	 built(["speed", "metabolism_very_slow"]).movement.speedMultiplier,
+	 built(["hooves"]).movement.speedMultiplier], [1.5, 0.5, 1.5]);
+check("jumping is the only evoke that touches the jump",
+	[built(["jumping"]).movement.jumpStand, built(["jumping"]).movement.jumpUp,
+	 built([]).movement.jumpStand], ["x3", "x2", 0]);
+check("an evoke with no numeric effect changes nothing at all",
+	JSON.stringify(built(["night_vision", "quills", "beak"])) === JSON.stringify(built([])), true);
+check("the base race is never mutated by applying evokes",
+	[famorian.movement.specialName, famorian.resistanceMods.disease], ["None:", -10]);
+check("a race that is not a Famorian passes through untouched",
+	FAM.applyFamorianEvokes(raceByName("Nixie").system, ["wings"], {}) === raceByName("Nixie").system, true);
+
+// What the sheet lists: every evoke taken, numeric or not.
+const described = FAM.describeEvokes(famorian, ["str", "night_vision"], { str: 2 });
+check("a taken evoke is listed with his own label and rules",
+	[described.length, described[0].label, described[0].numeric,
+	 described[1].label, described[1].numeric,
+	 described[1].detail.length > 0],
+	[2, "Strength (+2)", true, "Night Vision", false, true]);
 
 // His height and frame tables are keyed by HIS names, so a form has to be looked up under its
 // source race or a character of one gets no height and therefore no weight.

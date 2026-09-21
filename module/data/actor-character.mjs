@@ -24,6 +24,7 @@ import {
 import { getSlotAllowance } from "../skills-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
 	readFormlessPair, combineFormless } from "../race-rules.mjs";
+import { applyFamorianEvokes, checkEvokeBudget } from "../famorian-rules.mjs";
 import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions,
          checkClassSkillTitle } from "../class-rules.mjs";
 import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../advancement-rules.mjs";
@@ -207,6 +208,26 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				eyes:         new fields.StringField({ required: true, initial: "" }),
 				skin:         new fields.StringField({ required: true, initial: "" }),
 				handedness:   new fields.StringField({ required: true, initial: "" }),
+
+				// @MARKER FAMORIAN
+				// What a Famorian character has made of itself. Empty for every other race.
+				//
+				// The breed is rolled once (a d100 on his table) and says how many evokes may be
+				// taken; the evokes are his own checkbox keys; the three attribute evokes roll 1d3
+				// each and the result is KEPT here rather than re-rolled, because a modifier that
+				// changed on every re-render would not be a modifier. His animal type is required
+				// before the race can be applied at all, which is why it is stored beside them.
+				famorian: new fields.SchemaField({
+					breed:       new fields.StringField({ required: true, initial: "" }),
+					animalType:  new fields.StringField({ required: true, initial: "" }),
+					// null-equivalent: -1 means "All", his breed with no ceiling.
+					evokesAllowed: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					evokes:      new fields.ArrayField(new fields.StringField(), { initial: [] }),
+					strBonus:    new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					aglBonus:    new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					vitBonus:    new fields.NumberField({ required: true, integer: true, initial: 0 })
+				}),
+
 				age:          new fields.NumberField({ required: true, integer: true, initial: 0 }),
 				apparentAge:  new fields.NumberField({ required: true, integer: true, initial: 0 }),
 				maxAge:       new fields.StringField({ required: true, initial: "" })
@@ -418,6 +439,31 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			return {
 				name:   `${tmpformless.psyche === tmpraceitems[0].system ? tmpraceitems[0].name : tmpraceitems[1].name}[${tmpformless.hostName}]`,
 				system: combineFormless(tmpformless.psyche, tmpformless.host)
+			};
+		}
+
+		// @MARKER FAMORIAN
+		// A Famorian's body is built out of the evokes it has taken, so the race the rest of the
+		// model reads is the base race with those applied. The 1d3 attribute bonuses are read off
+		// the character rather than rolled here: this runs on every prepare.
+		var tmpfamorianat = tmpraceitems.findIndex(tmprace => tmprace.system.famorian?.isFamorian);
+		if (tmpfamorianat >= 0) {
+			var tmpchosen = this.identity.famorian?.evokes ?? [];
+			var tmpbonuses = {
+				str: this.identity.famorian?.strBonus ?? 0,
+				agl: this.identity.famorian?.aglBonus ?? 0,
+				vit: this.identity.famorian?.vitBonus ?? 0
+			};
+			var tmpbuilt = applyFamorianEvokes(tmpraceitems[tmpfamorianat].system, tmpchosen, tmpbonuses);
+			if (tmpraceitems.length == 1) {
+				return { name: tmpraceitems[0].name, system: tmpbuilt };
+			}
+			// A Famorian half race combines the BUILT Famorian, so its evokes reach the blend.
+			var tmpother = tmpraceitems.find((tmprace, tmpindex) => tmpindex != tmpfamorianat);
+			return {
+				name:   getHalfRaceName(tmpraceitems[0].name, tmpraceitems[1].name),
+				system: (tmpfamorianat == 0) ? combineHalfRace(tmpbuilt, tmpother.system)
+				                             : combineHalfRace(tmpother.system, tmpbuilt)
 			};
 		}
 
@@ -943,6 +989,19 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 
 		// A Formless and its host are not a breeding pair, so the fertility question does not
 		// arise; what CAN be wrong is the host itself, and readFormlessPair has already said so.
+		// A Famorian that has spent more evokes than its breed allows, and one with no animal
+		// type -- his sheet refuses to apply the race without one ("No Famorian animal type
+		// found/selected. Nothing done.", 4546). Reported here, as every other race problem is.
+		var tmpfamrace = this.raceItems.find(tmprace => tmprace.system.famorian?.isFamorian);
+		if (tmpfamrace) {
+			var tmpbudget = checkEvokeBudget(this.identity.famorian?.evokes,
+				(this.identity.famorian?.evokesAllowed ?? 0) < 0 ? null : this.identity.famorian?.evokesAllowed);
+			if (tmpbudget.issue) { tmpissues.push(tmpbudget.issue); }
+			if (!this.identity.famorian?.animalType) {
+				tmpissues.push("This Famorian has no animal type. His sheet will not apply the race without one.");
+			}
+		}
+
 		if (this.identity.isFormless) {
 			if (this.identity.formlessIssue) { tmpissues.push(this.identity.formlessIssue); }
 		} else if (this.raceItems.length > 1) {

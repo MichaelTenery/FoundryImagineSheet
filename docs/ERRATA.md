@@ -3,7 +3,8 @@
 He supplied an errata set on **2026-09-21**: corrections for six books plus three tables that are
 not in any published book. The files themselves are **not committed** — they are his rules content,
 some of it unpublished, and `.gitignore` keeps `docs/reference/errata/` local for the same reason it
-keeps the book text local. This file is the map of what is in them and what has to be decided.
+keeps the book text local. This file is the map of what is in them, and the record of the ruling on
+how they rank against his sheet — **the errata wins**, decided 2026-09-21; see below.
 
 ## What arrived
 
@@ -47,7 +48,26 @@ made rather than a set of corrections waiting to be applied. That **lowers the r
 and changes what this work is: not "re-derive the rules from a newer source" but "check the sheet
 against his own newer statement of the rules, and report the handful of places they differ".
 
-## The source-of-truth question — needs the user's ruling
+## RULED, 2026-09-21: the errata wins over the sheet
+
+**The user's ruling: option 2 below — the errata outranks `sheet-worker.js`.** `CLAUDE.md`'s Source
+of truth rule is rewritten accordingly, and the order is now errata → sheet → rulebooks.
+
+What that means in practice, given the finding above:
+
+- Where the errata and the sheet **agree** — which is most of what has been checked — nothing
+  changes, and the sheet stays the convenient machine-readable form of the same rules.
+- Where they **disagree**, the errata governs and the port follows it. Each difference is still
+  recorded, in `UPSTREAM-ISSUES.md` or a decision entry, so a reader can see what was changed and
+  why rather than finding a figure that matches neither source.
+- The errata reader (`tools/extract/check_errata.py`, not yet written) therefore becomes a
+  **build input** rather than only a report, and its report becomes the record of what it changed.
+- `todo.txt` is still excluded: it is his working list of intentions, not rules.
+
+The discussion that produced the ruling is kept below, because the third option was live and the
+reasoning for it is worth not losing.
+
+## The source-of-truth question — RULED above, discussion kept
 
 `CLAUDE.md` says: **when the Roll20 sheet and a rulebook disagree, the Roll20 sheet wins** — it
 reflects what the table actually plays with. That rule was written when the only other source was
@@ -65,9 +85,11 @@ Three ways to take it, and this has **not been decided**:
 3. **Errata wins over the books only**, leaving the sheet on top. A narrower change: it would settle
    prose and gaps the sheet is silent on without touching anything the sheet states.
 
-**Recommendation: (1).** It costs least, it cannot silently change a rule anyone is playing, it
-turns 2,384 lines into a generated report rather than 2,384 judgement calls, and the one real
-difference found so far (Dark Fairy / Monk) is exactly the kind of thing it would surface.
+**Recommended (1); the user ruled (2).** The recommendation was that (1) costs least and cannot
+silently change a rule anyone is playing. The ruling is that his most recent statement of the rules
+should govern, which is (2) -- and the finding above is what makes it safe: the two sources rarely
+disagree, so ranking the errata first changes little in practice while removing the awkwardness of
+the port knowingly building a figure he has since corrected.
 
 ## What is already known to be affected
 
@@ -85,8 +107,14 @@ difference found so far (Dark Fairy / Monk) is exactly the kind of thing it woul
 
 ## Next step
 
-Nothing has been built from any of this. The next pass on it should begin by settling the question
-above, then, if (1) is chosen, write `tools/extract/check_errata.py` — a reader that parses the
-errata's own regular shape (`Pg. N` headings, race and class names, "should read" lines) and reports
-disagreements against `src/packs/documents/`, the way `check_race_references` and
-`check_skill_references` already report against his dictionaries.
+Nothing has been built from any of this yet. The question above is settled, so the next pass is
+`tools/extract/check_errata.py` — a reader that parses the errata's own regular shape (`Pg. N`
+headings, race and class names, "should read" lines), reports every disagreement against
+`src/packs/documents/` the way `check_race_references` and `check_skill_references` already report
+against his dictionaries, and — because the errata now outranks the sheet — **applies** what it
+finds, printing each change on every run.
+
+Start with the ten class/race restrictions and the Maginos hide table: they are the most structured
+parts of the errata and they land on content already built. Expect most of the file to be prose that
+no reader can apply mechanically; that part stays a report for a human to work through, and the
+honest measure of the tool is how much of the 2,384 lines it can classify, not how much it changes.

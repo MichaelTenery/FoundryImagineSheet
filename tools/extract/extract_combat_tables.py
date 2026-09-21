@@ -651,6 +651,191 @@ def formless_race():
     }, start, tmphoststart, tmpabilstart
 
 
+def famorian_race():
+    """
+    Everything a Famorian is, out of the three places his code defines one.
+
+    A Famorian is a beast-blooded human, and it is not a row because its body is BUILT rather than
+    looked up. Three pieces:
+
+      applySingleRaceToAttribs  case "Famorian" (33032) -- 593 lines. The unconditional part IS a
+                                base race: twelve modifiers, twelve limits, starting and per-title
+                                Endurance, Perception/Affinity/Fortune and the five resistances,
+                                assigned one setAttrs at a time rather than as a row, exactly as
+                                the Formless mental block is. The conditional part is the evokes.
+      setRacialFeatures         the breed table (16736) -- a d100 giving the breed, how many
+                                evokes it may take, and whether they are always on.
+      setFamorianTempEvokeAbilityList (34940ish) -- 388 lines, one `if` per evoke, each writing
+                                that evoke's name and rules into a display string. That string is
+                                the only place the evoke CATALOGUE exists in his sheet, so it is
+                                what the port reads the names and descriptions out of.
+
+    ONLY FIFTEEN OF THE ~130 EVOKES CHANGE A NUMBER. Three roll 1d3 onto Strength, Agility and
+    Vitality; the rest of the numeric ones alter Endurance, a resistance, the special movement, the
+    speed multiplier or the jump. Every other evoke is a described ability with no figure attached,
+    which is exactly how the port already treats racial abilities -- listed, not applied. The
+    numeric ones are named here so module/famorian-rules.mjs can be checked against his code rather
+    than trusted, and a new one appearing in his sheet is reported rather than silently ignored.
+    """
+    tmpstart, tmpbody = function_body("applySingleRaceToAttribs")
+
+    # --- the unconditional base, which is a race like any other ---------------------------------
+    # A FAMORIAN WITHOUT ANY EVOKES is a real character, and that is what this reads: every
+    # assignment made at the case's own level, plus the ELSE branch of each evoke test. His shape
+    # throughout is
+    #
+    #     if (values.famorian_evoke_end=="on") { ...the evoke's figures... }
+    #     else                                 { ...what the race is without it... }
+    #
+    # so the else is the base and the if is the bonus -- taking the first write would give a
+    # Famorian +20% poison resistance and a 1d4+2 Endurance roll it has not paid an evoke for, and
+    # taking the last would pick up whichever evoke branch happened to be written last. Neither is
+    # the race. A key with no else (the special movements) is left out of the base entirely, which
+    # is correct: without the evoke there is no special movement.
+    tmpin, tmpbase, tmpdepth = False, {}, 0
+    tmpevokedepth, tmpinelse = None, False
+    for tmpline in tmpbody:
+        tmpmatch = re.search(r'case\s+"([^"]+)"\s*:', tmpline)
+        if tmpmatch:
+            tmpin = (tmpmatch.group(1) == "Famorian")
+            continue
+        if not tmpin:
+            continue
+        if re.search(r'\bbreak\s*;', tmpline):
+            break
+
+        tmpopens = re.search(r'if\s*\(\s*values\.famorian_evoke_\w+\s*==\s*"on"', tmpline)
+        if tmpopens and tmpevokedepth is None:
+            tmpevokedepth, tmpinelse = tmpdepth, False
+        elif tmpevokedepth is not None and tmpdepth == tmpevokedepth + 1 and re.search(r'\}\s*else\s*\{', tmpline):
+            tmpinelse = True
+
+        tmpaccept = (tmpevokedepth is None) or tmpinelse
+        if tmpaccept:
+            for tmpkey, tmpvalue in re.findall(r'setAttrs\(\{\s*(\w+)\s*:\s*([^}]+?)\s*\}\)', tmpline):
+                if not re.search(r'(_race_mod$|_tmp_limit$|^race_tmp_(per|aff|for|magic|illusion|control|poison|disease)_mod$'
+                                 r'|^race_(start|title)_tmp_end|^formless$|^can_swim$)', tmpkey):
+                    continue
+                # A modifier the evokes and the physique add to is written "0+tmpevokestrbonus+
+                # phystrmod+tmpstrmod"; the race's own part of it is the literal at the front.
+                tmpvalue = re.sub(r'\s*\+\s*[A-Za-z_]\w*', "", tmpvalue).strip()
+                if re.match(r'^-?[\d.]+$', tmpvalue) or re.match(r'^".*"$', tmpvalue):
+                    tmpbase[tmpkey] = tmpvalue.strip('"')
+
+        tmpdepth += tmpline.count("{") - tmpline.count("}")
+        if tmpevokedepth is not None and tmpdepth <= tmpevokedepth:
+            tmpevokedepth, tmpinelse = None, False
+
+    # --- the breed table ------------------------------------------------------------------------
+    # His breed roll is NOT inside a function of its own: it sits in a `case "Famorian":` within an
+    # event handler, so walking back to the nearest `function` declaration overshoots by 7,000
+    # lines into an unrelated one. The block is found by its own roll instead and read forwards to
+    # the break, which is what bounds it.
+    tmpbreedat = next((tmpindex for tmpindex, tmpline in enumerate(lines)
+                       if "famorian_tmp_type:" in tmpline), None)
+    if tmpbreedat is None:
+        raise SystemExit("the Famorian breed table was not found")
+    tmpbreedstart = next(tmpindex for tmpindex in range(tmpbreedat, -1, -1)
+                         if "tmptyperoll" in lines[tmpindex] and "getDieRoll(100)" in lines[tmpindex])
+    tmpbreeds, tmpceiling = [], None
+    for tmpindex in range(tmpbreedstart, len(lines)):
+        tmpline = lines[tmpindex]
+        if re.search(r'\bbreak\s*;', tmpline) and tmpbreeds:
+            break
+        # The ceiling is written on the `if`/`else if` ABOVE the band it bounds, so it is held
+        # until that band's name arrives. The final `else` has none and runs to 100.
+        tmprange = re.search(r'tmptyperoll\s*<\s*(\d+)', tmpline)
+        if tmprange:
+            tmpceiling = int(tmprange.group(1)) - 1
+        tmptype = re.search(r'famorian_tmp_type\s*:\s*"([^"]+)"', tmpline)
+        if tmptype:
+            tmpbreeds.append({"breed": tmptype.group(1),
+                              "low": 1 if not tmpbreeds else tmpbreeds[-1]["high"] + 1,
+                              "high": tmpceiling if tmpceiling is not None else 100})
+            tmpceiling = None
+        # "All", a bare number, or one of his getDieRoll expressions -- written as dice, since that
+        # is what it is: getDieRoll(4)+1 is 1d4+1 and the sheet rolls it when the race is applied.
+        tmpnum = re.search(r'famorian_tmp_evoke_num\s*:\s*(?:"([^"]+)"|(.+?))\s*\}\)', tmpline)
+        if tmpnum and tmpbreeds:
+            tmpvalue = (tmpnum.group(1) or tmpnum.group(2) or "").strip()
+            tmpvalue = re.sub(r'getDieRoll\((\d+)\)', r'1d\1', tmpvalue).replace(" ", "")
+            tmpbreeds[-1]["evokes"] = tmpvalue
+        tmpkind = re.search(r'famorian_tmp_evoke_type\s*:\s*"([^"]+)"', tmpline)
+        if tmpkind and tmpbreeds:
+            tmpbreeds[-1]["when"] = tmpkind.group(1)
+    if tmpbreeds:
+        tmpbreeds[-1]["high"] = 100
+    tmpfeatstart = tmpbreedstart + 1
+
+    # --- the evoke catalogue --------------------------------------------------------------------
+    tmpliststart, tmplistbody = function_body("setFamorianTempEvokeAbilityList")
+    # The order his own getAttrs declares them in, which is the order the `if`s follow. Needed
+    # because one of those `if`s tests the wrong checkbox -- see below.
+    tmporder = []
+    for tmpline in tmplistbody:
+        for tmpname in re.findall(r"'famorian_evoke_(\w+)'", tmpline):
+            if tmpname not in tmporder and not tmpname.endswith(("_tmp", "_final", "_type", "_secs")):
+                tmporder.append(tmpname)
+        if tmporder:
+            break
+
+    tmppairs, tmpkey = [], None
+    for tmpline in tmplistbody:
+        tmpmatch = re.search(r'values\.famorian_evoke_(\w+)\s*==\s*"on"', tmpline)
+        if tmpmatch:
+            tmpkey = tmpmatch.group(1)
+        if not tmpkey:
+            continue
+        for tmptext in re.findall(r'tmpevokelist\s*=\s*(?:tmpevokelist\s*\+\s*)?"(?:,\s*)?([^"]+)"', tmpline):
+            if not tmptext.strip():
+                continue
+            tmpname, tmpsep, tmpdesc = tmptext.partition("(")
+            tmppairs.append((tmpkey, tmpname.strip(), tmpdesc.rstrip(")").strip()))
+            tmpkey = None
+            break
+
+    # ONE OF HIS `if`s TESTS THE WRONG CHECKBOX. The block that writes Regeneration(Budding) is
+    # gated on famorian_evoke_regen_NATURAL, the same checkbox as the block above it -- so Budding
+    # can never be listed, and taking Natural lists both. Rather than drop an evoke his sheet
+    # plainly offers, a key that produces TWO different labels hands the second to the next evoke
+    # his own getAttrs declares, which is the one the block was evidently meant to test. Reported,
+    # never silent: UPSTREAM-ISSUES.md item 49.
+    tmpevokes, tmpmisgated = {}, []
+    for tmpkeyname, tmplabel, tmpdetail in tmppairs:
+        if tmpkeyname in tmpevokes and tmpevokes[tmpkeyname]["label"] != tmplabel:
+            tmpat = tmporder.index(tmpkeyname) if tmpkeyname in tmporder else -1
+            tmpnext = tmporder[tmpat + 1] if 0 <= tmpat < len(tmporder) - 1 else None
+            if tmpnext and tmpnext not in tmpevokes:
+                tmpevokes[tmpnext] = {"label": tmplabel, "detail": tmpdetail}
+                tmpmisgated.append({"wroteUnder": tmpkeyname, "belongsTo": tmpnext, "label": tmplabel})
+            continue
+        tmpevokes.setdefault(tmpkeyname, {"label": tmplabel, "detail": tmpdetail})
+
+    return {
+        "base": tmpbase,
+        "breeds": tmpbreeds,
+        "evokes": tmpevokes,
+        "misgatedEvokes": tmpmisgated,
+    }, tmpstart, tmpfeatstart, tmpliststart
+
+
+def function_body_containing(tmptext):
+    """The function whose body contains a given string. Used where his code puts a table inside a
+    handler rather than in a function of its own, as the Famorian breed table is."""
+    tmpat = next((tmpindex for tmpindex, tmpline in enumerate(lines) if tmptext in tmpline), None)
+    if tmpat is None:
+        raise SystemExit("text not found: " + tmptext)
+    tmpstart = next(tmpindex for tmpindex in range(tmpat, -1, -1)
+                    if re.match(r'\s*function \w+\s*\(', lines[tmpindex]))
+    tmpdepth, tmpout = 0, []
+    for tmpindex in range(tmpstart, len(lines)):
+        tmpout.append(lines[tmpindex])
+        tmpdepth += lines[tmpindex].count("{") - lines[tmpindex].count("}")
+        if tmpdepth <= 0 and tmpindex > tmpstart:
+            return tmpstart + 1, tmpout
+    return tmpstart + 1, tmpout
+
+
 def banded_chain(tmpfunction, tmpassign, tmpvar, tmpceiling=30):
     """
     Read an Agility-banded if/else-if chain into ordered [min, max, value] rows.
@@ -1539,6 +1724,37 @@ def main():
                      "host race's OWN document, not from his second copy of it. hostCopyDiffers "
                      "records every cell where the two copies disagree.",
             **tmpformless
+        }, fh, indent=2, ensure_ascii=False)
+
+    # A Famorian is built rather than looked up: a base race, a rolled breed that says how many
+    # "evokes" it may take, and a catalogue of evokes to spend them on.
+    tmpfam, tmpfamline, tmpbreedline, tmpevokeline = famorian_race()
+    print("\nFamorian: %d base field(s), %d breed(s), %d evoke(s)"
+          % (len(tmpfam["base"]), len(tmpfam["breeds"]), len(tmpfam["evokes"])))
+    for tmpbreed in tmpfam["breeds"]:
+        print("    %3d-%-3d %-14s %-6s %s" % (tmpbreed["low"], tmpbreed["high"], tmpbreed["breed"],
+                                              tmpbreed.get("evokes", "?"), tmpbreed.get("when", "")))
+    for tmpwanted in ("soc_race_mod", "soc_tmp_limit", "race_tmp_per_mod", "can_swim"):
+        if tmpwanted not in tmpfam["base"]:
+            print("  WARNING: the Famorian base has no %s -- his case may have moved" % tmpwanted)
+    if len(tmpfam["evokes"]) < 120:
+        print("  WARNING: only %d evokes parsed; his list holds about 130" % len(tmpfam["evokes"]))
+    for tmpbad in tmpfam["misgatedEvokes"]:
+        print("  %r is written under famorian_evoke_%s, which already has its own line -- given to "
+              "%s, the next evoke his getAttrs declares. UPSTREAM item 49."
+              % (tmpbad["label"], tmpbad["wroteUnder"], tmpbad["belongsTo"]))
+    with open(os.path.join(NAMED, "famorianRace.json"), "w", encoding="utf-8") as fh:
+        json.dump({
+            "_source": {"file": "docs/reference/sheet-worker.js",
+                        "base": {"function": "applySingleRaceToAttribs", "line": tmpfamline},
+                        "breeds": {"function": "setRacialFeatures", "line": tmpbreedline},
+                        "evokes": {"function": "setFamorianTempEvokeAbilityList", "line": tmpevokeline}},
+            "_note": "The base is the UNCONDITIONAL half of his Famorian case -- a race like any "
+                     "other. The evokes are the conditional half; only fifteen of them change a "
+                     "number, and those fifteen are applied by module/famorian-rules.mjs. The "
+                     "rest are described abilities, listed and not applied, as racial abilities "
+                     "already are.",
+            **tmpfam
         }, fh, indent=2, ensure_ascii=False)
 
     with open(os.path.join(NAMED, "raceBodyTypes.json"), "w", encoding="utf-8") as fh:

@@ -17,7 +17,15 @@ Books in use, once regenerated into `docs/reference/`:
 - `aspects-of-the-wild-fulltext.txt` — first Bestiary Expansion (176 pages), mostly playable races plus creature-creation guidance.
 - `mysteries-of-the-planes-fulltext.txt` — fourth Bestiary Expansion (657 pages), the inner planes; source of 115 of the extracted skills.
 
-**Source of truth rule:** when the Roll20 sheet and a rulebook disagree, the Roll20 sheet wins — it reflects what the table actually plays with.
+**Source of truth rule (revised 2026-09-21 — there are now three sources, not two):**
+
+1. **His errata** wins over everything. Supplied 2026-09-21, dated 2025–2026, it is his most recent statement of the rules and it explicitly corrects the books. Kept local in `docs/reference/errata/`, never committed.
+2. **The Roll20 sheet** wins over the rulebooks — it reflects what the table actually plays with.
+3. **The rulebooks** are last: consulted for prose, rationale and gaps.
+
+The errata was ranked above the sheet by the user's ruling on 2026-09-21, reversing the previous rule. In practice the two rarely disagree — he keeps the sheet current with his errata, and most of its mechanical changes were already true in `sheet-worker.js` when checked. Where they do disagree the errata governs, and the difference is recorded rather than applied silently. See `docs/ERRATA.md`.
+
+**`todo.txt` in the errata set is NOT errata.** It is his own working list of things he intends to change and has not. Never build from it.
 
 ## Target platform
 
@@ -56,6 +64,6 @@ re-litigated. The expensive window is for judgement — reading his contradictor
 what he meant; regenerating a table, mirroring a test, propagating a field through a sheet is not
 that. Leaving it written down also keeps a deferral from turning into a silent omission.
 
-**The Roll20 sheet is the rules source of truth, always.** `sheet-worker.js` and the sheet markup outrank the PDFs. The rulebooks are supplementary — consulted for prose, rationale, and gaps, never to override the sheet.
+**The Roll20 sheet outranks the PDFs; his errata outranks the sheet.** `sheet-worker.js` and the sheet markup beat the rulebooks, which are supplementary — consulted for prose, rationale and gaps. Above both sits the errata he supplied on 2026-09-21, which is newer than either and corrects them; see the Source of truth rule above and `docs/ERRATA.md`. Changed 2026-09-21 by the user's ruling: before that the sheet was top and there were only two sources.
 
 **Continuity across sessions.** This file, plus `docs/DECISIONS.md` and `docs/PROGRESS.md`, are the durable record. A new conversation window should read all three before doing anything else — don't re-derive architecture from scratch or re-extract PDFs that are already in `docs/reference/`.

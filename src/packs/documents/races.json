@@ -23978,5 +23978,813 @@
       },
       "sourcebook": "XXX"
     }
+  },
+  {
+    "name": "Famorian",
+    "type": "race",
+    "system": {
+      "description": "A Famorian is beast-blooded, and its body is built rather than fixed. A d100 gives its BREED, the breed says how many EVOKES it may take, and each evoke is a beast trait. The figures below are a Famorian that has taken none of them. 120 evokes are offered. Strength, Agility and Vitality each add 1d3 when taken; twelve more change Endurance, a resistance, the special movement, the speed multiplier or the jump; the rest are abilities with no figure attached and are listed rather than applied, as racial abilities already are. An animal type must be chosen before the race can be applied, as his sheet requires. 1-10 Hidden Breed: 1 evoke(s). Only occurs during stress 11-20 Trace Breed: 1d2 evoke(s). Always On. Single animal package. 21-40 Low Breed: 1d4 evoke(s). Always On. Single animal package. 41-60 Breed: 1d4+1 evoke(s). Always On. Single animal package. 61-90 High Breed: 1d6+1 evoke(s). Always On. Single animal package. 91-95 True Breed: All evoke(s). Always On. Single animal package. 96-100 Inbreed: 1d6+2 evoke(s). Always On. One or more animal packages.",
+      "attributeMods": {
+        "str": 0,
+        "agl": 0,
+        "vit": 0,
+        "int": 0,
+        "wis": 0,
+        "knw": 0,
+        "app": 0,
+        "chm": 0,
+        "soc": -4,
+        "aur": 0,
+        "pty": 0,
+        "wil": 0
+      },
+      "attributeLimits": {
+        "str": 20,
+        "agl": 20,
+        "vit": 20,
+        "int": 19,
+        "wis": 19,
+        "knw": 19,
+        "app": 15,
+        "chm": 15,
+        "soc": 12,
+        "aur": 19,
+        "pty": 19,
+        "wil": 20
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": 1,
+        "titleFormula": "1d4",
+        "titleDice": "1",
+        "titleMax": 4,
+        "titleMod": 0
+      },
+      "characteristicMods": {
+        "perception": 5,
+        "affinity": -10,
+        "fortune": -5
+      },
+      "resistanceMods": {
+        "magic": 10,
+        "illusion": 0,
+        "control": 0,
+        "poison": 0,
+        "disease": -10
+      },
+      "movement": {
+        "speedMultiplier": 1,
+        "walk": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "jog": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "run": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": 0,
+        "jumpUp": 0
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Famorian",
+      "physiqueLock": "",
+      "formlessHosts": [],
+      "famorian": {
+        "isFamorian": true,
+        "breeds": [
+          {
+            "breed": "Hidden Breed",
+            "low": 1,
+            "high": 10,
+            "evokes": "1",
+            "when": "Only occurs during stress"
+          },
+          {
+            "breed": "Trace Breed",
+            "low": 11,
+            "high": 20,
+            "evokes": "1d2",
+            "when": "Always On. Single animal package."
+          },
+          {
+            "breed": "Low Breed",
+            "low": 21,
+            "high": 40,
+            "evokes": "1d4",
+            "when": "Always On. Single animal package."
+          },
+          {
+            "breed": "Breed",
+            "low": 41,
+            "high": 60,
+            "evokes": "1d4+1",
+            "when": "Always On. Single animal package."
+          },
+          {
+            "breed": "High Breed",
+            "low": 61,
+            "high": 90,
+            "evokes": "1d6+1",
+            "when": "Always On. Single animal package."
+          },
+          {
+            "breed": "True Breed",
+            "low": 91,
+            "high": 95,
+            "evokes": "All",
+            "when": "Always On. Single animal package."
+          },
+          {
+            "breed": "Inbreed",
+            "low": 96,
+            "high": 100,
+            "evokes": "1d6+2",
+            "when": "Always On. One or more animal packages."
+          }
+        ],
+        "evokes": [
+          {
+            "key": "acid_spit",
+            "label": "Acid Spit",
+            "detail": "damage 1d10/Title, range 3'/Title."
+          },
+          {
+            "key": "agl",
+            "label": "Agility",
+            "detail": "+"
+          },
+          {
+            "key": "air_bladder",
+            "label": "Air Bladder",
+            "detail": "increases diving time to 10-30 minutes."
+          },
+          {
+            "key": "air_jets",
+            "label": "Air Jets",
+            "detail": "x2 Swim Speed for 10 sec, 10 min to replinish."
+          },
+          {
+            "key": "ambidextrous",
+            "label": "Ambidextrous",
+            "detail": "10 seconds of time, both hands, no penalties."
+          },
+          {
+            "key": "antlers",
+            "label": "Antlers",
+            "detail": "5 Sec, 4 min, 1d4 piercing damage per antler, 1d4 antlers per Title"
+          },
+          {
+            "key": "barbed_tail",
+            "label": "Barbed Tail",
+            "detail": "5 sec, 4 min, 2d6+2 dam, 50% break off in pierced wound, 1d6+1 dam when removed."
+          },
+          {
+            "key": "beak",
+            "label": "Beak",
+            "detail": "5 sec/4 min: 4d6"
+          },
+          {
+            "key": "berserking",
+            "label": "Berserking",
+            "detail": "+50% Berserking"
+          },
+          {
+            "key": "bioluminescence",
+            "label": "Bioluminescence",
+            "detail": "Produces low light from a body area."
+          },
+          {
+            "key": "blowhole",
+            "label": "Blowhole",
+            "detail": "+20% Swimming"
+          },
+          {
+            "key": "chameleon_skin",
+            "label": "Chameleon Skin",
+            "detail": "+20% Blend/Move Unseen)"
+          },
+          {
+            "key": "chameleon_skin_advanced",
+            "label": "Chameleon Skin,Advanced",
+            "detail": "+40% Blend/Move Unseen)"
+          },
+          {
+            "key": "claws_digging",
+            "label": "Claws,Digging",
+            "detail": ""
+          },
+          {
+            "key": "claws_large",
+            "label": "Claws,Large",
+            "detail": "6 sec/4 min: 4d6 cutting"
+          },
+          {
+            "key": "claws_med",
+            "label": "Claws,Med",
+            "detail": "5 sec/3 min: 3d6 cutting"
+          },
+          {
+            "key": "claws_raking",
+            "label": "Claws,Raking",
+            "detail": "Gives second raking claw attack when grabbled, as other claws but +1 per die."
+          },
+          {
+            "key": "claws_small",
+            "label": "Claws,Small",
+            "detail": "4 sec/2 min: 2d6 cutting"
+          },
+          {
+            "key": "climbing",
+            "label": "Climbing",
+            "detail": "+40% Climb"
+          },
+          {
+            "key": "desert_endurance",
+            "label": "Desert Endurance",
+            "detail": "delays need to drink or eat for up to one week."
+          },
+          {
+            "key": "digestive_fluid",
+            "label": "Digestive Fluid",
+            "detail": "1d10 damage per Title, per 10 seconds."
+          },
+          {
+            "key": "digging",
+            "label": "Digging",
+            "detail": ""
+          },
+          {
+            "key": "disease_bearing",
+            "label": "Disease Bearing",
+            "detail": "Carries a random or GM selected disease."
+          },
+          {
+            "key": "disease_resist",
+            "label": "Enhanced Disease Resist",
+            "detail": "+20%"
+          },
+          {
+            "key": "diving_aerial",
+            "label": "Diving, Aerial",
+            "detail": "No AGL save needed to avoid crashing from dives."
+          },
+          {
+            "key": "diving_water",
+            "label": "Diving, Water",
+            "detail": "Gains Diving social skill."
+          },
+          {
+            "key": "echo_location",
+            "label": "Echo Location",
+            "detail": "Locate objects within 2 feet per INT."
+          },
+          {
+            "key": "end",
+            "label": "Endurance",
+            "detail": "+2 per Title"
+          },
+          {
+            "key": "enhanced_hearing",
+            "label": "Enhanced Hearing",
+            "detail": "-20% to be surprised, +30% to Listen."
+          },
+          {
+            "key": "enhanced_smell",
+            "label": "Enhanced Smell",
+            "detail": "+30% Smell"
+          },
+          {
+            "key": "enhanced_taste",
+            "label": "Enhanced Taste",
+            "detail": "Identify poisons or impurities with a single drop/morsel."
+          },
+          {
+            "key": "enhanced_touch",
+            "label": "Enhanced Touch",
+            "detail": "+15% to perception search by touch."
+          },
+          {
+            "key": "exceptional_sight",
+            "label": "Exceptional Sight",
+            "detail": "Vision range x2, Missile Weapons +1 to Hit."
+          },
+          {
+            "key": "extra_insect_legs",
+            "label": "Extra Insect Legs",
+            "detail": "Gain Scurry and insect legs, etc."
+          },
+          {
+            "key": "extra_legs",
+            "label": "Extra Legs",
+            "detail": "Gain Gallop and legs, etc."
+          },
+          {
+            "key": "extra_limbs_arms",
+            "label": "Extra Limbs, Arms",
+            "detail": "Gains pair of extra arms, forearms and hands/paws/pads, etc."
+          },
+          {
+            "key": "extra_limbs_tail",
+            "label": "Extra Limbs, Tail",
+            "detail": "Gains a tail."
+          },
+          {
+            "key": "extra_limbs_tentacles",
+            "label": "Extra Limbs, Tentacles",
+            "detail": "Gains tentacle limbs that grasp."
+          },
+          {
+            "key": "extra_torsos_animal",
+            "label": "Extra Torsos",
+            "detail": "Gains fore and hindquarters."
+          },
+          {
+            "key": "extra_torsos_segments",
+            "label": "Extra Torsos, Segments",
+            "detail": "gains additional segments like a worm or snake."
+          },
+          {
+            "key": "eyestalks",
+            "label": "Eyestalks",
+            "detail": "-50% to be surprised."
+          },
+          {
+            "key": "fangs",
+            "label": "Fangs",
+            "detail": "5 sec/4 min: 3d6 cutting."
+          },
+          {
+            "key": "fangs_large",
+            "label": "Fangs,Large",
+            "detail": "7 sec/5 min: 4d6 cutting."
+          },
+          {
+            "key": "farsight",
+            "label": "Farsight",
+            "detail": "Vison range x3, Missile Weapons +2 to Hit., +25% Surprise, -25% to be surprised."
+          },
+          {
+            "key": "fins",
+            "label": "Fins/Flippers/Flukes",
+            "detail": "Increases swimming speed and the skill by 20%."
+          },
+          {
+            "key": "food_conserve",
+            "label": "Food Conservation",
+            "detail": "Half food intake, can go without twice as long."
+          },
+          {
+            "key": "gas_bag",
+            "label": "Gas Bladder/Bag",
+            "detail": "Holds lighter than air gasses, maintains neutral buoyancy in air."
+          },
+          {
+            "key": "gills",
+            "label": "Gills",
+            "detail": "Underwater breathing."
+          },
+          {
+            "key": "glide_wings",
+            "label": "Wings, Glide",
+            "detail": "Membranous tissue covering arm to thigh. Allows slow descent glide."
+          },
+          {
+            "key": "glue_secretion",
+            "label": "Glue Secretion",
+            "detail": "STR Save -20% to escape."
+          },
+          {
+            "key": "heat_sensing",
+            "label": "Heat Sensing",
+            "detail": "2' per INT"
+          },
+          {
+            "key": "hibernation",
+            "label": "Hibernation",
+            "detail": "Sleep for 1 month per Title. Wake ravenous, needing to ingest double food quantities for 1 day per week of hibernation. Physical attributes temporarily reduced by 1 per month of hibernation, returning by 1 per week after awakening. 2$ of body weight is lost per month of hibernation and returns at 2% per week."
+          },
+          {
+            "key": "hide",
+            "label": "Hide Thick Skin",
+            "detail": "1 point of Hide per Title."
+          },
+          {
+            "key": "high_pain_threshold",
+            "label": "High Pain Threshold",
+            "detail": "-1 damage per hit from weapons/energy."
+          },
+          {
+            "key": "hooves",
+            "label": "Hooves",
+            "detail": "1.5 ground movement speed, Climb -50%"
+          },
+          {
+            "key": "horns",
+            "label": "Horns",
+            "detail": "5 Sec, 4 min, 1d4 piercing damage per horn, no more than 1d4 horns per Title."
+          },
+          {
+            "key": "hypnotic_gaze",
+            "label": "Hypnotic Gaze",
+            "detail": "Control Resistance or victim remains motionless until the being breaks contact or attacks."
+          },
+          {
+            "key": "inflation",
+            "label": "Inflation",
+            "detail": "Increases the size of a specific body area by 20%, +20% to Intimidation, -2 to damage taken to that area while inflated."
+          },
+          {
+            "key": "ink_spray",
+            "label": "Ink Spray",
+            "detail": "Emits underwater ink spray, perception needed to find being. 10+ seconds after double perception to find being. Usage once per minute per Title."
+          },
+          {
+            "key": "insect_arms",
+            "label": "Insect Limbs",
+            "detail": "extra pair of arms, forearms and claw-like hands."
+          },
+          {
+            "key": "instinct_danger",
+            "label": "Instinct,Danger",
+            "detail": "+30% Danger Knowledge."
+          },
+          {
+            "key": "instinct_food",
+            "label": "Instinct,Food",
+            "detail": "Sense distance & direction of nearest food. Chance is Rating 13 vs. INT. Range 1 mile per Title."
+          },
+          {
+            "key": "instinct_life",
+            "label": "Instinct,Life",
+            "detail": "Sense distance & direction of nearest life. Chance is Rating 12 vs. INT. Range 1 mile per Title."
+          },
+          {
+            "key": "instinct_navigation",
+            "label": "Instinct,Navigation",
+            "detail": "Direction Knowledge 10% per Title."
+          },
+          {
+            "key": "instinct_social",
+            "label": "Instinct,Social",
+            "detail": "Sense nearest animal or group matching the evoke animal form. Chance is Rating 15 vs. INT. Range 1 mile per Title."
+          },
+          {
+            "key": "instinct_water",
+            "label": "Instinct,Water",
+            "detail": "Sense distance & direction of nearest water. Chance is Rating 12 vs. INT. Range 1 mile per Title."
+          },
+          {
+            "key": "jumping",
+            "label": "Jumping",
+            "detail": "x2 upward, x3 forward"
+          },
+          {
+            "key": "language_dance",
+            "label": "Dance Language",
+            "detail": ""
+          },
+          {
+            "key": "light_sleeper",
+            "label": "Light Sleeper",
+            "detail": "Wake 1d4 sec/active 1-2 sec."
+          },
+          {
+            "key": "marsupial_pouch",
+            "label": "Marsupial Pouch",
+            "detail": ""
+          },
+          {
+            "key": "maw",
+            "label": "Maw",
+            "detail": "7 sec/5 min: 5d6 crushing."
+          },
+          {
+            "key": "metabolic_control_high",
+            "label": "Metabolic Control,High",
+            "detail": "Shift between any metabolism rate at will."
+          },
+          {
+            "key": "metabolic_control_low",
+            "label": "Metabolic Control,Low",
+            "detail": "Shift between slow, normal and high metabolism at will."
+          },
+          {
+            "key": "metabolic_stage_high",
+            "label": "Metabolic Control,Two-Stage High",
+            "detail": "Shift between normal metabolism and very high metabolism."
+          },
+          {
+            "key": "metabolic_stage_low",
+            "label": "Metabolic Control,Two-Stage Low",
+            "detail": "Shift between normal metabolism and very slow metabolism."
+          },
+          {
+            "key": "metabolism_high",
+            "label": "Metabolism,High",
+            "detail": "+10% food intake/-10% weight,-1 Initiative."
+          },
+          {
+            "key": "metabolism_slow",
+            "label": "Metabolism,Slow",
+            "detail": "-20% food intake/+10% weight,+1 Initiative."
+          },
+          {
+            "key": "metabolism_very_high",
+            "label": "Metabolism,Very High",
+            "detail": "+20% food intake/-20% weight,-3 Initiative."
+          },
+          {
+            "key": "metabolism_very_slow",
+            "label": "Metabolism,Very Slow",
+            "detail": "-50% food intake/+20% weight,+2 Initiative, movement is 50%."
+          },
+          {
+            "key": "mucous",
+            "label": "Mucous",
+            "detail": "STR save to escape"
+          },
+          {
+            "key": "musk_spray",
+            "label": "Musk Spray",
+            "detail": "VIT save once per 10 sec or be incapacitated."
+          },
+          {
+            "key": "night_vision",
+            "label": "Night Vision",
+            "detail": "Near darkness vision. Bright light: blinds 1d6+1 sec. -2 to hit/+1 initiative after."
+          },
+          {
+            "key": "padded_feet",
+            "label": "Padded Feet",
+            "detail": "Movement on shifting/loose/slick surfaces is normal."
+          },
+          {
+            "key": "patterned_fur",
+            "label": "Patterned Fur",
+            "detail": "+10% to Blend, +5% to Move Unseen in matching terrain."
+          },
+          {
+            "key": "pincers_mandibles",
+            "label": "Pincers/Mandibles",
+            "detail": "7 sec/5 min: 5d6 crushing damage: smaller creatures must win contest of STR to escape."
+          },
+          {
+            "key": "poison_resist",
+            "label": "Enhanced Poison Resist",
+            "detail": "+20%"
+          },
+          {
+            "key": "poison_skin",
+            "label": "Poisonous Skin",
+            "detail": "Poison Type=Title or less."
+          },
+          {
+            "key": "poison_spit",
+            "label": "Poisonous Spit",
+            "detail": "Poison Type=Title or less, half dagger range."
+          },
+          {
+            "key": "prehensile_tail",
+            "label": "Prehensile Tail",
+            "detail": "Can grasp/lift objects or hold the body weight of the being."
+          },
+          {
+            "key": "quiet_flier",
+            "label": "Silent Flight",
+            "detail": "at jogging speeds or less. +20% to surprise attack."
+          },
+          {
+            "key": "quills",
+            "label": "Quills",
+            "detail": "1+ areas have quills, 1d4 quills grown per Title, 3d4 damage per quill, as dagger range/speed."
+          },
+          {
+            "key": "regen_budding",
+            "label": "Regeneration,Budding",
+            "detail": "limbs regrow at healing rate, vitals kill, acid/fire stop regrowth. Amputated limbs regrow into half-sized beings."
+          },
+          {
+            "key": "regen_natural",
+            "label": "Regeneration,Natural",
+            "detail": "limbs regrow at healing rate, vitals kill, acid/fire stop regrowth."
+          },
+          {
+            "key": "rending_teeth",
+            "label": "Rending Teeth",
+            "detail": "4 sec/3 min: 2d6 crushing damage."
+          },
+          {
+            "key": "roar_scream",
+            "label": "Roar/Scream",
+            "detail": "10 INT or less flee in panic."
+          },
+          {
+            "key": "shocking_sting",
+            "label": "Shocking Sting",
+            "detail": "immune to electricity, 1 body area per 2 titles can shock for 1d8 electricity per 2 titles."
+          },
+          {
+            "key": "slippery_skin",
+            "label": "Slippery Skin",
+            "detail": "+10% Escape/Grappling AGL Saves."
+          },
+          {
+            "key": "social_bonding",
+            "label": "Social Bonding",
+            "detail": "Call nearest animal or group matching evoke type."
+          },
+          {
+            "key": "speed",
+            "label": "Speed",
+            "detail": "1.5 movement speed, speed seconds=+"
+          },
+          {
+            "key": "spikes",
+            "label": "Spikes",
+            "detail": "5 sec, 4 min, 1d4 piercing damage per spike, no more than 1d4 spikes per Title."
+          },
+          {
+            "key": "stealth",
+            "label": "Stealth",
+            "detail": "+50% surprise, +20% Surprise Attack."
+          },
+          {
+            "key": "sticky_pads",
+            "label": "Sticky/Suction Pad",
+            "detail": "+40% Climb."
+          },
+          {
+            "key": "sticky_tongue",
+            "label": "Sticky Tongue",
+            "detail": "3 sec, extends 3x being's height, STR save to escape."
+          },
+          {
+            "key": "stinger",
+            "label": "Stinger",
+            "detail": "6 sec/4 min: 3d6 piercing damage."
+          },
+          {
+            "key": "str",
+            "label": "Strength",
+            "detail": "+"
+          },
+          {
+            "key": "stubborn",
+            "label": "Stubborn",
+            "detail": "+20% Control Resist"
+          },
+          {
+            "key": "swim_bladder",
+            "label": "Swim Bladder",
+            "detail": "Maintains neutral buoyancy in water."
+          },
+          {
+            "key": "swimming",
+            "label": "Swimming",
+            "detail": "+50% Swimming"
+          },
+          {
+            "key": "tail_slap",
+            "label": "Tail Slap",
+            "detail": "Gains Tail 1/2 End body area. 3 sec/2 min: 3d4 smashing damage."
+          },
+          {
+            "key": "torsos_fused",
+            "label": "Torsos/Head Fused",
+            "detail": "Torsos or head/torso fuse together, like a spider."
+          },
+          {
+            "key": "tusks",
+            "label": "Tusks",
+            "detail": "5 sec, 4 min, 1d4 piercing damage per tusk, no more than 1d4 tusks per Title."
+          },
+          {
+            "key": "venom",
+            "label": "Venom",
+            "detail": "Poison Type=Title or less."
+          },
+          {
+            "key": "vibration_sensing",
+            "label": "Vibration Sensing",
+            "detail": "1000'"
+          },
+          {
+            "key": "vit",
+            "label": "Vitality",
+            "detail": "+"
+          },
+          {
+            "key": "water_sac",
+            "label": "Water Sac",
+            "detail": "1 month's water."
+          },
+          {
+            "key": "web_weaving",
+            "label": "Well Tanned Skin",
+            "detail": "No damage from sun exposure."
+          },
+          {
+            "key": "webbed_feet_hands",
+            "label": "Webbed Feet/Hands",
+            "detail": "+30% Swimming"
+          },
+          {
+            "key": "well_tanned",
+            "label": "Web Weaving",
+            "detail": "Strong webs are web strength of being's END, and Hide equal to the being's VIT. Sticky webs are 1/2 END but cause entanglement: STR Save at -50% to escape. Both types shoot to dagger range."
+          },
+          {
+            "key": "wings",
+            "label": "Wings Flying",
+            "detail": "Fly x4 Walking speed"
+          },
+          {
+            "key": "wood_cutting",
+            "label": "Wood Cutting",
+            "detail": "Cuts up to 1 inch of wood or weaker material per minute."
+          }
+        ]
+      },
+      "formless": false,
+      "canSwim": true,
+      "bodyType": "Humanoid",
+      "racialSkills": [
+        {
+          "name": "Climb",
+          "bonus": ""
+        },
+        {
+          "name": "Listen",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Mimic",
+          "bonus": ""
+        },
+        {
+          "name": "Move Unheard",
+          "bonus": ""
+        },
+        {
+          "name": "Smell",
+          "bonus": "+20%"
+        },
+        {
+          "name": "Track",
+          "bonus": "+10%"
+        }
+      ],
+      "racialSkillNote": "None",
+      "features": {
+        "hair": [],
+        "eyes": [],
+        "skin": []
+      },
+      "abilities": [],
+      "disabilities": [],
+      "immunities": [],
+      "fertileWith": [],
+      "ages": {
+        "startLow": 18,
+        "startHigh": 24,
+        "maxAge": "100"
+      },
+      "sourcebook": "XXX"
+    }
   }
 ]

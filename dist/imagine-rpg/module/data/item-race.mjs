@@ -206,6 +206,35 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 			// Maginos nor another Formless is on his list.
 			formlessHosts: new fields.ArrayField(new fields.StringField(), { initial: [] }),
 
+			// @MARKER FAMORIAN
+			// A Famorian is beast-blooded and its body is BUILT rather than fixed: a d100 gives its
+			// breed, the breed says how many "evokes" -- beast traits -- it may take, and the
+			// evokes are chosen from a catalogue of about 120. Empty for every race but Famorian.
+			//
+			// The race's own figures are a Famorian that has taken NO evokes, which is his own
+			// else branch throughout the case at sheet-worker.js:33032. Only fifteen evokes change
+			// a number; module/famorian-rules.mjs holds those fifteen and cites his line for each,
+			// and the rest are described abilities, listed and not applied, as racial abilities
+			// already are.
+			famorian: new fields.SchemaField({
+				isFamorian: new fields.BooleanField({ required: true, initial: false }),
+				// The d100 breed table: which band, and what it allows.
+				breeds: new fields.ArrayField(new fields.SchemaField({
+					breed:  new fields.StringField({ required: true, initial: "" }),
+					low:    new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					high:   new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					// A dice expression, a number, or "All".
+					evokes: new fields.StringField({ required: true, initial: "" }),
+					when:   new fields.StringField({ required: true, initial: "" })
+				}), { initial: [] }),
+				// The catalogue. `key` is his own checkbox name, which is what a character stores.
+				evokes: new fields.ArrayField(new fields.SchemaField({
+					key:    new fields.StringField({ required: true, initial: "" }),
+					label:  new fields.StringField({ required: true, initial: "" }),
+					detail: new fields.StringField({ required: true, initial: "" })
+				}), { initial: [] })
+			}),
+
 			// @MARKER TRAITS
 			// formless marks a race with no fixed body, which matters to the body chart and to
 			// transformation. canSwim is stored per race because it is not universal.

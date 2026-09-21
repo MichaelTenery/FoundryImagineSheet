@@ -1515,3 +1515,38 @@ in `module/resistance-rules.mjs` so nothing has to be rediscovered.
    automatic success, which is the convention every other percentile check follows, and the port
    does that. It changes the answer only against a 0% chance, where your code fails a rolled 1.
    **Confirm this one** — it is the only part of the port's resistance roll not read off your sheet.
+
+## 49. A Famorian can never take Regeneration(Budding)
+
+**Status:** open · **Severity:** one evoke of about 120 is unreachable; the fix is one word
+
+Found 2026-09-21 while building the Famorian race. In `setFamorianTempEvokeAbilityList`, the block
+that writes Regeneration(Budding) into the evoke list tests the **wrong checkbox**:
+
+```
+47429   if (values.famorian_evoke_regen_natural=="on") {
+47430       ... tmpevokelist="Regeneration,Natural(limbs regrow at healing rate, ...)"
+47431   }
+47432   if (values.famorian_evoke_regen_natural=="on") {     <-- should be regen_budding
+47433       ... tmpevokelist="Regeneration,Budding(limbs regrow at healing rate, ... Amputated
+                              limbs regrow into half-sized beings.)"
+47434   }
+```
+
+`famorian_evoke_regen_budding` is a real checkbox — it is declared in that function's own `getAttrs`
+list, it is reset by `setAttrs({famorian_evoke_regen_budding: "off"})` at 34768, and it counts
+towards the evoke budget at 33541. Only this one test is wrong. The effects:
+
+- Ticking **Budding** lists nothing, so the trait a player paid an evoke for never appears.
+- Ticking **Natural** lists **both** Natural and Budding, so it reads as two traits for one evoke.
+
+**The port does not reproduce it.** The extractor notices that one checkbox produced two different
+labels and hands the second to the next evoke his own `getAttrs` declares — which is
+`regen_budding`, the one the block was evidently meant to test — and prints what it did on every
+run. So the Famorian compendium entry carries all 120 evokes with Budding among them. Same footing
+as `lesserAge` and the Monk repair: the port does what you evidently meant and says so.
+
+This is the third copy-paste slip of the same shape, after item 46 (`case "Fairy"` twice in
+`setFormlessStartingRace`, losing a Sporeling host) and item 45 (two run-together race names in
+`racefertiledict`). All three are in long hand-written blocks of near-identical lines. No action
+needed on the port's side; flagged so your own sheet can be corrected.

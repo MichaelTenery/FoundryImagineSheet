@@ -618,6 +618,130 @@ def build_formless(tmpraceskills, tmpracefertile, tmpraceages, tmpformmap):
     })
 
 
+# @MARKER FAMORIAN
+# This is the function which builds the Famorian race, which is not a row either -- but for the
+# opposite reason to Formless. A Formless is half a race waiting for a body; a Famorian is a whole
+# race whose body is BUILT, out of "evokes" -- beast traits it takes a rolled number of.
+#
+# The unconditional half of his case (33032) IS an ordinary race and is used as one. The conditional
+# half is the evokes, and only FIFTEEN of the ~120 change a number; the rest are described abilities
+# with no figure, which is how the port already treats racial abilities. The numeric fifteen are
+# applied by module/famorian-rules.mjs, which names each one and cites his line.
+#
+# THE BASE IS THE ELSE BRANCH of each evoke test, not the if -- see the note in
+# extract_combat_tables.famorian_race. A Famorian that has taken no evokes has -10% disease
+# resistance and a 1d4 Endurance roll, and only an evoke moves either.
+def build_famorian(tmpraceskills, tmpracefertile, tmpraceages, tmpbodymap):
+    tmpfam = load_named("famorianRace")
+    if not tmpfam:
+        note("famorian-not-extracted", "famorianRace",
+             "no extraction found; the Famorian race is not built. Run extract_combat_tables.py")
+        return None
+
+    tmpbase = tmpfam.get("base", {})
+    where = "famorianRace/base"
+
+    def base(tmpkey, tmpdefault=0):
+        if tmpkey not in tmpbase:
+            note("famorian-base-field-missing", where, "his case has no %s" % tmpkey)
+        return to_number(tmpbase.get(tmpkey, tmpdefault), where, tmpkey)
+
+    tmpskillrow = tmpraceskills.get("Famorian", ["", [], ""])
+    tmpbreeds = tmpfam.get("breeds", [])
+    tmpevokes = tmpfam.get("evokes", {})
+
+    tmpnotes = [
+        "A Famorian is beast-blooded, and its body is built rather than fixed. A d100 gives its "
+        "BREED, the breed says how many EVOKES it may take, and each evoke is a beast trait. "
+        "The figures below are a Famorian that has taken none of them.",
+        "%d evokes are offered. Strength, Agility and Vitality each add 1d3 when taken; twelve "
+        "more change Endurance, a resistance, the special movement, the speed multiplier or the "
+        "jump; the rest are abilities with no figure attached and are listed rather than applied, "
+        "as racial abilities already are." % len(tmpevokes),
+        "An animal type must be chosen before the race can be applied, as his sheet requires.",
+    ]
+    for tmpbreed in tmpbreeds:
+        tmpnotes.append("%d-%d %s: %s evoke(s). %s"
+                        % (tmpbreed.get("low", 0), tmpbreed.get("high", 0), tmpbreed.get("breed", "?"),
+                           tmpbreed.get("evokes", "?"), tmpbreed.get("when", "")))
+
+    tmpfeatures = load_raw_entries("raceFeatureAbilities").get("Famorian", ["", "", ""])
+
+    return make_doc("Famorian", "race", {
+        "description": " ".join(tmpnotes),
+        "attributeMods": {tmpattr: base("%s_race_mod" % tmpattr) for tmpattr in ATTRS},
+        "attributeLimits": {tmpattr: base("%s_tmp_limit" % tmpattr, 20) for tmpattr in ATTRS},
+        "endurance": {
+            "startFormula": clean_text(str(tmpbase.get("race_start_tmp_end_formula", ""))),
+            "startMod": base("race_start_tmp_end_mod"),
+            "titleFormula": clean_text(str(tmpbase.get("race_title_tmp_end_formula", ""))),
+            "titleDice": clean_text(str(tmpbase.get("race_title_tmp_end_dice", ""))),
+            "titleMax": base("race_title_tmp_end_max"),
+            "titleMod": base("race_title_tmp_end_mod"),
+        },
+        "characteristicMods": {
+            "perception": base("race_tmp_per_mod"),
+            "affinity": base("race_tmp_aff_mod"),
+            "fortune": base("race_tmp_for_mod"),
+        },
+        "resistanceMods": {
+            "magic": base("race_tmp_magic_mod"),
+            "illusion": base("race_tmp_illusion_mod"),
+            "control": base("race_tmp_control_mod"),
+            "poison": base("race_tmp_poison_mod"),
+            "disease": base("race_tmp_disease_mod"),
+        },
+        # His case zeroes all nine and says so ("Non special movement"), so a Famorian's ordinary
+        # movement is Agility's alone and its special movement comes from an evoke or not at all.
+        "movement": {
+            "speedMultiplier": 1,
+            "walk": {"hourly": 0, "tenSec": 0, "oneSec": 0},
+            "jog": {"hourly": 0, "tenSec": 0, "oneSec": 0},
+            "run": {"hourly": 0, "tenSec": 0, "oneSec": 0},
+            "specialName": "None:",
+            "special": {"hourly": "", "hourlyMultiplier": 0, "hourlyMod": 0,
+                        "tenSec": "", "tenSecMultiplier": 0, "tenSecMod": 0,
+                        "oneSec": "", "oneSecMultiplier": 0, "oneSecMod": 0},
+            "jumpStand": 0, "jumpUp": 0,
+        },
+        "slightPhysique": {"hasVariant": False, "specialName": "", "special": {
+            "hourly": "", "hourlyMultiplier": 0, "hourlyMod": 0,
+            "tenSec": "", "tenSecMultiplier": 0, "tenSecMod": 0,
+            "oneSec": "", "oneSecMultiplier": 0, "oneSecMod": 0}, "racialSkills": [], "canSwim": False},
+        "sourceRace": "Famorian",
+        "physiqueLock": "",
+        "formlessHosts": [],
+        "famorian": {
+            "isFamorian": True,
+            "breeds": [{"breed": clean_text(str(b.get("breed", ""))),
+                        "low": to_number(b.get("low"), where, "low"),
+                        "high": to_number(b.get("high"), where, "high"),
+                        "evokes": clean_text(str(b.get("evokes", ""))),
+                        "when": clean_text(str(b.get("when", "")))} for b in tmpbreeds],
+            "evokes": [{"key": tmpkey,
+                        "label": clean_text(tmpvalue.get("label", "")),
+                        "detail": clean_text(tmpvalue.get("detail", ""))}
+                       for tmpkey, tmpvalue in sorted(tmpevokes.items())],
+        },
+        "formless": to_bool(tmpbase.get("formless")),
+        "canSwim": to_bool(tmpbase.get("can_swim")),
+        "bodyType": tmpbodymap.get("Famorian", "Humanoid"),
+        "racialSkills": [{"name": clean_text(s[0]), "bonus": clean_text(str(s[1] or ""))}
+                         for s in (tmpskillrow[1] or []) if s and s[0]],
+        "racialSkillNote": clean_text(str(tmpskillrow[2] if len(tmpskillrow) > 2 else "")),
+        "features": {"hair": [], "eyes": [], "skin": []},
+        "abilities": [clean_text(a) for a in split_list(tmpfeatures[0])],
+        "disabilities": [clean_text(a) for a in split_list(tmpfeatures[1] if len(tmpfeatures) > 1 else "")],
+        "immunities": [clean_text(a) for a in split_list(tmpfeatures[2] if len(tmpfeatures) > 2 else "")],
+        "fertileWith": [clean_text(a) for a in split_list(",".join(tmpracefertile.get("Famorian", [])))],
+        "ages": {
+            "startLow": tmpraceages.get("Famorian", {}).get("startLow", 0),
+            "startHigh": tmpraceages.get("Famorian", {}).get("startHigh", 0),
+            "maxAge": str(tmpraceages.get("Famorian", {}).get("maxAge", "")),
+        },
+    })
+
+
 def race_form_siblings(tmpfertile, tmpname, tmpkey, tmpmap):
     """Add a split form's OTHER forms to its fertility list, where the race breeds at all.
 
@@ -915,10 +1039,14 @@ def build_races():
             },
         }))
 
-    # Formless is not a row and never was: it is half a race, and its other half is a host.
+    # Neither of the last two races is a row. Formless is half a race waiting for a body; Famorian
+    # is a whole race whose body is built out of evokes.
     tmpformlessdoc = build_formless(raceskills, racefertile, raceages, tmpformmap)
     if tmpformlessdoc:
         docs.append(tmpformlessdoc)
+    tmpfamoriandoc = build_famorian(raceskills, racefertile, raceages, bodymap)
+    if tmpfamoriandoc:
+        docs.append(tmpfamoriandoc)
     return docs
 
 
