@@ -7,6 +7,12 @@ push to `main` publishes a new version and an installed system offers it from th
 The archive is committed alongside the manifest on purpose, so the two can never disagree about
 what version is being offered.
 
+> **Give a push about ten minutes before updating.** `raw.githubusercontent.com` caches the
+> manifest and the archive separately, and the archive has been seen serving the previous commit
+> for several minutes after a push while the manifest was already current. Updating inside that
+> window can fetch the older archive. Measured on 2026-09-21; see `docs/DECISIONS.md`. The proper
+> fix is to point `download` at a GitHub Release asset, whose URL is immutable — not done yet.
+
 **Nothing below has been verified in a running Foundry V14 install** except where it says a real
 install found it. That remains the standing caveat on the whole project.
 

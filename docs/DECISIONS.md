@@ -3923,3 +3923,45 @@ directory among them, both shipped and both reported as working.
 All 48 are listed now, and `tools/build_system.py` compares the list against `module/` on every
 build and names anything unchecked or stale, so the drift cannot recur silently. A self-check that
 quietly stops covering new code is worse than no self-check, because it is trusted.
+
+## The update path works, and it has a cache window (2026-09-21)
+
+0.14.0 was pushed and the update path checked end to end rather than assumed. The manifest at
+`raw.githubusercontent.com/.../main/system.json` serves 0.14.0, the archive at
+`.../main/dist/imagine-rpg.zip` is a real 90-entry zip whose inner `system.json` also says 0.14.0,
+and fetching the archive at the commit SHA gives bytes identical to the local build. So Foundry
+can see the update and fetch it.
+
+**But raw.githubusercontent CACHES, and the manifest and the archive are cached independently.**
+Minutes after the push, `main/system.json` was current while `main/dist/imagine-rpg.zip` was still
+serving the PREVIOUS commit's archive -- checked six times over two minutes and then again after,
+still stale. Fetching the same path at the commit SHA returned the new bytes immediately, which
+proves the push was fine and the staleness is entirely the CDN.
+
+**In this release it was harmless**, because the two commits either side of the staleness both
+contained 0.14.0: the second changed only `BUILD.txt`'s recorded commit inside the zip, so a user
+who downloaded during the window got the right version with a slightly older build stamp.
+
+**It will not always be harmless.** The two paths can refresh in either order, so a push that bumps
+the version AND changes content can, for a few minutes, serve a manifest saying 0.15.0 beside an
+archive containing 0.14.0. Foundry compares version numbers and nothing else: it would install the
+old archive and then either believe itself up to date or offer the update again forever. That is
+the same class of problem the committed-zip decision (2026-09-20) was meant to remove -- manifest
+and archive travelling together so they cannot disagree -- and committing them together turns out
+to be necessary but not sufficient, because the CDN can still pull them apart in transit.
+
+**Two ways to close it, neither taken yet, because the second needs a tool this machine does not
+have:**
+
+1. **Wait before telling anyone.** Push, then leave it ten minutes before asking someone to update.
+   Costs nothing and needs no change, but it is a rule a person has to remember, which is the kind
+   of rule that gets forgotten exactly once.
+2. **Point `download` at a GitHub Release asset instead of a branch path.** A release asset URL is
+   immutable and per-tag, so there is no branch for a CDN to serve a stale version of, and the
+   manifest can name the exact archive it was built with. `v0.14.0` is tagged, so the tag half is
+   already in place; creating the release needs the `gh` CLI or the web UI, and `gh` is not
+   installed here. **This is the real fix and it is recommended.**
+
+Until one of them is done, the honest statement is: an update offered within roughly ten minutes of
+a push may fetch the previous archive. Recorded here rather than discovered by someone whose
+install ends up a version behind with no explanation.
