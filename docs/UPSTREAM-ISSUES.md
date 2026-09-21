@@ -1416,3 +1416,102 @@ printed on every extraction run.
 half from a host race and needs runtime logic, not a row), so this is recorded now, while it is in
 front of us, rather than found again later. The spec that will consume this row is
 `docs/sonnet/2026-09-21-race-forms.md`.
+
+## 47. Your Formless copy of each race's physical half has drifted from the race table
+
+**Status:** open · **Severity:** low in play, but it is evidence about three other open items
+
+`setFormlessStartingRace` (`sheet-worker.js:34880`) holds its own 36-column dictionary,
+`formlessStartingRaceDetails`, giving each host race's physical half: STR/AGL/VIT/APP/SOC and their
+limits, starting Endurance, Perception, movement, jump and swimming. Every one of those figures
+already exists in `raceStatsAndMoveDetails`. It is a second copy, and the two have drifted apart in
+**22 cells across 4 of the 102 races**:
+
+```
+Arachen     speedMultiplier / walk hourly / walk 10sec / walk 1sec
+            formless copy 1, 10, 1, 0     race row 0, 1, 10, 1
+            -- the row reads as though one cell slid, giving an Arachen a 10-mile walking hour
+
+Brachara    special movement
+            formless copy "None:"          race row "Swim:" at Walk x3
+            -- the Formless copy cannot swim; the race row can
+
+Nixie       special movement
+            formless copy "Swim:" Walk x5  race row "Fly:" Run x3
+            -- genuinely ambiguous: a Nixie is a water sprite, AND setRacialFeatures gives it
+               "Set Wings" unconditionally (16732). Possibly it should have both.
+
+Elf(Ice)    speedMultiplier   formless copy 0   race row -10
+Elf(Sea)    speedMultiplier   formless copy 0   race row -10
+
+Gaunt       startEnduranceFormula / startEnduranceMod
+            formless copy 0 and 4          race row "" and 0-getDieRoll(4)
+```
+
+**The port reads the host's physical half out of the ORDINARY race document** and does not use this
+second copy at all, so a Formless in an Arachen moves exactly as an Arachen does. That keeps one
+source of truth and means the eight faerie forms and four Maginos materials work as hosts without
+this table having to learn about them. Every difference is reported on each extraction run. Say the
+word and the Formless copy can win instead for Formless characters.
+
+**Two of these bear on items already open with you:**
+
+- **Item 24 (Elf(Sea) and Elf(Ice) speed multiplier)** — the port reported that a −10 multiplier
+  multiplies through into negative movement. **Your Formless copy of both races says 0, not −10**,
+  which is the first independent evidence of what was intended. If 0 is right, item 24 is a
+  one-cell repair in `raceStatsAndMoveDetails` rather than a rules question.
+- **Item 2 (Gaunt's rolled starting Endurance)** — the race row has the live expression
+  `0-getDieRoll(4)`, the only non-literal in the whole dictionary. **Your Formless copy writes a
+  flat 0 and 4 in those two cells.** That may mean the modifier was meant to be a flat figure, or
+  it may be the expression flattened by accident when the copy was made. Either way it is a second
+  data point on a question that had none.
+
+## 48. Every resistance roll on your sheet reports "virtually immune"
+
+**Status:** open · **Severity:** high — all five resistance tracks are affected, and they always pass
+
+Found 2026-09-21 while building the resistance roll Daryl reported missing from the port (his
+0.11.1 Blocker). Your five handlers — `handleMagicResist` (`sheet-worker.js:1231`),
+`handleIllusionResist`, `handleControlResist`, `handlePoisonResist`, `handleDiseaseResist`, all
+identical in shape — begin:
+
+```js
+resistchance = values.resist_magic;      // getAttrs hands back a STRING
+resistchance = resistchance + tempmod;   // so this CONCATENATES, it does not add
+halfchance   = parseInt([resistchance+1]/2)||0;
+```
+
+`getAttrs` returns strings, so for a character with 50% magic resistance `resistchance` becomes the
+string `"50" + 0` = **`"500"`**. A few lines later:
+
+```js
+} else if (resistchance>199) {
+    ... " has a 200% chance (virtually immune). Thus, they resisted."
+```
+
+`"500" > 199` is true, so the roll is never consulted and the answer is always "virtually immune,
+they resisted". Checked in a real JavaScript engine against your exact lines:
+
+```
+50% resistance, rolled 87  ->  resistchance "500",  halfchance 2500  ->  VIRTUALLY IMMUNE
+ 5% resistance, rolled 99  ->  resistchance "50",   halfchance  250  ->  did not resist
+50% with a +10 modifier    ->  resistchance "5010", halfchance 25050 ->  VIRTUALLY IMMUNE
+```
+
+So **any two-digit resistance auto-passes**, and a one-digit one is silently multiplied by ten. A
+one-digit resistance happens to give the right answer often enough that it would not stand out in
+play. `parseInt` on the attribute would fix all five.
+
+**The port does what you evidently meant** — the figure is a number before the modifier is added —
+on the same footing as `lesserAge` and the Monk column repair, and both the rule and this note live
+in `module/resistance-rules.mjs` so nothing has to be rediscovered.
+
+**Two smaller things in the same handlers, both kept as you wrote them:**
+
+1. **Your half rounds UP**: `parseInt((chance + 1) / 2)`, so 51% halves to 26, not 25. The attribute
+   save in the same file uses a floor. The port keeps both as written rather than making them
+   agree — but if they are meant to be the same rule, one of them is wrong.
+2. **A natural 1 is not a special case** in any of the five. Daryl's report asks for 1 to be an
+   automatic success, which is the convention every other percentile check follows, and the port
+   does that. It changes the answer only against a 0% chance, where your code fails a rolled 1.
+   **Confirm this one** — it is the only part of the port's resistance roll not read off your sheet.

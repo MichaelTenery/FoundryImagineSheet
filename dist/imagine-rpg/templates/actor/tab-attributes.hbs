@@ -46,9 +46,13 @@
 		<div class="panel">
 			<h3>Resistances</h3>
 			<ul class="resist-list">
+				{{!-- Daryl's 0.11.1 Blocker: these five were shown and could not be rolled.
+				      SHIFT-click asks for a modifier, which is his second button per track. --}}
 				{{#each system.resistances as |res key|}}
 				<li><label>{{key}}</label>
 					<span class="value">{{#if res.immune}}Immune{{else}}{{res.value}}%{{/if}}</span>
+					<button type="button" data-action="rollResistance" data-resistance="{{key}}"
+						data-tooltip="Roll &mdash; shift-click for a modifier">Roll</button>
 				</li>
 				{{/each}}
 			</ul>

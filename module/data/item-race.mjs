@@ -191,6 +191,21 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 				choices: ["", "slight", "ordinary"]
 			}),
 
+			// @MARKER FORMLESS
+			// The races a formless race may inhabit. Empty for every race but Formless itself.
+			//
+			// A Formless is a free-floating psyche and supplies only the MENTAL half of a
+			// character: his case at sheet-worker.js:33625 sets INT/WIS/KNW/CHM/AUR/PTY/WIL and
+			// touches nothing physical, and setFormlessStartingRace (34880) takes STR/AGL/VIT/APP/
+			// SOC, starting Endurance, Perception, movement, jump and swimming from the host. So
+			// the character holds TWO race items, as a Half Race does -- but they are not averaged,
+			// they are two halves of one whole, and combineFormless puts them together.
+			//
+			// 106 of his races may be hosts. A Changeling cannot (its body is whatever form it
+			// wears), nor a Mechanos, nor Giant(Civilized:Seafaring), and neither Famorian,
+			// Maginos nor another Formless is on his list.
+			formlessHosts: new fields.ArrayField(new fields.StringField(), { initial: [] }),
+
 			// @MARKER TRAITS
 			// formless marks a race with no fixed body, which matters to the body chart and to
 			// transformation. canSwim is stored per race because it is not universal.

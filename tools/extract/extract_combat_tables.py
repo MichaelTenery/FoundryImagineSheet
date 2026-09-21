@@ -33,6 +33,13 @@ ROOT = os.path.join(HERE, "..", "..")
 WORKER = os.path.join(ROOT, "docs", "reference", "sheet-worker.js")
 NAMED = os.path.join(ROOT, "src", "packs", "named")
 RAW = os.path.join(ROOT, "src", "packs", "raw")
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from column_maps import RACESTATSANDMOVEDETAILS   # noqa: E402 -- to compare his two copies of a race
+
+# Which column of the 62-column race row each field is, so the Formless copy of a race's physical
+# half can be held up against the ordinary one. His two copies disagree in a handful of cells.
+RACESTATS_INDEX = {tmpname: tmpindex for tmpindex, tmpname in enumerate(RACESTATSANDMOVEDETAILS)}
 OUT = os.path.join(ROOT, "module", "combat-tables.mjs")
 
 lines = open(WORKER, encoding="utf-8", errors="replace").readlines()
@@ -521,6 +528,127 @@ def race_ages():
                     ages[lab] = dict(values)
             labels, values = [], {}
     return ages, start
+
+
+def formless_race():
+    """
+    Everything a Formless race needs, out of the three functions that between them define it.
+
+    A FORMLESS IS TWO HALVES. It is a free-floating psyche with no body of its own, so it
+    supplies only its MENTAL half and takes its PHYSICAL half from a host race it inhabits. His
+    code says so in two places and they fit together exactly:
+
+      applySingleRaceToAttribs  case "Formless" (33625) -- the mental half, and it IS a literal:
+                                INT/WIS/KNW/CHM/AUR/PTY/WIL modifiers and limits, the per-title
+                                Endurance roll, Affinity, Fortune and the five resistances. There
+                                is no STR/AGL/VIT/APP/SOC figure anywhere in it, which is the
+                                point.
+      setFormlessStartingRace   (34880) -- the physical half, out of its own 36-column dictionary
+                                keyed by host race: STR/AGL/VIT/APP/SOC modifiers and limits,
+                                starting Endurance, Perception, all movement, jump and swimming.
+
+    Between them they cover all twelve attributes once each and nothing twice.
+
+    WHICH RACES MAY BE HOSTS is the one rule only this function knows. His dictionary holds 102,
+    and his guard above it names four more -- Fairy, Fairy(Dark), Podling and Sporeling, which
+    are answered by a switch rather than by the dictionary because they split by physique. So 106
+    hosts, and the three ordinary races NOT among them (Changeling, Giant(Civilized:Seafaring),
+    Mechanos) are excluded by his data rather than by any rule written down.
+
+    THE PHYSICAL NUMBERS THEMSELVES ARE NOT RETURNED, on purpose. His Formless copy of each race's
+    physical half is a SECOND copy of data that raceStatsAndMoveDetails already holds, and the two
+    disagree in seven cells across 102 races -- which is a copy that has drifted, not a rule. The
+    disagreements are returned so the builder can report them, and the host's physical half is
+    read from the race document instead. That also means the eight faerie forms and the four
+    Maginos materials are usable as hosts without a second table having to learn about them.
+
+    THE ABILITIES ARE PROSE AND ARE NOT IN ANY DICTIONARY. raceFeatureAbilities has an empty row
+    for Formless; the real ones are string literals in setFormlessRaceAbilities (4576), which
+    prefixes its own with "FORMLESS: " and appends the host's after "HOST: ". His words are taken
+    whole -- Superior Regeneration and Corporeal Possession, Infertile, Non-Corporeal and Detached
+    Psyche, and immunity to Control -- because they carry the possession rules in their brackets.
+    """
+    # --- the mental half -------------------------------------------------------------------
+    start, body = function_body("applySingleRaceToAttribs")
+    tmpmental, tmpin = {}, False
+    for line in body:
+        m = re.search(r'case\s+"([^"]+)"\s*:', line)
+        if m:
+            tmpin = (m.group(1) == "Formless")
+        if not tmpin:
+            continue
+        if re.search(r'\bbreak\s*;', line):
+            tmpin = False
+        for tmpkey, tmpvalue in re.findall(r'setAttrs\(\{\s*(\w+)\s*:\s*("(?:[^"]*)"|-?[\d.]+)\s*\}\)', line):
+            tmpmental[tmpkey] = tmpvalue.strip('"') if tmpvalue.startswith('"') else float(tmpvalue)
+
+    # --- which races may be hosts ----------------------------------------------------------
+    tmphoststart, tmphostbody = function_body("setFormlessStartingRace")
+    tmphosts = []
+    for line in tmphostbody:
+        # The guard's four, which the dictionary does not hold.
+        if "tmphost==" in line:
+            for tmpname in re.findall(r'tmphost\s*==\s*"([^"]+)"', line):
+                if tmpname not in tmphosts:
+                    tmphosts.append(tmpname)
+        # The dictionary's own keys.
+        m = re.match(r'\s*"([^"]+)"\s*:\s*\[', line)
+        if m and m.group(1) not in tmphosts:
+            tmphosts.append(m.group(1))
+
+    # --- where his second copy of the physical half disagrees with the first ----------------
+    # The 36 columns, read off the setAttrs block that consumes the row (35028-35063).
+    FORMLESS_COLUMNS = [
+        "strMod", "aglMod", "vitMod", "appMod", "socMod",
+        "strLimit", "aglLimit", "vitLimit", "appLimit", "socLimit",
+        "startEnduranceFormula", "startEnduranceMod", "perceptionMod", "speedMultiplier",
+        "walkHourly", "walk10Sec", "walk1Sec", "jogHourly", "jog10Sec", "jog1Sec",
+        "runHourly", "run10Sec", "run1Sec", "specialMoveName",
+        "specialHourly", "specialHourlyMultiplier", "specialHourlyMod",
+        "special10Sec", "special10SecMultiplier", "special10SecMod",
+        "special1Sec", "special1SecMultiplier", "special1SecMod",
+        "jumpStand", "jumpUp", "canSwim",
+    ]
+    tmpdiffs = []
+    tmphostrows = {}
+    for line in tmphostbody:
+        m = re.match(r'\s*"([^"]+)"\s*:\s*(\[.*\])\s*,?\s*$', line)
+        if not m:
+            continue
+        try:
+            tmphostrows[m.group(1)] = json.loads(m.group(2).replace("’", "’"))
+        except ValueError:
+            continue
+    tmprace = load_raw("raceStatsAndMoveDetails")
+    for tmpname, tmprow in tmphostrows.items():
+        tmpother = tmprace.get(tmpname)
+        if not tmpother or len(tmprow) != len(FORMLESS_COLUMNS):
+            continue
+        for tmpindex, tmpfield in enumerate(FORMLESS_COLUMNS):
+            tmpmine = tmprow[tmpindex]
+            tmptheirs = tmpother[RACESTATS_INDEX[tmpfield]] if tmpfield in RACESTATS_INDEX else None
+            if tmpfield in RACESTATS_INDEX and str(tmpmine) != str(tmptheirs):
+                tmpdiffs.append({"race": tmpname, "field": tmpfield,
+                                 "formlessCopy": tmpmine, "raceRow": tmptheirs})
+
+    # --- the abilities, which are prose ------------------------------------------------------
+    tmpabilstart, tmpabilbody = function_body("setFormlessRaceAbilities")
+    tmptraits = {}
+    for tmpvar, tmpkey in (("fullabilities", "abilities"),
+                           ("fulldisabilities", "disabilities"),
+                           ("fullimmunities", "immunities")):
+        for line in tmpabilbody:
+            m = re.search(r'%s\s*=\s*"FORMLESS:\s*(.*)"\s*;\s*$' % tmpvar, line)
+            if m:
+                tmptraits[tmpkey] = m.group(1)
+                break
+
+    return {
+        "mental": tmpmental,
+        "hosts": tmphosts,
+        "traits": tmptraits,
+        "hostCopyDiffers": tmpdiffs,
+    }, start, tmphoststart, tmpabilstart
 
 
 def banded_chain(tmpfunction, tmpassign, tmpvar, tmpceiling=30):
@@ -1383,6 +1511,34 @@ def main():
             "_source": {"file": "docs/reference/sheet-worker.js",
                         "function": "getSlotsNeededForClass", "line": slots_line},
             "entries": slots_needed
+        }, fh, indent=2, ensure_ascii=False)
+
+    # A Formless is two halves: its own mental block, and a host race's physical one. What only
+    # his code knows is which races may be hosts and what a Formless adds on top of one.
+    tmpformless, tmpfline, tmphline, tmpaline = formless_race()
+    print("\nFormless: %d mental field(s), %d host race(s), %d trait line(s)"
+          % (len(tmpformless["mental"]), len(tmpformless["hosts"]), len(tmpformless["traits"])))
+    if tmpformless["hostCopyDiffers"]:
+        print("  %d cell(s) where his Formless copy of a race's physical half disagrees with "
+              "raceStatsAndMoveDetails -- the race row is the one used; see UPSTREAM-ISSUES.md"
+              % len(tmpformless["hostCopyDiffers"]))
+        for tmpdiff in tmpformless["hostCopyDiffers"]:
+            print("    %-24s %-22s formless=%-10r race=%r"
+                  % (tmpdiff["race"], tmpdiff["field"], tmpdiff["formlessCopy"], tmpdiff["raceRow"]))
+    for tmpwanted in ("int_race_mod", "wil_race_mod", "race_tmp_aff_mod", "race_tmp_for_mod"):
+        if tmpwanted not in tmpformless["mental"]:
+            print("  WARNING: the Formless mental block has no %s -- his case may have moved"
+                  % tmpwanted)
+    with open(os.path.join(NAMED, "formlessRace.json"), "w", encoding="utf-8") as fh:
+        json.dump({
+            "_source": {"file": "docs/reference/sheet-worker.js",
+                        "mental": {"function": "applySingleRaceToAttribs", "line": tmpfline},
+                        "hosts": {"function": "setFormlessStartingRace", "line": tmphline},
+                        "traits": {"function": "setFormlessRaceAbilities", "line": tmpaline}},
+            "_note": "A Formless supplies the mental half only; the physical half comes from the "
+                     "host race's OWN document, not from his second copy of it. hostCopyDiffers "
+                     "records every cell where the two copies disagree.",
+            **tmpformless
         }, fh, indent=2, ensure_ascii=False)
 
     with open(os.path.join(NAMED, "raceBodyTypes.json"), "w", encoding="utf-8") as fh:

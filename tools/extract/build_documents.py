@@ -127,8 +127,27 @@ def load_raw_entries(name):
 
 def split_list(tmpvalue):
     """His comma-separated name lists ("Infravision60,Antennae,Hide(Chitinous)") as a list, with
-    his "None" and empty entries dropped."""
-    return [s.strip() for s in str(tmpvalue or "").split(",") if s.strip() and s.strip() != "None"]
+    his "None" and empty entries dropped.
+
+    A comma INSIDE brackets does not separate two names: his trait names carry their own rules in
+    brackets, and the Formless ones are whole sentences -- "Detached Psyche(Being's soul, holds the
+    spirit, which holds the mind without a body.)" is one disability, not three. Splitting only at
+    bracket depth zero leaves every existing list byte-identical (checked over all 4,403 documents:
+    nothing his dictionaries hold has a comma inside brackets) and keeps the long ones whole.
+    """
+    tmpout, tmpcurrent, tmpdepth = [], [], 0
+    for tmpchar in str(tmpvalue or ""):
+        if tmpchar == "(":
+            tmpdepth += 1
+        elif tmpchar == ")":
+            tmpdepth = max(0, tmpdepth - 1)
+        if tmpchar == "," and tmpdepth == 0:
+            tmpout.append("".join(tmpcurrent))
+            tmpcurrent = []
+            continue
+        tmpcurrent.append(tmpchar)
+    tmpout.append("".join(tmpcurrent))
+    return [s.strip() for s in tmpout if s.strip() and s.strip() != "None"]
 
 
 def feature_colours(tmprow):
@@ -472,6 +491,133 @@ def expand_race_names(tmpnames, tmpmap):
     return tmpout
 
 
+# @MARKER FORMLESS
+# This is the function which builds the Formless race, which is not a row and never was.
+#
+# A Formless is a free-floating psyche with no body of its own. It supplies its MENTAL half and
+# takes its PHYSICAL half from a host race it inhabits, and his code splits it exactly that way:
+# applySingleRaceToAttribs case "Formless" (33625) sets INT/WIS/KNW/CHM/AUR/PTY/WIL and nothing
+# physical, and setFormlessStartingRace (34880) supplies STR/AGL/VIT/APP/SOC, starting Endurance,
+# Perception, movement, jump and swimming out of the host. Between them all twelve attributes are
+# covered once each and nothing twice.
+#
+# So the document built here is HALF A RACE on purpose. Its physical modifiers are 0 and its
+# physical limits sit at the schema default, because a Formless without a host has no body to put
+# a number on -- which is his own answer too: applyRaceToAttribs refuses a Formless with no host
+# ("No Formless host race name found/selected. Nothing done.", 4539). combineFormless in
+# module/race-rules.mjs is what puts the two halves together, and the character flags a Formless
+# with no host rather than refusing it, as it flags every other race problem.
+#
+# The host's physical half is read from the HOST'S OWN race document rather than from his second
+# copy of it -- see the note in extract_combat_tables.formless_race, and UPSTREAM-ISSUES item 47.
+def build_formless(tmpraceskills, tmpracefertile, tmpraceages, tmpformmap):
+    tmpformless = load_named("formlessRace")
+    if not tmpformless:
+        note("formless-not-extracted", "formlessRace",
+             "no extraction found; the Formless race is not built. Run extract_combat_tables.py")
+        return None
+
+    tmpmental = tmpformless.get("mental", {})
+    where = "formlessRace/mental"
+
+    def mental(tmpkey, tmpdefault=0):
+        if tmpkey not in tmpmental:
+            note("formless-mental-field-missing", where, "his case has no %s" % tmpkey)
+        return to_number(tmpmental.get(tmpkey, tmpdefault), where, tmpkey)
+
+    # His four faerie hosts are now eight documents, and his Fairy/Podling/Sporeling no longer
+    # name a race, so the host list goes through the same expansion every other race-name list does.
+    tmphosts = expand_race_names(tmpformless.get("hosts", []), tmpformmap)
+
+    tmpskillrow = tmpraceskills.get("Formless", ["", [], ""])
+    tmptraits = tmpformless.get("traits", {})
+
+    # @MARKER WHAT A ROW CANNOT SAY
+    tmpnotes = [
+        "A Formless has no body of its own. It must inhabit a HOST race, which supplies its "
+        "Strength, Agility, Vitality, Appearance and Social Class, its starting Endurance, its "
+        "Perception, all of its movement and whether it can swim; this race supplies everything "
+        "else. Hold both this race and the host race on the character. Without a host the "
+        "physical half of the character is blank, which his sheet refuses outright.",
+        "%d races may be inhabited. A Changeling, a Mechanos and a Giant(Civilized:Seafaring) may "
+        "not, and neither may another Formless, a Famorian or a Maginos." % len(tmphosts),
+        "A Formless can never be half of a Half Race, and does not take on a host's magical "
+        "abilities, so it cannot use a host's transformations.",
+    ]
+
+    return make_doc("Formless", "race", {
+        "description": " ".join(tmpnotes),
+        # The physical five are left at nothing on purpose: they come from the host.
+        "attributeMods": {tmpattr: (mental("%s_race_mod" % tmpattr)
+                                    if tmpattr in ("int", "wis", "knw", "chm", "aur", "pty", "wil")
+                                    else 0) for tmpattr in ATTRS},
+        "attributeLimits": {tmpattr: (mental("%s_tmp_limit" % tmpattr, 20)
+                                      if tmpattr in ("int", "wis", "knw", "chm", "aur", "pty", "wil")
+                                      else 20) for tmpattr in ATTRS},
+        "endurance": {
+            # Starting Endurance comes from the host; the per-title roll is the psyche's own.
+            "startFormula": "",
+            "startMod": 0,
+            "titleFormula": clean_text(str(tmpmental.get("race_title_tmp_end_formula", ""))),
+            "titleDice": clean_text(str(int(tmpmental.get("race_title_tmp_end_dice", 0) or 0))),
+            "titleMax": mental("race_title_tmp_end_max"),
+            "titleMod": mental("race_title_tmp_end_mod"),
+        },
+        # Perception is the body's and comes from the host; Affinity and Fortune are the psyche's.
+        "characteristicMods": {
+            "perception": 0,
+            "affinity": mental("race_tmp_aff_mod"),
+            "fortune": mental("race_tmp_for_mod"),
+        },
+        "resistanceMods": {
+            "magic": mental("race_tmp_magic_mod"),
+            "illusion": mental("race_tmp_illusion_mod"),
+            "control": mental("race_tmp_control_mod"),
+            "poison": mental("race_tmp_poison_mod"),
+            "disease": mental("race_tmp_disease_mod"),
+        },
+        # Every figure here is the host's. A bodiless psyche does not walk.
+        "movement": {
+            "speedMultiplier": 1,
+            "walk": {"hourly": 0, "tenSec": 0, "oneSec": 0},
+            "jog": {"hourly": 0, "tenSec": 0, "oneSec": 0},
+            "run": {"hourly": 0, "tenSec": 0, "oneSec": 0},
+            "specialName": "None:",
+            "special": {"hourly": "", "hourlyMultiplier": 0, "hourlyMod": 0,
+                        "tenSec": "", "tenSecMultiplier": 0, "tenSecMod": 0,
+                        "oneSec": "", "oneSecMultiplier": 0, "oneSecMod": 0},
+            "jumpStand": 0, "jumpUp": 0,
+        },
+        "slightPhysique": {"hasVariant": False, "specialName": "", "special": {
+            "hourly": "", "hourlyMultiplier": 0, "hourlyMod": 0,
+            "tenSec": "", "tenSecMultiplier": 0, "tenSecMod": 0,
+            "oneSec": "", "oneSecMultiplier": 0, "oneSecMod": 0}, "racialSkills": [], "canSwim": False},
+        "sourceRace": "Formless",
+        "physiqueLock": "",
+        "formless": True,
+        "canSwim": False,
+        "bodyType": "Humanoid",
+        "formlessHosts": tmphosts,
+        # Its own, never the host's: setRaceSkillSheet is called with the Formless race and his own
+        # comment says they "do not get these from the host they inhabit" (4577).
+        "racialSkills": [{"name": clean_text(s[0]), "bonus": clean_text(str(s[1] or ""))}
+                         for s in (tmpskillrow[1] or []) if s and s[0]],
+        "racialSkillNote": "",
+        "features": {"hair": [], "eyes": [], "skin": []},
+        # His raceFeatureAbilities row for Formless is empty: the real ones are prose in
+        # setFormlessRaceAbilities, and they carry the possession rules in their brackets.
+        "abilities": [clean_text(a) for a in split_list(tmptraits.get("abilities", ""))],
+        "disabilities": [clean_text(a) for a in split_list(tmptraits.get("disabilities", ""))],
+        "immunities": [clean_text(a) for a in split_list(tmptraits.get("immunities", ""))],
+        "fertileWith": [clean_text(a) for a in split_list(",".join(tmpracefertile.get("Formless", [])))],
+        "ages": {
+            "startLow": tmpraceages.get("Formless", {}).get("startLow", 0),
+            "startHigh": tmpraceages.get("Formless", {}).get("startHigh", 0),
+            "maxAge": str(tmpraceages.get("Formless", {}).get("maxAge", "")),
+        },
+    })
+
+
 def race_form_siblings(tmpfertile, tmpname, tmpkey, tmpmap):
     """Add a split form's OTHER forms to its fertility list, where the race breeds at all.
 
@@ -768,6 +914,11 @@ def build_races():
                 "maxAge": str(tmpages.get("maxAge", "")),
             },
         }))
+
+    # Formless is not a row and never was: it is half a race, and its other half is a host.
+    tmpformlessdoc = build_formless(raceskills, racefertile, raceages, tmpformmap)
+    if tmpformlessdoc:
+        docs.append(tmpformlessdoc)
     return docs
 
 

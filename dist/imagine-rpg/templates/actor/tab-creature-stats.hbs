@@ -70,6 +70,8 @@
 					<span class="value">{{#if res.immune}}Immune{{else}}{{res.value}}%{{/if}}</span>
 					<span class="muted"><input type="checkbox" name="system.resistances.{{key}}.immune"
 						{{#if res.immune}}checked{{/if}}> imm</span>
+					<button type="button" data-action="rollResistance" data-resistance="{{key}}"
+						data-tooltip="Roll &mdash; shift-click for a modifier">Roll</button>
 				</li>
 				{{/each}}
 			</ul>

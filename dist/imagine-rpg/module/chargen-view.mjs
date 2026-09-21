@@ -18,7 +18,8 @@
 //==================================================================================================================
 
 import { ATTRIBUTE_TABLES } from "./config-tables.mjs";
-import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePhysiqueLock } from "./race-rules.mjs";
+import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePhysiqueLock,
+	readFormlessPair, combineFormless } from "./race-rules.mjs";
 import { buildStartingKit } from "./starting-kit.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
@@ -93,8 +94,12 @@ import {
 		// form -- Fairy(Winged), Maginos(Clay) -- is a name of the port's own, and his getRaceHeightType
 		// has never heard of it; sourceRace is the race it was split from. Every other race gives
 		// back its own name, so this is the same list for all but the twelve.
+		// A FORMLESS IS DROPPED FROM THIS LIST, because a psyche has no height: his own
+		// getRaceHeightType answers "N/A" for it (35626). The host's body is what is measured, so
+		// leaving the Formless in would average a real height against nothing.
 		var tmpRaceSourceNames = [tmpRace1, tmpRace2]
-			.filter(tmpDoc => tmpDoc).map(tmpDoc => tmpDoc.system?.sourceRace || tmpDoc.name);
+			.filter(tmpDoc => tmpDoc && !tmpDoc.system?.formless)
+			.map(tmpDoc => tmpDoc.system?.sourceRace || tmpDoc.name);
 
 		// @MARKER RACE FORMS
 		// A winged race is always of slight physique and a wingless one never is, so where the race
@@ -106,7 +111,19 @@ import {
 		// gets the right form of each parent rather than the ordinary form of both.
 		var tmpSystem1 = tmpRace1 ? applySlightPhysique(tmpRace1.system, tmpIsSlight) : null;
 		var tmpSystem2 = tmpRace2 ? applySlightPhysique(tmpRace2.system, tmpIsSlight) : null;
-		var tmpRace = tmpSystem1 ? (tmpSystem2 ? combineHalfRace(tmpSystem1, tmpSystem2) : tmpSystem1) : null;
+
+		// @MARKER FORMLESS
+		// A Formless is NOT half of a Half Race -- his own code says so outright ("formless can't
+		// be half races", 34003). The two races a Formless character holds are a psyche and the
+		// body it wears, and they are combined by taking each half whole rather than by averaging.
+		var tmpFormless = readFormlessPair([tmpSystem1, tmpSystem2], tmpRaceNames);
+		var tmpRace = null;
+		if (tmpFormless.isFormless) {
+			tmpRace = tmpFormless.host ? combineFormless(tmpFormless.psyche, tmpFormless.host)
+				: tmpFormless.psyche;
+		} else if (tmpSystem1) {
+			tmpRace = tmpSystem2 ? combineHalfRace(tmpSystem1, tmpSystem2) : tmpSystem1;
+		}
 
 		var tmpType = CHARACTER_TYPES[tmpState.charType] ?? CHARACTER_TYPES.adventurer;
 		var tmpBase = tmpState.manual ? tmpState.manualBase : (tmpState.rolled?.best ?? null);
@@ -136,6 +153,7 @@ import {
 		return {
 			race1: tmpRace1, race2: tmpRace2, raceNames: tmpRaceNames, race: tmpRace,
 			raceSourceNames: tmpRaceSourceNames, physique: tmpPhysique, slightPhysique: tmpIsSlight,
+			formless: tmpFormless,
 			type: tmpType, hasBase: tmpHasBase, ratings: tmpBuilt.ratings, ratingIssues: tmpBuilt.issues,
 			finals: tmpFinals, human: tmpHuman,
 			klass: tmpClass, blocked: tmpBlocked, classIssues: tmpClassIssues, cannotCast: tmpCannotCast,
@@ -217,12 +235,19 @@ import {
 			.sort((a, b) => a.name.localeCompare(b.name));
 		tmpView.race1Options = [tmpOption("", "-- choose --", tmpState.race1)]
 			.concat(tmpRaces.map(tmpDoc => tmpOption(tmpDoc.name, tmpDoc.name, tmpState.race1)));
-		// His Half Race picker offers only the first race's fertile partners (racefertiledict).
-		var tmpFertile = tmpD.race1?.system?.fertileWith ?? [];
-		tmpView.race2Options = [tmpOption("", "-- one race only --", tmpState.race2)]
-			.concat(tmpRaces.filter(tmpDoc => tmpFertile.includes(tmpDoc.name))
+		// His Half Race picker offers only the first race's fertile partners (racefertiledict) --
+		// EXCEPT for a Formless, whose second race is not a mate but a body, and whose choices are
+		// therefore its host list rather than its (empty) fertility list.
+		var tmpIsFormless = !!tmpD.race1?.system?.formless;
+		var tmpSecond = tmpIsFormless
+			? (tmpD.race1?.system?.formlessHosts ?? [])
+			: (tmpD.race1?.system?.fertileWith ?? []);
+		tmpView.race2Options = [tmpOption("", tmpIsFormless ? "-- choose a host --" : "-- one race only --", tmpState.race2)]
+			.concat(tmpRaces.filter(tmpDoc => tmpSecond.includes(tmpDoc.name))
 			.map(tmpDoc => tmpOption(tmpDoc.name, tmpDoc.name, tmpState.race2)));
-		tmpView.canBeHalf = tmpFertile.length > 0;
+		tmpView.canBeHalf = tmpSecond.length > 0;
+		tmpView.isFormless = tmpIsFormless;
+		tmpView.formlessIssue = tmpD.formless?.issue ?? "";
 		tmpView.raceName = tmpD.raceNames.join("|");
 		tmpView.race = tmpD.race;
 

@@ -13,6 +13,14 @@
 #     python tools/extract/extract_book_text.py <book.pdf> <name>
 docs/reference/*-fulltext.txt
 
+# His errata, supplied 2026-09-21: six books' corrections plus three unpublished tables
+# (Alternate Advancement Class Training, the racial/social skill modifiers for Aspects and
+# Epitaph, and the Supernatural Summoning table). This is rules content of his, and some of it
+# is not in any published book at all, so the same rule applies as to the books themselves --
+# kept local, never committed. A WHOLE DIRECTORY rather than a pattern, for the reason written
+# above: the next file he sends must not have to be remembered about.
+docs/reference/errata/
+
 # Source PDFs, if they ever land inside the working tree.
 *.pdf
 

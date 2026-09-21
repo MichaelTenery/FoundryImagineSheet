@@ -244,6 +244,122 @@
 		return tmpOut;
 	}
 
+	// @MARKER FORMLESS
+	// This is the function which says which of two races a character holds is the psyche and which
+	// is the body, and whether the pair is a legal Formless at all.
+	//
+	// Returns the psyche and the host where exactly one race is formless, so a caller never has to
+	// care which order the two items were dropped on the sheet in.
+	export function readFormlessPair(tmpRaceSystems, tmpRaceNames) {
+		var tmpSystems = (tmpRaceSystems ?? []).filter(tmpSystem => tmpSystem);
+		var tmpNames = tmpRaceNames ?? [];
+		var tmpFormlessAt = tmpSystems.map((tmpSystem, tmpIndex) => tmpSystem.formless ? tmpIndex : -1)
+			.filter(tmpIndex => tmpIndex >= 0);
+		if (!tmpFormlessAt.length) { return { isFormless: false }; }
+		if (tmpFormlessAt.length > 1) {
+			return { isFormless: true, psyche: tmpSystems[tmpFormlessAt[0]], host: null,
+				issue: "A Formless cannot inhabit another Formless: neither has a body to lend." };
+		}
+		var tmpAt = tmpFormlessAt[0];
+		var tmpOther = tmpSystems.filter((tmpSystem, tmpIndex) => tmpIndex != tmpAt);
+		if (!tmpOther.length) {
+			return { isFormless: true, psyche: tmpSystems[tmpAt], host: null,
+				issue: "A Formless has no body of its own and needs a host race. Add the host's "
+					+ "race item beside this one; until then the physical half of this character "
+					+ "is blank." };
+		}
+		if (tmpOther.length > 1) {
+			return { isFormless: true, psyche: tmpSystems[tmpAt], host: tmpOther[0],
+				issue: "A Formless inhabits ONE host. The first of the other races is being used." };
+		}
+		var tmpHostName = (tmpNames.filter((tmpName, tmpIndex) => tmpIndex != tmpAt))[0] ?? "";
+		var tmpAllowed = tmpSystems[tmpAt].formlessHosts ?? [];
+		var tmpIssue = "";
+		// Reported, never refused -- the call already made for a barred class and an infertile pair.
+		if (tmpHostName && tmpAllowed.length && !tmpAllowed.includes(tmpHostName)) {
+			tmpIssue = `A Formless cannot inhabit a ${tmpHostName}: it is not among the `
+				+ `${tmpAllowed.length} races his sheet offers as a host.`;
+		}
+		return { isFormless: true, psyche: tmpSystems[tmpAt], host: tmpOther[0],
+			hostName: tmpHostName, issue: tmpIssue };
+	}
+
+	// This is the function which builds the race a Formless character actually has, out of the
+	// psyche and the body it wears. It returns the same shape as a race item's system data, so
+	// everything that reads a race reads this unchanged -- as combineHalfRace does.
+	//
+	// IT IS NOT AN AVERAGE. A Half Race is two races blended; a Formless is two HALVES of one
+	// character, and each half is taken whole:
+	//
+	//     from the HOST (setFormlessStartingRace, sheet-worker.js:34880)
+	//         STR, AGL, VIT, APP, SOC -- modifiers and limits
+	//         starting Endurance, Perception
+	//         speed multiplier, walk/jog/run, special movement, both jumps, swimming
+	//         the body chart, and the colours, because they are the body's
+	//     from the PSYCHE (applySingleRaceToAttribs case "Formless", 33625)
+	//         INT, WIS, KNW, CHM, AUR, PTY, WIL -- modifiers and limits
+	//         the per-title Endurance roll, Affinity, Fortune, all five resistances
+	//         its own racial skills -- "Formless have their own racial skills and do not get
+	//         these from the host they inhabit" is his own comment at 4577
+	//
+	// The traits are the one thing that COMBINES rather than choosing: setFormlessRaceAbilities
+	// (4576) prefixes its own with "FORMLESS: " and appends the host's after "HOST: ", so a
+	// Formless keeps Superior Regeneration and its host's Infravision at once. The port keeps them
+	// as two lists joined, since the sheet already shows each as its own chip.
+	const FORMLESS_PHYSICAL = ["str", "agl", "vit", "app", "soc"];
+
+	export function combineFormless(tmpPsyche, tmpHost) {
+		if (!tmpHost) { return tmpPsyche; }
+
+		var tmpMods = {};
+		var tmpLimits = {};
+		for (const tmpKey of Object.keys(tmpPsyche.attributeMods ?? {})) {
+			var tmpFromHost = FORMLESS_PHYSICAL.includes(tmpKey);
+			tmpMods[tmpKey] = (tmpFromHost ? tmpHost.attributeMods?.[tmpKey] : tmpPsyche.attributeMods?.[tmpKey]) ?? 0;
+			tmpLimits[tmpKey] = (tmpFromHost ? tmpHost.attributeLimits?.[tmpKey] : tmpPsyche.attributeLimits?.[tmpKey]) ?? 20;
+		}
+
+		var tmpHostEnd = tmpHost.endurance ?? {};
+		var tmpPsycheEnd = tmpPsyche.endurance ?? {};
+
+		return {
+			...tmpPsyche,
+			attributeMods: tmpMods,
+			attributeLimits: tmpLimits,
+			endurance: {
+				// The body decides what a character starts with; the psyche decides what each
+				// title adds, which is why a Formless gains 1 a title whatever it is wearing.
+				startFormula: tmpHostEnd.startFormula ?? "",
+				startMod:     tmpHostEnd.startMod ?? 0,
+				titleFormula: tmpPsycheEnd.titleFormula ?? "",
+				titleDice:    tmpPsycheEnd.titleDice ?? "",
+				titleMax:     tmpPsycheEnd.titleMax ?? 0,
+				titleMod:     tmpPsycheEnd.titleMod ?? 0
+			},
+			characteristicMods: {
+				perception: tmpHost.characteristicMods?.perception ?? 0,
+				affinity:   tmpPsyche.characteristicMods?.affinity ?? 0,
+				fortune:    tmpPsyche.characteristicMods?.fortune ?? 0
+			},
+			// All five are the psyche's: a Formless is immune to Control whatever it inhabits.
+			resistanceMods: { ...(tmpPsyche.resistanceMods ?? {}) },
+			movement: structuredClone(tmpHost.movement ?? {}),
+			canSwim:  !!tmpHost.canSwim,
+			bodyType: tmpHost.bodyType ?? "Humanoid",
+			// The body's, because they describe the body.
+			features: structuredClone(tmpHost.features ?? { hair: [], eyes: [], skin: [] }),
+			// His own, never the host's (4577).
+			racialSkills: (tmpPsyche.racialSkills ?? []).map(tmpSkill => ({ ...tmpSkill })),
+			// The one thing that is both, in his order: FORMLESS first, then HOST.
+			abilities:    [...(tmpPsyche.abilities ?? []), ...(tmpHost.abilities ?? [])],
+			disabilities: [...(tmpPsyche.disabilities ?? []), ...(tmpHost.disabilities ?? [])],
+			immunities:   [...(tmpPsyche.immunities ?? []), ...(tmpHost.immunities ?? [])],
+			// Infertile is one of its own disabilities, so it breeds with nothing whatever it wears.
+			fertileWith: [],
+			formless: true
+		};
+	}
+
 	export function combineHalfRace(tmpRace1, tmpRace2) {
 		var tmpMove1 = tmpRace1.movement ?? {};
 		var tmpMove2 = tmpRace2.movement ?? {};

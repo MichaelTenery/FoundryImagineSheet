@@ -23706,5 +23706,277 @@
       },
       "sourcebook": "XXX"
     }
+  },
+  {
+    "name": "Formless",
+    "type": "race",
+    "system": {
+      "description": "A Formless has no body of its own. It must inhabit a HOST race, which supplies its Strength, Agility, Vitality, Appearance and Social Class, its starting Endurance, its Perception, all of its movement and whether it can swim; this race supplies everything else. Hold both this race and the host race on the character. Without a host the physical half of the character is blank, which his sheet refuses outright. 110 races may be inhabited. A Changeling, a Mechanos and a Giant(Civilized:Seafaring) may not, and neither may another Formless, a Famorian or a Maginos. A Formless can never be half of a Half Race, and does not take on a host's magical abilities, so it cannot use a host's transformations.",
+      "attributeMods": {
+        "str": 0,
+        "agl": 0,
+        "vit": 0,
+        "int": 2.0,
+        "wis": -2.0,
+        "knw": 5.0,
+        "app": 0,
+        "chm": -2.0,
+        "soc": 0,
+        "aur": 0.0,
+        "pty": 0.0,
+        "wil": 4.0
+      },
+      "attributeLimits": {
+        "str": 20,
+        "agl": 20,
+        "vit": 20,
+        "int": 20.0,
+        "wis": 17.0,
+        "knw": 22.0,
+        "app": 20,
+        "chm": 18.0,
+        "soc": 20,
+        "aur": 20.0,
+        "pty": 20.0,
+        "wil": 20.0
+      },
+      "endurance": {
+        "startFormula": "",
+        "startMod": 0,
+        "titleFormula": "1",
+        "titleDice": "1",
+        "titleMax": 1.0,
+        "titleMod": 0.0
+      },
+      "characteristicMods": {
+        "perception": 0,
+        "affinity": -10.0,
+        "fortune": 10.0
+      },
+      "resistanceMods": {
+        "magic": 0.0,
+        "illusion": 0.0,
+        "control": 0.0,
+        "poison": 5.0,
+        "disease": 10.0
+      },
+      "movement": {
+        "speedMultiplier": 1,
+        "walk": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "jog": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "run": {
+          "hourly": 0,
+          "tenSec": 0,
+          "oneSec": 0
+        },
+        "specialName": "None:",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "jumpStand": 0,
+        "jumpUp": 0
+      },
+      "slightPhysique": {
+        "hasVariant": false,
+        "specialName": "",
+        "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "racialSkills": [],
+        "canSwim": false
+      },
+      "sourceRace": "Formless",
+      "physiqueLock": "",
+      "formless": true,
+      "canSwim": false,
+      "bodyType": "Humanoid",
+      "formlessHosts": [
+        "Fairy(Winged)",
+        "Fairy(Wingless)",
+        "Fairy(Dark Winged)",
+        "Fairy(Dark Wingless)",
+        "Sporeling(Winged)",
+        "Sporeling(Wingless)",
+        "Podling(Winged)",
+        "Podling(Wingless)",
+        "Apocritara",
+        "Arachen",
+        "Avian(Dark)",
+        "Avian(Forest)",
+        "Avian(Mountain)",
+        "Ba’Cora",
+        "Beastman",
+        "Brachara",
+        "Brok",
+        "Brownie",
+        "Centaur",
+        "Cervara",
+        "Chetahl",
+        "Crystori",
+        "Dao",
+        "Djinn",
+        "Dryad",
+        "Dwarf(Civilized)",
+        "Dwarf(Dark)",
+        "Dwarf(Fire)",
+        "Dwarf(Iron)",
+        "Dwarf(Mountain)",
+        "Dwarf(Stone)",
+        "Elf(Dark)",
+        "Elf(Desert)",
+        "Elf(Dread)",
+        "Elf(Gray)",
+        "Elf(High)",
+        "Elf(Ice)",
+        "Elf(Sea)",
+        "Elf(Shadow)",
+        "Elf(Silver)",
+        "Elf(Wild)",
+        "Elf(Wood)",
+        "Equara",
+        "Gaunt",
+        "Geebra",
+        "Giant(Civilized)",
+        "Giant(True)",
+        "Gnome",
+        "Goblin(Forest)",
+        "Goblin(Mountain)",
+        "Goblin(Mountain:Magic)",
+        "Goblin(Plains)",
+        "Grahl",
+        "Gremlin",
+        "Grethen",
+        "Gryphara",
+        "Hippotara",
+        "Hobgoblin",
+        "Human(Barbaric)",
+        "Human(Civilized:City)",
+        "Human(Civilized:Port)",
+        "Human(Civilized:Town)",
+        "Human(Civilized:Village)",
+        "Ifrit",
+        "Jumara",
+        "Katara",
+        "Kenku",
+        "Kerasara",
+        "Lagara",
+        "Leprechaun",
+        "Lissara",
+        "Lotara",
+        "Loxodara",
+        "Lutrinara",
+        "Marid",
+        "Mellivara",
+        "Mephyt(Fire)",
+        "Mephyt(Ice)",
+        "Merfolk",
+        "Midfolk(Forest)",
+        "Midfolk(River)",
+        "Midfolk(Town)",
+        "Nixie",
+        "Nymph",
+        "Ogre",
+        "Ogre(Magic)",
+        "Planar",
+        "Ratahl",
+        "S’rett",
+        "Sasquatch/Yeti",
+        "Satyr/Fawn",
+        "Saurian",
+        "Scethen",
+        "Se’eth",
+        "Sha’Cora",
+        "Sura’keth",
+        "Sura’rath",
+        "Susara",
+        "Sylph",
+        "Taurian",
+        "Testudara",
+        "Troll",
+        "Troll(Ice)",
+        "Troll(Rock)",
+        "Ursara",
+        "Vulpara",
+        "Whalrog",
+        "Wildling",
+        "Wolfen",
+        "Xar’Xeth"
+      ],
+      "racialSkills": [
+        {
+          "name": "Levitation",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Life Sense",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Mask Life Force",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Phase",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Radiant Life Force",
+          "bonus": "+10%"
+        },
+        {
+          "name": "Telekinesis",
+          "bonus": "+10%"
+        }
+      ],
+      "racialSkillNote": "",
+      "features": {
+        "hair": [],
+        "eyes": [],
+        "skin": []
+      },
+      "abilities": [
+        "Superior Regeneration(Heals 1d6 points of non-fire/acid damage per 10 seconds to all body areas. Dies if head is destroyed or seperated from the heart.)",
+        "Corporeal Posession(Can posses physical forms lacking spirit and soul. Must make a Control Resistance to do so. Fail = no further attempts. For the first 30 minutes(-1 minute per WIL) control of the new form is at -1/-5% to all physical actions. Duration of possession varies. Mindless Husks: 1 Week per WIL. Control Resistance once per week at -5% cumulative or be rejected. Humanoid Corpse: -5% Control Resist for each hour it has already been dead. Once possessed. Lasts 1 Day per WIL. Control Resistance once per day at -5% cumulative or be rejected. Animal Corpse: -5% Control Resist for each 10 minutes it has already been dead. Once possessed. Lasts 10 minutes per WIL. Control Resistance once per 10 minutes at -5% cumulative or be rejected.)"
+      ],
+      "disabilities": [
+        "Infertile(Lacks ability to reproduce.)",
+        "Non-Corporeal(No physical form.)",
+        "Detached Psyche(Being's soul, holds the spirit, which holds the mind without a body. Dependent on the possession of other physical forms. Survives unharmed outside a body for 1 hour per WIL. Thereafter must make a Control Resistance. Every failure is -1 WIL. Every failure requires a WIL Save to avoid insanity. Without a form, WIL losses continue without recovery until death at 0 WIL.)"
+      ],
+      "immunities": [
+        "Control(Cannot be controlled.)"
+      ],
+      "fertileWith": [],
+      "ages": {
+        "startLow": 200,
+        "startHigh": 2000,
+        "maxAge": "Immortal"
+      },
+      "sourcebook": "XXX"
+    }
   }
 ]

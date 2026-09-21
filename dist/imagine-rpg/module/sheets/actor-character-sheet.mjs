@@ -17,6 +17,7 @@ import { chooseBestArmor } from "../equip-rules.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
 import { getWeaponSpeed, getLoreModifiers, isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import ImagineItemPicker from "../apps/item-picker.mjs";
 import {
 	resolveSkillOutcome, pickBestSkillRoll, canTransferSlot, canSacrificeSlot,
@@ -62,6 +63,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		form: { submitOnChange: true },
 		actions: {
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
+			rollResistance: ImagineCharacterSheet.#onRollResistance,
 			rollSkill: ImagineCharacterSheet.#onRollSkill,
 			rollWeaponAttack: ImagineCharacterSheet.#onRollWeaponAttack,
 			setWeaponHand: ImagineCharacterSheet.#onSetWeaponHand,
@@ -458,6 +460,41 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
 			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+		});
+	}
+
+	// @MARKER RESISTANCE ROLL
+	// Daryl's 0.11.1 Blocker: the Attributes tab showed the five resistance figures and gave no
+	// way to roll any of them. The rule itself is in module/resistance-rules.mjs, beside a note on
+	// the one thing his own handlers get wrong; this only rolls the die and says what happened.
+	//
+	// A modifier is asked for when the button is SHIFT-clicked, which is his two buttons per track
+	// (roll_resist_magic and roll_resist_magic_mod) folded into one, since a sheet with five tracks
+	// does not want ten buttons on it.
+	static async #onRollResistance(event, target) {
+		var tmpkey = target.dataset.resistance;
+		var tmpresist = this.document.system.resistances[tmpkey];
+		if (!tmpresist) { return; }
+
+		var tmpmodifier = 0;
+		if (event.shiftKey) {
+			var tmpanswer = await foundry.applications.api.DialogV2.prompt({
+				window: { title: "Resistance Modifier" },
+				content: `<p>Modifier to this ${tmpkey} resistance roll:</p>
+					<input type="number" name="modifier" value="0" autofocus>`,
+				ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
+			}).catch(() => null);
+			if (tmpanswer === null) { return; }
+			tmpmodifier = parseInt(tmpanswer) || 0;
+		}
+
+		var tmproll = await new Roll("1d100").evaluate();
+		var tmpresult = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpmodifier);
+		var tmplabel = tmpkey.charAt(0).toUpperCase() + tmpkey.slice(1);
+
+		await tmproll.toMessage({
+			speaker: ChatMessage.getSpeaker({ actor: this.document }),
+			flavor: describeResistanceRoll(tmplabel, tmpresult)
 		});
 	}
 

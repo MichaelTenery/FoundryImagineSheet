@@ -3724,3 +3724,125 @@ one die, max 1; Affinity -10, Fortune +10; poison +5, disease +10, the other thr
 That is recorded in `docs/sonnet/2026-09-21-race-forms.md` so the next pass on it starts from the
 numbers rather than from the search. **Undead transformations** are confirmed absent from his sheet
 and are not a port gap.
+
+## Formless is built: a psyche and the body it wears (2026-09-21)
+
+Asked for directly, Formless first of the two specced races. It was never a row and the port was
+right not to invent one -- but half of it IS a literal, and that is what made it buildable.
+
+**A Formless is two halves that fit exactly.** His case at `applySingleRaceToAttribs` 33625 sets
+INT/WIS/KNW/CHM/AUR/PTY/WIL and their limits, the per-title Endurance roll, Affinity, Fortune and
+the five resistances -- and touches nothing physical. `setFormlessStartingRace` (34880) supplies
+STR/AGL/VIT/APP/SOC and their limits, starting Endurance, Perception, all movement, both jumps and
+swimming, out of a host race. Between them all twelve attributes are covered once each and nothing
+twice. So the race document built here is HALF A RACE on purpose, and `combineFormless` puts the
+two together by taking each half whole -- it is emphatically not `combineHalfRace`, which averages,
+and his own code refuses the half-race path for a Formless outright ("formless can't be half
+races", 34003).
+
+**The character holds TWO race items**, as a Half Race does, and which is which is worked out rather
+than declared: `readFormlessPair` finds the formless one whichever order they were dropped in. That
+reuses all the plumbing -- availability, the sheet's race list, the generator's second-race picker
+-- and needed no new field on the character.
+
+**His second copy of the physical half is NOT used, and that is a judgement call.**
+`formlessStartingRaceDetails` is a 36-column dictionary holding each host's physical half, and every
+figure in it already exists in `raceStatsAndMoveDetails`. The two have drifted: **22 cells across
+four races** (`UPSTREAM-ISSUES.md` item 47). The port reads the host's own race document instead --
+one source of truth, and the eight faerie forms and four Maginos materials become usable as hosts
+without a second table having to learn about them. Every difference is reported on each extraction
+run, so the call is visible rather than silent, and it can be flipped if he says otherwise.
+
+**That drift turned out to be evidence on two questions that had none.** His Formless copy of
+Elf(Sea) and Elf(Ice) gives a speed multiplier of **0** where the race row gives the **-10** that
+`UPSTREAM-ISSUES.md` item 24 has been asking about since 2026-09-12 -- the first independent sign of
+what was meant. And his Formless copy of Gaunt writes a flat `0` and `4` where the race row carries
+`0-getDieRoll(4)`, the only non-literal in the whole dictionary and the subject of item 2.
+
+**The abilities are prose and are not in any dictionary.** `raceFeatureAbilities` has an empty row
+for Formless; the real ones are string literals in `setFormlessRaceAbilities` (4576), which prefixes
+its own with "FORMLESS: " and appends the host's after "HOST: ". Superior Regeneration and Corporeal
+Possession, Infertile, Non-Corporeal and Detached Psyche, and immunity to Control -- taken whole,
+because each carries its rules inside its brackets. **That forced a real fix**: `split_list` split on
+every comma, and "Detached Psyche(Being's soul, holds the spirit, which holds the mind without a
+body.)" is ONE disability, not three. It now splits only at bracket depth zero. Checked over all
+4,403 documents: nothing else his dictionaries hold has a comma inside brackets, so every existing
+list is byte-identical.
+
+**What is reported rather than refused**, the pattern this project has used since the barred class:
+a Formless with no host (its physical half is simply blank), a Formless inhabiting another Formless,
+a second body, and a host that is not among the 110 his sheet offers. His sheet refuses a hostless
+Formless outright; the port flags it, because a race here is an Item that can be dropped from
+anywhere.
+
+**Height comes from the body.** His `getRaceHeightType` answers "N/A" for a Formless (35626), so the
+psyche is dropped from the list of names the physique roll is given -- otherwise a real height would
+be averaged against nothing.
+
+**110 hosts, not 106.** His dictionary holds 102 and his guard names four more (the faeries, which
+split by physique); the four became eight on 2026-09-21, so the list expands through the same
+mechanism every other race-name list does. A Changeling, a Mechanos and a Giant(Civilized:Seafaring)
+are absent from his list, and so are Famorian, Maginos and Formless itself.
+
+**Races go 118 to 119.** Derivation 439 (28 new for Formless, 18 for the resistance roll below).
+
+## Every resistance roll on his sheet reports "virtually immune" (2026-09-21)
+
+Daryl reported version 0.11.1's only Blocker: the Attributes tab showed the five resistances and
+offered no way to roll any of them. Building the roll meant reading his five handlers, and they do
+not work.
+
+`handleMagicResist` (1231) and its four identical siblings read the chance out of `getAttrs`, which
+returns a **string**, and then add the modifier to it -- so `"50" + 0` is `"500"`, not 50. Six lines
+later `resistchance > 199` is the test for "virtually immune", and `"500" > 199` is true. **Any
+two-digit resistance therefore auto-passes without the die being consulted**, and a one-digit one is
+silently multiplied by ten. Verified in a real JavaScript engine against his exact lines rather than
+reasoned about: 50% resistance rolling 87 reports virtually immune; 5% rolling 99 happens to give
+the right answer. `UPSTREAM-ISSUES.md` item 48.
+
+**The port does what he evidently meant** -- the figure is a number before the modifier is added --
+on the footing already set by `lesserAge` and the Monk repair. His branch ORDER is kept exactly:
+immunity first and it says the effect never happened, then 200% as "virtually immune", then a
+rolled 100 as automatic failure, then the three-way comparison.
+
+**Two smaller things kept as he wrote them.** His half is `parseInt((chance + 1) / 2)`, which rounds
+UP -- 51% halves to 26 -- where the attribute save in the same file uses a floor; both are ported as
+written rather than made to agree, and the disagreement is reported. And **a natural 1 is not a
+special case in any of his five handlers**; the port makes it an automatic success because the bug
+report asks for it and every other percentile check in the game works that way, but it is the one
+part of this not read off his sheet and is flagged for his confirmation. It changes the answer only
+against a 0% chance.
+
+**Rolled from both sheets**, since a creature's stat block carries the same five and a Game Master
+rolling a creature's Poison resistance wants the same card a player gets. Shift-clicking asks for a
+modifier, which folds his two buttons per track into one rather than putting ten on a sheet.
+
+## His errata arrives, and mostly agrees with his sheet (2026-09-21)
+
+He supplied errata for six books plus three unpublished tables -- 2,384 lines, dated 2025 to 2026,
+newer than anything else in hand. **Nothing has been built from it**, and the reason is written up
+in `docs/ERRATA.md` rather than decided here: it is a THIRD source, and `CLAUDE.md`'s rule that the
+Roll20 sheet beats a rulebook was written when there were only two.
+
+**The finding that reframes it:** ten class/race restriction changes -- the errata's most directly
+mechanical content, mapping straight onto each class's `blockedRaces` -- were checked against what
+the port already builds from his sheet, and most were **already true there**. Fairies can already be
+Tricksters; Mountain and Forest Goblins can already be Martial Artists; Kenku can already be Mage;
+Dark Fairies are already barred from Berserker, Bounty Hunter and Martial Artist. One real
+difference: Dark Fairies are **not** barred from Monk. So he keeps the sheet current with his
+errata, and the errata reads as a record of changes already made rather than corrections waiting to
+be applied.
+
+That makes the recommended treatment **errata as a check, not an override**: run it against the
+built documents, report disagreements, take them to him one at a time -- which is how
+`UPSTREAM-ISSUES.md` already works, and which cannot silently change a rule anyone is playing. The
+user's ruling is wanted before any of it is built.
+
+**The files are not committed.** They are his rules content and some of it is in no published book,
+so `.gitignore` keeps `docs/reference/errata/` local for the same reason it keeps the book text
+local -- and as a whole DIRECTORY rather than a pattern, so the next file he sends does not have to
+be remembered about. That was written into the ignore file's own comment the last time this trap was
+found.
+
+**`todo.txt` in that set is his own working list**, not errata -- things he intends to change and
+has not. It must not be built from.

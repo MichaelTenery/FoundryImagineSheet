@@ -1,0 +1,92 @@
+# The errata, and what to do with it
+
+He supplied an errata set on **2026-09-21**: corrections for six books plus three tables that are
+not in any published book. The files themselves are **not committed** — they are his rules content,
+some of it unpublished, and `.gitignore` keeps `docs/reference/errata/` local for the same reason it
+keeps the book text local. This file is the map of what is in them and what has to be decided.
+
+## What arrived
+
+| File | Non-blank lines | Last updated by him |
+|---|---|---|
+| `PG.txt` — Player's Guide | 755 | 2025-03-15 |
+| `MM.txt` — Master's Manual | 577 | 2026-07-17 |
+| `MM - grammar.txt` | 248 | — |
+| `Aspects.txt` — Aspects of the Wild | 236 | 2026-08-19 |
+| `Legends.txt` — Legends of the Unknown | 219 | 2026-07-17 |
+| `Mysteries.txt` — Mysteries of the Planes | 193 | 2026-07-17 |
+| `Epitaph.txt` — Epitaph of the Fallen | 146 | 2025-01-03 |
+| `aspectsfixes.txt`, `todo.txt` | 10 | — |
+
+**2,384 lines in total.** Plus three documents that are not errata at all but new content:
+
+- **Alternate Advancement Class Training** (`.docx`/`.pdf`) — an alternative advancement rule.
+- **Racial/Social Skill Mods for Aspects and Epitaph** (`.docx`/`.pdf`) — skill modifier tables.
+- **Supernatural Summoning Table** (`.docx`) — a summoning table.
+
+`todo.txt` is **his own working list**, not errata: it records things he intends to change and has
+not yet (spell percentage boosts capped at +50%, the Fire elemental's diameter, Aura elemental
+damage being d12 aura rather than d6 fire). Those are not decided rules and must not be built.
+
+## The finding that matters: the errata mostly AGREES with the sheet
+
+Before treating this as a pile of overrides, ten class/race restriction changes — the errata's most
+directly mechanical content, mapping straight onto each class's `blockedRaces` — were checked
+against what the port already builds from `sheet-worker.js`. **Most were already true in his sheet:**
+
+| Errata says | The sheet already |
+|---|---|
+| Fairies can be Tricksters | allows it ✔ |
+| Mountain and Forest Goblins can be Martial Artists | allows it ✔ |
+| Kenku can be Mage | allows it ✔ |
+| Dark Fairies cannot be Berserkers, Bounty Hunters or Martial Artists | bars all three ✔ |
+| Dark Fairies cannot be **Monks** | **does not bar it** ✘ |
+
+So he keeps the sheet current with his errata, and the errata reads as a record of changes already
+made rather than a set of corrections waiting to be applied. That **lowers the risk considerably**
+and changes what this work is: not "re-derive the rules from a newer source" but "check the sheet
+against his own newer statement of the rules, and report the handful of places they differ".
+
+## The source-of-truth question — needs the user's ruling
+
+`CLAUDE.md` says: **when the Roll20 sheet and a rulebook disagree, the Roll20 sheet wins** — it
+reflects what the table actually plays with. That rule was written when the only other source was
+the books. The errata is a **third** source and, dated 2025–2026, the most recent statement of the
+rules; several files are newer than anything else in hand.
+
+Three ways to take it, and this has **not been decided**:
+
+1. **Errata as a check, not an override** (what the finding above supports). Build nothing from the
+   errata directly. Run it against the sheet-derived documents, report every disagreement, and take
+   them to him one at a time — exactly how `UPSTREAM-ISSUES.md` already works. The sheet stays the
+   source of truth; the errata becomes the best test of it yet.
+2. **Errata wins over the sheet.** The most recent statement of the rules governs. This inverts the
+   project's central rule and would need to be written into `CLAUDE.md`.
+3. **Errata wins over the books only**, leaving the sheet on top. A narrower change: it would settle
+   prose and gaps the sheet is silent on without touching anything the sheet states.
+
+**Recommendation: (1).** It costs least, it cannot silently change a rule anyone is playing, it
+turns 2,384 lines into a generated report rather than 2,384 judgement calls, and the one real
+difference found so far (Dark Fairy / Monk) is exactly the kind of thing it would surface.
+
+## What is already known to be affected
+
+- **`blockedRaces` on 103 class documents** — ten restriction changes, at least one a real delta.
+- **Maginos hide by material** (`Mysteries.txt`, Pg. 30) — Clay 1 per 6 END max 10, Wood 1 per 5 max
+  15, Stone 1 per 4 max 20, Metal 1 per 3 max 25. **Directly relevant**: the four Maginos material
+  races were built on 2026-09-21 and carry no hide at all, his sheet having none for them.
+- **Brownie STR max 13** (`Aspects.txt`) — an attribute limit, which the port reads from his row.
+- **Race trait changes across Legends, Aspects, Epitaph and Mysteries** — abilities, disabilities and
+  immunities added or renamed on individual races.
+- **A creature-wide hide cap of 5 × level** (`Aspects.txt`, `aspectsfixes.txt`) — a rule the port
+  does not model.
+- **Undead** (`Epitaph.txt`) — shadowform vs phaseable form by alignment. Relevant to the undead
+  transformations noted as absent on 2026-09-21.
+
+## Next step
+
+Nothing has been built from any of this. The next pass on it should begin by settling the question
+above, then, if (1) is chosen, write `tools/extract/check_errata.py` — a reader that parses the
+errata's own regular shape (`Pg. N` headings, race and class names, "should read" lines) and reports
+disagreements against `src/packs/documents/`, the way `check_race_references` and
+`check_skill_references` already report against his dictionaries.

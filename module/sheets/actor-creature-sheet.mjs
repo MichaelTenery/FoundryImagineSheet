@@ -17,6 +17,7 @@
 import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../creature-tables.mjs";
 import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -56,6 +57,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		form: { submitOnChange: true },
 		actions: {
 			rollAttributeSave: ImagineCreatureSheet.#onRollAttributeSave,
+			rollResistance: ImagineCreatureSheet.#onRollResistance,
 			rollCreatureSkill: ImagineCreatureSheet.#onRollCreatureSkill,
 			rollCreatureAttack: ImagineCreatureSheet.#onRollCreatureAttack,
 			setAttackHand: ImagineCreatureSheet.#onSetAttackHand,
@@ -267,6 +269,38 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
 			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+		});
+	}
+
+	// @MARKER RESISTANCE ROLL
+	// The same roll the character sheet offers, and the same rule module. A creature's five
+	// resistances are figures its stat block states rather than derived ones, but they are rolled
+	// against identically, and a Game Master rolling a creature's Poison resistance wants the same
+	// card a player gets. Shift-click asks for a modifier.
+	static async #onRollResistance(event, target) {
+		var tmpkey = target.dataset.resistance;
+		var tmpresist = this.document.system.resistances[tmpkey];
+		if (!tmpresist) { return; }
+
+		var tmpmodifier = 0;
+		if (event.shiftKey) {
+			var tmpanswer = await foundry.applications.api.DialogV2.prompt({
+				window: { title: "Resistance Modifier" },
+				content: `<p>Modifier to this ${tmpkey} resistance roll:</p>
+					<input type="number" name="modifier" value="0" autofocus>`,
+				ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
+			}).catch(() => null);
+			if (tmpanswer === null) { return; }
+			tmpmodifier = parseInt(tmpanswer) || 0;
+		}
+
+		var tmproll = await new Roll("1d100").evaluate();
+		var tmpresult = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpmodifier);
+		var tmplabel = tmpkey.charAt(0).toUpperCase() + tmpkey.slice(1);
+
+		await tmproll.toMessage({
+			speaker: ChatMessage.getSpeaker({ actor: this.document }),
+			flavor: describeResistanceRoll(tmplabel, tmpresult)
 		});
 	}
 

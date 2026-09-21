@@ -1306,8 +1306,8 @@ check("a class that does not split is its own base",
 const raceDocs = await (await fetch("../src/packs/documents/races.json")).json();
 const raceByName = (n) => raceDocs.find(d => d.name === n);
 
-check("118 race documents: his 110, less the four faeries, plus their eight forms and four Maginos materials",
-	raceDocs.length, 118);
+check("119 race documents: his 110, less the four faeries, plus their eight forms, four Maginos materials and Formless",
+	raceDocs.length, 119);
 check("a race he split with a second dropdown has no document under his own name",
 	["Fairy", "Fairy(Dark)", "Podling", "Sporeling"].filter(n => raceByName(n)), []);
 check("...but Maginos keeps one, because his sheet offers an [Other] material",
@@ -1380,6 +1380,52 @@ check("a class barred to a faerie is barred to both of its forms",
 	classByName("Acrobat").system.blockedRaces.filter(n => n.startsWith("Fairy")),
 	["Fairy(Winged)", "Fairy(Wingless)"]);
 
+// --- resistance rolls ---------------------------------------------------------------------------
+// Daryl's 0.11.1 Blocker: the five resistances were shown and could not be rolled. His own five
+// handlers (handleMagicResist, sheet-worker.js:1231, and four identical to it) give their answers
+// in a fixed order, and this follows it. See module/resistance-rules.mjs and UPSTREAM item 48.
+const RES = await import("../module/resistance-rules.mjs");
+const resist = (chance, roll, immune = false, mod = 0) =>
+	RES.resolveResistanceRoll(chance, roll, immune, mod).outcome;
+
+check("a roll under the chance resists", resist(60, 45), "Resisted");
+check("a roll over the chance does not", resist(60, 75), "Did not resist");
+check("a roll on the chance exactly still resists", resist(60, 60), "Resisted");
+check("at or under half, it is resisted by half", resist(60, 30), "Resisted by half");
+check("one over half is an ordinary success", resist(60, 31), "Resisted");
+// His half is parseInt((chance+1)/2), which rounds UP on an odd chance -- and differs from the
+// attribute save's half in the same codebase, which is a floor. Both are ported as written.
+check("his half rounds up on an odd chance: 51% halves to 26, not 25",
+	[RES.halfResistance(51), RES.halfResistance(50), RES.halfResistance(1), RES.halfResistance(0)],
+	[26, 25, 1, 0]);
+check("...so 26 against 51% is still resisted by half", resist(51, 26), "Resisted by half");
+// Immunity answers before anything is rolled, and says the effect never happened.
+check("immunity beats the roll entirely", resist(0, 100, true), "Immune");
+check("...even a rolled 100", RES.resolveResistanceRoll(0, 100, true, 0).resisted, true);
+// 200% is his "virtually immune", and it beats a rolled 100.
+check("200% or more resists whatever is rolled", resist(200, 100), "Resisted");
+check("...and 199% does not", resist(199, 100), "Did not resist");
+// The two natural rolls.
+check("a natural 100 fails even on a high chance", resist(150, 100), "Did not resist");
+check("a natural 1 succeeds even on a 0% chance", resist(0, 1), "Resisted by half");
+check("...which is the one answer his handlers give differently (item 48)",
+	RES.resolveResistanceRoll(0, 1, false, 0).reason, "a natural 1 -- an automatic success");
+// The modifier his second button per track prompts for.
+check("a modifier moves the chance before anything is compared",
+	[resist(40, 55, false, 20), resist(60, 55, false, -20)], ["Resisted", "Did not resist"]);
+check("the card reports the modified chance, not the printed one",
+	RES.resolveResistanceRoll(40, 55, false, 20).chance, 60);
+// A missing or nonsense figure must not throw -- a creature's stat block may leave one blank.
+check("a blank chance is nothing, not a crash",
+	[resist(null, 50), resist(undefined, 50), resist("", 50)],
+	["Did not resist", "Did not resist", "Did not resist"]);
+check("the chat line names the track and what happened",
+	RES.describeResistanceRoll("Poison", RES.resolveResistanceRoll(60, 45, false, 0)),
+	"Poison Resistance &mdash; rolled 45% against 60% &mdash; <strong>Resisted</strong>");
+check("...and an immune track says it had no effect",
+	RES.describeResistanceRoll("Magic", RES.resolveResistanceRoll(0, 50, true, 0)),
+	"Magic Resistance &mdash; <strong>Immune</strong> &mdash; it had no effect");
+
 // --- the physique lock at runtime ---------------------------------------------------------------
 check("a race with no lock leaves the choice with the player",
 	RR.resolvePhysiqueLock([raceByName("Nixie").system]).locked, false);
@@ -1402,9 +1448,108 @@ check("a winged half and a wingless half is a conflict, and the choice goes back
 check("nothing at all is not a lock", RR.resolvePhysiqueLock([]).locked, false);
 check("...and neither is a missing race", RR.resolvePhysiqueLock([null, undefined]).locked, false);
 
+// --- Formless: a psyche and the body it wears ---------------------------------------------------
+// Not a row and never was. His case at sheet-worker.js:33625 supplies the mental half and
+// setFormlessStartingRace (34880) takes the physical half from a host. See DECISIONS.md 2026-09-21.
+const PT = await import("../module/physique-tables.mjs");
+const formless = raceByName("Formless").system;
+const hostOf = (n) => raceByName(n).system;
+
+check("the Formless race exists and is marked formless", [!!formless, formless.formless], [true, true]);
+check("it supplies the seven MENTAL modifiers and no physical one",
+	[formless.attributeMods.int, formless.attributeMods.knw, formless.attributeMods.wil,
+	 formless.attributeMods.str, formless.attributeMods.agl, formless.attributeMods.vit],
+	[2, 5, 4, 0, 0, 0]);
+check("...and his mental limits, leaving the physical at the default",
+	[formless.attributeLimits.knw, formless.attributeLimits.wis, formless.attributeLimits.str],
+	[22, 17, 20]);
+check("Affinity and Fortune are the psyche's, Perception the body's",
+	[formless.characteristicMods.affinity, formless.characteristicMods.fortune,
+	 formless.characteristicMods.perception], [-10, 10, 0]);
+check("its resistances are his: poison +5, disease +10, the rest nothing",
+	[formless.resistanceMods.poison, formless.resistanceMods.disease, formless.resistanceMods.magic],
+	[5, 10, 0]);
+check("it gains 1 Endurance a title whatever it wears, and brings no starting Endurance",
+	[formless.endurance.titleFormula, formless.endurance.titleMax, formless.endurance.startFormula,
+	 formless.endurance.startMod], ["1", 1, "", 0]);
+check("its six racial skills are its own, at +10% each",
+	formless.racialSkills.map(s => s.name),
+	["Levitation", "Life Sense", "Mask Life Force", "Phase", "Radiant Life Force", "Telekinesis"]);
+check("its abilities came out of his prose whole, brackets and all",
+	[formless.abilities.length, formless.disabilities.length, formless.immunities.length,
+	 formless.immunities[0]], [2, 3, 1, "Control(Cannot be controlled.)"]);
+// The bracket-aware split matters here: "Detached Psyche(Being's soul, holds the spirit, ...)"
+// has commas inside its brackets and is ONE disability, not three.
+check("a comma inside brackets did not split a disability into three",
+	formless.disabilities.every(d => d.split("(").length === d.split(")").length), true);
+check("it is infertile and immortal", [formless.fertileWith, formless.ages.maxAge], [[], "Immortal"]);
+check("110 races may be inhabited, the four faerie hosts having become eight",
+	[formless.formlessHosts.length,
+	 formless.formlessHosts.includes("Fairy(Winged)"), formless.formlessHosts.includes("Fairy")],
+	[110, true, false]);
+check("a Changeling, a Mechanos and a Maginos may not be inhabited",
+	["Changeling", "Mechanos", "Maginos", "Formless"].filter(n => formless.formlessHosts.includes(n)), []);
+
+// Putting the two halves together.
+const worn = RR.combineFormless(formless, hostOf("Dwarf(Mountain)"));
+check("the body lends STR/AGL/VIT/APP/SOC, the psyche keeps INT/WIS/KNW/CHM/WIL",
+	[worn.attributeMods.str, worn.attributeMods.vit, worn.attributeMods.knw, worn.attributeMods.wil],
+	[hostOf("Dwarf(Mountain)").attributeMods.str, hostOf("Dwarf(Mountain)").attributeMods.vit, 5, 4]);
+check("...and the limits split the same way",
+	[worn.attributeLimits.str, worn.attributeLimits.knw],
+	[hostOf("Dwarf(Mountain)").attributeLimits.str, 22]);
+check("starting Endurance is the body's, the per-title roll the psyche's",
+	[worn.endurance.startMod, worn.endurance.titleFormula],
+	[hostOf("Dwarf(Mountain)").endurance.startMod, "1"]);
+check("movement, swimming and the body chart are all the body's",
+	[worn.movement.walk.hourly, worn.canSwim, worn.bodyType],
+	[hostOf("Dwarf(Mountain)").movement.walk.hourly, hostOf("Dwarf(Mountain)").canSwim,
+	 hostOf("Dwarf(Mountain)").bodyType]);
+check("Perception is the body's but the five resistances stay the psyche's",
+	[worn.characteristicMods.perception, worn.resistanceMods.disease],
+	[hostOf("Dwarf(Mountain)").characteristicMods.perception, 10]);
+check("the racial skills are the psyche's, never the host's -- his own comment at 4577",
+	worn.racialSkills.map(s => s.name), formless.racialSkills.map(s => s.name));
+check("the traits COMBINE, his order: FORMLESS first, then the host's",
+	[worn.abilities.length, worn.abilities[0].startsWith("Superior Regeneration"),
+	 worn.abilities.slice(2).join() === hostOf("Dwarf(Mountain)").abilities.join()],
+	[2 + hostOf("Dwarf(Mountain)").abilities.length, true, true]);
+check("it stays formless and infertile however good the body is",
+	[worn.formless, worn.fertileWith], [true, []]);
+// A winged host is still a winged host: the form was chosen before it was worn.
+check("a Formless in a winged Fairy flies",
+	RR.combineFormless(formless, hostOf("Fairy(Winged)")).movement.specialName, "Fly:");
+
+// What can be wrong with the pair, all reported rather than refused.
+check("one race that is not formless is not a Formless character",
+	RR.readFormlessPair([hostOf("Nixie")], ["Nixie"]).isFormless, false);
+check("a Formless with no host is flagged, and the psyche still stands alone",
+	[RR.readFormlessPair([formless], ["Formless"]).isFormless,
+	 RR.readFormlessPair([formless], ["Formless"]).host,
+	 RR.readFormlessPair([formless], ["Formless"]).issue.includes("needs a host race")],
+	[true, null, true]);
+check("the host is found whichever order the two were added in",
+	[RR.readFormlessPair([formless, hostOf("Gnome")], ["Formless", "Gnome"]).hostName,
+	 RR.readFormlessPair([hostOf("Gnome"), formless], ["Gnome", "Formless"]).hostName],
+	["Gnome", "Gnome"]);
+check("a Formless cannot inhabit another Formless",
+	RR.readFormlessPair([formless, formless], ["Formless", "Formless"]).issue
+		.includes("cannot inhabit another Formless"), true);
+check("a host his sheet does not offer is reported, not refused",
+	[RR.readFormlessPair([formless, hostOf("Maginos")], ["Formless", "Maginos"]).host !== null,
+	 RR.readFormlessPair([formless, hostOf("Maginos")], ["Formless", "Maginos"]).issue
+		.includes("cannot inhabit a Maginos")],
+	[true, true]);
+check("a host his sheet DOES offer raises nothing",
+	RR.readFormlessPair([formless, hostOf("Gnome")], ["Formless", "Gnome"]).issue, "");
+
+// His height switch answers "N/A" for a Formless, so the body is what gets measured.
+check("Formless has no height band of its own, which is why the host supplies one",
+	[PT.HEIGHT_TYPE_BY_RACE["Formless"] ?? "", !!PT.HEIGHT_TYPE_BY_RACE["Dwarf(Mountain)"]],
+	["N/A", true]);
+
 // His height and frame tables are keyed by HIS names, so a form has to be looked up under its
 // source race or a character of one gets no height and therefore no weight.
-const PT = await import("../module/physique-tables.mjs");
 check("his height table has never heard of the port's own names for the faerie forms",
 	["Fairy(Winged)", "Podling(Wingless)"].filter(n => PT.HEIGHT_TYPE_BY_RACE[n]), []);
 check("...so each form's sourceRace is a name it does have",

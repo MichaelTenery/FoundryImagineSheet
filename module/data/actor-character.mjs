@@ -22,7 +22,8 @@ import {
 	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
-import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed } from "../race-rules.mjs";
+import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
+	readFormlessPair, combineFormless } from "../race-rules.mjs";
 import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions,
          checkClassSkillTitle } from "../class-rules.mjs";
 import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../advancement-rules.mjs";
@@ -403,6 +404,23 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 	//                         extras are reported on identity.raceWarning rather than dropped silently.
 	_getEffectiveRace(tmpraceitems) {
 		if (tmpraceitems.length == 0) { return null; }
+
+		// @MARKER FORMLESS
+		// A Formless is not half of anything: it is a psyche, and its second race is the body it
+		// wears. His own code refuses the half-race path for it outright ("formless can't be half
+		// races", 34003), so it is answered before that path is reached. With no host yet, the
+		// psyche stands alone and _getRaceIssues says what is missing.
+		var tmpformless = readFormlessPair(tmpraceitems.map(tmprace => tmprace.system),
+			tmpraceitems.map(tmprace => tmprace.name));
+		if (tmpformless.isFormless) {
+			this.identity.formlessIssue = tmpformless.issue ?? "";
+			if (!tmpformless.host) { return tmpraceitems.find(tmprace => tmprace.system.formless); }
+			return {
+				name:   `${tmpformless.psyche === tmpraceitems[0].system ? tmpraceitems[0].name : tmpraceitems[1].name}[${tmpformless.hostName}]`,
+				system: combineFormless(tmpformless.psyche, tmpformless.host)
+			};
+		}
+
 		if (tmpraceitems.length == 1) { return tmpraceitems[0]; }
 		return {
 			name:   getHalfRaceName(tmpraceitems[0].name, tmpraceitems[1].name),
@@ -753,9 +771,12 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 	_prepareIdentity() {
 		this.identity.raceName  = this.raceItem ? this.raceItem.name : "";
 		// His race_type values; only these two are implemented in his sheet.
-		this.identity.raceType  = (this.raceItems.length > 1) ? "Half Race" : "One Race";
-		this.identity.isHalfRace = this.raceItems.length > 1;
-		this.identity.raceWarning = (this.raceItems.length > 2)
+		// A Formless and its host are two race items and are NOT a Half Race: his race_type for
+		// one is still One Race, the second item being a body rather than a parent.
+		this.identity.isFormless = this.raceItems.some(tmprace => tmprace.system.formless);
+		this.identity.isHalfRace = this.raceItems.length > 1 && !this.identity.isFormless;
+		this.identity.raceType  = this.identity.isHalfRace ? "Half Race" : "One Race";
+		this.identity.raceWarning = (this.raceItems.length > 2 && !this.identity.isFormless)
 			? "Only two races combine: his sheet's Multi Race is not implemented. "
 			  + this.raceItems.slice(2).map(tmprace => tmprace.name).join(", ") + " ignored."
 			: "";
@@ -920,7 +941,11 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			}
 		}
 
-		if (this.raceItems.length > 1) {
+		// A Formless and its host are not a breeding pair, so the fertility question does not
+		// arise; what CAN be wrong is the host itself, and readFormlessPair has already said so.
+		if (this.identity.isFormless) {
+			if (this.identity.formlessIssue) { tmpissues.push(this.identity.formlessIssue); }
+		} else if (this.raceItems.length > 1) {
 			var tmpfirst = this.raceItems[0];
 			if (!canRacesBreed(tmpfirst.name, tmpfirst.system.fertileWith, this.raceItems[1].name)) {
 				tmpissues.push(`${tmpfirst.name} and ${this.raceItems[1].name} cannot have children together.`);

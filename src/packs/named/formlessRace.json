@@ -1,0 +1,297 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "mental": {
+      "function": "applySingleRaceToAttribs",
+      "line": 32987
+    },
+    "hosts": {
+      "function": "setFormlessStartingRace",
+      "line": 34880
+    },
+    "traits": {
+      "function": "setFormlessRaceAbilities",
+      "line": 47507
+    }
+  },
+  "_note": "A Formless supplies the mental half only; the physical half comes from the host race's OWN document, not from his second copy of it. hostCopyDiffers records every cell where the two copies disagree.",
+  "mental": {
+    "int_race_mod": 2.0,
+    "wis_race_mod": -2.0,
+    "knw_race_mod": 5.0,
+    "chm_race_mod": -2.0,
+    "aur_race_mod": 0.0,
+    "pty_race_mod": 0.0,
+    "wil_race_mod": 4.0,
+    "int_tmp_limit": 20.0,
+    "wis_tmp_limit": 17.0,
+    "knw_tmp_limit": 22.0,
+    "chm_tmp_limit": 18.0,
+    "aur_tmp_limit": 20.0,
+    "pty_tmp_limit": 20.0,
+    "wil_tmp_limit": 20.0,
+    "race_title_tmp_end_formula": "1",
+    "race_title_tmp_end_dice": 1.0,
+    "race_title_tmp_end_max": 1.0,
+    "race_title_tmp_end_mod": 0.0,
+    "race_tmp_aff_mod": -10.0,
+    "race_tmp_for_mod": 10.0,
+    "race_tmp_magic_mod": 0.0,
+    "race_tmp_illusion_mod": 0.0,
+    "race_tmp_control_mod": 0.0,
+    "race_tmp_poison_mod": 5.0,
+    "race_tmp_disease_mod": 10.0,
+    "formless": "yes"
+  },
+  "hosts": [
+    "Fairy",
+    "Fairy(Dark)",
+    "Sporeling",
+    "Podling",
+    "Apocritara",
+    "Arachen",
+    "Avian(Dark)",
+    "Avian(Forest)",
+    "Avian(Mountain)",
+    "Ba’Cora",
+    "Beastman",
+    "Brachara",
+    "Brok",
+    "Brownie",
+    "Centaur",
+    "Cervara",
+    "Chetahl",
+    "Crystori",
+    "Dao",
+    "Djinn",
+    "Dryad",
+    "Dwarf(Civilized)",
+    "Dwarf(Dark)",
+    "Dwarf(Fire)",
+    "Dwarf(Iron)",
+    "Dwarf(Mountain)",
+    "Dwarf(Stone)",
+    "Elf(Dark)",
+    "Elf(Desert)",
+    "Elf(Dread)",
+    "Elf(Gray)",
+    "Elf(High)",
+    "Elf(Ice)",
+    "Elf(Sea)",
+    "Elf(Shadow)",
+    "Elf(Silver)",
+    "Elf(Wild)",
+    "Elf(Wood)",
+    "Equara",
+    "Gaunt",
+    "Geebra",
+    "Giant(Civilized)",
+    "Giant(True)",
+    "Gnome",
+    "Goblin(Forest)",
+    "Goblin(Mountain)",
+    "Goblin(Mountain:Magic)",
+    "Goblin(Plains)",
+    "Grahl",
+    "Gremlin",
+    "Grethen",
+    "Gryphara",
+    "Hippotara",
+    "Hobgoblin",
+    "Human(Barbaric)",
+    "Human(Civilized:City)",
+    "Human(Civilized:Port)",
+    "Human(Civilized:Town)",
+    "Human(Civilized:Village)",
+    "Ifrit",
+    "Jumara",
+    "Katara",
+    "Kenku",
+    "Kerasara",
+    "Lagara",
+    "Leprechaun",
+    "Lissara",
+    "Lotara",
+    "Loxodara",
+    "Lutrinara",
+    "Marid",
+    "Mellivara",
+    "Mephyt(Fire)",
+    "Mephyt(Ice)",
+    "Merfolk",
+    "Midfolk(Forest)",
+    "Midfolk(River)",
+    "Midfolk(Town)",
+    "Nixie",
+    "Nymph",
+    "Ogre",
+    "Ogre(Magic)",
+    "Planar",
+    "Ratahl",
+    "S’rett",
+    "Sasquatch/Yeti",
+    "Satyr/Fawn",
+    "Saurian",
+    "Scethen",
+    "Se’eth",
+    "Sha’Cora",
+    "Sura’keth",
+    "Sura’rath",
+    "Susara",
+    "Sylph",
+    "Taurian",
+    "Testudara",
+    "Troll",
+    "Troll(Ice)",
+    "Troll(Rock)",
+    "Ursara",
+    "Vulpara",
+    "Whalrog",
+    "Wildling",
+    "Wolfen",
+    "Xar’Xeth"
+  ],
+  "traits": {
+    "abilities": "Superior Regeneration(Heals 1d6 points of non-fire/acid damage per 10 seconds to all body areas. Dies if head is destroyed or seperated from the heart.), Corporeal Posession(Can posses physical forms lacking spirit and soul. Must make a Control Resistance to do so. Fail = no further attempts. For the first 30 minutes(-1 minute per WIL) control of the new form is at -1/-5% to all physical actions. Duration of possession varies. Mindless Husks: 1 Week per WIL. Control Resistance once per week at -5% cumulative or be rejected. Humanoid Corpse: -5% Control Resist for each hour it has already been dead. Once possessed. Lasts 1 Day per WIL. Control Resistance once per day at -5% cumulative or be rejected. Animal Corpse: -5% Control Resist for each 10 minutes it has already been dead. Once possessed. Lasts 10 minutes per WIL. Control Resistance once per 10 minutes at -5% cumulative or be rejected.)",
+    "disabilities": "Infertile(Lacks ability to reproduce.), Non-Corporeal(No physical form.), Detached Psyche(Being's soul, holds the spirit, which holds the mind without a body. Dependent on the possession of other physical forms. Survives unharmed outside a body for 1 hour per WIL. Thereafter must make a Control Resistance. Every failure is -1 WIL. Every failure requires a WIL Save to avoid insanity. Without a form, WIL losses continue without recovery until death at 0 WIL.)",
+    "immunities": "Control(Cannot be controlled.)"
+  },
+  "hostCopyDiffers": [
+    {
+      "race": "Arachen",
+      "field": "speedMultiplier",
+      "formlessCopy": 1,
+      "raceRow": 0
+    },
+    {
+      "race": "Arachen",
+      "field": "walkHourly",
+      "formlessCopy": 10,
+      "raceRow": 1
+    },
+    {
+      "race": "Arachen",
+      "field": "walk10Sec",
+      "formlessCopy": 1,
+      "raceRow": 10
+    },
+    {
+      "race": "Arachen",
+      "field": "walk1Sec",
+      "formlessCopy": 0,
+      "raceRow": 1
+    },
+    {
+      "race": "Brachara",
+      "field": "specialMoveName",
+      "formlessCopy": "None:",
+      "raceRow": "Swim:"
+    },
+    {
+      "race": "Brachara",
+      "field": "specialHourly",
+      "formlessCopy": "",
+      "raceRow": "Walk"
+    },
+    {
+      "race": "Brachara",
+      "field": "specialHourlyMultiplier",
+      "formlessCopy": 0,
+      "raceRow": 3
+    },
+    {
+      "race": "Brachara",
+      "field": "special10Sec",
+      "formlessCopy": "",
+      "raceRow": "Walk"
+    },
+    {
+      "race": "Brachara",
+      "field": "special10SecMultiplier",
+      "formlessCopy": 0,
+      "raceRow": 3
+    },
+    {
+      "race": "Brachara",
+      "field": "special1Sec",
+      "formlessCopy": "",
+      "raceRow": "Walk"
+    },
+    {
+      "race": "Brachara",
+      "field": "special1SecMultiplier",
+      "formlessCopy": 0,
+      "raceRow": 3
+    },
+    {
+      "race": "Elf(Ice)",
+      "field": "speedMultiplier",
+      "formlessCopy": 0,
+      "raceRow": -10
+    },
+    {
+      "race": "Elf(Sea)",
+      "field": "speedMultiplier",
+      "formlessCopy": 0,
+      "raceRow": -10
+    },
+    {
+      "race": "Gaunt",
+      "field": "startEnduranceFormula",
+      "formlessCopy": 0,
+      "raceRow": "-1d4="
+    },
+    {
+      "race": "Gaunt",
+      "field": "startEnduranceMod",
+      "formlessCopy": 4,
+      "raceRow": [
+        {
+          "__expr__": "0-getDieRoll(4)"
+        }
+      ]
+    },
+    {
+      "race": "Nixie",
+      "field": "specialMoveName",
+      "formlessCopy": "Swim:",
+      "raceRow": "Fly:"
+    },
+    {
+      "race": "Nixie",
+      "field": "specialHourly",
+      "formlessCopy": "Walk",
+      "raceRow": "Run"
+    },
+    {
+      "race": "Nixie",
+      "field": "specialHourlyMultiplier",
+      "formlessCopy": 5,
+      "raceRow": 3
+    },
+    {
+      "race": "Nixie",
+      "field": "special10Sec",
+      "formlessCopy": "Walk",
+      "raceRow": "Run"
+    },
+    {
+      "race": "Nixie",
+      "field": "special10SecMultiplier",
+      "formlessCopy": 5,
+      "raceRow": 3
+    },
+    {
+      "race": "Nixie",
+      "field": "special1Sec",
+      "formlessCopy": "Walk",
+      "raceRow": "Run"
+    },
+    {
+      "race": "Nixie",
+      "field": "special1SecMultiplier",
+      "formlessCopy": 5,
+      "raceRow": 3
+    }
+  ]
+}
