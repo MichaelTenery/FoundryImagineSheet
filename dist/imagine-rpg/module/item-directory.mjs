@@ -25,6 +25,8 @@
 // labelled as such below so nobody mistakes an A-C folder for one of his categories.
 //==================================================================================================================
 
+import { RETIRED_DOCUMENTS } from "./content-importer.mjs";
+
 const SOURCE_PATH = "systems/imagine-rpg/src/packs/documents";
 
 // Items are created in batches. One call with four thousand documents in it makes Foundry
@@ -175,6 +177,19 @@ function byLetter(tmpdoc) {
 			var tmploaded = await loadEntryDocuments(tmpentry);
 			var tmpdocs = tmploaded.docs;
 			var tmproot = await ensureFolder(tmpentry.folder, null, DIRECTORY.indexOf(tmpentry) * 100000);
+
+			// Names the system once shipped and no longer does (see RETIRED DOCUMENTS in
+			// content-importer.mjs). Only inside this entry's own folder tree, so a copy a Game
+			// Master filed elsewhere is theirs and stays. This is the one thing a refill removes:
+			// without it, a world filled before the faeries were split listed plain Fairy forever.
+			var tmpretired = new Set((RETIRED_DOCUMENTS[tmpentry.file] ?? [])
+				.filter(tmpname => !tmpdocs.some(tmpdoc => tmpdoc.name == tmpname)));
+			var tmpstale = game.items.filter(tmpitem => tmpretired.has(tmpitem.name)
+				&& tmpitem.folder && (tmpitem.folder.id == tmproot.id || tmpitem.folder.ancestors?.some(tmpf => tmpf.id == tmproot.id)));
+			if (tmpstale.length) {
+				await Item.deleteDocuments(tmpstale.map(tmpitem => tmpitem.id));
+				console.log(`Imagine RPG | ${tmpentry.folder}: ${tmpstale.length} retired item(s) removed`);
+			}
 
 			// Everything already in this tree, by folder id and name, so nothing is added twice.
 			var tmpseen = new Set(game.items

@@ -195,10 +195,13 @@
 			{{#each system.fertileWith as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
 	</div>
 	{{!-- On its own line rather than in a band-list: the note is a sentence, and the band-list's
-	      label-and-field split left it about 90px wide, clipping Nixie's at "(water anim". --}}
+	      label-and-field split left it about 90px wide, clipping Nixie's at "(water anim".
+
+	      NO PLACEHOLDER. It used to carry Nixie's note as an example, and a greyed example in an
+	      empty field reads as the race's own data: every race without a note appeared to say
+	      "Animal Shape: (water animals only)". Reported in play-testing on 2026-09-22. --}}
 	<label class="wide-field">Skill note
-		<input type="text" name="system.racialSkillNote" value="{{system.racialSkillNote}}"
-			placeholder="Animal Shape: (water animals only)"></label>
+		<input type="text" name="system.racialSkillNote" value="{{system.racialSkillNote}}"></label>
 	<p class="muted">The skill note is the qualification his sheet prints beside the racial skills --
 	which forms a shapechanger may take, which sense works only in daylight. It is prose, and
 	nothing reads it automatically.</p>

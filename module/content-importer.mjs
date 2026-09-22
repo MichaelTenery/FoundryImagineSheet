@@ -33,6 +33,31 @@ const CONTENT_PACKS = [
 
 const SOURCE_PATH = "systems/imagine-rpg/src/packs/documents";
 
+// @MARKER RETIRED DOCUMENTS
+// Names the shipped files USED to carry and no longer do, per pack. The import matches by name,
+// so it adds and updates but can never notice a document that has left the source -- a world
+// imported before a race was split kept the old, unsplit race beside its new forms, and the
+// generator offered all of them. These are taken out of the compendium on the next import.
+//
+// AN EXPLICIT LIST, NOT "WHATEVER IS NOT IN THE FILE". A compendium is where a Game Master adds
+// homebrew, and anything they put there is by definition not in the shipped file; deleting on
+// absence would delete their work. Only names the system itself once shipped are ever removed.
+// When a rebuild drops or renames a document, its old name goes here.
+//
+//   pack        retired name              replaced by
+export const RETIRED_DOCUMENTS = {
+	races: [
+		"Fairy",                 //  Fairy(Winged), Fairy(Wingless)             split 2026-09-21
+		"Fairy(Dark)",           //  Fairy(Dark Winged), Fairy(Dark Wingless)   split 2026-09-21
+		"Podling",               //  Podling(Winged), Podling(Wingless)         split 2026-09-21
+		"Sporeling"              //  Sporeling(Winged), Sporeling(Wingless)     split 2026-09-21
+	],
+	classes: [
+		"Elemental Dancer",      //  one class per element                     split by path
+		"Innominate"             //  Innominate(Detect Evil), (Detect Good)     split by path
+	]
+};
+
 
 	// This is the function which reads one document file shipped with the system.
 	async function loadContentFile(tmpname) {
@@ -91,9 +116,19 @@ const SOURCE_PATH = "systems/imagine-rpg/src/packs/documents";
 			await Item.updateDocuments(tmptoupdate, { pack: tmppack.collection });
 		}
 
+		// Retired names go, but only if the shipped file has not brought the name back.
+		var tmpshipped = new Set(tmpdocs.map(tmpdoc => tmpdoc.name));
+		var tmptodelete = (RETIRED_DOCUMENTS[tmpdefinition.pack] ?? [])
+			.filter(tmpname => !tmpshipped.has(tmpname) && tmpexisting.has(tmpname))
+			.map(tmpname => tmpexisting.get(tmpname));
+		if (tmptodelete.length) {
+			await Item.deleteDocuments(tmptodelete, { pack: tmppack.collection });
+		}
+
 		if (tmpwaslocked) { await tmppack.configure({ locked: true }); }
 
-		return { created: tmptocreate.length, updated: tmptoupdate.length, total: tmpdocs.length };
+		return { created: tmptocreate.length, updated: tmptoupdate.length, retired: tmptodelete.length,
+			total: tmpdocs.length };
 	}
 
 
@@ -118,7 +153,7 @@ export async function importAllContent({ notify = true } = {}) {
 			var tmpresult = await importPack(tmpdefinition);
 			tmpresults.push({ label: tmpdefinition.label, ...tmpresult });
 			console.log(`Imagine RPG | ${tmpdefinition.label}: `
-				+ `${tmpresult.created} created, ${tmpresult.updated} updated`);
+				+ `${tmpresult.created} created, ${tmpresult.updated} updated, ${tmpresult.retired} retired`);
 		} catch (err) {
 			// One bad file should not abandon the rest of the import half-done.
 			console.error(`Imagine RPG | failed importing ${tmpdefinition.label}`, err);

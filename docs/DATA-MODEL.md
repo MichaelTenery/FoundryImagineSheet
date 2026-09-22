@@ -91,6 +91,7 @@ system:
     titleToLevel, goalToLevel      number   # which step is next
     attributeIncreases             number   # career total, for his floor at goals 12/27/42
     archSpecialMet                 bool     # the one Arch Mortal requirement only a GM can judge
+    formlessBodies                 string   # stopgap: free-text record of a Formless's bodies, until switching is built
 
     # DERIVED, none of it stored:
     #   raceName, raceType, isHalfRace, raceWarning, race{skills,abilities,...}, raceIssues

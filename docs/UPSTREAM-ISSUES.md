@@ -1550,3 +1550,17 @@ This is the third copy-paste slip of the same shape, after item 46 (`case "Fairy
 `setFormlessStartingRace`, losing a Sporeling host) and item 45 (two run-together race names in
 `racefertiledict`). All three are in long hand-written blocks of near-identical lines. No action
 needed on the port's side; flagged so your own sheet can be corrected.
+
+## 50. Does a Dark Fairy have Animal Shape?
+
+**Status:** open · **Severity:** one racial skill, and a note that currently qualifies a skill the race is not given
+
+Aspects of the Wild p.4, in the Dark Fairy's entry: "The Animal Shape skill can also allow the Dark
+Fairy to assume the form of a DWisp (Darkened Wisp)." The word *also* reads as though the Dark
+Fairy has Animal Shape as the Fairy does. Your sheet's `raceSkillDetailValues` gives the plain Fairy
+**Animal Shape +20%**, but the Dark Fairy's list has **no Animal Shape at all** -- Darkness +10%,
+Blend +20%, Detect Magic, Levitation, Mimic, Move Unheard +10%, Phase, Sing, Telekinesis (and Climb
+on the wingless form).
+
+At the user's instruction the port now carries the D'Wisp note on both Dark Fairy forms, but has
+**not** added the skill. Should a Dark Fairy have Animal Shape, and at what bonus?

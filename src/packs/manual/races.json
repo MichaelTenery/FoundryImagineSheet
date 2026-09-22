@@ -85,7 +85,14 @@
           "name": "Telekinesis",
           "bonus": ""
         }
-      ]
+      ],
+      "racialSkillNote": "Animal Shape: may also take the form of a D'Wisp (Darkened Wisp)",
+      "_whyNote": "Skill note added at the developer's instruction, 2026-09-22: a Dark Fairy's Animal Shape may take the form of a D'Wisp. Aspects of the Wild p.4 (Dark Fairy): 'The Animal Shape skill can also allow the Dark Fairy to assume the form of a DWisp (Darkened Wisp).' His sheet carries no note for the race, and -- worth knowing -- no Animal Shape in its racial skill list either, though the plain Fairy has it at +20%; that is logged as a question in docs/UPSTREAM-ISSUES.md, not changed here. Remove the racialSkillNote to go back to his sheet."
+    },
+    "Fairy(Dark Winged)": {
+      "_override": true,
+      "_why": "Skill note added at the developer's instruction, 2026-09-22: a Dark Fairy's Animal Shape may take the form of a D'Wisp. Aspects of the Wild p.4 (Dark Fairy): 'The Animal Shape skill can also allow the Dark Fairy to assume the form of a DWisp (Darkened Wisp).' His sheet carries no note for the race, and -- worth knowing -- no Animal Shape in its racial skill list either, though the plain Fairy has it at +20%; that is logged as a question in docs/UPSTREAM-ISSUES.md, not changed here. Remove the racialSkillNote to go back to his sheet.",
+      "racialSkillNote": "Animal Shape: may also take the form of a D'Wisp (Darkened Wisp)"
     }
   }
 }

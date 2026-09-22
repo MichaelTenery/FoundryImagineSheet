@@ -18,6 +18,31 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.16.1 — 2026-09-22
+
+Play-testing feedback on 0.16.0.
+
+**"Animal Shape: (water animals only)" no longer appears on every race.** It was never on them: it
+was the faint example text in the race sheet's empty Skill note field. The example is gone. Nixie
+is still the one race that really carries that note.
+
+**Plain "Fairy" and "Fairy(Dark)" are removed from the race list.** They were left behind in worlds
+imported before the faeries were split into winged and wingless forms. **Re-run the import to clear
+them** (`game.imagine.importContent()` from a macro): it now removes races and classes the system no
+longer ships -- the two faeries, Podling, Sporeling, and the unsplit Elemental Dancer and Innominate
+classes -- and only those, so anything you added by hand is untouched. If you filled the Items
+sidebar, fill it again and the same names go from there too. The "Awaiting the developer" text some
+race descriptions showed belonged to those old races and goes with them.
+
+**Dark Fairies' skill note says their Animal Shape may take the form of a D'Wisp.**
+
+**A Formless character has a "Formless: Bodies" notes field** on the Description tab, to record the
+bodies it has worn until switching bodies is properly built.
+
+**Not changed, on purpose:** a Famorian's evokes are not limited by the animal chosen -- the Game
+Master decides, as on the original sheet. The race descriptions still carry notes about how the
+conversion handles each race; they will be cleaned up before public release.
+
 ## 0.16.0 — 2026-09-22
 
 **A Famorian can now be made in the character generator.** Folded into the Race step: a breed roll

@@ -41,6 +41,18 @@
 	</div>
 	{{/with}}
 
+	{{!-- A stopgap until the body list his sheet keeps is built: see the FORMLESS BODIES marker in
+	      actor-character.mjs. The host chosen at creation is the second race item and still drives
+	      the numbers; this is only the record of the others. --}}
+	{{#if system.identity.isFormless}}
+	<div class="panel">
+		<h3>Formless: Bodies</h3>
+		<p class="muted">Bodies this Formless has inhabited, and which it wears now. Changing body is
+			not automated yet -- to switch, replace the host race item and note it here.</p>
+		<textarea name="system.identity.formlessBodies" rows="3">{{system.identity.formlessBodies}}</textarea>
+	</div>
+	{{/if}}
+
 	<div class="panel-row">
 
 		<div class="panel">

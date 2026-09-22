@@ -120,7 +120,15 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				// about half the classes a requirement written as a sentence ("Known for the
 				// recovery of a lost lore spoken of in legend"), and only a Game Master can say
 				// whether it has been met. Everything else on that screen is derived.
-				archSpecialMet: new fields.BooleanField({ required: true, initial: false })
+				archSpecialMet: new fields.BooleanField({ required: true, initial: false }),
+
+				// @MARKER FORMLESS BODIES (STOPGAP)
+				// Free text: the bodies a Formless has inhabited, and which one it is wearing. His
+				// sheet tracks these properly -- a list of bodies and a choice of the active one --
+				// and that is to be built; until it is, this is where the table keeps the record.
+				// Shown only for a Formless. Pinned by the user on 2026-09-22 to be revisited once
+				// the rest of the core is done; see PROGRESS.md.
+				formlessBodies: new fields.StringField({ required: true, initial: "" })
 				// DERIVED: titleName (from classtitledict), nextGoalExp, archMortal (the
 				//          qualification screen), and the per-race attribute caps.
 			}),

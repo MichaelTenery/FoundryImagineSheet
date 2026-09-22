@@ -4097,3 +4097,40 @@ character generation 77 (2 new). Nine checks, all passing, 48 modules parse.**
 Not verified: a running Foundry V14, as always. The Handlebars-level check proves the template
 compiles and the right elements land in the DOM; it does not prove the `change` event wiring in
 `_onRender`, the settings menu, or the actual dice rolling through `CONFIG.Dice.randomUniform`.
+
+## Play-testing feedback on 0.16.0: retiring documents, and two things pinned (2026-09-22)
+
+**The importer now removes documents the system has stopped shipping, from an explicit list only.**
+It matches by name, so it could add and update but never notice a document leaving the source: a
+world imported before the faeries were split kept plain `Fairy` and `Fairy(Dark)` beside their new
+forms, and the generator offered all six. `RETIRED_DOCUMENTS` in `module/content-importer.mjs` names,
+per pack, what the system once shipped and no longer does; the import deletes those, and the Items
+sidebar fill deletes them from its own folder tree. **Not "delete whatever the file lacks"**: the
+compendium is where a Game Master adds homebrew, and all of it is absent from the shipped file by
+definition. The cost is that a future rebuild which drops or renames a document must add the old
+name by hand -- the build's own history check (names in any past `documents/*.json` and not in the
+current one) is how the six were found, and is the way to find the next.
+
+**No placeholder in the race sheet's Skill note.** Nixie's note was the placeholder, and a greyed
+example in an empty field reads as data: every race appeared to say "Animal Shape: (water animals
+only)". A placeholder that looks like a real value is worse than none.
+
+**Dark Fairy: Animal Shape may take a D'Wisp's form**, as a skill note on both forms, at the user's
+instruction and per Aspects of the Wild p.4. Laid over the generated race through
+`src/packs/manual/races.json` so a rebuild keeps it. His sheet has no Animal Shape in the Dark
+Fairy's racial skills at all, so the note qualifies a skill the race is not given; that is asked, not
+fixed (`UPSTREAM-ISSUES.md` item 50).
+
+**Famorian evokes stay unrestricted by animal type -- the Game Master polices it.** The user's call,
+and it is also his: his sheet takes the animal type as free text (`famorian_tmp_animal_type`,
+sheet-worker.js:4519) and offers every evoke checkbox whatever is typed. **A restriction is buildable, though, and not from
+his sheet:** Aspects of the Wild p.31 says every animal in that book carries an Evoke Package, and
+the books hold about 190 of them as prose ("Evoke Package: Hide (Scale), Diving, Instinct
+(food/water)..." -- 104 in Aspects of the Wild, 87 in Legends of the Unknown). Building it means
+extracting animal -> package and matching each prose trait to one of his ~120 evoke labels, which
+is judgement, not transcription. Recorded as a Backlog row in case the user wants it later.
+
+**Pinned, by the user:** Formless body-switching -- a list of inhabited bodies and a choice of the
+active one, which his sheet has -- until the rest of the core is done, with a free-text
+`identity.formlessBodies` field on the Description tab meanwhile; and the clean-up of race
+descriptions that carry the port's own reasoning, before public release. Both are Epic 2 rows.
