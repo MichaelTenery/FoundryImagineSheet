@@ -40,11 +40,16 @@
 		<label class="row">Race
 			<select name="race1">{{#each race1Options as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
 		{{#if canBeHalf}}
-		<label class="row">Half Race with
+		<label class="row">{{#if isFormless}}Host body{{else}}Half Race with{{/if}}
 			<select name="race2">{{#each race2Options as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		{{#if isFormless}}
+		<p class="muted">A Formless has no body of its own; the host supplies it. Choose any of the races his sheet allows it to inhabit.</p>
+		{{else}}
 		<p class="muted">Only races that can have children with the first are offered, as on his sheet. The two combine as his half race does: a modifier only one race has is taken whole, shared ones averaged.</p>
+		{{/if}}
 		{{else}}{{#if state.race1}}<p class="muted">This race cannot have children with other races, so it cannot be half of a Half Race.</p>{{/if}}
 		{{/if}}
+		{{#if formlessIssue}}<p class="alarm">{{formlessIssue}}</p>{{/if}}
 		{{#if race}}
 		<div class="chargen-race">
 			<h3>{{raceName}}</h3>
@@ -52,6 +57,32 @@
 			{{#if race.abilities.length}}<p><label>Abilities</label> {{#each race.abilities as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
 			{{#if race.disabilities.length}}<p><label>Disabilities</label> {{#each race.disabilities as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
 			{{#if race.immunities.length}}<p><label>Immunities</label> {{#each race.immunities as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
+		</div>
+		{{/if}}
+
+		{{!-- @MARKER FAMORIAN --}}
+		{{#if isFamorian}}
+		<div class="chargen-race">
+			<h3>Famorian</h3>
+			{{#if famorianBreedSelectable}}
+			<label class="row">Breed
+				<select name="famorianBreed"><option value="">-- choose --</option>{{#each famorianBreedOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
+				<button type="button" data-action="rollFamorianBreed"><i class="fa-solid fa-dice"></i> Roll</button></label>
+			{{else}}
+			<p>Breed: <span class="rolled-value">{{#if famorianBreed}}{{famorianBreed}}{{else}}&mdash; rolled once a race is chosen &mdash;{{/if}}</span>
+				<span class="muted">rolled once, and it stands</span></p>
+			{{/if}}
+			<label class="row">Animal type <input type="text" name="famorianAnimalType" value="{{state.famorian.animalType}}"></label>
+			<p class="muted">His sheet will not apply the race until this is filled in.</p>
+
+			<h4>Evokes <span class="muted">{{famorianBudget.used}} of {{famorianBudget.allowedLabel}}</span></h4>
+			{{#if famorianBudget.issue}}<p class="alarm">{{famorianBudget.issue}}</p>{{/if}}
+			<p class="muted">Strength, Agility and Vitality add a rolled 1d3 each when taken. Twelve more change Endurance, a resistance, movement, the speed multiplier or the jump; the rest are abilities with no figure attached.</p>
+			<div class="pick-list tall famorian-evoke-list">
+				{{#each famorianEvokes as |e|}}
+				<label class="{{#if e.numeric}}famorian-numeric{{/if}}"><input type="checkbox" name="famorianEvoke" value="{{e.key}}" {{#if e.checked}}checked{{/if}}> {{e.label}}{{#if e.detail}} <span class="muted">&mdash; {{e.detail}}</span>{{/if}}</label>
+				{{/each}}
+			</div>
 		</div>
 		{{/if}}
 	{{/if}}

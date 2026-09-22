@@ -433,7 +433,20 @@ import { buildStartingKit } from "./starting-kit.mjs";
 					hair: tmpChoices.hair ?? "", eyes: tmpChoices.eyes ?? "", skin: tmpChoices.skin ?? "",
 					handedness: tmpChoices.handedness ?? "", age: parseInt(tmpChoices.age) || 0,
 					apparentAge: parseInt(tmpChoices.age) || 0,
-					maxAge: "" + (tmpChoices.maxAge ?? tmpFirstRace.ages?.maxAge ?? "")
+					maxAge: "" + (tmpChoices.maxAge ?? tmpFirstRace.ages?.maxAge ?? ""),
+					// Empty except for a Famorian. The evokes were already applied to the race
+					// system that built these ratings (chargen-view.mjs @MARKER FAMORIAN); this is
+					// what makes the character's OWN model build the same race the same way every
+					// time it is opened, rather than just this one creation.
+					famorian: {
+						breed: tmpChoices.famorian?.breed ?? "",
+						animalType: tmpChoices.famorian?.animalType ?? "",
+						evokesAllowed: parseInt(tmpChoices.famorian?.evokesAllowed) || 0,
+						evokes: [...(tmpChoices.famorian?.evokes ?? [])],
+						strBonus: parseInt(tmpChoices.famorian?.strBonus) || 0,
+						aglBonus: parseInt(tmpChoices.famorian?.aglBonus) || 0,
+						vitBonus: parseInt(tmpChoices.famorian?.vitBonus) || 0
+					}
 				},
 				// languages come as [{ name, write }]; every one is spoken
 				languages: (tmpChoices.languages ?? []).filter(tmpLang => tmpLang?.name)

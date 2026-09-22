@@ -4018,3 +4018,82 @@ manual layer appeared to do nothing, and the reason was a `NameError` on an unde
 invisible because the command was piped through `grep ... | head`, which swallowed the traceback
 and still exited 0. The check that caught it was looking at the actual output rather than the exit
 status. Pipe a build through a filter and it will lie to you about having succeeded.
+
+## A Famorian can be made in the character generator, and a wiring bug from yesterday is caught before it shipped (2026-09-22)
+
+Closes item 1 of `docs/sonnet/2026-09-21-famorian.md`: yesterday's pass built the Famorian race
+and its rules module, tested, but the character generator had no step for it -- a Famorian could
+only be assembled by hand on the sheet.
+
+**Before writing any of that, a real bug turned up.** `_getEffectiveRace` and `_getRaceIssues` in
+`module/data/actor-character.mjs` read `this.identity.famorian`, but the field lives at
+`this.physical.famorian`, beside handedness -- `identity` has no `famorian` field at all. Every
+read therefore fell back to `[] / 0 / undefined` silently: a Famorian's evokes were never applied
+to its race, the budget check always trivially passed (0 chosen against 0 allowed), and "no animal
+type" fired even when one was set, because `undefined?.animalType` is always falsy. **Not caught by
+yesterday's own tests**, because they drove `applyFamorianEvokes` and `checkEvokeBudget` directly as
+pure functions with hand-passed arguments -- correct in isolation, and never exercised through the
+actual schema path a real actor would use.
+
+**Confirmed the failure mode before fixing it, not just diagnosed it**: reverted the fix,
+re-ran the new integration test, watched it fail with exactly the predicted numbers (`Fly:` became
+`None:`, disease resistance stayed at the unmodified −10, the "no animal type" issue fired despite
+one being set), then restored the fix and watched it pass. The new test
+(`tools/derive-test.html`, "Famorian on the real character model") builds an actual
+`ImagineCharacterData` with a `physical.famorian` block and a Famorian race item, the way an actor
+in a real world holds them, rather than calling the rule functions on their own -- so a repeat of
+this exact class of bug cannot pass silently again.
+
+**The generator step**, once that was fixed:
+- A `famorianBreedSelectable` world setting, the same shape as `handednessSelectable` and for the
+  same reason: his sheet ROLLS the breed (`setRacialFeatures`, 16736) and never asks. Off, the
+  breed and its evoke budget roll once when the Race step first sees a Famorian and then stand,
+  with **no re-roll button** -- the same restraint the handedness comment names, that a button
+  which re-rolls until the breed you want appears is the same as choosing it. On, a dropdown picks
+  the breed, with a roll button beside it for convenience, since the choice is already honest once
+  it is a dropdown.
+- The three attribute evokes (Strength, Agility, Vitality) roll their 1d3 the moment they are
+  TAKEN and are dropped the moment they are not -- unlike the breed, which is one roll at the top
+  of the step, these are a repeatable choice, so they follow the checkbox rather than standing
+  once.
+- An evoke picker: all ~120, alphabetical by label, the fifteen that change a number picked out in
+  bold so a player is not left guessing which ones matter, with the budget ("3 of 4") and any
+  over-budget issue shown live. One column, not the skills step's compact multi-column grid --
+  descriptions run to a full sentence for some evokes, and a ragged multi-column grid of those
+  reads worse than a single scrolling list.
+- `state.famorian` is the exact shape of `system.physical.famorian`, so `choicesFromState` passes
+  it straight through with no translation, and `deriveGenerator` applies the evokes to the race
+  BEFORE the ratings are built from it, so the generator's preview and the finished character's own
+  recalculation agree by construction rather than by two people getting the same sum twice.
+
+**Verified as a full round trip, not just at each layer**: real generator choices, through
+`assembleCharacter`, into a real `ImagineCharacterData` built from the assembled actor's own
+`system.physical`, rebuilding the identical race with no issues raised. The real Handlebars
+template was also compiled and rendered against real content (not just the JS view object
+inspected), catching what a pure-function check cannot -- a stray `{{}}`, a wrong field name, a
+selectable-vs-rolled branch that never gets exercised. Both the selectable-breed dropdown and the
+default rolled-and-standing display were rendered and checked.
+
+**A second, smaller gap closed on the way**: `isFormless` and `formlessIssue` were already computed
+by yesterday's `buildGeneratorView` and never rendered anywhere in the template -- a Formless with
+no host, or with a host his sheet does not allow, showed the player nothing about why. Found while
+extending this exact region of the template for Famorian. Fixed: the Half Race label reads "Host
+body" for a Formless rather than the misleading "Half Race with", its own muted explanation
+replaces the half-race-averaging one, and `formlessIssue` renders as an alarm line, exactly as the
+class and skill-slot issues already do elsewhere on the same window.
+
+**A third gap, about coverage rather than behaviour**: `module/chargen-view.mjs` -- everything the
+generator's WINDOW and its Foundry-free preview both call, `deriveGenerator` / `buildGeneratorView`
+/ `choicesFromState` -- had no automated test anywhere, only `tools/chargen-preview.html`'s manual
+harness and the parse-only syntax check. That is exactly the shape of gap that would let this same
+class of wiring bug ship a second time, once through the generator rather than only through the
+actor model, and be found the same way this one was: by someone actually generating a character
+and finding the ratings wrong. Closed with a new section in `derive-test.html` that imports
+`chargen-view.mjs` directly and drives it against the real race content already loaded there.
+
+**Suites: derivation 484 (36 new across the actor-model bug fix and the generator's own logic),
+character generation 77 (2 new). Nine checks, all passing, 48 modules parse.**
+
+Not verified: a running Foundry V14, as always. The Handlebars-level check proves the template
+compiles and the right elements land in the DOM; it does not prove the `change` event wiring in
+`_onRender`, the settings menu, or the actual dice rolling through `CONFIG.Dice.randomUniform`.

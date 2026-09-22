@@ -182,6 +182,24 @@ check("a language with no name is dropped",
 check("every skill's misc is set outright, never left to default to NaN",
 	itemsOf(assembled).filter(i => i.type === "skill").every(i => i.system.misc === 0), true);
 
+// --- assembleCharacter carries a Famorian's evokes onto the actor -------------------------------
+// The choices' famorian block (breed, animal type, evokesAllowed, evokes, the three rolled
+// bonuses) has to land on system.physical.famorian, because that is what ImagineCharacterData
+// itself reads back out to rebuild the race every time the actor is opened -- see
+// module/data/actor-character.mjs and the 2026-09-22 fix (it was reading identity.famorian,
+// which does not exist, so a Famorian's evokes were silently never applied at all).
+const famorianAssembled = C.assembleCharacter(choices({
+	famorian: { breed: "High Breed", animalType: "Wolf", evokesAllowed: 4,
+	           evokes: ["str", "wings"], strBonus: 2, aglBonus: 0, vitBonus: 0 }
+}), content, always(10));
+check("the famorian block reaches system.physical unchanged",
+	famorianAssembled.actor.system.physical.famorian,
+	{ breed: "High Breed", animalType: "Wolf", evokesAllowed: 4, evokes: ["str", "wings"],
+	  strBonus: 2, aglBonus: 0, vitBonus: 0 });
+check("a character with no famorian choices still gets the field, empty",
+	assembled.actor.system.physical.famorian,
+	{ breed: "", animalType: "", evokesAllowed: 0, evokes: [], strBonus: 0, aglBonus: 0, vitBonus: 0 });
+
 // --- height, frame and weight, against his own tables ------------------------------------------
 // His three figures depend on each other: the race gives a height band and a frame type, the band
 // gives inches, the frame type and (STR - AGL) give a frame, and the frame with the inches gives a

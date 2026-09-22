@@ -20,6 +20,7 @@
 import { ATTRIBUTE_TABLES } from "./config-tables.mjs";
 import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePhysiqueLock,
 	readFormlessPair, combineFormless } from "./race-rules.mjs";
+import { applyFamorianEvokes, checkEvokeBudget } from "./famorian-rules.mjs";
 import { buildStartingKit } from "./starting-kit.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
@@ -67,6 +68,11 @@ import {
 			className: "", override: false, chosenAttackSkill: "Beginner",
 			racialSkillNames: [], socialSkillNames: [],
 			handedness: "", age: 0, heightFeet: 0, heightInches: 0, weight: 0,
+			// @MARKER FAMORIAN
+			// Empty except for a Famorian, the same shape as system.physical.famorian -- see
+			// module/data/actor-character.mjs -- so choicesFromState passes it straight through.
+			famorian: { breed: "", animalType: "", evokesAllowed: 0, evokes: [],
+			            strBonus: 0, aglBonus: 0, vitBonus: 0 },
 			// What the last height/frame/weight roll said, kept so the Details step can show it.
 			physiqueSummary: "", physiqueIssues: [],
 			frame: "", hair: "", eyes: "", skin: "",
@@ -111,6 +117,19 @@ import {
 		// gets the right form of each parent rather than the ordinary form of both.
 		var tmpSystem1 = tmpRace1 ? applySlightPhysique(tmpRace1.system, tmpIsSlight) : null;
 		var tmpSystem2 = tmpRace2 ? applySlightPhysique(tmpRace2.system, tmpIsSlight) : null;
+
+		// @MARKER FAMORIAN
+		// A Famorian's race is BUILT out of the evokes it has taken, exactly as the character
+		// model builds it once the actor exists (module/data/actor-character.mjs
+		// _getEffectiveRace) -- so the ratings shown while generating are the ratings the
+		// finished character actually has, not a preview of a different calculation.
+		var tmpIsFamorian = !!tmpRace1?.system?.famorian?.isFamorian;
+		if (tmpIsFamorian) {
+			var tmpFamState = tmpState.famorian ?? {};
+			tmpSystem1 = applyFamorianEvokes(tmpSystem1, tmpFamState.evokes ?? [], {
+				str: tmpFamState.strBonus ?? 0, agl: tmpFamState.aglBonus ?? 0, vit: tmpFamState.vitBonus ?? 0
+			});
+		}
 
 		// @MARKER FORMLESS
 		// A Formless is NOT half of a Half Race -- his own code says so outright ("formless can't
@@ -250,6 +269,35 @@ import {
 		tmpView.formlessIssue = tmpD.formless?.issue ?? "";
 		tmpView.raceName = tmpD.raceNames.join("|");
 		tmpView.race = tmpD.race;
+
+		// @MARKER FAMORIAN
+		// A picker for the breed, animal type and evokes, shown only when the chosen race is one.
+		// The window rolls the breed and the three attribute bonuses (@MARKER FAMORIAN in
+		// character-generator.mjs); everything here is display and the budget arithmetic.
+		var tmpIsFamorianRace = !!tmpD.race1?.system?.famorian?.isFamorian;
+		tmpView.isFamorian = tmpIsFamorianRace;
+		if (tmpIsFamorianRace) {
+			var tmpFamSys = tmpD.race1.system.famorian;
+			var tmpFamPicked = tmpState.famorian ?? {};
+			tmpView.famorianBreedOptions = tmpFamSys.breeds.map(tmpBreed =>
+				tmpOption(tmpBreed.breed, `${tmpBreed.breed} (${tmpBreed.evokes} evoke${tmpBreed.evokes == "1" ? "" : "s"})`,
+					tmpFamPicked.breed));
+			tmpView.famorianBreed = tmpFamPicked.breed;
+			// -1 is the stored form of his "All" (a True Breed); 0 means not rolled yet.
+			var tmpAllowed = tmpFamPicked.evokesAllowed < 0 ? null : (tmpFamPicked.evokesAllowed || null);
+			var tmpBudget = checkEvokeBudget(tmpFamPicked.evokes ?? [], tmpAllowed);
+			tmpView.famorianBudget = {
+				used: tmpBudget.used,
+				allowedLabel: tmpFamPicked.evokesAllowed < 0 ? "All" : (tmpFamPicked.evokesAllowed || "?"),
+				issue: tmpBudget.issue
+			};
+			// Alphabetical by label, so a player looking for a name can find it; the fifteen that
+			// change a number are flagged so they read differently from the ~105 that are only
+			// colour, without being separated into a second list a player has to check twice.
+			tmpView.famorianEvokes = [...tmpFamSys.evokes]
+				.map(tmpEvoke => ({ ...tmpEvoke, checked: (tmpFamPicked.evokes ?? []).includes(tmpEvoke.key) }))
+				.sort((a, b) => a.label.localeCompare(b.label));
+		}
 
 		// @MARKER ATTRIBUTES
 		tmpView.typeLabel = tmpD.type.label;
@@ -418,7 +466,7 @@ import {
 			classSkills: tmpDerived.classSkills,
 			racialSkillNames: tmpState.racialSkillNames, socialSkillNames: tmpState.socialSkillNames,
 			chosenAttackSkill: tmpState.chosenAttackSkill,
-			handedness: tmpState.handedness, age: tmpState.age,
+			handedness: tmpState.handedness, age: tmpState.age, famorian: tmpState.famorian,
 			heightFeet: tmpState.heightFeet, heightInches: tmpState.heightInches, weight: tmpState.weight,
 			frame: tmpState.frame, hair: tmpState.hair, eyes: tmpState.eyes, skin: tmpState.skin,
 			alignment: tmpState.alignment, languages: tmpState.languages, wealth: tmpState.wealth,

@@ -130,6 +130,17 @@ system:
   physical:   heightFeet, heightInches, frame, weight, hair, bodyCovering,
               eyes, skin, handedness, age, apparentAge, maxAge
 
+    # ADDED 2026-09-22 (Famorian). Empty except for a character of that race. breed and the
+    # three attribute bonuses are ROLLED ONCE, at generation, and kept -- not re-derived, the
+    # same reason permMod/tempMod are stored rather than recalculated. evokesAllowed is -1 for
+    # his "All" (a True Breed's uncapped budget), 0 only before the first roll has landed.
+    # WATCH THIS PATH if it is ever renamed: module/data/actor-character.mjs reads it as
+    # this.physical.famorian, not this.identity.famorian -- the two were confused for one work
+    # session (2026-09-21 to 2026-09-22) and the evokes were silently never applied at all; see
+    # DECISIONS.md 2026-09-22.
+    famorian: { breed: string, animalType: string, evokesAllowed: number,
+                evokes: [string], strBonus, aglBonus, vitBonus: number }
+
   languages:  [ { name, speak: bool, write: bool } ]
   wealth:     { copper, silver, gold, platinum, special, gems[], jewelry[] }
   skillSlots: { class, racial, social, memorization }   # derived from Knowledge
@@ -205,6 +216,34 @@ race Item system:
   ages              { startLow, startHigh, maxAge }   # maxAge becomes "Immortal" at 11th title
   fertileWith       [string]              # which races this one can have children with; the list
                                           # his Half Race picker offers
+
+  # ADDED 2026-09-21, when the races his sheet splits with a second dropdown became documents
+  # of their own -- see DECISIONS.md "The races he split with a second dropdown..." and
+  # "Formless is built...".
+  sourceRace        string    # HIS name for this race -- what raceSkillDetailValues, raceAges,
+                              # the colour tables, and getRaceHeightType/getRaceFrameType are
+                              # keyed under. A split form's own name (Fairy(Winged)) is the
+                              # port's; every OTHER race is its own sourceRace.
+  physiqueLock      string    # "", "slight" or "ordinary". A winged faerie form is always of
+                              # slight physique and a wingless one never is -- the wings ARE the
+                              # slight-physique branch in his code -- so the generator does not
+                              # offer the tick where this is set. Empty for every other race.
+  formlessHosts     [string]  # which races a Formless may inhabit (Formless only, 110 of them).
+                              # His formlessStartingRaceDetails plus the four faerie hosts his
+                              # guard names separately, expanded through the same split every
+                              # other race-name list goes through.
+
+  # ADDED 2026-09-22, the last unbuilt race -- see DECISIONS.md "Famorian is built...".
+  # Famorian only; isFamorian is false (and the rest empty) for every other race.
+  famorian:
+    isFamorian  bool
+    breeds      [ { breed, low, high, evokes, when } ]  # his d100 table: which band, what it
+                                                         # allows (a dice expression or "All"),
+                                                         # and whether the evokes are always on
+    evokes      [ { key, label, detail } ]   # the ~120-entry catalogue; key is his own checkbox
+                                             # name, which is what a character's physical.famorian
+                                             # stores. Only 15 keys change a number -- see
+                                             # module/famorian-rules.mjs FAMORIAN_NUMERIC_EVOKES.
 ```
 
 ## 4a. Class Item schema — the parts the later passes added

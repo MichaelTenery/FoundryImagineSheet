@@ -18,6 +18,24 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.16.0 — 2026-09-22
+
+**A Famorian can now be made in the character generator.** Folded into the Race step: a breed roll
+or dropdown, an animal type field, and a picker over all ~120 evokes (the fifteen that change a
+number picked out in bold) with a live budget ("3 of 4"). The breed rolls and stands by default,
+the same restraint handedness shows — no re-roll button, unless "Players may choose Famorian
+breed" is on.
+
+**Before it could be built, a real bug turned up.** The character model was reading a Famorian's
+evokes from the wrong field (`identity.famorian` instead of `physical.famorian`), so **a Famorian's
+evokes were never being applied at all** — this was true from the moment Famorian shipped in
+0.14.0 until today. Nothing in the released system depended on it (there was no way to set the
+evokes through the UI yet), so no character was ever affected, but it is fixed now and a new
+automated test would catch a repeat of exactly this mistake.
+
+**Also fixed on the way:** a Formless character with no host, or one that isn't allowed, now
+actually tells the player why — that display was built yesterday and never wired into the template.
+
 ## 0.15.0 — 2026-09-21
 
 **Every race now says which book it comes from, and on what page.** 87 of them used to point at the
@@ -59,13 +77,13 @@ Coming from **0.11.1**, which is the version the last bug report was against.
    greys it out; a wingless form unticks it. That is deliberate — in the original sheet the wings
    *are* the slight-physique branch.
 4. **Formless and Famorian exist.** A Formless needs two race items (itself and a host). A Famorian
-   can be assembled on the sheet but **cannot yet be made in the character generator** — that step
-   is not built, and is the next thing queued.
+   can now be made through the generator too, as of 0.16.0 — breed, animal type and its evokes are
+   all on the Race step.
 5. **Anything that used to say a race was missing.** Every race in the original species list is now
    a document.
 
-Known gaps, so they are not reported twice: no Famorian step in the generator; a Formless and its
-host are not shown distinctly on the Description tab; nothing from the errata is built yet.
+Known gaps, so they are not reported twice: a Formless and its host are not shown distinctly on
+the Description tab (only in the generator); nothing from the errata is built yet.
 
 ---
 

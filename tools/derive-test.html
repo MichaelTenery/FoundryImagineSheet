@@ -63,7 +63,7 @@ function makeCharacter(ratings, title = 12, items = [], extra = {}) {
 		combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
 		          weaponLoreList: extra.weaponLoreList ?? "", missileLoreList: extra.missileLoreList ?? "",
 		          projectileLoreList: extra.projectileLoreList ?? "" },
-		physical: { weight: 0, handedness: extra.handedness ?? "" },
+		physical: { weight: 0, handedness: extra.handedness ?? "", famorian: extra.famorian ?? {} },
 		languages: extra.languages ?? [],
 		skillSlotMoves: Object.assign({
 			racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0,
@@ -1652,6 +1652,111 @@ check("a taken evoke is listed with his own label and rules",
 	 described[1].label, described[1].numeric,
 	 described[1].detail.length > 0],
 	[2, "Strength (+2)", true, "Night Vision", false, true]);
+
+// --- Famorian on the real character model, not just the pure rule functions ---------------------
+// The rule functions above (applyFamorianEvokes, checkEvokeBudget) are pure and were checked
+// directly. This drives them through ImagineCharacterData itself, which is the thing that was
+// actually wrong: _getEffectiveRace and _getRaceIssues read this.identity.famorian, but the field
+// lives at this.physical.famorian (module/data/actor-character.mjs, beside handedness). identity
+// has no famorian field at all, so every read silently fell back to [] / 0 / undefined -- a
+// Famorian's evokes were never applied, the budget check always trivially passed, and "no animal
+// type" fired even when one was set. Found and fixed 2026-09-22, before it ever reached a real
+// game. See DECISIONS.md.
+const famorianRaceItem = { type: "race", name: "Famorian", system: structuredClone(famorian) };
+function makeFamorian(physicalFamorian, ratings) {
+	return makeCharacter(ratings ?? {}, 12, [famorianRaceItem], { famorian: physicalFamorian });
+}
+
+const wingedFamorian = makeFamorian({
+	breed: "High Breed", animalType: "Wolf", evokesAllowed: 3,
+	evokes: ["wings", "disease_resist", "str"], strBonus: 2
+});
+check("the evokes reach the built race through physical.famorian, not identity.famorian",
+	[wingedFamorian.raceItem.system.movement.specialName,
+	 wingedFamorian.raceItem.system.resistanceMods.disease,
+	 wingedFamorian.raceItem.system.attributeMods.str],
+	["Fly:", 10, 2]);
+check("a Famorian within its budget, with an animal type, raises no issue",
+	wingedFamorian._getRaceIssues().filter(i => /[Ee]voke|animal type/.test(i)), []);
+
+const noAnimalType = makeFamorian({ breed: "Low Breed", evokesAllowed: 2, evokes: ["str"] });
+check("no animal type is reported -- his sheet refuses the race without one (4546)",
+	noAnimalType._getRaceIssues().some(i => i.includes("no animal type")), true);
+
+const overBudget = makeFamorian({
+	breed: "Hidden Breed", animalType: "Fox", evokesAllowed: 1,
+	evokes: ["str", "agl", "vit"]
+});
+check("more evokes than the breed allows is reported",
+	overBudget._getRaceIssues().some(i => i.includes("taken 3 evokes and its breed allows 1")), true);
+
+const trueBreedFamorian = makeFamorian({
+	breed: "True Breed", animalType: "Bear", evokesAllowed: -1,
+	evokes: ["str", "agl", "vit", "wings", "hooves", "jumping"]
+});
+check("evokesAllowed -1 (a True Breed's 'All') never over-budgets, however many are taken",
+	trueBreedFamorian._getRaceIssues().filter(i => /evokes and its breed allows/.test(i)), []);
+
+check("a race with no famorian block at all is untouched by any of this",
+	makeCharacter({}, 12, [{ type: "race", name: "Nixie", system: structuredClone(raceByName("Nixie").system) }])
+		._getRaceIssues().filter(i => /[Ee]voke|animal type/.test(i)), []);
+
+// --- Famorian in the character generator ---------------------------------------------------
+// module/chargen-view.mjs (deriveGenerator, buildGeneratorView, choicesFromState) had NO
+// automated coverage anywhere before this -- only tools/chargen-preview.html's manual harness
+// and the parse-only syntax check. That is how the 2026-09-22 identity/physical bug would have
+// shipped invisibly a second time, once through the generator itself rather than only through
+// the actor model. Added alongside the generator's Famorian step for exactly that reason.
+const CV = await import("../module/chargen-view.mjs");
+const chargenContent = { races: raceDocs, classes: [], skills: [], socialSkills: [] };
+function famorianGenState(famorianChoice) {
+	return { ...CV.newGeneratorState(), race1: "Famorian",
+		famorian: { breed: "High Breed", animalType: "Wolf", evokesAllowed: 4,
+		           evokes: [], strBonus: 0, aglBonus: 0, vitBonus: 0, ...famorianChoice } };
+}
+
+const noEvokeState = famorianGenState({});
+const noEvokeDerived = CV.deriveGenerator(noEvokeState, chargenContent, () => true);
+check("with no evokes taken, deriveGenerator's race is the plain Famorian base",
+	[noEvokeDerived.race.movement.specialName, noEvokeDerived.race.resistanceMods.disease,
+	 noEvokeDerived.race.attributeMods.str],
+	["None:", -10, 0]);
+
+const wingedState = famorianGenState({ evokes: ["str", "wings", "disease_resist"], strBonus: 2 });
+const wingedDerived = CV.deriveGenerator(wingedState, chargenContent, () => true);
+check("deriveGenerator applies the evokes before the ratings are built from the race, "
+	+ "so the +2 STR evoke reaches the final attribute with no base rating rolled yet",
+	[wingedDerived.race.movement.specialName, wingedDerived.race.resistanceMods.disease,
+	 wingedDerived.race.attributeMods.str, wingedDerived.finals.str.final],
+	["Fly:", 10, 2, 2]);
+
+const wingedView = CV.buildGeneratorView(wingedState, chargenContent, () => true);
+check("the view flags the race as a Famorian and lists all 120 evokes, alphabetically",
+	[wingedView.isFamorian, wingedView.famorianEvokes.length,
+	 wingedView.famorianEvokes[0].label <= wingedView.famorianEvokes[1].label], [true, 120, true]);
+check("the view marks which evokes are already checked",
+	wingedView.famorianEvokes.filter(e => e.checked).map(e => e.key).sort(),
+	["disease_resist", "str", "wings"]);
+check("the budget reads 3 of 4 with no issue",
+	[wingedView.famorianBudget.used, wingedView.famorianBudget.allowedLabel, wingedView.famorianBudget.issue],
+	[3, 4, ""]);
+check("a non-Famorian race shows no Famorian block at all",
+	CV.buildGeneratorView({ ...CV.newGeneratorState(), race1: "Nixie" }, chargenContent, () => true).isFamorian,
+	false);
+
+const overState = famorianGenState({ evokes: ["str", "agl", "vit", "wings", "fins"] });
+const overView = CV.buildGeneratorView(overState, chargenContent, () => true);
+check("over budget is shown in the view too, not only on the finished actor",
+	overView.famorianBudget.issue.includes("taken 5 evokes and its breed allows 4"), true);
+
+const allBreedState = famorianGenState({ breed: "True Breed", evokesAllowed: -1,
+	evokes: ["str", "agl", "vit", "wings", "fins", "hooves", "jumping"] });
+check("evokesAllowed -1 shows as 'All' in the view and never over-budgets",
+	CV.buildGeneratorView(allBreedState, chargenContent, () => true).famorianBudget,
+	{ used: 7, allowedLabel: "All", issue: "" });
+
+check("choicesFromState passes the famorian block straight through, untouched",
+	CV.choicesFromState(wingedState, wingedDerived).famorian, wingedState.famorian);
 
 // His height and frame tables are keyed by HIS names, so a form has to be looked up under its
 // source race or a character of one gets no height and therefore no weight.

@@ -16,6 +16,7 @@
 import { explainAvailability } from "../availability.mjs";
 import { rollAttributeSets, rollHandedness, rollStartingAge, assembleCharacter, ATTRIBUTE_ORDER } from "../chargen-rules.mjs";
 import { rollPhysique } from "../physique-rules.mjs";
+import { getFamorianBreed, rollEvokeBudget } from "../famorian-rules.mjs";
 import { STEPS, newGeneratorState, deriveGenerator, checkStep, buildGeneratorView, choicesFromState,
 	colourChoices } from "../chargen-view.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
@@ -47,6 +48,7 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			addSwap:         ImagineCharacterGenerator.#onAddSwap,
 			removeSwap:      ImagineCharacterGenerator.#onRemoveSwap,
 			rollHandedness:  ImagineCharacterGenerator.#onRollHandedness,
+			rollFamorianBreed: ImagineCharacterGenerator.#onRollFamorianBreed,
 			rollAge:         ImagineCharacterGenerator.#onRollAge,
 			rollPhysique:    ImagineCharacterGenerator.#onRollPhysique,
 			rollColours:     ImagineCharacterGenerator.#onRollColours,
@@ -126,16 +128,37 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		}
 		if ("wealth" in tmpdata) { tmpstate.wealth = { ...tmpstate.wealth, ...tmpdata.wealth }; }
 
+		// @MARKER FAMORIAN
+		if ("famorianAnimalType" in tmpdata) { tmpstate.famorian.animalType = tmpdata.famorianAnimalType ?? ""; }
+		// A new breed needs a new budget roll -- but every change event re-reads the select's
+		// CURRENT value regardless of whether it actually changed, so the reset only fires when
+		// the value is genuinely different, or a real roll would be thrown away on every keystroke
+		// elsewhere on the step.
+		if ("famorianBreed" in tmpdata && tmpdata.famorianBreed !== tmpstate.famorian.breed) {
+			tmpstate.famorian.breed = tmpdata.famorianBreed ?? "";
+			tmpstate.famorian.evokesAllowed = 0;
+		}
+		// The evoke checkboxes share one name, the same reason the two skill pick lists do below.
+		if (tmpstate.step == STEPS.indexOf("Race")) {
+			tmpstate.famorian.evokes = [...this.element.querySelectorAll("input[name='famorianEvoke']:checked")].map(tmpbox => tmpbox.value);
+		}
+
 		// The two skill pick lists are many checkboxes sharing one name, which the form data object
 		// would fold into one value, so they are read straight off the page.
 		if (tmpstate.step == STEPS.indexOf("Skills")) {
 			tmpstate.racialSkillNames = [...this.element.querySelectorAll("input[name='racialPick']:checked")].map(tmpbox => tmpbox.value);
 			tmpstate.socialSkillNames = [...this.element.querySelectorAll("input[name='socialPick']:checked")].map(tmpbox => tmpbox.value);
 		}
-		// A new first race can leave the second one no longer a fertile partner.
-		if (tmpstate.race2) {
-			var tmpfirst = (this.#content?.races ?? []).find(tmpdoc => tmpdoc.name == tmpstate.race1);
-			if (!(tmpfirst?.system?.fertileWith ?? []).includes(tmpstate.race2)) { tmpstate.race2 = ""; }
+		// A new first race can leave the second one no longer a fertile partner, and carries no
+		// Famorian breed, animal type or evokes of its own -- resetting here stops anything chosen
+		// for an earlier Famorian leaking onto whatever race was picked afterwards.
+		var tmpfirst = (this.#content?.races ?? []).find(tmpdoc => tmpdoc.name == tmpstate.race1);
+		if (tmpstate.race2 && !(tmpfirst?.system?.fertileWith ?? []).includes(tmpstate.race2)) {
+			tmpstate.race2 = "";
+		}
+		if (!tmpfirst?.system?.famorian?.isFamorian) {
+			tmpstate.famorian = { breed: "", animalType: "", evokesAllowed: 0, evokes: [],
+			                      strBonus: 0, aglBonus: 0, vitBonus: 0 };
 		}
 	}
 
@@ -160,6 +183,39 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			if (tmpderived.race) {
 				this.#state.handedness = rollHandedness(tmpderived.race.abilities ?? [],
 					ImagineCharacterGenerator.#die);
+			}
+		}
+
+		// @MARKER FAMORIAN
+		// Rolled the same way and for the same reason as handedness above -- his sheet rolls the
+		// breed the moment the race is applied (setRacialFeatures, 16736) -- with the budget rolled
+		// straight after, since a breed with no evoke count yet is not a usable breed. Both are
+		// guarded on being blank, so they roll once and stand; the three attribute evokes are
+		// rolled the moment they are TAKEN and dropped the moment they are not, since unlike the
+		// breed they are a repeatable choice rather than a single roll at the top of the step.
+		tmpcontext.famorianBreedSelectable = game.settings.get("imagine-rpg", "famorianBreedSelectable");
+		var tmpfamderived = deriveGenerator(this.#state, tmpcontent, ImagineCharacterGenerator.#isAvailable);
+		if (tmpfamderived.race1?.system?.famorian?.isFamorian) {
+			var tmpfam = this.#state.famorian;
+			var tmpbreeds = tmpfamderived.race1.system.famorian.breeds;
+			if (!tmpcontext.famorianBreedSelectable && !tmpfam.breed) {
+				var tmpband = getFamorianBreed(tmpbreeds, ImagineCharacterGenerator.#die(100));
+				if (tmpband) { tmpfam.breed = tmpband.breed; }
+			}
+			if (tmpfam.breed && !tmpfam.evokesAllowed) {
+				var tmpchosenband = tmpbreeds.find(tmpone => tmpone.breed == tmpfam.breed);
+				if (tmpchosenband) {
+					var tmpbudget = rollEvokeBudget(tmpchosenband, ImagineCharacterGenerator.#die);
+					tmpfam.evokesAllowed = (tmpbudget === null) ? -1 : tmpbudget;
+				}
+			}
+			for (const tmpattr of ["str", "agl", "vit"]) {
+				var tmpbonuskey = tmpattr + "Bonus";
+				if (tmpfam.evokes.includes(tmpattr)) {
+					if (!tmpfam[tmpbonuskey]) { tmpfam[tmpbonuskey] = ImagineCharacterGenerator.#die(3); }
+				} else {
+					tmpfam[tmpbonuskey] = 0;
+				}
 			}
 		}
 
@@ -242,6 +298,21 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		this.#captureForm();
 		var tmpderived = deriveGenerator(this.#state, this.#content, ImagineCharacterGenerator.#isAvailable);
 		this.#state.handedness = rollHandedness(tmpderived.race?.abilities ?? [], ImagineCharacterGenerator.#die);
+		this.render();
+	}
+
+	// The convenience roll offered beside the dropdown when "Players may choose Famorian breed" is
+	// on -- see the setting's own comment in module/imagine-rpg.mjs. Re-rolls the budget too, since
+	// a breed with the previous breed's evoke count is not a usable breed.
+	static #onRollFamorianBreed(event, target) {
+		this.#captureForm();
+		var tmpderived = deriveGenerator(this.#state, this.#content, ImagineCharacterGenerator.#isAvailable);
+		var tmpbreeds = tmpderived.race1?.system?.famorian?.breeds ?? [];
+		var tmpband = getFamorianBreed(tmpbreeds, ImagineCharacterGenerator.#die(100));
+		if (!tmpband) { this.render(); return; }
+		this.#state.famorian.breed = tmpband.breed;
+		var tmpbudget = rollEvokeBudget(tmpband, ImagineCharacterGenerator.#die);
+		this.#state.famorian.evokesAllowed = (tmpbudget === null) ? -1 : tmpbudget;
 		this.render();
 	}
 

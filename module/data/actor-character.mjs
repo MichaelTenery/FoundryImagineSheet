@@ -448,11 +448,11 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// the character rather than rolled here: this runs on every prepare.
 		var tmpfamorianat = tmpraceitems.findIndex(tmprace => tmprace.system.famorian?.isFamorian);
 		if (tmpfamorianat >= 0) {
-			var tmpchosen = this.identity.famorian?.evokes ?? [];
+			var tmpchosen = this.physical.famorian?.evokes ?? [];
 			var tmpbonuses = {
-				str: this.identity.famorian?.strBonus ?? 0,
-				agl: this.identity.famorian?.aglBonus ?? 0,
-				vit: this.identity.famorian?.vitBonus ?? 0
+				str: this.physical.famorian?.strBonus ?? 0,
+				agl: this.physical.famorian?.aglBonus ?? 0,
+				vit: this.physical.famorian?.vitBonus ?? 0
 			};
 			var tmpbuilt = applyFamorianEvokes(tmpraceitems[tmpfamorianat].system, tmpchosen, tmpbonuses);
 			if (tmpraceitems.length == 1) {
@@ -994,10 +994,10 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// found/selected. Nothing done.", 4546). Reported here, as every other race problem is.
 		var tmpfamrace = this.raceItems.find(tmprace => tmprace.system.famorian?.isFamorian);
 		if (tmpfamrace) {
-			var tmpbudget = checkEvokeBudget(this.identity.famorian?.evokes,
-				(this.identity.famorian?.evokesAllowed ?? 0) < 0 ? null : this.identity.famorian?.evokesAllowed);
+			var tmpbudget = checkEvokeBudget(this.physical.famorian?.evokes,
+				(this.physical.famorian?.evokesAllowed ?? 0) < 0 ? null : this.physical.famorian?.evokesAllowed);
 			if (tmpbudget.issue) { tmpissues.push(tmpbudget.issue); }
-			if (!this.identity.famorian?.animalType) {
+			if (!this.physical.famorian?.animalType) {
 				tmpissues.push("This Famorian has no animal type. His sheet will not apply the race without one.");
 			}
 		}

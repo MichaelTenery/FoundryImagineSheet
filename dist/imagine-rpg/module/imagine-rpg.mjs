@@ -280,6 +280,25 @@ Hooks.once("init", function () {
 		default: false
 	});
 
+	// @MARKER FAMORIAN BREED
+	// The same shape as handedness, above, and for the same reason: his sheet ROLLS the breed
+	// (d100 on setRacialFeatures, sheet-worker.js:16736) and never asks. Off, the breed and its
+	// evoke budget are rolled once when the character generator's Famorian block first sees the
+	// race and then stand, with no re-roll button -- the restraint handedness's comment names:
+	// a button that re-rolls until the breed you want comes up is the same as choosing it. On,
+	// a dropdown picks the breed directly, with a roll button beside it for a GM who wants the
+	// convenience of a die without giving up the honesty of it being a visible choice.
+	game.settings.register("imagine-rpg", "famorianBreedSelectable", {
+		name: "Players may choose Famorian breed",
+		hint: "Off, as his sheet has it: a Famorian's breed -- Hidden, Trace, Low, Breed, High, "
+		    + "True or Inbreed, which sets how many evokes it may take -- is rolled on d100. On: "
+		    + "it is picked from a dropdown instead. Affects characters only, not creatures.",
+		scope: "world",
+		config: true,
+		type: Boolean,
+		default: false
+	});
+
 	// @MARKER CONTENT AVAILABILITY
 	// Sourcebook and magic switches, individual overrides, and the check that stops disallowed
 	// content being added to a character. See module/availability.mjs.
