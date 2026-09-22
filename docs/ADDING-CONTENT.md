@@ -46,6 +46,31 @@ name. To stop the stock one being used, forbid it in the content settings (its o
 skills, abilities, fertile races, blocked races, and a class's skill list. Until they do (see
 `docs/sonnet/2026-09-18-races-classes.md`, item 1), author those through Route 2.
 
+**Three optional race fields, added 2026-09-21 for the races his sheet splits with a second
+dropdown** (see `docs/DATA-MODEL.md` §4b). All three default to empty and most homebrew races never
+need them.
+
+- `sourceRace` — his name for the race, the key every name-keyed table (racial skills, ages,
+  colours, height band) is looked up under. Leave it blank and it defaults to the race's own name.
+  Set it to borrow another race's tables wholesale, the way `Fairy(Winged)` borrows `Fairy`'s.
+- `physiqueLock` — `""`, `"slight"` or `"ordinary"`. Set this to force a race's physique rather
+  than let the player choose — his four winged/wingless faerie forms are the reason it exists: the
+  wings ARE the slight-physique branch in his code, so a winged form locks the tick on and a
+  wingless one locks it off, and the generator stops offering the choice.
+- `formlessHosts` — which races a Formless psyche may inhabit. Only meaningful on the `Formless`
+  race itself; leave it empty on every other race.
+
+*Worked example* — a homebrew "Frost Sprite" that is mechanically a copy of `Fairy(Winged)` under
+a new name, always of slight build:
+
+```json
+"Frost Sprite": {
+  "sourceRace": "Fairy(Winged)",
+  "physiqueLock": "slight",
+  "description": "A pale, cold-touched cousin of the Fairy, native to the Ninth Winter."
+}
+```
+
 ---
 
 ## Route 2: in the content files

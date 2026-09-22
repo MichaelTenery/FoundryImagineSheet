@@ -124,19 +124,26 @@ Object.assign(shield.system, { location: "equipped", quantity: 1 });
 const tent = { id: "g5", name: "Tent", type: "equipment", system: { weight: 40, quantity: 1, location: "mount" } };
 
 // Skills: definitions stubbed, since starting bonuses are rolled per character.
+//
+// Warlord's Insight is held but not yet reachable -- acquiredAtTitle 15 against a title 12
+// character -- so the gated/not-yet-acquired state (the faded row, the hourglass mark, the
+// tooltip) is actually exercised here rather than only in the derivation suite. See
+// docs/sonnet/2026-09-19-finishing-classes.md item 3. The seventh column is acquiredAtTitle;
+// every other skill leaves it 0, which _prepareSkills reads as no gate at all.
 const skillSource = [
-	["Weapon Parry", "STR", "AGL", 12, 34, "class", "Player's Guide"],
-	["Body Parry", "AGL", "", 14, 28, "class", "Player's Guide"],
-	["Sweep", "STR", "AGL", 15, 22, "class", "Player's Guide"],
-	["Weapon Knowledge", "INT", "KNW", 11, 41, "class", "Player's Guide"],
-	["Weapon Lore", "INT", "KNW", 13, 19, "class", "Master's Manual"],
-	["Tracking", "WIS", "KNW", 14, 16, "racial", "Player's Guide"],
-	["Armoring", "STR", "KNW", 15, 30, "social", "Player's Guide"]
+	["Weapon Parry", "STR", "AGL", 12, 34, "class", "Player's Guide", 0],
+	["Body Parry", "AGL", "", 14, 28, "class", "Player's Guide", 0],
+	["Sweep", "STR", "AGL", 15, 22, "class", "Player's Guide", 0],
+	["Weapon Knowledge", "INT", "KNW", 11, 41, "class", "Player's Guide", 0],
+	["Weapon Lore", "INT", "KNW", 13, 19, "class", "Master's Manual", 0],
+	["Tracking", "WIS", "KNW", 14, 16, "racial", "Player's Guide", 0],
+	["Armoring", "STR", "KNW", 15, 30, "social", "Player's Guide", 0],
+	["Warlord's Insight", "INT", "WIL", 13, 25, "class", "Player's Guide", 15]
 ];
-const skills = skillSource.map(([name, a1, a2, rating, bonus, category, book], i) => ({
+const skills = skillSource.map(([name, a1, a2, rating, bonus, category, book, acquiredAtTitle], i) => ({
 	id: "skill" + i, name, type: "skill",
 	system: { attr1: a1, attr2: a2, skillRating: rating, startingBonus: bonus, types: [],
-	          abilityBonus: 0, misc: 0, isCommon: false, category, sourcebook: book }
+	          abilityBonus: 0, misc: 0, isCommon: false, category, sourcebook: book, acquiredAtTitle }
 }));
 
 // --- his preview.png character: Title 12 Warrior, attributes as on the screenshot -------------
@@ -220,11 +227,18 @@ for (const [group, keys] of groups) for (const key of keys) {
 const skillRows = { class: [], racial: [], social: [] };
 for (const it of skills) {
 	const s = it.system;
+	// usableByTitle/titleGateReason mirror #buildSkillRows in actor-character-sheet.mjs (its
+	// `!== false` / `?? ""` defaults) -- missing here entirely until this pass, so the title gate
+	// this row exists to exercise was computed by _prepareSkills but never reached the template.
 	skillRows[s.category].push({ id: it.id, name: it.name, attr1: s.attr1, attr2: s.attr2,
 		skillRating: s.skillRating, baseChance: s.baseChance, totalChance: s.totalChance,
-		sourcebook: s.sourcebook, available: s.available !== false, unavailableReason: s.unavailableReason ?? "" });
+		sourcebook: s.sourcebook, available: s.available !== false, unavailableReason: s.unavailableReason ?? "",
+		usableByTitle: s.usableByTitle !== false, titleGateReason: s.titleGateReason ?? "" });
 }
 for (const k of Object.keys(skillRows)) skillRows[k].sort((a, b) => a.name.localeCompare(b.name));
+const gatedRow = skillRows.class.find(r => r.name === "Warlord's Insight");
+console.assert(gatedRow && gatedRow.usableByTitle === false && gatedRow.titleGateReason,
+	"Warlord's Insight (acquiredAtTitle 15, character title 12) should render gated with a reason");
 
 // Lore, as the sheet class works it out: the general figures for every weapon of the kind, the
 // larger ones instead for a weapon named in the matching list. Parameterised on a combat object

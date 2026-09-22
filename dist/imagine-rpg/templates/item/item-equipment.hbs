@@ -1,7 +1,7 @@
 {{!--
 	Equipment body. One root element, as the framework requires of every PART.
 
-	Nine flat fields, which is why this went without a sheet of its own for a long time. It has
+	Ten flat fields, which is why this went without a sheet of its own for a long time. It has
 	one now because the Equipment tab can create gear by hand -- a rope cut in half, a Game
 	Master's invention -- and a new item that opens on a sheet with no weight on it is no use.
 --}}
@@ -15,6 +15,18 @@
 					<span><input type="number" name="system.weight" value="{{system.weight}}" step="0.1"> lb</span></li>
 				<li><label>Quantity</label>
 					<span><input type="number" name="system.quantity" value="{{system.quantity}}" min="0"></span></li>
+				{{!-- His getItemWeight (sheet-worker.js:81979-81990) scales a non-magical item's
+				weight by this tag. Blank is average and takes no adjustment. General equipment
+				has no magicBonus field, so this always applies. --}}
+				<li><label>Quality</label>
+					<span><select name="system.quality">
+						<option value="" {{#unless system.quality}}selected{{/unless}}>Average</option>
+						<option value="Shoddy" {{#if (eq system.quality "Shoddy")}}selected{{/if}}>Shoddy</option>
+						<option value="Poor" {{#if (eq system.quality "Poor")}}selected{{/if}}>Poor</option>
+						<option value="Good" {{#if (eq system.quality "Good")}}selected{{/if}}>Good</option>
+						<option value="High" {{#if (eq system.quality "High")}}selected{{/if}}>High</option>
+						<option value="Master" {{#if (eq system.quality "Master")}}selected{{/if}}>Master</option>
+					</select></span></li>
 				<li><label>Where</label>
 					<span><select name="system.location">
 						{{#each config.locations as |l|}}

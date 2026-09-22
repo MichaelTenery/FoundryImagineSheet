@@ -1,5 +1,8 @@
 # Left for Sonnet — 2026-09-12, lore corrections pass
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 > **Items 1 and 3 DONE 2026-09-14.** Item 1: the chat card shows the lore damage contribution
 > (`damage.lore` / `damage.loreSpecific` / `damage.projectileLore`); the to-hit line needed no
 > code at all, since `getToHitModifiers` was already pushing a `"Lore"` entry onto the list the

@@ -1,5 +1,8 @@
 # Left for a cheaper window — 2026-09-21, Items sidebar from the compendia
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 The sidebar now fills from `world.imagine-*` (fallback: shipped JSON). Decided and in
 `DECISIONS.md` 2026-09-21; do not re-litigate reading order or the no-overwrite rule.
 

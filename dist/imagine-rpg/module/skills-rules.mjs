@@ -73,6 +73,39 @@
 	}
 
 
+// @MARKER UNTRAINED SKILLS
+
+	// This is the function which works out which skills a character could still try untrained.
+	//
+	// Player's Guide, "Who Can Use a Skill": a skill already held is rolled as itself, not as a
+	// common skill ("any skill for which the character has rolled a starting bonus can no longer
+	// be attempted as a common skill"), and a restricted skill cannot be tried at all. Both limits
+	// were already applied inline where the untrained picker builds its dropdown
+	// (actor-character-sheet.mjs #onRollUntrainedSkill); this pulls the same two filters out as a
+	// plain function so a second caller -- a list on the Skills tab itself, rather than only the
+	// dialog -- does not have to duplicate them.
+	//
+	// docs/sonnet/2026-09-16-skills-module.md item 1 gave `isRestricted` real data from the books
+	// (366 of 674 skills; the rest report as not-found rather than guessed), so this filter now
+	// does something: before that pass every skill read as unrestricted and this list would have
+	// been all 674. It still is not SHORT -- of the 676 skills in the pack, 305 now carry
+	// `isRestricted: true`, so an untrained character is typically offered a few hundred, not a
+	// handful -- which is why item 2 of that note is still a judgement call about presentation
+	// (a full inline list, a count, a search box) rather than a mechanical one this function
+	// settles on its own.
+	//
+	//   tmpheldnames  = names of skills already on the character (any category)
+	//   tmpskillindex = the skill compendium's index rows, each { name, system: { isRestricted } }
+	//                   (the same shape tmppack.getIndex({ fields: [...] }) returns)
+	export function getUntrainedSkillOptions(tmpheldnames, tmpskillindex) {
+		var tmpheld = new Set(Array.isArray(tmpheldnames) ? tmpheldnames : []);
+		var tmpindex = Array.isArray(tmpskillindex) ? tmpskillindex : [];
+		return tmpindex
+			.filter(e => !tmpheld.has(e.name) && !e.system?.isRestricted)
+			.sort((a, b) => a.name.localeCompare(b.name));
+	}
+
+
 // @MARKER SKILL SLOT TRICKS
 
 	// What one slot may be traded for, from his four conversion functions. Each is one move; a

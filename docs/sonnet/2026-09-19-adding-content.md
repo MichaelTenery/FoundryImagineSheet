@@ -1,5 +1,8 @@
 # 2026-09-19 — Adding content: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 The method is in place: `docs/ADDING-CONTENT.md`, one `src/packs/manual/<pack>.json` per pack, and
 `apply_manual_content` in `tools/extract/build_documents.py`. See `DECISIONS.md` 2026-09-19.
 

@@ -873,6 +873,63 @@ check("a combination never learned pays full however high the skill",
 	R.resolveMultiMissile(mmInput({ knowChance: 100, knowList: "Thrown/Dagger" })),
 	{ attack: -4, damage: -6, shots: 2, repeats: true, tier: "full", levels: 0 });
 
+// --- acquiring a combination (handleRollMultiMissileKnow/Lore, sheet-worker.js:88805/88950) ----
+check("a dagger is thrown, not launched", R.isThrownWeapon("Dagger"), true);
+check("an arrow is not thrown", R.isThrownWeapon("Arrow(Long Bow/Normal)"), false);
+check("a Long Bow's arrow reads back to the Long Bow",
+	R.getLaunchersForProjectile("Arrow(Long Bow/Normal)"), ["Bow(Long)"]);
+check("an arrowhead variant simplifies the same way as its Normal",
+	R.getLaunchersForProjectile("Arrow(Long Bow/Broadhead)"), ["Bow(Long)"]);
+check("a crossbow bolt reads back to all four crossbow variants",
+	R.getLaunchersForProjectile("Bolt(Crossbow/Normal)"),
+	["Crossbow", "Crossbow(Double)", "Crossbow(Over-Under)", "Crossbow(Repeating)"]);
+check("an unrecognised missile reads back to no launcher at all",
+	R.getLaunchersForProjectile("Nonsense"), []);
+
+check("a dagger only combos with Thrown", R.isValidMissileCombo("Thrown", "Dagger"), true);
+check("a dagger does not combo with a bow", R.isValidMissileCombo("Bow(Long)", "Dagger"), false);
+check("a Long Bow combos with its own arrow",
+	R.isValidMissileCombo("Bow(Long)", "Arrow(Long Bow/Normal)"), true);
+check("a Long Bow does not combo with a Composite Bow's arrow",
+	R.isValidMissileCombo("Bow(Long)", "Arrow(Composite Bow/Normal)"), false);
+check("entering the launcher alone still matches, his third branch",
+	R.isValidMissileCombo("Crossbow(Hand)", "Bolt(Hand Crossbow/Normal)"), true);
+
+// His early-exit order: no launcher, already known, no missile, mismatch, no chance, then the
+// roll itself.
+check("no launcher does nothing",
+	R.resolveMissileComboAcquisition({ launcher: "", missile: "Arrow(Long Bow/Normal)", chance: 50, roll: 10 }).outcome,
+	"noLauncher");
+check("a combo already on the list does nothing",
+	R.resolveMissileComboAcquisition({ launcher: "Bow(Long)", missile: "Arrow(Long Bow/Normal)",
+		chance: 50, roll: 10, list: "Bow(Long)/Arrow(Long Bow/Normal)" }).outcome,
+	"alreadyKnown");
+check("no missile does nothing",
+	R.resolveMissileComboAcquisition({ launcher: "Bow(Long)", missile: "", chance: 50, roll: 10 }).outcome,
+	"noMissile");
+check("a launcher and missile that do not go together does nothing",
+	R.resolveMissileComboAcquisition({ launcher: "Bow(Long)", missile: "Dagger", chance: 50, roll: 10 }).outcome,
+	"invalidCombo");
+check("no chance in the skill does nothing even if everything else is right",
+	R.resolveMissileComboAcquisition({ launcher: "Bow(Long)", missile: "Arrow(Long Bow/Normal)",
+		chance: 0, roll: 1 }).outcome,
+	"noChance");
+check("rolling over the chance fails and leaves the list alone", (() => {
+	var tmpresult = R.resolveMissileComboAcquisition({ launcher: "Bow(Long)",
+		missile: "Arrow(Long Bow/Normal)", chance: 40, roll: 41, list: "Thrown/Dagger" });
+	return [tmpresult.outcome, tmpresult.list];
+})(), ["failed", "Thrown/Dagger"]);
+check("rolling at or under the chance succeeds and appends to the list", (() => {
+	var tmpresult = R.resolveMissileComboAcquisition({ launcher: "Bow(Long)",
+		missile: "Arrow(Long Bow/Normal)", chance: 40, roll: 40, list: "Thrown/Dagger" });
+	return [tmpresult.outcome, tmpresult.list];
+})(), ["succeeded", "Thrown/Dagger,Bow(Long)/Arrow(Long Bow/Normal)"]);
+check("succeeding from an empty list does not leave a stray leading comma", (() => {
+	var tmpresult = R.resolveMissileComboAcquisition({ launcher: "Thrown", missile: "Dagger",
+		chance: 40, roll: 1, list: "" });
+	return tmpresult.list;
+})(), "Thrown/Dagger");
+
 // --- the better of two attack charts ------------------------------------------------
 // Player's Guide, Dual Class, Experience and Advancement rule 5: "Attack skill is determined by
 // the greater of the two values". Better is further along the chart order, not a bigger number.
@@ -908,6 +965,16 @@ check("+10 weighs x.05", R.getMagicWeightMultiplier(10), 0.05);
 check("no plus weighs as normal", R.getMagicWeightMultiplier(0), 1);
 check("a plus with no case in his switch weighs as normal", R.getMagicWeightMultiplier(12), 1);
 
+// --- quality tags (getItemWeight, sheet-worker.js:81979-81990) -----------------------
+check("[Shoddy] weighs x1.75", R.getQualityWeightMultiplier("Shoddy"), 1.75);
+check("[Poor] weighs x1.1",    R.getQualityWeightMultiplier("Poor"), 1.1);
+check("[Good] weighs x.9",     R.getQualityWeightMultiplier("Good"), 0.9);
+check("[High] weighs x.8",     R.getQualityWeightMultiplier("High"), 0.8);
+check("[Master] weighs x.75",  R.getQualityWeightMultiplier("Master"), 0.75);
+check("blank (average) weighs as normal", R.getQualityWeightMultiplier(""), 1);
+check("unset weighs as normal",           R.getQualityWeightMultiplier(undefined), 1);
+check("an unrecognised tag weighs as normal", R.getQualityWeightMultiplier("Legendary"), 1);
+
 // His labels, and the book's speed for each band. Bands for a 400 lb load limit: 100/200/300/400.
 const bands = { none: 100, slight: 200, moderate: 300, heavy: 400 };
 check("his five labels, in order",
@@ -934,6 +1001,20 @@ check("...and a magic weapon too",
 	R.resolveEncumbrance([item("weapon", 10, { magicBonus: 5 })], 1.6, 250, 72).carried, 5);
 check("the size multiplier is reported",
 	R.resolveEncumbrance([], 1.6, 215, 69).sizeMultiplier, 0.9);
+
+// A quality tag scales a non-magical item's weight; a magical plus replaces it rather than
+// stacking (his getItemWeight only reads quality "if not magical").
+check("[Shoddy] gear weighs more",
+	R.resolveEncumbrance([item("equipment", 40, { quality: "Shoddy" })], 1.6, 250, 72).carried,
+	40 * 1.75);
+check("[Master] gear weighs less",
+	R.resolveEncumbrance([item("weapon", 10, { quality: "Master" })], 1.6, 250, 72).carried,
+	10 * 0.75);
+check("blank quality weighs as normal",
+	R.resolveEncumbrance([item("armor", 20, { quality: "" })], 1.6, 250, 72).carried, 20);
+check("a magical plus overrides quality rather than stacking with it",
+	R.resolveEncumbrance([item("armor", 100, { magicBonus: 2, quality: "Shoddy" })], 1.6, 250, 72).carried,
+	80);
 
 const move = { walk: { hourly: 3, tenSec: 40, oneSec: 4 }, jog: { hourly: 6, tenSec: 80, oneSec: 8 },
                run: { hourly: 12, tenSec: 160, oneSec: 16 } };

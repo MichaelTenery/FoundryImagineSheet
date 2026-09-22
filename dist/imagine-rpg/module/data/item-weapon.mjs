@@ -80,6 +80,16 @@ export default class ImagineWeaponData extends foundry.abstract.TypeDataModel {
 			// weapon's construction quality: [Tempered] x1.5, [Double Head] x1.2, [Good] x1.1,
 			// [Poor] x0.9, [Shoddy] x0.75, [Serrated] x0.33.
 			structuralStrength: new fields.NumberField({ required: true, initial: 0 }),
+
+			// This is a DIFFERENT quality notion from the one above -- his getItemWeight
+			// (sheet-worker.js:81979-81990) reads the same bracketed tags out of the item's
+			// NAME and scales the item's WEIGHT by them, with a different set of multipliers:
+			// [Shoddy] x1.75, [Poor] x1.1, [Good] x.9, [High] x.8, [Master] x.75. Blank means
+			// average, which is x1. Stored here as a field rather than parsed from the name,
+			// the same tidying the [Float] marker got. A magical plus replaces this multiplier
+			// rather than stacking with it -- see resolveEncumbrance in combat-rules.mjs.
+			quality: new fields.StringField({ required: true, blank: true, initial: "",
+			             choices: ["", "Shoddy", "Poor", "Good", "High", "Master"] }),
 			weight:   new fields.NumberField({ required: true, initial: 0 }),
 			// Weighs nothing to carry: his "[Float]" marker, which his own sheet reads out of the
 			// item's NAME (sheet-worker.js:81815). The name is still honoured -- see itemFloats in

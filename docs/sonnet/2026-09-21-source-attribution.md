@@ -1,5 +1,8 @@
 # Left for a cheaper window — 2026-09-21, source attribution
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Every document now carries a sourcebook, from his own Master Index. The method, the rejected
 heuristic and the XXX decision are all settled in `DECISIONS.md` 2026-09-21 — none of it needs
 re-litigating. What follows is mechanical extension of a pattern already established.

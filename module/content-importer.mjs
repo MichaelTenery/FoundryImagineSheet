@@ -55,8 +55,25 @@ export const RETIRED_DOCUMENTS = {
 	classes: [
 		"Elemental Dancer",      //  one class per element                     split by path
 		"Innominate"             //  Innominate(Detect Evil), (Detect Good)     split by path
+	],
+	skills: [
+		"Open Slot",             //  (nothing -- a slot marker, not a skill)    dropped 2026-09-22
+		"Unavailable"            //  (nothing -- a slot marker, not a skill)    dropped 2026-09-22
 	]
 };
+
+	// This is the function which decides WHICH retired names a pack should still remove -- the pure
+	// part of the retirement sweep, with no Foundry document call in it, so it can be tested without
+	// Foundry and reused by item-directory.mjs's own retired-item sweep of the Items sidebar.
+	//
+	// A name is removed only if all three hold: it is on the retired list, the shipped file has not
+	// brought it back, and something by that name is actually there to remove. See the RETIRED
+	// DOCUMENTS marker above for why "on the retired list" is required at all.
+	export function retiredNamesToRemove(tmpretiredlist, tmpshippednames, tmpexistingnames) {
+		var tmpshipped = tmpshippednames instanceof Set ? tmpshippednames : new Set(tmpshippednames);
+		var tmpexisting = tmpexistingnames instanceof Set ? tmpexistingnames : new Set(tmpexistingnames);
+		return (tmpretiredlist ?? []).filter(tmpname => !tmpshipped.has(tmpname) && tmpexisting.has(tmpname));
+	}
 
 
 	// This is the function which reads one document file shipped with the system.
@@ -118,8 +135,7 @@ export const RETIRED_DOCUMENTS = {
 
 		// Retired names go, but only if the shipped file has not brought the name back.
 		var tmpshipped = new Set(tmpdocs.map(tmpdoc => tmpdoc.name));
-		var tmptodelete = (RETIRED_DOCUMENTS[tmpdefinition.pack] ?? [])
-			.filter(tmpname => !tmpshipped.has(tmpname) && tmpexisting.has(tmpname))
+		var tmptodelete = retiredNamesToRemove(RETIRED_DOCUMENTS[tmpdefinition.pack], tmpshipped, tmpexisting.keys())
 			.map(tmpname => tmpexisting.get(tmpname));
 		if (tmptodelete.length) {
 			await Item.deleteDocuments(tmptodelete, { pack: tmppack.collection });

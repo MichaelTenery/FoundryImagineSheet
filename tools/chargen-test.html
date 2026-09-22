@@ -182,6 +182,40 @@ check("a language with no name is dropped",
 check("every skill's misc is set outright, never left to default to NaN",
 	itemsOf(assembled).filter(i => i.type === "skill").every(i => i.system.misc === 0), true);
 
+// --- equipBestArmorInPlace: the generator's own Equip Best Armour, docs/sonnet/2026-09-19-equip-buttons.md item 1 ---
+// No equipment step to hang a button on, so assembleCharacter calls this once on the items it just
+// built (see @MARKER EQUIP BEST ARMOUR in module/chargen-rules.mjs). Tested directly here rather
+// than only through assembleCharacter, since the kit tables that feed assembleCharacter's own armour
+// are generated data this suite does not control.
+const armorItem = (name, coverage, flexibility, extra) => ({ name, type: "armor",
+	system: { location: "carried", isShield: false, flexibility, coverage, penalties: {}, ...extra } });
+const chainShirt = armorItem("Chain Shirt", { torsoUpper: 6, torsoMid: 6 }, "Semi-Flexible");
+const paddedShirt = armorItem("Padded Shirt", { torsoUpper: 2, torsoMid: 2 }, "Clothing");
+const dagger = { name: "Dagger", type: "weapon", system: { location: "carried" } };
+const equipped = [chainShirt, paddedShirt, dagger];
+C.equipBestArmorInPlace(equipped);
+check("Equip Best Armour wears the armour it can legally stack",
+	equipped.filter(i => i.type === "armor").map(i => i.system.location), ["equipped", "equipped"]);
+check("...and leaves the weapon alone, carried -- equip weapons is deliberately not automated",
+	dagger.system.location, "carried");
+check("...layering the chain shirt outside the padding it needs",
+	[paddedShirt.system.layer, chainShirt.system.layer], [0, 1]);
+
+const shield = armorItem("Buckler", { armLeft: 3 }, "Rigid", { isShield: true });
+const shieldOnly = [shield];
+C.equipBestArmorInPlace(shieldOnly);
+check("a shield is left exactly where Equip Best Armour leaves it on the sheet -- untouched",
+	shield.system.location, "carried");
+
+check("nothing to wear leaves the list untouched and does not throw",
+	(() => { const empty = [dagger]; C.equipBestArmorInPlace(empty); return empty[0].system.location; })(), "carried");
+
+// The generator's own starting-kit assembly runs this for real: nothing equipped beforehand plus
+// Equip Best Armour is exactly Take Everything Off's own end state, so a fresh character needs no
+// separate "take everything off" call to match the sheet's pair of buttons.
+check("a fresh character from assembleCharacter needs no un-equip step: nothing starts equipped without armour",
+	itemsOf(assembled).filter(i => i.type === "armor").length, 0);
+
 // --- assembleCharacter carries a Famorian's evokes onto the actor -------------------------------
 // The choices' famorian block (breed, animal type, evokesAllowed, evokes, the three rolled
 // bonuses) has to land on system.physical.famorian, because that is what ImagineCharacterData

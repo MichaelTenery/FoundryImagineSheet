@@ -1299,6 +1299,37 @@ check("...but each of its paths does, and names it as the base",
 check("a class that does not split is its own base",
 	classByName("Warrior").system.baseClass, "Warrior");
 
+// docs/sonnet/2026-09-19-finishing-classes.md item 1, the second check added for that pass: the
+// grant (module/class-advancement.mjs) and the level-up view both walk from a path document to its
+// base by name, not by reference, so a `baseClass` that names nothing would fail silently at
+// runtime rather than here.
+//
+// A base that names a document (Warrior naming itself) is the ordinary case. A base that names NO
+// document is not automatically wrong, though -- the five classes that split into paths (checked
+// above) are deliberately not built as documents of their own (build_documents.py
+// apply_manual_content: "a class his paths are built from counts as built, under its base name";
+// their unsplit names are even in RETIRED_DOCUMENTS, module/content-importer.mjs, so a world never
+// gets a stray copy of one). What would actually be broken is a baseClass naming nothing AND named
+// by only one path -- that is not a split, it is a typo with no second path to justify it -- or a
+// path document with no `path` of its own, which is the other half of what a path is supposed to
+// carry.
+var tmpbaseCounts = {};
+for (const d of classDocs) {
+	if (!d.system.baseClass) { continue; }
+	tmpbaseCounts[d.system.baseClass] = (tmpbaseCounts[d.system.baseClass] || 0) + 1;
+}
+check("every non-empty baseClass is either a real class document or a genuine split (2+ paths share it)",
+	classDocs.filter(d => d.system.baseClass && !classByName(d.system.baseClass)
+		&& tmpbaseCounts[d.system.baseClass] < 2).map(d => d.name),
+	[]);
+// A document whose baseClass is its OWN name (Warrior naming itself) is not a path document and
+// carries no path -- that is the un-split, ordinary case, checked separately above. A document
+// whose baseClass names something ELSE is a path document by definition, and should carry the
+// path that makes it one.
+check("every path document (baseClass names something other than itself) also carries its own path",
+	classDocs.filter(d => d.system.baseClass && d.system.baseClass !== d.name && !d.system.path).map(d => d.name),
+	[]);
+
 // --- the split races: winged faeries and Maginos materials --------------------------------------
 // Five of his races are ONE dictionary entry and more than one race a character can be, because
 // his sheet asks a second question beside the race picker. Each form is now a document of its own.
@@ -1801,6 +1832,81 @@ check("Monk's armour usage reads as armour, not as his weapon list",
 check("...and the fields after it landed in the right columns too",
 	[monk.advancement.titles.length > 0, monk.classMods.length > 0,
 	 monk.requirements.attribQualify.length], [true, true, 12]);
+
+// --- WORKSTREAM 2 (character sheet), 2026-09-22 pass ----------------------------------------
+// Covers the mechanical follow-through this pass ported into the character sheet:
+// docs/sonnet/2026-09-21-famorian.md items 2/6, 2026-09-21-race-forms.md item 3,
+// 2026-09-20-first-install-bugs.md item 8, and 2026-09-21-formless-and-resistances.md item 6.
+// Only the derived JS is checked here; the template markup itself is eyeballed in sheet-preview.
+
+// famorian.md item 6: describeEvokes was exported and nothing called it. identity.race.famorian
+// is what calls it now, for the Description tab's Race panel (item 2).
+const describedFamorian = makeFamorian({
+	breed: "High Breed", animalType: "Wolf", evokesAllowed: 4,
+	evokes: ["wings", "acid_spit", "disease_resist"], strBonus: 0
+});
+check("a Famorian's evokes reach identity.race.famorian, budget spent against allowed",
+	[describedFamorian.identity.race.famorian.breed, describedFamorian.identity.race.famorian.budgetLabel,
+	 describedFamorian.identity.race.famorian.evokes.map(e => e.key).sort()],
+	["High Breed", "3 of 4", ["acid_spit", "disease_resist", "wings"]]);
+check("a numeric evoke is marked so the sheet can bold it; a purely descriptive one is not",
+	[describedFamorian.identity.race.famorian.evokes.find(e => e.key === "wings").numeric,
+	 describedFamorian.identity.race.famorian.evokes.find(e => e.key === "acid_spit").numeric],
+	[true, false]);
+check("a True Breed's 'All' budget (-1 stored) reads as 'of All', not 'of -1'",
+	makeFamorian({ breed: "True Breed", animalType: "Bear", evokesAllowed: -1, evokes: ["wings"] })
+		.identity.race.famorian.budgetLabel, "1 of All");
+check("a non-Famorian character shows no famorian block on the race panel",
+	makeCharacter({}, 12, [{ type: "race", name: "Nixie", system: structuredClone(raceByName("Nixie").system) }])
+		.identity.race.famorian, null);
+
+// race-forms.md item 3: the physique lock shown on the race panel, and the winged/wingless Half
+// Race conflict added beside the barred-class and infertile-pair issues in _getRaceIssues.
+const wingedFairyRaceItem = { type: "race", name: "Fairy(Winged)", system: structuredClone(raceByName("Fairy(Winged)").system) };
+const wingedFairySolo = makeCharacter({}, 5, [wingedFairyRaceItem]);
+check("a locked race shows its physique-lock reason on the race panel",
+	wingedFairySolo.identity.race.physiqueLock.includes("always of slight build"), true);
+check("...and raises no race issue on its own", wingedFairySolo.identity.raceIssues, []);
+
+const winglessPodlingRaceItem = { type: "race", name: "Podling(Wingless)", system: structuredClone(raceByName("Podling(Wingless)").system) };
+const mismatchedPhysiquePair = makeCharacter({}, 5, [wingedFairyRaceItem, winglessPodlingRaceItem]);
+check("a winged/wingless Half Race pair reports the conflict beside the other race issues",
+	mismatchedPhysiquePair.identity.raceIssues.some(i => i.includes("Neither form can be right for both halves")),
+	true);
+check("...and the race panel shows no lock line, since the combined pair is ambiguous",
+	mismatchedPhysiquePair.identity.race.physiqueLock, "");
+
+// first-install-bugs.md item 8: checkClassQualification carried into the sheet's own class
+// display, mirroring the generator's dropdown (chargen-view.mjs) instead of showing nothing.
+const shortOnStrength = makeCharacter({ str: 10 }, 5, [
+	dualClass("Warrior", { attribQualify: [16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] })
+]);
+check("a class the character does not qualify for is flagged, short form for the header",
+	[shortOnStrength.identity.classes[0].qualified, shortOnStrength.identity.classes[0].qualificationShort],
+	[false, "needs STR 16"]);
+check("...and the full sentence is kept too, for the tooltip",
+	shortOnStrength.identity.classes[0].qualificationFull.includes("Needs STR 16; has 10."), true);
+const meetsStrength = makeCharacter({ str: 16 }, 5, [
+	dualClass("Warrior", { attribQualify: [16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] })
+]);
+check("meeting the requirement raises nothing",
+	[meetsStrength.identity.classes[0].qualified, meetsStrength.identity.classes[0].qualificationShort],
+	[true, ""]);
+
+// formless-and-resistances.md item 6: identity.formlessIssue used to be written straight from
+// _getEffectiveRace during prepareBaseData; it is now stashed there and assigned in
+// _prepareIdentity instead, behaviour preserved -- checked here in both directions.
+const formlessRaceItem = { type: "race", name: "Formless", system: structuredClone(formless) };
+const hostlessFormless = makeCharacter({}, 5, [formlessRaceItem]);
+check("a hostless Formless still reaches identity.formlessIssue after the refactor",
+	[hostlessFormless.identity.isFormless, hostlessFormless.identity.formlessIssue.includes("needs a host race"),
+	 hostlessFormless.identity.raceIssues.some(i => i.includes("needs a host race"))],
+	[true, true, true]);
+const dwarfHostItem = { type: "race", name: "Dwarf(Mountain)", system: structuredClone(hostOf("Dwarf(Mountain)")) };
+const hostedFormless = makeCharacter({}, 5, [formlessRaceItem, dwarfHostItem]);
+check("...and a Formless with a valid host still raises none",
+	[hostedFormless.identity.formlessIssue, hostedFormless.identity.raceName.includes("Dwarf(Mountain)")],
+	["", true]);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;

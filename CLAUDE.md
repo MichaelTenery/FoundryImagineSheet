@@ -50,7 +50,7 @@ Full rationale for every one of these calls is in `docs/DECISIONS.md`. Full task
 
 ## Working protocol
 
-**Agile board + self-check loop.** Work is tracked in `docs/PROGRESS.md` as epics/stories with a Definition of Done per story. At the end of every work loop, before marking a story Done, run the Self-Check Checklist at the bottom of `docs/PROGRESS.md`: verify against `docs/reference/` (cite the page), verify no conflict with the Roll20 sheet (sheet wins), confirm the DoD is actually met, update the board, log any new architectural call in `docs/DECISIONS.md`, commit.
+**Agile board + self-check loop.** Work is tracked in `docs/PROGRESS.md` as epics/stories with a Definition of Done per story. At the end of every work loop, before marking a story Done, run the Self-Check Checklist at the bottom of `docs/PROGRESS.md`: verify against `docs/reference/` (cite the page), verify no conflict with the Roll20 sheet (sheet wins), confirm the DoD is actually met, update the board, log any new architectural call in `docs/DECISIONS.md`, commit. The board can be browsed, filtered and checked for dependency loops at `tools/progress.html`; a new board row needs a matching entry in `docs/task-dependencies.json` or the page warns.
 
 **Model choice for heavy work.** Before starting real implementation (non-trivial rules encoding, architecture-locking decisions, substantive system code — as opposed to planning, research, or light scaffolding), stop and ask the user whether to proceed on Opus or Fable rather than defaulting to whatever model is currently active.
 

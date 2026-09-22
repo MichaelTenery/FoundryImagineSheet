@@ -132,16 +132,25 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 			// ordinary characters now. He confirmed this on 2026-09-20.
 			//
 			// For all but a handful of races it is only -1 Strength and +1 Agility, which is
-			// applied to the ratings and needs nothing here. Four races carry a second, larger
-			// difference: FAIRY, FAIRY(DARK), PODLING and SPORELING have WINGS in the slight form
-			// and none in the ordinary one, and the two Fairies trade that flight for extra racial
-			// skills -- a wingless Dark Fairy gains Climb and Wood Lore +10%, a wingless Fairy
-			// gains Climb and Cover Tracks. That trade is the reason this block exists: it cannot
-			// be derived from the ordinary row, so both forms are carried and the character's own
-			// choice picks between them.
+			// applied to the ratings and needs nothing here. ONE race still carries a second,
+			// larger difference here: GREMLIN flies either way, and its ordinary form gains Climb
+			// instead. That trade is the reason this block exists: it cannot be derived from the
+			// ordinary row, so both forms are carried and the character's own choice picks
+			// between them.
 			//
-			// `hasVariant` is false for the hundred-odd races where the two forms are identical,
-			// and the rest of the block is then ignored.
+			// FAIRY, FAIRY(DARK), PODLING and SPORELING used to be here too -- each had WINGS in
+			// the slight form and none in the ordinary one, and the two Fairies traded that flight
+			// for extra racial skills (a wingless Dark Fairy gained Climb and Wood Lore +10%, a
+			// wingless Fairy gained Climb and Cover Tracks). As of 2026-09-21 they no longer use
+			// this block: his sheet's wings-ARE-slight-physique branch became a second dropdown,
+			// and the port split each of the four into a winged and a wingless race document of
+			// its own (`Fairy(Winged)`, `Fairy(Wingless)`, and so on) instead of one document with
+			// a variant. See @MARKER RACE FORMS below, `physiqueLock`, and DECISIONS.md
+			// 2026-09-21 "The races he split with a second dropdown become races of their own".
+			//
+			// `hasVariant` is false for the hundred-odd races where the two forms are identical
+			// (now including those eight split forms, each a single document with no variant of
+			// its own), and the rest of the block is then ignored.
 			slightPhysique: new fields.SchemaField({
 				hasVariant:   new fields.BooleanField({ required: true, initial: false }),
 				specialName:  new fields.StringField({ required: true, initial: "" }),

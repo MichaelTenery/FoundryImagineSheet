@@ -48,6 +48,11 @@
     "ApplicationV2 character sheet":      { "dependsOn": ["Design Actor data model", "Attributes module", "Skills module", "Equipment module"], "waitingOn": "a running Foundry V14" },
     "Attribute save and skill roll":      { "dependsOn": ["Implement attribute-save", "Implement skill-check", "ApplicationV2 character sheet"], "waitingOn": "a running Foundry V14" },
     "Remaining tabs":                     { "dependsOn": ["ApplicationV2 character sheet"] },
-    "Item sheets":                        { "dependsOn": ["Design Actor data model", "Races & Classes"] }
+    "Item sheets":                        { "dependsOn": ["Design Actor data model", "Races & Classes"] },
+
+    "Races assigned inline rather than from the dictionary": { "dependsOn": ["Races & Classes", "Generate src/packs"], "note": "Done 2026-09-21: every race in his specieslist, including the split faerie/Maginos forms, Formless and Famorian, is now a document." },
+    "Formless: inhabit and switch bodies": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Pinned by the user 2026-09-22, revisited once the rest of the core is done. A free-text identity.formlessBodies field stands in until body-switching is built." },
+    "Race descriptions: clean for release": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Pinned by the user 2026-09-22; must be done before public release, not before. Eleven generated race descriptions still explain port reasoning that belongs in DECISIONS.md, not on a player-facing sheet." },
+    "Famorian: limit evokes to the chosen animal's package": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Backlog; optional per the user's 2026-09-22 call that the Game Master polices it, as his own sheet does. The bestiaries' Evoke Package data makes it buildable later." }
   }
 }

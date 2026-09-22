@@ -1,5 +1,8 @@
 # 2026-09-18 — Encumbrance: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 The port of his `calcEncumbrance` is in `resolveEncumbrance` (`module/combat/combat-rules.mjs`,
 @MARKER ENCUMBRANCE); see `DECISIONS.md`, "Encumbrance: his calcEncumbrance ported whole".
 

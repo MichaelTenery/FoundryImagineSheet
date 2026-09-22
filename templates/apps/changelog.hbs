@@ -1,0 +1,23 @@
+{{!--
+	The What's New window. One root element, as the framework requires of every PART.
+
+	Each release's body is Markdown from CHANGELOG.md, rendered by renderChangelogMarkdown in
+	module/changelog.mjs -- which escapes the text before adding any tags of its own, so the
+	triple-stash below cannot carry markup that was not put there by that function.
+--}}
+<section class="changelog">
+	<p class="muted changelog-intro">
+		{{#if showingAll}}Every version of the Imagine RPG system. You are running <strong>{{version}}</strong>.
+		{{else}}The Imagine RPG system has been updated to <strong>{{version}}</strong>. Here is what changed
+		since you last looked. It can be opened again from Configure Settings, under What's New.{{/if}}
+	</p>
+	<div class="changelog-releases">
+		{{#each releases as |r|}}
+		<article class="changelog-release">
+			<h2>{{r.heading}}</h2>
+			{{{r.html}}}
+		</article>
+		{{/each}}
+		{{#if empty}}<p class="muted">No changelog was found in this installation.</p>{{/if}}
+	</div>
+</section>

@@ -1,5 +1,8 @@
 # 2026-09-19 — Experience and levelling: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 The levelling system is built: `tools/extract/extract_advancement_tables.py` →
 `module/advancement-tables.mjs` (generated), `module/advancement-rules.mjs` (rules),
 `module/advancement.mjs` (writes to the actor), `module/levelup-view.mjs` (what the window shows),

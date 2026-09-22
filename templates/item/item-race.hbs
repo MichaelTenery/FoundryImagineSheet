@@ -110,6 +110,18 @@
 		</div>
 	</div>
 
+	{{!-- formlessHosts is a new array field with nowhere to edit it -- the same gap item 1 of
+	      2026-09-18-races-classes.md records for racialSkills, abilities and the rest. One
+	      comma-separated field, split on save in _processFormData, same as a skill's types.
+	      Shown for every race rather than gated on isFormless: it is empty for the 106 races
+	      that cannot be a Formless's host and populated only for Formless itself, and an empty
+	      field reads as "not applicable" without needing a conditional. --}}
+	<label class="wide-field">Formless hosts
+		<input type="text" name="system.formlessHosts" value="{{formlessHostsText}}"
+			placeholder="empty for every race but Formless itself"></label>
+	<p class="muted">The races a Formless psyche may inhabit as its host body -- from his
+	formlessStartingRaceDetails. Comma-separated here; split into a list on save.</p>
+
 	<h3 class="section-head">Walk, Jog, Run</h3>
 	<table class="move-table edit-move-table">
 		<thead><tr><th></th><th>Hourly</th><th>10 sec</th><th>1 sec</th></tr></thead>
@@ -183,6 +195,20 @@
 	      wants to change one -- the note, which is prose about the skills, is editable here. --}}
 	<h3 class="section-head">What This Race Gives</h3>
 	<div class="panel race-panel">
+		{{!-- RACE FORMS. sourceRace and physiqueLock are read-only here: a form is a document of
+		      its own (Fairy(Winged), Maginos(Metal)) and both fields say where it came from and
+		      what its wings/build choice is locked to. Nixie shows neither -- its sourceRace
+		      equals its own name and its physiqueLock is empty, which is every race that is not
+		      one of his split forms. See resolvePhysiqueLock in race-rules.mjs, which is the
+		      function that reads physiqueLock at play; this is display only. --}}
+		{{#if system.physiqueLock}}
+		<p><label>Form</label>
+			{{#if (eq system.physiqueLock "slight")}}<span>winged (always slight physique)</span>{{/if}}
+			{{#if (eq system.physiqueLock "ordinary")}}<span>wingless (never slight physique)</span>{{/if}}</p>
+		{{/if}}
+		{{#if system.sourceRace}}{{#unless (eq system.sourceRace item.name)}}
+		<p><label>Source race</label> <span>{{system.sourceRace}}</span></p>
+		{{/unless}}{{/if}}
 		<p><label>Racial skills</label>
 			{{#each system.racialSkills as |s|}}<span class="race-chip">{{s.name}}{{#if s.bonus}} {{s.bonus}}{{/if}}</span>{{else}}<span class="muted">none listed</span>{{/each}}</p>
 		{{#if system.abilities.length}}<p><label>Abilities</label>
@@ -193,6 +219,24 @@
 			{{#each system.immunities as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
 		{{#if system.fertileWith.length}}<p><label>Fertile with</label>
 			{{#each system.fertileWith as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
+		{{!-- SLIGHT PHYSIQUE. Only Gremlin carries a variant now that the four faeries became
+		      documents of their own (DECISIONS.md 2026-09-21, "The races he split with a second
+		      dropdown become races of their own") -- but the schema stays open for a homebrew
+		      race to declare one. An empty racialSkills on the variant means "same as the
+		      ordinary form", NOT "no skills" -- applySlightPhysique in race-rules.mjs makes the
+		      same distinction, and Podling's own (unbuilt) variant would be empty for that
+		      reason, not because it has none. --}}
+		{{#if system.slightPhysique.hasVariant}}
+		<p><label>Slight-physique form</label>
+			{{#if system.slightPhysique.specialName}}<span class="race-chip">{{system.slightPhysique.specialName}}</span>{{else}}<span class="muted">no special movement</span>{{/if}}</p>
+		<p><label>&nbsp;&nbsp;its skills</label>
+			{{#if system.slightPhysique.racialSkills.length}}
+				{{#each system.slightPhysique.racialSkills as |s|}}<span class="race-chip">{{s.name}}{{#if s.bonus}} {{s.bonus}}{{/if}}</span>{{/each}}
+			{{else}}
+				{{#each system.racialSkills as |s|}}<span class="race-chip">{{s.name}}{{#if s.bonus}} {{s.bonus}}{{/if}}</span>{{else}}<span class="muted">none listed</span>{{/each}}
+				<span class="muted">(same as the ordinary form)</span>
+			{{/if}}</p>
+		{{/if}}
 	</div>
 	{{!-- On its own line rather than in a band-list: the note is a sentence, and the band-list's
 	      label-and-field split left it about 90px wide, clipping Nixie's at "(water anim".
@@ -205,6 +249,54 @@
 	<p class="muted">The skill note is the qualification his sheet prints beside the racial skills --
 	which forms a shapechanger may take, which sense works only in daylight. It is prose, and
 	nothing reads it automatically.</p>
+
+	{{!-- FAMORIAN. Shown only for the one race that is (isFamorian), his beast-blooded race whose
+	      body is BUILT rather than fixed -- see item-race.mjs @MARKER FAMORIAN and
+	      docs/sonnet/2026-09-21-famorian.md. Nobody hand-authors a second Famorian, so this is a
+	      lower priority than the other list fields, but the gap is the same one item 2 of
+	      2026-09-21-formless-and-resistances.md closed for formlessHosts.
+
+	      The breed table is small (seven rows in his own data) and worth editing in place, the
+	      same removable-row pattern the class sheet's Class Modifiers use. The evoke catalogue is
+	      about 120 entries and is NOT -- full editing of that is disproportionate to what a Game
+	      Master actually needs here, so it is read-only chips, same as racialSkills and the trait
+	      lists above, with the detail text on hover rather than in a fourth column nobody can
+	      read at this width. --}}
+	{{#if system.famorian.isFamorian}}
+	<h3 class="section-head">Famorian
+		<button type="button" data-action="addFamorianBreed"><i class="fa-solid fa-plus"></i> Add breed</button>
+	</h3>
+	{{#if famorianBreedRows.length}}
+	<table class="move-table edit-move-table famorian-breed-table">
+		<thead><tr><th>Breed</th><th>d100 low</th><th>d100 high</th><th>Evokes</th><th>When</th><th></th></tr></thead>
+		<tbody>
+			{{#each famorianBreedRows as |b|}}
+			<tr>
+				<td><input type="text" name="system.famorian.breeds.{{b.index}}.breed" value="{{b.breed}}"></td>
+				<td><input type="number" name="system.famorian.breeds.{{b.index}}.low" value="{{b.low}}"></td>
+				<td><input type="number" name="system.famorian.breeds.{{b.index}}.high" value="{{b.high}}"></td>
+				<td><input type="text" name="system.famorian.breeds.{{b.index}}.evokes" value="{{b.evokes}}"></td>
+				<td><input type="text" name="system.famorian.breeds.{{b.index}}.when" value="{{b.when}}"></td>
+				<td><button type="button" data-action="deleteFamorianBreed" data-index="{{b.index}}"
+					data-tooltip="Remove this breed"><i class="fa-solid fa-trash"></i></button></td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+	{{else}}
+	<p class="empty">No breed table.</p>
+	{{/if}}
+	<p class="muted">The d100 breed roll on character creation sets how many evokes a Famorian may
+	take, whether they are always on or only under stress, and whether one animal package or more
+	than one applies -- see module/famorian-rules.mjs.</p>
+
+	<p><label>Evoke catalogue</label>
+		{{#each system.famorian.evokes as |e|}}<span class="race-chip" title="{{e.detail}}">{{e.label}}</span>{{else}}<span class="muted">none listed</span>{{/each}}</p>
+	<p class="muted">Read-only: his own list of about 120 beast traits, edited through the raw-data
+	editor on the rare occasion a Game Master wants to change one. Only fifteen change a number
+	(famorian-rules.mjs, each citing his sheet-worker.js line); the rest are descriptive, exactly as
+	racial abilities above are. Hover a chip for its detail text.</p>
+	{{/if}}
 
 	<h3 class="section-head">Colouring and Age</h3>
 	<div class="panel-row">
@@ -227,7 +319,8 @@
 				<li><label>Starting, high</label>
 					<span><input type="number" name="system.ages.startHigh" value="{{system.ages.startHigh}}"></span></li>
 				<li><label>Maximum</label>
-					<span><input type="text" name="system.ages.maxAge" value="{{system.ages.maxAge}}" placeholder="5000"></span></li>
+					<span><input type="text" name="system.ages.maxAge" value="{{system.ages.maxAge}}"
+						placeholder="5000" title="{{system.ages.maxAge}}"></span></li>
 			</ul>
 			<p class="muted">Maximum age is a number of years for most races and a word for a few
 			&mdash; &ldquo;Immortal&rdquo; &mdash; so it is text rather than a number.</p>

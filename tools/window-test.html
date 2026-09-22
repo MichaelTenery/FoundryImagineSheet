@@ -1,0 +1,400 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG window chrome test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>
+	/* Harness-only chrome. This is normally Foundry core CSS (ApplicationV2's own base
+	   stylesheet), not this system's -- our styles/imagine-rpg.css only styles what lives INSIDE
+	   .window-content (see its @MARKER SCROLLING). A fixed-size flex column standing in for it is
+	   the minimum needed to reproduce the box the real .application gets: a bounded height with the
+	   header keeping its own size and window-content taking the rest, which is the condition under
+	   which a missing inner scrollbar becomes visible at all. See docs/sonnet/2026-09-20-first-
+	   install-bugs.md item 4 -- item-preview.html renders every sheet in an unbounded frame, which
+	   is exactly the opposite of this. */
+	body { margin: 0; background: #3a3632; font-family: "Signika", "Segoe UI", sans-serif; }
+	#out { color: #ddd; font: 13px monospace; padding: 1rem; white-space: pre-wrap; }
+	.p { color: #6c6; }
+	.f { color: #f66; font-weight: bold; }
+	.rack { display: flex; flex-wrap: wrap; gap: 18px; padding: 0 1rem 2rem; }
+	.label { color: #d8d0c0; font: 12px monospace; margin: 0 0 4px; }
+	.application {
+		display: flex;
+		flex-direction: column;
+		border: 2px solid #111;
+		border-radius: 4px;
+		box-shadow: 0 8px 30px rgba(0,0,0,.45);
+		background: #fdfbf6;
+		/* overflow: hidden on the outer box, the way an OS window clips its own content -- if
+		   anything inside fails to bound itself, THIS is what would have to grow instead, and it
+		   is deliberately forbidden from doing so. */
+		overflow: hidden;
+	}
+	.window-header {
+		flex: 0 0 auto;
+		background: #22201d;
+		color: #d8d0c0;
+		padding: 6px 10px;
+		font-size: 12px;
+	}
+</style>
+
+<pre id="out">running...</pre>
+<div class="rack" id="rack"></div>
+
+<script type="module">
+// Window-chrome regression test. See docs/sonnet/2026-09-20-first-install-bugs.md item 4.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/window-test.html
+//
+// WHAT THIS PROVES AND WHAT IT DOES NOT. It builds the DOM SHAPE Foundry's ApplicationV2 gives a
+// sheet -- .application (fixed width/height, the way DEFAULT_OPTIONS.position becomes an inline
+// style) > .window-header + .window-content > [data-application-part="header"|"body"] -- loads the
+// REAL stylesheet against it, renders each sheet's REAL body template with enough real content to
+// be taller than its own declared window, and asserts the scrolling part actually scrolls rather
+// than silently overflowing or clipping. It does NOT prove Foundry itself builds this shape; no
+// V14 install exists on this machine to check that against (see FIRST-RUN.md). It proves the CSS
+// does what @MARKER SCROLLING in styles/imagine-rpg.css says it does, given that shape.
+//
+// WIDTHS AND HEIGHTS ARE NOT RETYPED HERE. They are read out of module/sheets/item-sheet.mjs at
+// run time (parseItemSheets below), the same file DEFAULT_OPTIONS.position is declared in, so a
+// sheet that is resized cannot drift out of step with what this test expects of it.
+
+globalThis.foundry = {
+	abstract: { TypeDataModel: class {
+		constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+Handlebars.registerHelper("lt", (a, b) => a < b);
+Handlebars.registerHelper("gte", (a, b) => a >= b);
+
+const results = [];
+function check(label, ok, detail = "") {
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}${detail && !ok ? `\n        ${detail}` : ""}`);
+	return ok;
+}
+
+async function render(path, context) {
+	const src = await (await fetch(path)).text();
+	try {
+		return Handlebars.compile(src)(context);
+	} catch (err) {
+		return `<div class="err">${path}\n${err.message}</div>`;
+	}
+}
+
+// @MARKER PARSE item-sheet.mjs
+// Every registered item sheet, its own DEFAULT_OPTIONS.classes/.position (falling back to the base
+// ImagineItemSheet's when a subclass declares none, the way JS class inheritance actually reads
+// them), and its body template's basename. Parsed with a regex, not by importing the module and
+// inspecting the class -- the module imports "../creature-tables.mjs" and "../sheet-theme.mjs",
+// which is more of Foundry's own surface to stub than this harness needs, and the same call
+// tools/build_system.py's choices/blank sweep makes for the same reason (see its @MARKER CHOICES /
+// BLANK SWEEP): the file is plain enough that a regex reads it correctly, and there is no Node here
+// to run a real JS parser with.
+const sheetSource = await (await fetch("../module/sheets/item-sheet.mjs")).text();
+
+function extractPosition(block) {
+	const m = block.match(/position:\s*\{\s*width:\s*(\d+)\s*,\s*height:\s*(\d+)\s*\}/);
+	return m ? { width: +m[1], height: +m[2] } : null;
+}
+function extractClasses(block) {
+	const m = block.match(/classes:\s*\[([^\]]*)\]/);
+	return m ? [...m[1].matchAll(/["']([^"']+)["']/g)].map(x => x[1]) : [];
+}
+function extractBodyTemplate(block) {
+	const m = block.match(/body:\s*\{\s*template:\s*["']systems\/imagine-rpg\/templates\/item\/([\w-]+)\.hbs["']/);
+	return m ? m[1] : null;
+}
+
+function parseItemSheets(text) {
+	// One block per "export class Foo extends Bar {", running to the start of the next one (or the
+	// end of the file for the last). Bounding this way, rather than trying to match a closing brace,
+	// sidesteps having to balance braces across a few hundred lines of method bodies per class.
+	// The parent is "HandlebarsApplicationMixin(ItemSheetV2)" for the base class and a plain
+	// identifier for every subclass, so it is captured up to the opening brace rather than as a
+	// single \w+ -- a base class built through a mixin is exactly what these sheets are (see
+	// module/sheets/item-sheet.mjs "const { HandlebarsApplicationMixin } = foundry.applications.api").
+	const classRe = /\nexport class (\w+) extends ([^{]+)\{/g;
+	const matches = [...text.matchAll(classRe)];
+	const blocks = matches.map((m, i) => ({
+		name: m[1], parent: m[2],
+		body: text.slice(m.index + m[0].length, i + 1 < matches.length ? matches[i + 1].index : text.length)
+	}));
+
+	const base = blocks.find(b => b.name === "ImagineItemSheet");
+	const basePosition = base ? extractPosition(base.body) : null;
+	if (!basePosition) { throw new Error("could not read ImagineItemSheet's own DEFAULT_OPTIONS.position"); }
+
+	// Only the blocks with a PARTS.body -- that is what makes one a leaf sheet rather than the
+	// abstract base every other block extends.
+	return blocks
+		.filter(b => b.name !== "ImagineItemSheet")
+		.map(b => ({
+			name: b.name,
+			classes: extractClasses(b.body),
+			position: extractPosition(b.body) ?? basePosition,
+			bodyTemplate: extractBodyTemplate(b.body)
+		}))
+		.filter(b => b.bodyTemplate);
+}
+
+const sheets = parseItemSheets(sheetSource);
+check(`module/sheets/item-sheet.mjs parsed: ${sheets.length} item sheet(s) found`, sheets.length === 9,
+	`expected the 9 registered in module/imagine-rpg.mjs, found ${sheets.length}: ${sheets.map(s => s.name).join(", ")}`);
+
+// @MARKER CONTENT PER SHEET
+// One document per sheet, chosen to be as LARGE as a real one gets rather than typical, so a sheet
+// that happens to fit its own default window on an ordinary document does not hide a real
+// regression. Picked automatically (the entry with the most JSON under its own "system", not a
+// hardcoded name) so this keeps working as races and classes are added, split and renamed under it
+// -- which is happening in this same working tree as this file is being written.
+async function loadPack(file) {
+	return await (await fetch(`../src/packs/documents/${file}.json`)).json();
+}
+function pickLargest(docs) {
+	return docs.reduce((best, d) =>
+		JSON.stringify(d.system).length > JSON.stringify(best.system).length ? d : best);
+}
+
+const ATTRIBUTE_KEYS = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "pty", "wil"];
+const CARRIED_LOCATIONS = ["equipped", "carried", "mount", "stash"];
+const T = await import("../module/creature-tables.mjs");
+
+// --- creature attack and power: no pack of their own (see docs/ADDING-CONTENT.md route 1/2 --
+// creature attacks and powers are Game-Master-authored), so built by hand, all three rider effects
+// used (MAX_ATTACK_EFFECTS) to guarantee this is the longest an attack sheet ever gets. ---
+function buildAttackContext() {
+	const item = { name: "Test Attack (window harness)", img: "", system: {
+		attackType: "Strong Cone", damage: "6d6", damageType: "Frost", speed: 5, minSpeed: 5,
+		speedSpecial: false, hand: "", sourcebook: "", page: "",
+		description: "A long description, written the way his do, so this sheet is exercised at " +
+			"its fullest: several sentences describing exactly how the attack behaves, what it " +
+			"strikes, and what a Game Master needs to know before using it at the table.",
+		effects: [
+			{ name: "Numbing", trigger: "Auto", description: "limbs stiffen with cold",
+			  damage: "", damageType: "", duration: "2d4", durationType: "Seconds" },
+			{ name: "Frostbite", trigger: "If VIT save fails", description: "the flesh blackens and dies",
+			  damage: "1d4", damageType: "Frost", duration: "3", durationType: "Periodic(Minutes)" },
+			{ name: "Shattering", trigger: "If hit", description: "frozen tissue cracks under further blows",
+			  damage: "1d6", damageType: "Physical", duration: "1", durationType: "Instant" }
+		]
+	} };
+	const effects = item.system.effects.map((e, i) => ({ ...e, index: i, number: i + 1 }));
+	return { item, system: item.system, effects,
+		canAddEffect: effects.length < T.MAX_ATTACK_EFFECTS, maxEffects: T.MAX_ATTACK_EFFECTS,
+		config: {
+			attackTypes: Object.keys(T.CREATURE_ATTACK_TYPES), damageTypes: T.CREATURE_DAMAGE_TYPES,
+			effectTriggers: T.EFFECT_TRIGGERS, effectDamageTypes: T.EFFECT_DAMAGE_TYPES,
+			effectDurationTypes: T.EFFECT_DURATION_TYPES
+		} };
+}
+function buildPowerContext() {
+	const item = { name: "Test Power (window harness)", img: "", system: {
+		unlimited: false, uses: 3, usesMax: 3, selfOnly: true, powerKind: "spell",
+		sourcebook: "", page: "",
+		description: "A long description, written the way his do, so this sheet is exercised at " +
+			"its fullest: several sentences describing exactly what the power does, how it is " +
+			"invoked, and what its limits are before a Game Master allows it at the table."
+	} };
+	return { item, system: item.system,
+		config: { powerKinds: ["unknown", "spell", "invocation", "magicItem", "divineItem"] } };
+}
+
+function buildTraitContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	return { item, system: item.system, config: { categories: ["ability", "disability", "immunity"] } };
+}
+
+// Mirrors ImagineClassSheet._prepareContext exactly -- see module/sheets/item-sheet.mjs
+// @MARKER CLASS SHEET.
+function buildClassContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	const requiresLabels = { "": "Any race", caster: "Casting races", nonCaster: "No-casting races" };
+	return { item, system: sys,
+		attribQualifyCells: ATTRIBUTE_KEYS.map((key, index) => ({
+			key, index, value: sys.requirements.attribQualify[index] ?? 0 })),
+		titleRows: (sys.advancement.titles ?? []).map((name, index) => ({
+			index, number: index + 1, name, skills: (sys.advancement.classSkills ?? [])[index] ?? "" })),
+		classModRows: (sys.classMods ?? []).map((value, index) => ({ index, value })),
+		classSkillListRows: (sys.advancement.classSkillList ?? []).map(row => ({
+			title: row.title, name: row.name, core: row.core,
+			requiresLabel: requiresLabels[row.requires] ?? requiresLabels[""] })),
+		archMortalAttributeRows: ATTRIBUTE_KEYS
+			.map(key => ({ key, value: sys.archMortal.attributes[key] }))
+			.filter(row => row.value) };
+}
+
+// Mirrors ImagineArmorSheet._prepareContext exactly -- see module/sheets/item-sheet.mjs
+// @MARKER ARMOUR SHEET.
+const ARMOR_COVERAGE_ROWS = [
+	{ label: "Head", key: "head" }, { label: "Neck", key: "neck" },
+	{ leftLabel: "Shoulder L", leftKey: "shoulderLeft", rightLabel: "Shoulder R", rightKey: "shoulderRight" },
+	{ label: "Torso, upper", key: "torsoUpper" }, { label: "Torso, mid", key: "torsoMid" },
+	{ label: "Torso, lower", key: "torsoLower" },
+	{ leftLabel: "Arm L", leftKey: "armLeft", rightLabel: "Arm R", rightKey: "armRight" },
+	{ leftLabel: "Forearm L", leftKey: "forearmLeft", rightLabel: "Forearm R", rightKey: "forearmRight" },
+	{ leftLabel: "Hand L", leftKey: "handLeft", rightLabel: "Hand R", rightKey: "handRight" },
+	{ leftLabel: "Thigh L", leftKey: "thighLeft", rightLabel: "Thigh R", rightKey: "thighRight" },
+	{ leftLabel: "Shin L", leftKey: "shinLeft", rightLabel: "Shin R", rightKey: "shinRight" },
+	{ leftLabel: "Foot L", leftKey: "footLeft", rightLabel: "Foot R", rightKey: "footRight" }
+];
+const ARMOR_LOCATION_LABELS = Object.fromEntries(ARMOR_COVERAGE_ROWS.flatMap(row =>
+	row.key ? [[row.key, row.label]] : [[row.leftKey, row.leftLabel], [row.rightKey, row.rightLabel]]));
+function buildArmorContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	return { item, system: sys,
+		config: {
+			flexibility: ["Clothing", "Flexible", "Semi-Flexible", "Rigid",
+			              "Rigid/Flexible", "Rigid/Semi-Flexible", "Rigid/Rigid", "Mixed"],
+			location: CARRIED_LOCATIONS
+		},
+		coverageRows: ARMOR_COVERAGE_ROWS.map(row => row.key
+			? { single: true, label: row.label, key: row.key, value: sys.coverage[row.key] }
+			: { single: false,
+			    leftLabel: row.leftLabel, leftKey: row.leftKey, leftValue: sys.coverage[row.leftKey],
+			    rightLabel: row.rightLabel, rightKey: row.rightKey, rightValue: sys.coverage[row.rightKey] }),
+		coverageFromMaterialLabels: (sys.coverageFromMaterial ?? []).map(k => ARMOR_LOCATION_LABELS[k] ?? k) };
+}
+
+// Mirrors ImagineRaceSheet._prepareContext exactly -- see module/sheets/item-sheet.mjs
+// @MARKER RACE SHEET.
+function buildRaceContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	return { item, system: sys, attributeKeys: ATTRIBUTE_KEYS,
+		attributeRows: [
+			{ group: "attributeMods", label: "Mods",
+			  cells: ATTRIBUTE_KEYS.map(key => ({ key, value: sys.attributeMods[key] })) },
+			{ group: "attributeLimits", label: "Limits",
+			  cells: ATTRIBUTE_KEYS.map(key => ({ key, value: sys.attributeLimits[key] })) }
+		],
+		formlessHostsText: (sys.formlessHosts ?? []).join(", "),
+		famorianBreedRows: (sys.famorian?.breeds ?? []).map((row, index) => ({ index, ...row })) };
+}
+
+function buildEquipmentContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	return { item, system: item.system, config: { locations: CARRIED_LOCATIONS } };
+}
+
+function buildWeaponContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	return { item, system: sys, config: {
+		locations: CARRIED_LOCATIONS, hands: ["right", "left", "both"],
+		modes: [
+			{ key: "missile", label: "Missile" }, { key: "thrust", label: "Thrust" },
+			{ key: "cut", label: "Cut" }, { key: "smash", label: "Smash" }
+		].map(mode => ({ ...mode, available: !!sys[mode.key]?.available, mod: parseInt(sys[mode.key]?.mod) || 0 })) } };
+}
+
+function buildSkillContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	return { item, system: item.system, config: { categories: ["class", "racial", "social"] },
+		typesText: (item.system.types ?? []).join(", ") };
+}
+
+// One document, or a synthetic context, per body template basename -- built once, up front, so
+// the render loop below is the same for every sheet regardless of where its content came from.
+const [equipmentDocs, weaponDocs, skillDocs, classDocs, armorDocs, raceDocs,
+       abilityDocs, disabilityDocs, immunityDocs] = await Promise.all(
+	["equipment", "weapons", "skills", "classes", "armor", "races", "abilities", "disabilities", "immunities"]
+		.map(loadPack));
+const traitDocs = [...abilityDocs, ...disabilityDocs, ...immunityDocs];
+
+const CONTEXT_BY_TEMPLATE = {
+	"item-creature-attack": () => buildAttackContext(),
+	"item-power":           () => buildPowerContext(),
+	"item-equipment":       () => buildEquipmentContext(pickLargest(equipmentDocs)),
+	"item-weapon":          () => buildWeaponContext(pickLargest(weaponDocs)),
+	"item-skill":           () => buildSkillContext(pickLargest(skillDocs)),
+	"item-trait":           () => buildTraitContext(pickLargest(traitDocs)),
+	"item-class":           () => buildClassContext(pickLargest(classDocs)),
+	"item-armor":           () => buildArmorContext(pickLargest(armorDocs)),
+	"item-race":            () => buildRaceContext(pickLargest(raceDocs))
+};
+
+// @MARKER BUILD, RENDER, MEASURE
+const rack = document.getElementById("rack");
+
+for (const sheet of sheets) {
+	const buildContext = CONTEXT_BY_TEMPLATE[sheet.bodyTemplate];
+	if (!buildContext) {
+		check(`${sheet.name}: has a content builder for ${sheet.bodyTemplate}.hbs`, false,
+			"no CONTEXT_BY_TEMPLATE entry -- a new sheet was added without teaching this harness what to render on it");
+		continue;
+	}
+	const context = buildContext();
+
+	const wrap = document.createElement("div");
+	const labelEl = document.createElement("p");
+	labelEl.className = "label";
+	labelEl.textContent = `${sheet.name}  ${sheet.position.width}x${sheet.position.height}  (${context.item.name})`;
+	wrap.appendChild(labelEl);
+
+	const app = document.createElement("div");
+	app.className = ["application", ...sheet.classes].join(" ");
+	app.style.width = sheet.position.width + "px";
+	app.style.height = sheet.position.height + "px";
+
+	const header = document.createElement("div");
+	header.className = "window-header";
+	header.textContent = context.item.name;
+
+	const windowContent = document.createElement("div");
+	windowContent.className = "window-content";
+
+	const headerPart = document.createElement("div");
+	headerPart.dataset.applicationPart = "header";
+	headerPart.innerHTML = await render("../templates/item/item-header.hbs", context);
+
+	const bodyPart = document.createElement("div");
+	bodyPart.dataset.applicationPart = "body";
+	bodyPart.innerHTML = await render(`../templates/item/${sheet.bodyTemplate}.hbs`, context);
+
+	// A fixed spacer, always appended, after the real rendered content. Most sheets already
+	// overflow their own window on the largest real document alone (see the console once this
+	// runs); Power and a plain Creature Attack do not, because every one of their fields is a
+	// fixed-height control or a textarea capped at min-height: 9em (@MARKER FORM FIELDS ON PAPER)
+	// -- no amount of realistic DATA makes them taller. The mechanism under test is the CSS, not
+	// how much text a particular document happens to carry, so this guarantees every sheet is
+	// checked the same way regardless of which template that turns out to be true for.
+	const spacer = document.createElement("div");
+	spacer.textContent = "(window-test.html filler: guarantees the body part is taller than its " +
+		"own window so the scroll region is always exercised, whatever this sheet's real content " +
+		"amounts to.)";
+	spacer.style.cssText = "height: 800px; color: var(--imagine-muted, #999); font-size: 11px; padding-top: 12px;";
+	bodyPart.appendChild(spacer);
+
+	windowContent.append(headerPart, bodyPart);
+	app.append(header, windowContent);
+	wrap.appendChild(app);
+	rack.appendChild(wrap);
+
+	// Laid out now (appended to the live document, not display:none), so scrollHeight/clientHeight
+	// reflect the real box the CSS just gave it.
+	check(`${sheet.name}: the body part scrolls (scrollHeight ${bodyPart.scrollHeight} > clientHeight ${bodyPart.clientHeight})`,
+		bodyPart.scrollHeight > bodyPart.clientHeight,
+		"a fixed 800px spacer was just appended to this body part, so this can only mean " +
+		"@MARKER SCROLLING's min-height: 0 / overflow-y: auto has regressed (styles/imagine-rpg.css)");
+	check(`${sheet.name}: the body part never scrolls sideways (scrollWidth ${bodyPart.scrollWidth} <= clientWidth ${bodyPart.clientWidth})`,
+		bodyPart.scrollWidth <= bodyPart.clientWidth,
+		"content is wider than its window -- check .panel-row (@MARKER PANELS, styles/imagine-rpg.css) " +
+		"has not gone back to a fixed repeat(3, 1fr)");
+}
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

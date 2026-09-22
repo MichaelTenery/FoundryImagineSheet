@@ -168,19 +168,170 @@ def make_doc(name, doctype, system):
     return {"name": clean_text(name), "type": doctype, "system": system}
 
 
+# @MARKER RESTRICTED FLAG
+# This is the block which reads the "Restricted: Yes/No" line the Player's Guide prints above
+# every class/racial skill's description (p.86, "Class / Racial Skill Heading Definitions") and
+# keys it back to a skill by name. See docs/sonnet/2026-09-16-skills-module.md item 1: his
+# `skilldict` has no restricted column at all -- the seventh column is learn time, not this -- so
+# there is nothing to port from the sheet, only the books to read.
+#
+# Social skills carry a DIFFERENT field, "Restrictions:" (plural), which is about which RACES may
+# take the skill (p.161, "Social Skills Heading Definitions" -- "Defines which races have bonuses
+# or penalties... and which ones are unable to use the skill at all"). That is not this flag, and
+# social skills are never found here -- not a miss, a different question the book never asks of
+# them.
+
+REFERENCE_DIR = os.path.join(HERE, "..", "..", "docs", "reference")
+
+# Sourcebook name, as skilldict/socialskilldict spell it, to the fulltext file that holds it.
+# "Conquest of the Eternal" has no entry: he said on 2026-09-21 it may be unreleased, and there is
+# no PDF to extract it from (docs/sonnet/2026-09-21-source-attribution.md item 4) -- its skills
+# report as not-found rather than guessed at.
+RESTRICTED_BOOK_FILES = {
+    "Player's Guide": "players-guide",
+    "Master's Manual": "masters-manual",
+    "Aspects of the Wild": "aspects-of-the-wild",
+    "Mysteries of the Planes": "mysteries-of-the-planes",
+    "Legends of the Unknown": "legends-of-the-unknown",
+    "Epitaph of the Fallen": "epitaph-of-the-fallen",
+}
+
+# Lines that precede the "Restricted:" line and are never the skill name -- the rest of the
+# same heading block. Matched loosely because the Master's Manual is OCR'd from a scan and its
+# labels come through mangled ("Arm,bures:" for "Attributes:", "LeaRn Tnne:" for "Learn Time:") --
+# but mangled labels are never all-caps, so they already fail the name test below and this list
+# only needs to catch the ones the scan got right.
+_RESTRICTED_FIELD_LABELS = re.compile(
+    r'^(Attributes?|Rating|Start\s*Bonus|Time|Type|Learn\s*Time|Range|Description|'
+    r'General\s*Usage|Special\s*(Notes|Uses)|Notes)\s*[:;]', re.IGNORECASE)
+
+# The label itself, tolerant of the Master's Manual scan's OCR noise ("Resmrcreb:", "RestRJCteb:")
+# -- every garbled form still starts "Res" and ends right before the colon with a value of exactly
+# "Yes" or "No". The plural "Restrictions:" field (race eligibility, see above) never carries a
+# bare Yes/No value in any of the six books -- checked -- so it never matches this and needs no
+# separate exclusion.
+_RESTRICTED_LINE = re.compile(r'^Res[a-zA-Z]*\s*[:;]\s*(Yes|No)\s*$')
+
+_book_text_cache = {}
+_restricted_flag_cache = {}
+
+
+def _load_book_text(slug):
+    if slug not in _book_text_cache:
+        tmppath = os.path.join(REFERENCE_DIR, slug + "-fulltext.txt")
+        if os.path.exists(tmppath):
+            with open(tmppath, encoding="utf-8") as fh:
+                _book_text_cache[slug] = fh.read().split("\n")
+        else:
+            _book_text_cache[slug] = None
+    return _book_text_cache[slug]
+
+
+def _normalize_skill_name(tmpname):
+    return re.sub(r'[^a-z]', '', str(tmpname).lower())
+
+
+def _extract_restricted_flags(slug):
+    """Every "Restricted: Yes/No" heading in one book, keyed by the skill name it sits under.
+
+    The book prints the skill name as its own ALL-CAPS line, then a short run of heading fields
+    (Attributes, Rating, Start Bonus, Time, Restricted, Learn Time -- not always in that order,
+    and Master's Manual wraps some onto shared lines), so this walks backward from each Restricted
+    line to the nearest line that is not a known field and reads as a name."""
+    tmplines = _load_book_text(slug)
+    if tmplines is None:
+        return None
+    tmpout = {}
+    for i, tmpline in enumerate(tmplines):
+        tmpmatch = _RESTRICTED_LINE.match(tmpline.strip())
+        if not tmpmatch:
+            continue
+        tmpvalue = (tmpmatch.group(1) == "Yes")
+
+        tmpname = None
+        for j in range(i - 1, max(i - 20, -1), -1):
+            tmpcand = tmplines[j].strip()
+            if not tmpcand:
+                continue
+            if _RESTRICTED_FIELD_LABELS.match(tmpcand):
+                continue
+            if tmpcand.startswith("===== PAGE"):
+                continue
+            if tmpcand.isdigit():
+                continue
+            tmpletters = re.sub(r'[^A-Za-z]', '', tmpcand)
+            if tmpletters and tmpletters == tmpletters.upper() and len(tmpletters) > 1:
+                tmpname = tmpcand
+                break
+        if tmpname:
+            tmpkey = _normalize_skill_name(tmpname)
+            tmpout.setdefault(tmpkey, []).append(tmpvalue)
+    return tmpout
+
+
+def lookup_restricted(tmpsourcebook, tmpname):
+    """(found, value) for one skill's Restricted flag, read from its own sourcebook's text."""
+    tmpslug = RESTRICTED_BOOK_FILES.get(tmpsourcebook)
+    if not tmpslug:
+        return False, False
+
+    if tmpslug not in _restricted_flag_cache:
+        _restricted_flag_cache[tmpslug] = _extract_restricted_flags(tmpslug)
+    tmpflags = _restricted_flag_cache[tmpslug]
+    if tmpflags is None:
+        return False, False
+
+    tmpkey = _normalize_skill_name(tmpname)
+    tmpvalues = tmpflags.get(tmpkey)
+    if not tmpvalues:
+        return False, False
+    # Every skill this pass checked agrees with itself where the name recurs (an OCR "Restricted"
+    # can appear more than once for the same skill only if the book itself repeats the entry);
+    # take the first and let check afterwards catch it if that ever stops being true.
+    return True, tmpvalues[0]
+
+
 # @MARKER DOCUMENT BUILDERS
+
+
+# "Open Slot" and "Unavailable" are not skills -- they are the two sentinel values his own
+# skill-picker dropdowns carry (sheet-worker.js:7008 counts "Open Slot" rows to know how many
+# slots are still free; :7551 counts "Unavailable" racial rows the same way). Both dictionaries
+# carry them as blank rows -- every field empty, sourcebook "?" -- because his dropdown needed an
+# option, not because either names a thing a character can learn. Building them as skill documents
+# would put "Open Slot" in the untrained-skill picker and the compendium alongside real skills, so
+# they are the one thing this builder throws away rather than reports. See
+# docs/sonnet/2026-09-21-source-attribution.md item 2 ("the four XXX skills").
+SKILL_DICT_SENTINELS = ("Open Slot", "Unavailable")
+
 
 def build_skills():
     docs = []
+    tmprestrictedfound = 0
+    tmprestrictedmissing = 0
+    tmpsentinelsskipped = 0
     for source, category in (("skilldict", "class"), ("socialskilldict", "social")):
         payload = load_named(source)
         if not payload:
             continue
         for tmpname, tmprow in payload["entries"].items():
+            if tmpname in SKILL_DICT_SENTINELS:
+                tmpsentinelsskipped += 1
+                continue
             where = "%s/%s" % (source, tmpname)
             tmptypes = []
             if tmprow.get("types"):
                 tmptypes = [t.strip() for t in str(tmprow["types"]).split(",") if t.strip()]
+
+            tmpsourcebook = clean_text(tmprow.get("sourcebook", ""))
+            tmpfound, tmpisrestricted = lookup_restricted(tmpsourcebook, tmpname)
+            if tmpfound:
+                tmprestrictedfound += 1
+            else:
+                tmprestrictedmissing += 1
+                note("restricted-not-found", where,
+                     "no \"Restricted:\" heading found in %s -- left false" % (tmpsourcebook or "(no sourcebook)"))
+
             docs.append(make_doc(tmpname, "skill", {
                 "attr1": clean_text(tmprow.get("attr1", "")),
                 "attr2": clean_text(tmprow.get("attr2", "")),
@@ -189,11 +340,18 @@ def build_skills():
                 "time": clean_text(tmprow.get("time", "")),
                 "learn": clean_text(str(tmprow.get("learn", tmprow.get("learnTime", "")))),
                 "types": tmptypes,
-                "sourcebook": clean_text(tmprow.get("sourcebook", "")),
+                "sourcebook": tmpsourcebook,
                 "page": clean_text(str(tmprow.get("page", ""))),
                 "category": category,
                 "description": clean_text(tmprow.get("description", "")),
+                "isRestricted": tmpisrestricted,
             }))
+
+    print(f"\nisRestricted: {tmprestrictedfound} of {tmprestrictedfound + tmprestrictedmissing} skills "
+          f"found a \"Restricted:\" heading in their sourcebook ({tmprestrictedmissing} left false)")
+    if tmpsentinelsskipped:
+        print(f"skilldict/socialskilldict: {tmpsentinelsskipped} sentinel row(s) skipped "
+              f"({', '.join(SKILL_DICT_SENTINELS)} -- dropdown markers, not skills)")
 
     # @MARKER TRAP SKILL VARIANTS
     # Three skills are ONE row in his dictionary and TWO entries in his skill list, and the port
@@ -388,10 +546,18 @@ ATTRS = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "
 # 2026-09-20. For most races it is only -1 Strength and +1 Agility, which lands on the ratings and
 # leaves the race itself untouched, so `hasVariant` stays false and nothing else here matters.
 #
-# Four races differ for real, and only in one thing each: Fairy, Fairy(Dark), Podling and Sporeling
-# have WINGS in the slight form and none in the ordinary one. The two Fairies additionally trade
-# that flight for extra racial skills -- the wingless form of each gains two -- which is why the
-# skills are carried here as well and not derived.
+# GREMLIN is the one race left that reaches this with real data: it has a genuine slight-physique
+# variant, and unlike the four winged faeries below it flies either way, so there is no lock and no
+# split race document -- the difference is only its ordinary form gaining the racial skill Climb.
+#
+# Fairy, Fairy(Dark), Podling and Sporeling used to be built here too -- their slight form had
+# WINGS and their ordinary one none, tied to extra racial skills on the wingless Fairies -- but
+# Michael's 2026-09-21 ruling (see @MARKER RACE FORMS, below) turned each into two race DOCUMENTS
+# instead, one per wing state, each with `physiqueLock` set so the choice can never be made twice.
+# Their entries in `inlineRaceStats`/`inlineRaceSkills` are still read, just not through here --
+# `build_slight_physique` is called with a blank name for a locked form (see its call site) so it
+# never looks their data up. This function's schema stays: a homebrew race may still declare a real
+# slight-physique variant the way Gremlin does, without needing a second race document for it.
 def build_slight_physique(tmpname, tmprow, tmpslightstats, tmpslightskills):
     tmpstats = tmpslightstats.get(tmpname)
     tmpskillrow = tmpslightskills.get(tmpname)

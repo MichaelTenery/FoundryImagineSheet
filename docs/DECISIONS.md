@@ -4134,3 +4134,59 @@ is judgement, not transcription. Recorded as a Backlog row in case the user want
 active one, which his sheet has -- until the rest of the core is done, with a free-text
 `identity.formlessBodies` field on the Description tab meanwhile; and the clean-up of race
 descriptions that carry the port's own reasoning, before public release. Both are Epic 2 rows.
+
+## The Sonnet backlog, worked through (2026-09-22)
+
+At the user's instruction, every hand-off note in `docs/sonnet/` was triaged against the code and the
+mechanical remainder built, in nine parallel streams each owning its own files. What was decided on
+the way, as opposed to merely built:
+
+**Source attribution was nondeterministic, and is fixed.** `resolve` in
+`tools/extract/extract_sources.py` tried a name's spellings longest-first, but spellings of equal
+length came out of a Python set, whose order changes on every run. A rebuild moved Tongs(Large) from
+his equipment price table to a passing mention in a skill's tool list with no code change. Now a fixed
+order: longest first, then the book's printed "Stem, Qualifier" form before his bracketed spelling,
+because his brackets are how he writes a name in HIS lists and cross-references. Checked against the
+last commit: three items moved, all three to their proper table (Crossbow(Heavy) to the weapons
+table, Spectacles(Reading) to the equipment table, Goblin(Forest) to the race section -- the last is
+overridden by `manual/sources.json` anyway). Verify accuracy unchanged at 662/670.
+
+**A plural rule for source matching was tried and rejected**: "Claws" -> "Claw" landed
+"Springs(Assorted)" and "Feathers" on Hermetic Lore ingredient tables. Recorded in the code so it is
+not re-tried. The one rule kept, stripping a trailing range number ("Infravision 60"), attributed
+fifteen abilities, all to the right page.
+
+**`isRestricted` comes from the books, and social skills have none.** The Player's Guide defines two
+different fields: "Restricted: Yes/No" (may it be tried untrained) for class and racial skills, and
+"Restrictions/Modifiers" (race eligibility) for social skills. So the 204 social skills are not
+misses; there is nothing to find. His sheet has no restricted flag of its own. 366 of 676 skills
+found, 305 true; the rest are social, from Conquest of the Eternal (no book), or listed by the build.
+
+**"Open Slot" and "Unavailable" are not skills.** They are the sentinel values his skill dropdowns
+count to find free slots (sheet-worker.js:7008, :7551). No longer built as documents; added to
+`RETIRED_DOCUMENTS.skills` so an existing world loses them on the next import.
+
+**The untrained-skill list is NOT shown yet, on purpose.** The rule is written
+(`getUntrainedSkillOptions`, skills-rules.mjs), but with real data about 370 skills qualify, so how to
+present it -- a count and a search, or a list -- is a presentation call, not a mechanical one.
+
+**Multi-missile acquisition by roll is ported as rules, without a button.** His
+`handleRollMultiMissileKnow`/`Lore` (sheet-worker.js:88805/88950). The hand-off note said a failed
+attempt locks the combination out until the skill rises; **his code has no such lockout** and no
+critical-failure test in either handler. Ported as his code reads. The note was wrong, not the code.
+
+**Quality is a new field, distinct from construction quality.** `item-weapon.mjs` already spoke of
+"construction quality" for structural strength, a different scale with different multipliers; the
+weight quality is its own `quality` field and does not reuse it.
+
+**Two build-tool defects fixed:** `git_output()` in `tools/build_system.py` decoded git as cp1252 on
+Windows and corrupted non-ASCII names; and the new retired-documents sweep found the two skill
+sentinels above.
+
+**Localisation stays closed.** Every "localise, if the other tabs do" item across the notes is
+answered by the 2026-09-19 decision that strings are not localised; none were acted on.
+
+**The What's New window** (user's request, same day) shows CHANGELOG.md itself rather than a second
+copy of release notes; per user (client setting) so each player sees updates they missed; only the
+version sections, never the publishing preamble; and a small Markdown reader of its own that escapes
+before it formats, because nothing in Foundry's public API promises one.

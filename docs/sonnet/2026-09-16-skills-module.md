@@ -1,5 +1,8 @@
 # Left for Sonnet — 2026-09-16, the Skills module pass
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 What this pass deliberately did **not** do. Each item is self-contained: you should not need the
 session it came from. Full account in `DECISIONS.md` → "The Skills module's four open items, and
 one that was already done".

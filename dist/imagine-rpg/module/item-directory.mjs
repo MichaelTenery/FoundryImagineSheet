@@ -19,13 +19,19 @@
 //     Skills         his class/social split, then the sourcebook each came from
 //     Classes        his classType -- Warrior subclass, Mage subclass and the rest
 //
-// Equipment, races, abilities, disabilities and immunities have NO category in his tables: his
-// equipment dictionary is a name and a weight and nothing else. Those are bucketed by initial
-// letter instead, which is a way of finding things rather than a claim about the game, and is
-// labelled as such below so nobody mistakes an A-C folder for one of his categories.
+// Races, abilities, disabilities and immunities have NO category in his tables at all, and are
+// bucketed by initial letter instead, which is a way of finding things rather than a claim about
+// the game, and is labelled as such below so nobody mistakes an A-C folder for one of his
+// categories. Equipment is the same in his own tables -- a name and a weight and nothing else --
+// but a Game Master adding gear by hand can set `equipmentType`; where that is set it groups by
+// it, and only the untyped majority falls back to letter buckets.
+//
+// Anything, in any of the above, whose sourcebook could not be traced to a book (his own "XXX"
+// mark, see availability.mjs) is pulled out of its ordinary folder into one shared top-level
+// folder instead, so a Game Master can see the whole attribution gap in one list.
 //==================================================================================================================
 
-import { RETIRED_DOCUMENTS } from "./content-importer.mjs";
+import { RETIRED_DOCUMENTS, retiredNamesToRemove } from "./content-importer.mjs";
 
 const SOURCE_PATH = "systems/imagine-rpg/src/packs/documents";
 
@@ -92,7 +98,10 @@ const DIRECTORY = [
 		}
 	},
 	{ file: "races",        folder: "Races",        group: byLetter },
-	{ file: "equipment",    folder: "Equipment",    group: byLetter },
+	// His own equipment dictionary is a name and a weight, no category -- but a Game Master adding
+	// gear by hand can fill in `equipmentType` (the manual Containers entries do). Where one is set
+	// it wins; the untyped majority still falls back to the same letter buckets as before.
+	{ file: "equipment",    folder: "Equipment",    group: byEquipmentType },
 	{ file: "abilities",    folder: "Abilities",    group: byLetter },
 	{ file: "disabilities", folder: "Disabilities", group: byLetter },
 	{ file: "immunities",   folder: "Immunities",   group: byLetter }
@@ -102,11 +111,23 @@ const DIRECTORY = [
 // so a pack of 1,154 abilities lands around a hundred per folder rather than four hundred under S.
 const LETTER_BUCKETS = ["A-C", "D-F", "G-I", "J-L", "M-O", "P-R", "S-U", "V-Z"];
 
+// The shared top-level folder for anything whose system.sourcebook is his own "XXX" mark (see
+// getSourcebookId in availability.mjs). Named once here so populateItemDirectory and
+// clearItemDirectory can never drift apart on the spelling.
+const XXX_FOLDER_NAME = "XXX — no source found";
+
 function byLetter(tmpdoc) {
 	var tmpfirst = ("" + (tmpdoc.name ?? "")).trim().charAt(0).toUpperCase();
 	if (!tmpfirst || tmpfirst < "A" || tmpfirst > "Z") { return "Other"; }
 	return LETTER_BUCKETS[Math.min(LETTER_BUCKETS.length - 1,
 		Math.floor((tmpfirst.charCodeAt(0) - 65) / 3))];
+}
+
+// Hand-added gear only -- his own tables never set this field (see item-equipment.mjs). Anything
+// left blank falls back to the same by-letter bucketing every other uncategorised pack gets.
+function byEquipmentType(tmpdoc) {
+	var tmptype = ("" + (tmpdoc.system?.equipmentType ?? "")).trim();
+	return tmptype || byLetter(tmpdoc);
 }
 
 	// This is the function which reads one document file shipped with the system.
@@ -173,6 +194,13 @@ function byLetter(tmpdoc) {
 		var tmpfailed = [];
 		if (notify) { ui.notifications.info("Imagine RPG | filling the Items directory, this takes a moment..."); }
 
+		// Made the first time it is actually needed, and never otherwise -- a world where every
+		// document traced to a book gets no gap folder at all. See getSourcebookId in
+		// availability.mjs: "XXX" is his own build's mark for "not found in the Master Index", not a
+		// sourcebook, so it is pulled out of the ordinary category folders into one place instead of
+		// sitting one red field at a time inside them.
+		var tmpxxxroot = null;
+
 		for (const tmpentry of DIRECTORY) {
 			var tmploaded = await loadEntryDocuments(tmpentry);
 			var tmpdocs = tmploaded.docs;
@@ -182,8 +210,10 @@ function byLetter(tmpdoc) {
 			// content-importer.mjs). Only inside this entry's own folder tree, so a copy a Game
 			// Master filed elsewhere is theirs and stays. This is the one thing a refill removes:
 			// without it, a world filled before the faeries were split listed plain Fairy forever.
-			var tmpretired = new Set((RETIRED_DOCUMENTS[tmpentry.file] ?? [])
-				.filter(tmpname => !tmpdocs.some(tmpdoc => tmpdoc.name == tmpname)));
+			// The decision itself -- which retired names actually go -- is shared with the compendium
+			// importer's own sweep; see retiredNamesToRemove in content-importer.mjs.
+			var tmpretired = new Set(retiredNamesToRemove(RETIRED_DOCUMENTS[tmpentry.file],
+				tmpdocs.map(tmpdoc => tmpdoc.name), game.items.map(tmpitem => tmpitem.name)));
 			var tmpstale = game.items.filter(tmpitem => tmpretired.has(tmpitem.name)
 				&& tmpitem.folder && (tmpitem.folder.id == tmproot.id || tmpitem.folder.ancestors?.some(tmpf => tmpf.id == tmproot.id)));
 			if (tmpstale.length) {
@@ -196,9 +226,16 @@ function byLetter(tmpdoc) {
 				.filter(tmpitem => tmpitem.folder)
 				.map(tmpitem => `${tmpitem.folder.id}::${tmpitem.name}`));
 
+			// Pull out anything unattributed before the ordinary grouping sees it, so it lands in the
+			// shared gap folder instead of buried in its usual category.
+			var tmpxxxdocs = tmpdocs.filter(tmpdoc => tmpdoc.system?.sourcebook == "XXX");
+			var tmpnormaldocs = tmpxxxdocs.length
+				? tmpdocs.filter(tmpdoc => tmpdoc.system?.sourcebook != "XXX")
+				: tmpdocs;
+
 			// Group first, so each folder is made once rather than once per document.
 			var tmpbygroup = {};
-			for (const tmpdoc of tmpdocs) {
+			for (const tmpdoc of tmpnormaldocs) {
 				var tmpkey = tmpentry.group ? (tmpentry.group(tmpdoc) || "") : "";
 				(tmpbygroup[tmpkey] ??= []).push(tmpdoc);
 			}
@@ -222,6 +259,18 @@ function byLetter(tmpdoc) {
 				for (const tmpdoc of tmpbygroup[tmpkey]) {
 					if (tmpseen.has(`${tmpfolder.id}::${tmpdoc.name}`)) { tmpskipped += 1; continue; }
 					tmptocreate.push({ ...tmpdoc, folder: tmpfolder.id });
+				}
+			}
+
+			// The unattributed ones, filed under the shared top-level folder instead of this entry's
+			// own -- subfoldered by pack so the 1,702 of them (docs/UNATTRIBUTED.md) do not land in
+			// one flat list nobody can scan.
+			if (tmpxxxdocs.length) {
+				tmpxxxroot ??= await ensureFolder(XXX_FOLDER_NAME, null, -100000);
+				var tmpxxxsub = await ensureFolder(tmpentry.folder, tmpxxxroot, DIRECTORY.indexOf(tmpentry));
+				for (const tmpdoc of tmpxxxdocs) {
+					if (tmpseen.has(`${tmpxxxsub.id}::${tmpdoc.name}`)) { tmpskipped += 1; continue; }
+					tmptocreate.push({ ...tmpdoc, folder: tmpxxxsub.id });
 				}
 			}
 
@@ -262,7 +311,7 @@ function byLetter(tmpdoc) {
 			return { removed: 0 };
 		}
 		var tmproots = game.folders.filter(tmpfolder => tmpfolder.type == "Item" && !tmpfolder.folder
-			&& DIRECTORY.some(tmpentry => tmpentry.folder == tmpfolder.name));
+			&& (DIRECTORY.some(tmpentry => tmpentry.folder == tmpfolder.name) || tmpfolder.name == XXX_FOLDER_NAME));
 		var tmpremoved = 0;
 		for (const tmpfolder of tmproots) {
 			tmpremoved += tmpfolder.contents?.length ?? 0;

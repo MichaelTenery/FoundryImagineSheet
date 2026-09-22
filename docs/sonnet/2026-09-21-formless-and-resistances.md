@@ -1,5 +1,8 @@
 # 2026-09-21 — Formless, the resistance roll, and the errata's arrival
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Second pass of the day. Covers the Formless race, Daryl's 0.11.1 Blocker, and triaging the errata
 he sent. See `DECISIONS.md` 2026-09-21 (the three entries after the race-forms one),
 `UPSTREAM-ISSUES.md` items 47 and 48, and `docs/ERRATA.md`.

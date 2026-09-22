@@ -20,6 +20,7 @@
 //==================================================================================================================
 
 import { buildStartingKit } from "./starting-kit.mjs";
+import { chooseBestArmor } from "./equip-rules.mjs";
 
 	// The twelve attributes, in the order his sheet and the Player's Guide list them.
 	export const ATTRIBUTE_ORDER = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "pty", "wil"];
@@ -501,7 +502,46 @@ import { buildStartingKit } from "./starting-kit.mjs";
 			}
 		}
 
+		// The same choice his sheet's Equip Best Armour button makes -- see equipBestArmorInPlace,
+		// just below -- applied once here because the starting kit above is the only place armour
+		// ever enters a new character and the generator has no equipment step of its own to put a
+		// button on. (docs/sonnet/2026-09-19-equip-buttons.md item 1.)
+		equipBestArmorInPlace(tmpItems);
+
 		return { actor: tmpActor, items: tmpItems, issues: tmpIssues };
+	}
+
+	// @MARKER EQUIP BEST ARMOUR
+	// This is the function which puts a freshly assembled set of items into the strongest legal set
+	// of armour, the same choice his sheet's Equip Best Armour button makes (#onEquipBestArmor,
+	// module/sheets/actor-character-sheet.mjs) through the same rules function, module/equip-rules.mjs.
+	//
+	// Take Everything Off needs no function of its own to match it here: every item assembleCharacter
+	// builds starts "location": "carried" (see @MARKER STARTING KIT, above) and nothing is equipped
+	// before this runs, so a freshly made character already stands in the position that button leaves
+	// a character in. Weapons and shields are left untouched, for the same reason the sheet leaves
+	// them alone -- which hand holds what is the player's call, not something to decide for them.
+	//
+	// Mutates tmpItems' armour entries in place (sets system.location and system.layer on the ones
+	// chosen) and returns nothing; called for its side effect, same as updateEmbeddedDocuments would
+	// be on an actor already on the table.
+	export function equipBestArmorInPlace(tmpItems) {
+		var tmpArmorItems = (tmpItems ?? []).filter(tmpEntry => tmpEntry.type == "armor" && !tmpEntry.system?.isShield);
+		if (!tmpArmorItems.length) { return; }
+
+		// chooseBestArmor tells pieces apart by id; freshly assembled items have none yet (Actor.create
+		// assigns ids on embedding), so temporary ones are handed out here and thrown away once the
+		// choice is read back.
+		tmpArmorItems.forEach((tmpEntry, tmpIndex) => { tmpEntry._chargenId = "kitArmor" + tmpIndex; });
+		var tmpBestArmor = chooseBestArmor(tmpArmorItems.map(tmpEntry =>
+			({ id: tmpEntry._chargenId, name: tmpEntry.name, type: tmpEntry.type, system: tmpEntry.system })));
+		for (const tmpEntry of tmpArmorItems) {
+			if (tmpBestArmor.worn.includes(tmpEntry._chargenId)) {
+				tmpEntry.system.location = "equipped";
+				tmpEntry.system.layer = tmpBestArmor.layers[tmpEntry._chargenId];
+			}
+			delete tmpEntry._chargenId;
+		}
 	}
 
 // @MARKER ADD NEW character generation rule functions HERE

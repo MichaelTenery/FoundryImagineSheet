@@ -1,5 +1,8 @@
 # 2026-09-19 — Bug-fix pass: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Seven real defects in the class and levelling work were fixed (`DECISIONS.md` 2026-09-19, "Bug-fix
 pass"), and `tools/levelup-walk.html` was added: 34 checks driving the real writing code
 (`addExperience`, `commitTitle`, `commitGoal`) against a stub actor that records what it was asked

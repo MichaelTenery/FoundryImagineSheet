@@ -1,5 +1,8 @@
 # 2026-09-22 — Play-testing feedback on 0.16.0
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Covers version 0.16.1. See `DECISIONS.md` 2026-09-22 "Play-testing feedback on 0.16.0" and
 `UPSTREAM-ISSUES.md` item 50.
 

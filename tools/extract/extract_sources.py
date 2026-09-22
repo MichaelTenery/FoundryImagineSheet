@@ -115,6 +115,27 @@ def load_book(tmpstem):
     return {int(tmpparts[i]): tmpparts[i + 1] for i in range(1, len(tmpparts), 2)}
 
 
+# This is the function which strips a trailing range/distance number off a name, bare or in feet --
+# "Infravision 60", "Infravision 60'" and "Infravision60" are all his Infravision entry crossed with
+# a range column, the same relationship "Dagger(Parrying)" has to "Dagger", just without brackets to
+# mark it. Returns None rather than a stem shorter than 3 characters, same floor as everywhere else.
+def strip_number_suffix(tmpname):
+    tmpmatch = re.match(r"^(.+?)\s*\d{1,3}['’]?$", tmpname)
+    if tmpmatch and len(tmpmatch.group(1).strip()) > 2:
+        return tmpmatch.group(1).strip()
+    return None
+
+
+# TRIED AND REJECTED: singularising a plain trailing plural ("Claws" -> "Claw"). It looked like the
+# same shape as the number-suffix rule below, but his Master Index reads one cell to a line with no
+# structure telling a body-parts table from a spell list or a Hermetic Lore ingredients table, and a
+# bare singular is common enough prose ("spring water", "vulture feather", "suction pad" as alchemy
+# ingredients) that it kept landing "Springs(Assorted)" and "Feathers" on his Hermetic Lore tables
+# instead of on anything to do with equipment or creature anatomy -- wrong page, sometimes wrong book
+# entirely. Exactly the bare-word risk the qualifier guard above exists for. Do not re-add it without
+# a way to tell which table a hit came from.
+
+
 # This is the function which turns one of his names into the spellings a book might print it as.
 #
 # He writes a qualifier in brackets -- "Dagger(Parrying)" -- where a book prints "Dagger, Parrying".
@@ -135,6 +156,16 @@ def variants(tmpname):
             tmppart = tmppart.strip()
             if tmppart:
                 tmpout |= {"%s, %s" % (tmpstem, tmppart), "%s %s" % (tmpstem, tmppart)}
+    else:
+        tmpstem = tmpbase
+
+    # Strips a trailing range number off a bare stem -- never off a bracketed qualifier, so the same
+    # "no bare qualifier" guard above still holds for it.
+    for tmpcandidate in (tmpbase, tmpstem):
+        tmpnum = strip_number_suffix(tmpcandidate)
+        if tmpnum:
+            tmpout.add(tmpnum)
+
     return {norm(v) for v in tmpout if len(norm(v)) > 2}
 
 
@@ -219,6 +250,18 @@ def read_book_indexes():
 
 # @MARKER RESOLUTION
 
+# This is the function which puts a name's spellings in the order they are tried: longest first, as
+# before, and then -- the part that was missing -- a FIXED order among spellings of the same length.
+# variants() returns a set, and Python orders a set of strings differently on every run, so two
+# spellings of equal length ("tongs(large)" and "tongs, large") used to win by chance: a rebuild on
+# 2026-09-22 moved Tongs(Large) from his equipment price table (p.411) to a passing mention in a
+# skill's tool list (p.442) with no change to the code. Among equals the book's own printed form
+# ("Stem, Qualifier") goes first, because his bracketed spelling is how he writes a name in HIS
+# lists and cross-references, while the book prints the table entry the comma way.
+def variant_order(tmpname):
+    return sorted(variants(tmpname), key=lambda tmpv: (-len(tmpv), "(" in tmpv, tmpv))
+
+
 # This is the function which decides one name's book and page.
 #
 # The book comes from his Master Index. The page comes from the originating book's OWN index, and
@@ -227,7 +270,7 @@ def read_book_indexes():
 def resolve(tmpname, tmprows, tmpindexes):
     tmpbook = None
     tmpmipage = None
-    for tmpvariant in sorted(variants(tmpname), key=len, reverse=True):
+    for tmpvariant in variant_order(tmpname):
         for tmppage, tmpsource in tmprows.get(tmpvariant, []):
             if tmpmipage is None:
                 tmpmipage = tmppage
@@ -238,7 +281,7 @@ def resolve(tmpname, tmprows, tmpindexes):
 
     tmppage = ""
     if tmpbook and tmpbook in tmpindexes:
-        for tmpvariant in sorted(variants(tmpname), key=len, reverse=True):
+        for tmpvariant in variant_order(tmpname):
             if tmpvariant in tmpindexes[tmpbook]:
                 tmppage = str(tmpindexes[tmpbook][tmpvariant])
                 break

@@ -1,5 +1,8 @@
 # Left for Sonnet — 2026-09-16, multiple missile fire
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 What this pass deliberately did **not** do. Each item is self-contained. Full account in
 `DECISIONS.md` → "Multiple missile fire, and two places the books argue with themselves".
 

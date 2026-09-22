@@ -1,5 +1,8 @@
 # 2026-09-21 — Race forms: mechanical follow-through, and the Famorian/Formless spec
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Covers the pass that split the races his sheet splits with a second dropdown: the four winged
 faeries and the four Maginos materials. See `DECISIONS.md` 2026-09-21 "The races he split with a
 second dropdown become races of their own", and `UPSTREAM-ISSUES.md` items 45 and 46.

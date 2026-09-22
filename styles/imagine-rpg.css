@@ -36,6 +36,26 @@
 	--imagine-row-hover: #ece5d5;
 	--imagine-rule-soft: #e4ddcd;
 	--imagine-head: #efe9dc;
+
+	/* @MARKER SEMANTIC COLOURS
+	   Added 2026-09-22, sweeping the file for literal hexes the "Sheet colours" switch could not
+	   reach because they were never named here in the first place -- they read fine on paper and
+	   went unreadable-or-worse under Foundry standard, the same trap @MARKER FORM FIELDS ON PAPER
+	   already caught once for text fields. Each one is a MEANING (alarm, faded, on-accent), not a
+	   shade, which is why there are several rather than one -- collapsing "unmet qualification" red
+	   and "unattributed content" red into one name would make a future change to either bleed into
+	   the other. */
+	--imagine-alarm: #a2462e;             /* a rule violated, a check failed, a fumble */
+	--imagine-confirm: #3f6b2e;           /* a check passed, a requirement met */
+	--imagine-unknown: #a4161a;           /* his Master Index has no page for this -- see input.source-unknown */
+	--imagine-faded: #9a948a;             /* content shown but not (yet, or currently) usable */
+	--imagine-faded-mark: #8a7a4a;        /* the small mark beside faded content, one shade warmer */
+	--imagine-tag: #a4542f;               /* the off-hand weapon tag */
+	--imagine-on-accent: #fff;            /* text set against an --imagine-accent background */
+	--imagine-muted-on-accent: #f0e6d6;   /* --imagine-muted's job, against that same background */
+	--imagine-area-wounded: #fbf4e6;      /* body-area row tints, in ascending severity */
+	--imagine-area-vitality: #f7e3cf;
+	--imagine-area-effect: #f0d2c8;
 }
 
 .imagine.sheet .window-content {
@@ -217,7 +237,7 @@
    bold so it survives the small type the header uses. Editing the box clears the colour on the
    next render, because the mark is the VALUE, not a flag stored beside it. */
 input.source-unknown {
-	color: #a4161a;
+	color: var(--imagine-unknown);
 	font-weight: 700;
 }
 
@@ -225,7 +245,7 @@ input.source-unknown {
 	margin: 2px 0 0;
 	font-size: 11px;
 	font-style: italic;
-	color: #a4161a;
+	color: var(--imagine-unknown);
 }
 
 .col-mods .mod {
@@ -251,7 +271,7 @@ input.source-unknown {
 .imagine.sheet button:hover {
 	background: var(--imagine-accent);
 	border-color: var(--imagine-accent);
-	color: #fff;
+	color: var(--imagine-on-accent);
 }
 
 /* @MARKER PANELS */
@@ -307,8 +327,8 @@ input.source-unknown {
 .move-table td { padding: 1px 4px; border: none; font-size: 12px; }
 .move-table thead th { padding: 1px 4px; }
 /* Movement at the current load, under the unencumbered rates his sheet shows. */
-.loaded-heading { font-size: 11px; font-weight: bold; margin: 6px 0 1px; color: #a2462e; }
-.move-table.loaded td { color: #a2462e; }
+.loaded-heading { font-size: 11px; font-weight: bold; margin: 6px 0 1px; color: var(--imagine-alarm); }
+.move-table.loaded td { color: var(--imagine-alarm); }
 
 /* @MARKER ATTRIBUTE GRID */
 /* A compact 12-wide row of numbers (a race's mods/limits, a class's attribute qualification),
@@ -546,7 +566,7 @@ input.source-unknown {
 
 /* A title the character has not reached yet: shown, so the player can see what is coming,
  * and faded, so it is not mistaken for what they have. */
-.class-progress-table tr.unreached-title td { color: #9a948a; }
+.class-progress-table tr.unreached-title td { color: var(--imagine-faded); }
 
 .class-progress-name {
 	margin: 8px 0 2px;
@@ -561,10 +581,10 @@ input.source-unknown {
 /* A class skill held but earned at a title above the character's -- his "this skill cannot be
  * used before <name> title". Faded like disallowed content, but not struck through: it is the
  * character's skill, it is simply not theirs to use yet. */
-.imagine.sheet tr.not-yet-acquired td { color: #9a948a; }
+.imagine.sheet tr.not-yet-acquired td { color: var(--imagine-faded); }
 .imagine.sheet .not-yet-mark {
 	margin-left: 5px;
-	color: #8a7a4a;
+	color: var(--imagine-faded-mark);
 	font-size: 10px;
 }
 
@@ -605,7 +625,7 @@ input.source-unknown {
 
 /* A qualification not yet met, on the Arch Mortal screen. */
 .imagine.level-up .level-up-qualify-table td { padding: 2px 6px; }
-.imagine.level-up .level-up-qualify-table tr.unmet td { color: #a2462e; }
+.imagine.level-up .level-up-qualify-table tr.unmet td { color: var(--imagine-alarm); }
 
 /* @MARKER EQUIPMENT */
 
@@ -663,21 +683,21 @@ input.source-unknown {
 /* Content the campaign's switches disallow stays on the sheet, flagged, rather than
  * disappearing. Faded and struck through, with the reason in a tooltip. */
 .imagine.sheet tr.unavailable td {
-	color: #9a948a;
+	color: var(--imagine-faded);
 }
 .imagine.sheet tr.unavailable .col-name {
 	text-decoration: line-through;
 }
 .imagine.sheet .unavailable-mark {
 	margin-left: 5px;
-	color: #a2462e;
+	color: var(--imagine-alarm);
 	font-size: 10px;
 	text-decoration: none;
 }
 
 /* The Game Master's availability window. */
 .imagine.availability-config fieldset {
-	border: 1px solid #cfc7b8;
+	border: 1px solid var(--imagine-rule);
 	border-radius: 3px;
 	margin: 0 0 10px 0;
 	padding: 6px 10px 10px;
@@ -689,7 +709,7 @@ input.source-unknown {
 .imagine.availability-config .hint {
 	margin: 2px 0 8px;
 	font-size: 11px;
-	color: #6d675e;
+	color: var(--imagine-muted);
 }
 .imagine.availability-config .master-switch {
 	display: flex;
@@ -721,13 +741,57 @@ input.source-unknown {
 	align-items: center;
 }
 .imagine.availability-config .empty {
-	color: #6d675e;
+	color: var(--imagine-muted);
 	font-style: italic;
 }
 .imagine.availability-config .override-table th,
 .imagine.availability-config .override-table td {
 	text-align: left;
 	padding: 2px 6px;
+}
+
+/* @MARKER CHANGELOG
+   The What's New window (module/changelog.mjs). The window content scrolls as one column; each
+   release is a panel, its Markdown rendered as ordinary prose. */
+.imagine.imagine-changelog .window-content {
+	overflow-y: auto;
+	color: var(--imagine-ink);
+	background: var(--imagine-paper);
+}
+.imagine.imagine-changelog .changelog-intro {
+	margin: 0 0 0.6rem;
+}
+.imagine.imagine-changelog .changelog-release {
+	border: 1px solid var(--imagine-rule);
+	background: var(--imagine-panel);
+	border-radius: 3px;
+	padding: 0.4rem 0.8rem 0.6rem;
+	margin-bottom: 0.8rem;
+}
+.imagine.imagine-changelog .changelog-release h2 {
+	margin: 0.2rem 0 0.4rem;
+	border-bottom: 1px solid var(--imagine-rule);
+	color: var(--imagine-accent);
+	font-size: 1.15rem;
+}
+.imagine.imagine-changelog .changelog-release h4 {
+	margin: 0.8rem 0 0.3rem;
+	color: var(--imagine-accent);
+}
+.imagine.imagine-changelog .changelog-release p,
+.imagine.imagine-changelog .changelog-release li {
+	line-height: 1.4;
+}
+.imagine.imagine-changelog .changelog-release blockquote {
+	margin: 0.4rem 0;
+	padding: 0.1rem 0.7rem;
+	border-left: 3px solid var(--imagine-accent);
+	color: var(--imagine-muted);
+}
+.imagine.imagine-changelog .changelog-release code {
+	background: var(--imagine-row-alt);
+	padding: 0 0.2rem;
+	border-radius: 2px;
 }
 
 /* @MARKER COMBAT TAB */
@@ -740,7 +804,12 @@ input.source-unknown {
 }
 .combat-stats .value.small { font-size: 14px; }
 .combat-stats .value.alarm,
-.imagine.sheet .alarm { color: #a2462e; }
+.imagine.sheet .alarm { color: var(--imagine-alarm); }
+
+/* What stops a class qualifying -- checkClassQualification's shortfall, beside the class name in
+   the header. Same alarm colour, smaller and not bold: it is a footnote to the class name, not
+   its own field. */
+.imagine.sheet .class-qualification-issue { color: var(--imagine-alarm); font-size: 10px; font-weight: normal; }
 
 .imagine.sheet .section-head {
 	margin: 10px 0 4px;
@@ -804,7 +873,7 @@ input.source-unknown {
 .hand-pick button.on {
 	background: var(--imagine-accent, #7a6a4f);
 	border-color: var(--imagine-accent, #7a6a4f);
-	color: #fff;
+	color: var(--imagine-on-accent);
 }
 
 /* Derived, never tagged: a weapon is off-hand when its hand is not the wielder's dominant one.
@@ -814,9 +883,9 @@ input.source-unknown {
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	padding: 1px 4px;
-	border: 1px solid #a4542f;
+	border: 1px solid var(--imagine-tag);
 	border-radius: 3px;
-	color: #a4542f;
+	color: var(--imagine-tag);
 }
 
 .lore-lists { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -843,12 +912,20 @@ input.source-unknown {
 	border-radius: 2px;
 	padding: 1px 2px;
 }
-.body-table tr.area-wounded td       { background: #fbf4e6; }
-.body-table tr.area-vitalitySave td  { background: #f7e3cf; }
-.body-table tr.area-effect td        { background: #f0d2c8; }
-.body-table tr.area-effect .state    { color: #a2462e; font-weight: 700; }
+.body-table tr.area-wounded td       { background: var(--imagine-area-wounded); }
+.body-table tr.area-vitalitySave td  { background: var(--imagine-area-vitality); }
+.body-table tr.area-effect td        { background: var(--imagine-area-effect); }
+.body-table tr.area-effect .state    { color: var(--imagine-alarm); font-weight: 700; }
 
-/* @MARKER CHAT CARDS */
+/* @MARKER CHAT CARDS
+   Left as literal hexes on purpose, 2026-09-22 sweep. Everywhere else in this file a colour that
+   is not a fallback inside var() is a bug the "Sheet colours" switch cannot reach -- but a chat
+   card's own root, .imagine-chat, is never inside an element carrying .imagine (module/combat/
+   attack.mjs and actor-creature-sheet.mjs build its HTML by hand and drop it straight into
+   Foundry's chat log), so var(--imagine-*) would not resolve here at all: there is no .imagine
+   ancestor for the custom property to inherit from. The switch governs actor and item SHEETS: a
+   chat card is Foundry's own UI surface, chosen to read against its ordinary chat-log background,
+   which is a separate question from the world's "Sheet colours" setting. */
 
 .imagine-chat header { font-size: 13px; margin-bottom: 4px; }
 .imagine-chat header .target { color: #6d675e; margin-left: 4px; }
@@ -913,25 +990,32 @@ input.source-unknown {
 /* What a race gives, on the Description tab: small chips per skill or ability. */
 .race-panel p { margin: 3px 0; font-size: 11px; }
 .race-panel label { display: inline-block; min-width: 80px; font-weight: bold; }
-.race-chip { display: inline-block; margin: 1px 3px 1px 0; padding: 0 5px; border: 1px solid #cfc7b8;
+.race-chip { display: inline-block; margin: 1px 3px 1px 0; padding: 0 5px; border: 1px solid var(--imagine-rule);
 	border-radius: 8px; font-size: 10px; white-space: nowrap; }
+
+/* A Famorian's numeric evokes (the fifteen that change a figure) stand out from the ~105 that are
+   purely descriptive -- the same distinction the generator's evoke picker makes. */
+.race-chip.numeric { font-weight: 700; }
 
 /* His slot label for each row, and the flag for rows past what Intelligence allows. Flagged the
  * way disallowed content is -- the same muted red -- and never removed. */
 .language-table .slot-label { display: block; font-size: 10px; font-weight: bold; margin-bottom: 1px; }
-.language-table tr.over-allowance .slot-label { color: #a2462e; }
-.language-over { color: #a2462e; font-size: 10px; margin: 0 0 4px; }
+.language-table tr.over-allowance .slot-label { color: var(--imagine-alarm); }
+.language-over { color: var(--imagine-alarm); font-size: 10px; margin: 0 0 4px; }
 
 /* @MARKER CHARACTER GENERATOR */
 /* The step-by-step window (module/apps/character-generator.mjs). Same palette as the sheets;
- * entered values in fields, worked-out values as flat text, as everywhere else. */
-.imagine.character-generator {
-	--imagine-ink: #1c1a17;
-	--imagine-muted: #6d675e;
-	--imagine-rule: #cfc7b8;
-	--imagine-panel: #f7f4ee;
-	--imagine-accent: #6b4e2e;
-}
+ * entered values in fields, worked-out values as flat text, as everywhere else.
+ *
+ * REMOVED 2026-09-22: this used to re-declare --imagine-ink/-muted/-rule/-panel/-accent here with
+ * the same paper-theme literals @MARKER PALETTE already gives .imagine. That is exactly the
+ * "named in one place" invariant @MARKER PALETTE promises, broken by a second copy nobody meant to
+ * keep in step -- found sweeping the file for colours the "Sheet colours" switch could not reach.
+ * It happened to cause no visible bug only because .imagine.imagine-foundry is declared LATER in
+ * this file and wins the specificity tie when that theme is active; reordering the file would have
+ * silently broken dark mode for this one window. The generator's root already carries .imagine
+ * (see the palette's own comment, "need the same palette"), so it inherits every name from there
+ * with nothing else required. */
 .imagine.character-generator .window-content { background: var(--imagine-paper); color: var(--imagine-ink); font-size: 13px; }
 .chargen { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: 8px; }
 .chargen-steps { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0 0 6px;
@@ -940,7 +1024,7 @@ input.source-unknown {
 .chargen-steps button { width: 100%; font-size: 12px; padding: 3px 4px; border: 1px solid var(--imagine-rule);
 	background: var(--imagine-panel); border-radius: 3px; }
 .chargen-steps li.current button { background: var(--imagine-accent); border-color: var(--imagine-accent);
-	color: #fff; font-weight: bold; }
+	color: var(--imagine-on-accent); font-weight: bold; }
 .chargen-steps li.done button { color: var(--imagine-accent); }
 .chargen-body { flex: 1; overflow-y: auto; padding-right: 4px; }
 .chargen-body h2 { margin: 4px 0 8px; font-size: 18px; border: none; }
@@ -956,10 +1040,10 @@ input.source-unknown {
 .chargen-attributes { width: 100%; border-collapse: collapse; }
 .chargen-attributes th { font-size: 11px; color: var(--imagine-muted); text-align: left; padding: 2px 4px;
 	border-bottom: 1px solid var(--imagine-rule); }
-.chargen-attributes td { padding: 2px 4px; border-bottom: 1px solid #ece6da; }
+.chargen-attributes td { padding: 2px 4px; border-bottom: 1px solid var(--imagine-rule-soft); }
 .chargen-attributes td input { width: 56px; }
 .chargen-attributes td.strong { font-weight: bold; }
-.chargen-attributes tr.over td.strong, .chargen-attributes tr.under td.strong { color: #a2462e; }
+.chargen-attributes tr.over td.strong, .chargen-attributes tr.under td.strong { color: var(--imagine-alarm); }
 .chargen-attributes.compact { width: auto; }
 .chargen .swap-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0; }
 .chargen .pick-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -972,8 +1056,8 @@ input.source-unknown {
 .chargen .famorian-evoke-list { display: block; grid-template-columns: none; max-height: 260px; }
 .chargen .famorian-evoke-list label { display: block; padding: 1px 0; }
 .chargen .famorian-numeric { font-weight: bold; }
-.chargen .alarm { color: #a2462e; margin: 2px 0; }
-.chargen .ok { color: #3f6b2e; font-weight: bold; }
+.chargen .alarm { color: var(--imagine-alarm); margin: 2px 0; }
+.chargen .ok { color: var(--imagine-confirm); font-weight: bold; }
 .chargen-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px;
 	padding-top: 6px; border-top: 1px solid var(--imagine-rule); }
 .chargen-footer .alarm { flex: 1; font-size: 12px; }
@@ -1099,7 +1183,7 @@ input.source-unknown {
    What "Sheet colours: Foundry standard" does. The setting puts `imagine-foundry` on the window
    root INSTEAD of the themed/theme-light pair (module/sheet-theme.mjs), and this block re-points
    every name in the palette at Foundry's own variable. Nothing else in this stylesheet changes:
-   because the colours were all named in one place, the whole look follows from these twenty lines.
+   because the colours were all named in one place, the whole look follows from the lines below.
    Each var() carries a fallback, so if Foundry ever renames one of its variables the sheet comes
    out plainly readable rather than transparent-on-transparent. */
 .imagine.imagine-foundry {
@@ -1117,6 +1201,25 @@ input.source-unknown {
 	--imagine-row-hover: rgba(255, 255, 255, 0.09);
 	--imagine-rule-soft: rgba(255, 255, 255, 0.09);
 	--imagine-head: rgba(255, 255, 255, 0.06);
+
+	/* @MARKER SEMANTIC COLOURS, added 2026-09-22 alongside their .imagine definitions above. The
+	   paper reds (--imagine-alarm, --imagine-unknown) sit too close to --imagine-paper's own dark
+	   brown to read at a glance once the background goes dark, so both brighten here; Foundry's own
+	   error/success levels are tried first and the fallback is a lightened version of the paper
+	   shade rather than the paper shade itself. The two greys (--imagine-faded, --imagine-faded-mark)
+	   and the three area tints follow --imagine-row-alt/--imagine-row-hover's own pattern above --
+	   a white overlay at low opacity -- rather than a second set of named hexes. */
+	--imagine-alarm: var(--color-level-error, #d9694f);
+	--imagine-confirm: var(--color-level-success, #5f9c52);
+	--imagine-unknown: var(--color-level-error, #e0554a);
+	--imagine-faded: rgba(255, 255, 255, 0.4);
+	--imagine-faded-mark: rgba(255, 255, 255, 0.4);
+	--imagine-tag: var(--color-warm-2, #c98455);
+	--imagine-on-accent: #fff;
+	--imagine-muted-on-accent: rgba(255, 255, 255, 0.75);
+	--imagine-area-wounded: rgba(255, 255, 255, 0.05);
+	--imagine-area-vitality: rgba(255, 170, 110, 0.12);
+	--imagine-area-effect: rgba(255, 100, 80, 0.18);
 }
 
 /* The form-field rules earlier in this file set the paper colours OUTRIGHT as a backstop, which is
@@ -1242,9 +1345,9 @@ input.source-unknown {
 }
 .imagine.item-picker .picker-row:hover {
 	background: var(--imagine-accent);
-	color: #fff;
+	color: var(--imagine-on-accent);
 }
-.imagine.item-picker .picker-row:hover .muted { color: #f0e6d6; }
+.imagine.item-picker .picker-row:hover .muted { color: var(--imagine-muted-on-accent); }
 .imagine.item-picker .picker-name { font-weight: 600; }
 .imagine.item-picker .picker-foot { display: flex; align-items: center; gap: 10px; }
 .imagine.item-picker .picker-foot p { flex: 1; margin: 0; font-size: 11px; }

@@ -58,9 +58,20 @@ SHIPPED_DIRS = [
 SHIPPED_FILES = [
     ("system.json", "system.json"),
     (os.path.join("docs", "FIRST-RUN.md"), "FIRST-RUN.md"),
+    # Read at runtime by the What's New window (module/changelog.mjs), from the system's root.
+    ("CHANGELOG.md", "CHANGELOG.md"),
 ]
 
 problems = []
+
+# The schema file that declares each document TYPE, for the choices/blank sweep below. Keyed by
+# the "type" a document carries (src/packs/documents/*.json), not by pack file name -- three packs
+# (abilities, disabilities, immunities) all hold type "trait" and share one schema.
+DOC_TYPE_SCHEMA_FILES = {
+    "weapon": "item-weapon.mjs", "armor": "item-armor.mjs", "equipment": "item-equipment.mjs",
+    "skill": "item-skill.mjs", "race": "item-race.mjs", "class": "item-class.mjs",
+    "trait": "item-trait.mjs",
+}
 
 INSTALL_NOTE = """# Imagine Role Playing System — Foundry VTT system
 
@@ -129,6 +140,401 @@ Everything that built this: the extraction tooling, the intermediate data, the t
 original Roll20 export and the project documentation. Those live in the project repository; this
 folder is only what a game needs.
 """
+
+
+# ---------------------------------------------------------------------------------
+# @MARKER RETIRED DOCUMENTS SWEEP
+# docs/sonnet/2026-09-22-playtest-feedback.md item 1. RETIRED_DOCUMENTS in
+# module/content-importer.mjs is an EXPLICIT list, by design (see the comment beside it) -- it is
+# never derived from "whatever the shipped file lacks", because that would delete a Game Master's
+# own homebrew the moment they add a document the shipped file does not also carry. Being
+# explicit means it can go stale by hand: a name gets renamed or split in src/packs/documents/ and
+# nobody remembers to add its old name here, so an old install keeps a document the packs it was
+# rebuilt from are supposed to have retired.
+#
+# This is a WARNING, not a build failure -- unlike the choices/blank sweep below, which is a real
+# schema bug, a document that dropped out of history and was never retired is a judgement call
+# (was it meant to go, or did it just move file?) and the build should not block on a judgement
+# call. It only has to be loud enough that the judgement gets made.
+
+def parse_retired_documents(tmptext):
+    """Pull RETIRED_DOCUMENTS out of module/content-importer.mjs with a regex rather than a JS
+    parser -- the same call schema_field_names() in build_documents.py makes, and for the same
+    reason: there is no Node on this machine. The object is small and hand-written, one quoted
+    array per pack, so this does not need to be more general than that."""
+    tmpmatch = re.search(r'RETIRED_DOCUMENTS\s*=\s*\{', tmptext)
+    if not tmpmatch:
+        return {}
+    tmpdepth = 0
+    tmpi = tmpmatch.end() - 1
+    while True:
+        if tmptext[tmpi] == "{":
+            tmpdepth += 1
+        elif tmptext[tmpi] == "}":
+            tmpdepth -= 1
+            if tmpdepth == 0:
+                break
+        tmpi += 1
+    tmpbody = tmptext[tmpmatch.end():tmpi]
+
+    tmpretired = {}
+    for tmppack, tmplist in re.findall(r'(\w+)\s*:\s*\[([^\]]*)\]', tmpbody):
+        tmpretired[tmppack] = set(re.findall(r'"([^"]*)"', tmplist))
+    return tmpretired
+
+
+# This is the function which lists every document name a pack's file has EVER shipped, across its
+# whole git history, one `git show` per commit that touched it. Bounded by construction: the `--`
+# pathspec on `git log` already limits it to commits that touched this one file, which stays small
+# (each pack file has changed a few dozen times at most) -- no separate cache is needed at this
+# repository's size, and adding one would be one more thing that could go stale. Revisit if a
+# pack's history ever runs long enough to make this slow.
+def historical_document_names(tmprelpath):
+    tmpnames = set()
+    tmpcommits = git_output(["git", "log", "--format=%h", "--", tmprelpath])
+    if not tmpcommits:
+        return tmpnames
+    for tmpcommit in tmpcommits.split():
+        tmptext = git_output(["git", "show", "%s:%s" % (tmpcommit, tmprelpath)])
+        if not tmptext:
+            continue
+        try:
+            tmpdocs = json.loads(tmptext)
+        except ValueError:
+            continue
+        for tmpdoc in tmpdocs:
+            if isinstance(tmpdoc, dict) and tmpdoc.get("name"):
+                tmpnames.add(tmpdoc["name"])
+    return tmpnames
+
+
+# This is the function which warns about any document name a pack used to ship, no longer does,
+# and RETIRED_DOCUMENTS does not know left. Prints nothing when the list is complete.
+def check_retired_documents_complete():
+    with open(os.path.join(ROOT, "module", "content-importer.mjs"), encoding="utf-8") as fh:
+        tmpretired = parse_retired_documents(fh.read())
+
+    tmpmissing = {}
+    for tmpfile in sorted(os.listdir(os.path.join(ROOT, "src", "packs", "documents"))):
+        if not tmpfile.endswith(".json"):
+            continue
+        tmppack = tmpfile[:-5]
+        tmprelpath = os.path.join("src", "packs", "documents", tmpfile).replace("\\", "/")
+        with open(os.path.join(ROOT, "src", "packs", "documents", tmpfile), encoding="utf-8") as fh:
+            tmpcurrent = {tmpdoc["name"] for tmpdoc in json.load(fh)}
+
+        tmpeverseen = historical_document_names(tmprelpath)
+        tmpgone = tmpeverseen - tmpcurrent - tmpretired.get(tmppack, set())
+        if tmpgone:
+            tmpmissing[tmppack] = sorted(tmpgone)
+
+    if not tmpmissing:
+        print("  RETIRED_DOCUMENTS is complete: every name missing from a current pack is accounted for")
+        return
+
+    print("\n  WARNING: RETIRED_DOCUMENTS in module/content-importer.mjs is missing some names.")
+    print("  These names appear in an earlier version of a pack's file, are not in the current one,")
+    print("  and are not in RETIRED_DOCUMENTS -- an old world that has them stays with them forever:")
+    for tmppack, tmpnames in tmpmissing.items():
+        for tmpname in tmpnames:
+            print("    %-12s %s" % (tmppack, tmpname))
+
+
+# ---------------------------------------------------------------------------------
+# @MARKER CHOICES / BLANK SWEEP
+# docs/sonnet/2026-09-20-first-install-bugs.md item 3. Foundry sets a StringField's `blank`
+# implicitly to false the moment `choices` is given, so a field whose choices include "" needs
+# `blank: true` said OUT LOUD or the empty string -- the ordinary "nothing chosen yet" value --
+# fails validation and refuses the whole pack's import. Two fatal import errors on 2026-09-20 were
+# both this. Nine fields across five data models were fixed by hand that day; this makes the sweep
+# permanent so the bug cannot come back unnoticed.
+#
+# Two passes, matching the note's two bullets:
+#   A. every StringField declared in module/data/*.mjs whose choices contains "" (or whose
+#      initial is "") must say blank: true.
+#   B. every value src/packs/documents/*.json actually carries for such a field must be one of
+#      its declared choices.
+#
+# PARSED WITH A REGEX, NOT A JS ENGINE -- same reason as parse_retired_documents above. A choices
+# list built by spreading a table (["", ...CREATURE_TYPES]) or a SchemaField/ArrayField built by a
+# helper function (attackEffectField(), coverageField()) cannot be resolved this way without
+# executing the file, so those are SKIPPED and counted rather than silently treated as clean.
+
+def strip_js_comments(tmptext):
+    """Blank out // and /* */ comments, character for character (so positions do not shift),
+    without touching string contents -- so a stray ( or { in an explanatory comment (this file is
+    full of them, by house style) can never be mistaken for code structure."""
+    tmpout = []
+    tmpi, tmpn = 0, len(tmptext)
+    tmpinstring = None
+    while tmpi < tmpn:
+        tmpc = tmptext[tmpi]
+        if tmpinstring:
+            tmpout.append(tmpc)
+            if tmpc == "\\" and tmpi + 1 < tmpn:
+                tmpout.append(tmptext[tmpi + 1])
+                tmpi += 2
+                continue
+            if tmpc == tmpinstring:
+                tmpinstring = None
+            tmpi += 1
+            continue
+        if tmpc in ("'", '"', "`"):
+            tmpinstring = tmpc
+            tmpout.append(tmpc)
+            tmpi += 1
+            continue
+        if tmpc == "/" and tmpi + 1 < tmpn and tmptext[tmpi + 1] == "/":
+            while tmpi < tmpn and tmptext[tmpi] != "\n":
+                tmpout.append(" ")
+                tmpi += 1
+            continue
+        if tmpc == "/" and tmpi + 1 < tmpn and tmptext[tmpi + 1] == "*":
+            tmpout.append("  ")
+            tmpi += 2
+            while tmpi < tmpn and not (tmptext[tmpi] == "*" and tmpi + 1 < tmpn and tmptext[tmpi + 1] == "/"):
+                tmpout.append("\n" if tmptext[tmpi] == "\n" else " ")
+                tmpi += 1
+            if tmpi < tmpn:
+                tmpout.append("  ")
+                tmpi += 2
+            continue
+        tmpout.append(tmpc)
+        tmpi += 1
+    return "".join(tmpout)
+
+
+def find_matching_bracket(tmptext, tmpopenpos):
+    """The index of the ([{ at tmptext[tmpopenpos]'s matching close, skipping string contents."""
+    tmpopenchar = tmptext[tmpopenpos]
+    tmpclosechar = {"(": ")", "[": "]", "{": "}"}[tmpopenchar]
+    tmpdepth = 0
+    tmpi = tmpopenpos
+    tmpinstring = None
+    tmpn = len(tmptext)
+    while tmpi < tmpn:
+        tmpc = tmptext[tmpi]
+        if tmpinstring:
+            if tmpc == "\\" and tmpi + 1 < tmpn:
+                tmpi += 2
+                continue
+            if tmpc == tmpinstring:
+                tmpinstring = None
+            tmpi += 1
+            continue
+        if tmpc in ("'", '"', "`"):
+            tmpinstring = tmpc
+            tmpi += 1
+            continue
+        if tmpc == tmpopenchar:
+            tmpdepth += 1
+        elif tmpc == tmpclosechar:
+            tmpdepth -= 1
+            if tmpdepth == 0:
+                return tmpi
+        tmpi += 1
+    return -1
+
+
+FIELD_DECLARATION = re.compile(r'(\w+)\s*:\s*new\s+fields\.(\w+)Field\(')
+INLINE_FIELD_CALL = re.compile(r'new\s+fields\.(\w+)Field\(')
+
+
+# This is the function which walks one defineSchema() body and lists every *Field it declares
+# inline, as a dotted path (an ArrayField of objects gets a trailing "[]", so a document-value
+# check below knows to iterate a list rather than read one value). Recurses into a SchemaField's
+# own body, and into an ArrayField's, when they are written inline; a helper-function call like
+# attackEffectField() cannot be followed this way and is reported through tmpskipped instead of
+# silently skipped.
+def extract_declared_fields(tmptext, tmpstart, tmpend, tmppath, tmpout, tmpskipped):
+    tmpi = tmpstart
+    while True:
+        tmpmatch = FIELD_DECLARATION.search(tmptext, tmpi, tmpend)
+        if not tmpmatch:
+            break
+        tmpname, tmpkind = tmpmatch.group(1), tmpmatch.group(2)
+        tmpopenparen = tmpmatch.end() - 1
+        tmpcloseparen = find_matching_bracket(tmptext, tmpopenparen)
+        if tmpcloseparen == -1 or tmpcloseparen > tmpend:
+            break
+        tmpcalltext = tmptext[tmpopenparen:tmpcloseparen + 1]
+
+        if tmpkind == "Schema":
+            if re.match(r'\(\s*\{', tmpcalltext):
+                tmpbraceopen = tmpopenparen + tmpcalltext.index("{")
+                tmpbraceclose = find_matching_bracket(tmptext, tmpbraceopen)
+                extract_declared_fields(tmptext, tmpbraceopen + 1, tmpbraceclose, tmppath + [tmpname],
+                                         tmpout, tmpskipped)
+            else:
+                tmpskipped.append(".".join(tmppath + [tmpname]) + " (a SchemaField built by a helper function)")
+        elif tmpkind == "Array":
+            tmpinner = INLINE_FIELD_CALL.match(tmpcalltext, 1)
+            if not tmpinner:
+                tmpskipped.append(".".join(tmppath + [tmpname]) + " (array element built by a helper function)")
+            else:
+                tmpinnerkind = tmpinner.group(1)
+                tmpinneropen = tmpopenparen + tmpinner.end() - 1
+                tmpinnerclose = find_matching_bracket(tmptext, tmpinneropen)
+                if tmpinnerkind == "Schema":
+                    tmpinnercall = tmptext[tmpinneropen:tmpinnerclose + 1]
+                    if re.match(r'\(\s*\{', tmpinnercall):
+                        tmpbraceopen = tmpinneropen + tmpinnercall.index("{")
+                        tmpbraceclose = find_matching_bracket(tmptext, tmpbraceopen)
+                        extract_declared_fields(tmptext, tmpbraceopen + 1, tmpbraceclose,
+                                                 tmppath + [tmpname + "[]"], tmpout, tmpskipped)
+                    else:
+                        tmpskipped.append(".".join(tmppath + [tmpname]) + "[] (a SchemaField built by a helper function)")
+                else:
+                    tmpout.append({"path": ".".join(tmppath + [tmpname + "[]"]), "kind": tmpinnerkind,
+                                    "call": tmptext[tmpinneropen:tmpinnerclose + 1]})
+        else:
+            tmpout.append({"path": ".".join(tmppath + [tmpname]), "kind": tmpkind, "call": tmpcalltext})
+
+        tmpi = tmpcloseparen + 1
+
+
+# This is the function which reads one module/data/*.mjs and returns (fields, skipped) for its
+# defineSchema() body -- fields is a flat list of every *Field declared inline, skipped is every
+# path that could not be followed because a helper function built it.
+def parse_schema_file(tmppath):
+    with open(tmppath, encoding="utf-8") as fh:
+        tmpraw = fh.read()
+    tmptext = strip_js_comments(tmpraw)
+    tmpmethod = re.search(r'static\s+defineSchema\s*\(\s*\)\s*\{', tmptext)
+    if not tmpmethod:
+        return [], []
+    tmpreturn = re.search(r'return\s*\{', tmptext[tmpmethod.end():])
+    if not tmpreturn:
+        return [], []
+    tmpbraceopen = tmpmethod.end() + tmpreturn.end() - 1
+    tmpbraceclose = find_matching_bracket(tmptext, tmpbraceopen)
+    tmpout, tmpskipped = [], []
+    extract_declared_fields(tmptext, tmpbraceopen + 1, tmpbraceclose, [], tmpout, tmpskipped)
+    return tmpout, tmpskipped
+
+
+# This is the function which reads a StringField's own "choices" option out of its call text.
+# Returns (values, resolvable): resolvable is False for a spread (["", ...TABLE]) or a bare
+# UPPER_CASE table reference (Object.keys(TABLE)), which is built at runtime and cannot be read
+# without executing the file -- see the @MARKER comment above. Returns (None, True) when the field
+# has no choices option at all, which is the ordinary case and not a thing to check.
+def extract_choices_option(tmpcalltext):
+    tmpmatch = re.search(r'choices\s*:', tmpcalltext)
+    if not tmpmatch:
+        return None, True
+    tmpafter = tmpcalltext[tmpmatch.end():]
+    tmpstripped = tmpafter.lstrip()
+    if not tmpstripped or tmpstripped[0] not in "[{":
+        # choices: SOME_IDENTIFIER or choices: Object.keys(...) -- a table reference, not a
+        # literal, so nothing here to parse at all.
+        return [], False
+    tmpopenpos = tmpmatch.end() + (len(tmpafter) - len(tmpstripped))
+    tmpclosepos = find_matching_bracket(tmpcalltext, tmpopenpos)
+    tmpbody = tmpcalltext[tmpopenpos + 1:tmpclosepos]
+    if re.search(r'\.\.\.[A-Za-z_]', tmpbody):
+        return [], False
+
+    if tmpcalltext[tmpopenpos] == "{":
+        # An object form -- choices: { "": "Any race", caster: "Casting races", ... } -- where the
+        # VALID VALUES are the keys, quoted or bare.
+        tmpquotedkeys = re.findall(r'["\']((?:[^"\'\\]|\\.)*)["\']\s*:', tmpbody)
+        tmpbarekeys = re.findall(r'(?:^|[{,])\s*(\w+)\s*:', tmpbody)
+        return sorted(set(tmpquotedkeys) | set(tmpbarekeys)), True
+
+    return re.findall(r'["\']((?:[^"\'\\]|\\.)*)["\']', tmpbody), True
+
+
+# This is the function which runs pass A -- every StringField's choices/blank pairing -- across
+# every module/data/*.mjs, and returns the resolvable {schema file: [(path, set(values)), ...]}
+# map that pass B (document values) needs, so the same parse is not done twice.
+def check_choices_blank_sweep():
+    tmpdatadir = os.path.join(ROOT, "module", "data")
+    tmpchecked = 0
+    tmpviolations = []
+    tmpskippedtotal = 0
+    tmpresolvable = {}
+
+    for tmpfilename in sorted(os.listdir(tmpdatadir)):
+        if not tmpfilename.endswith(".mjs"):
+            continue
+        tmpfields, tmpskipped = parse_schema_file(os.path.join(tmpdatadir, tmpfilename))
+        tmpskippedtotal += len(tmpskipped)
+        tmpresolvable[tmpfilename] = []
+
+        for tmpfield in tmpfields:
+            if tmpfield["kind"] != "String":
+                continue
+            tmpchecked += 1
+            tmpvalues, tmpresolvableflag = extract_choices_option(tmpfield["call"])
+            if tmpvalues is None:
+                continue  # no choices declared -- nothing to check
+            if not tmpresolvableflag:
+                tmpskippedtotal += 1
+                continue
+
+            tmpresolvable[tmpfilename].append((tmpfield["path"], set(tmpvalues)))
+            tmphasblank = bool(re.search(r'blank\s*:\s*true', tmpfield["call"]))
+            tmpinitialempty = bool(re.search(r'initial\s*:\s*["\']\s*["\']', tmpfield["call"]))
+            if ("" in tmpvalues or tmpinitialempty) and not tmphasblank:
+                tmpviolations.append(
+                    "%s: %s has \"\" in choices %s without blank: true" % (tmpfilename, tmpfield["path"], tmpvalues))
+
+    print("  choices/blank sweep: %d StringField(s) checked, %d skipped (built by a helper function "
+          "or a spread table)" % (tmpchecked, tmpskippedtotal))
+    if tmpviolations:
+        problems.extend(tmpviolations)
+    return tmpresolvable
+
+
+# This is the function which walks one document's system object along a dotted/[]-marked path,
+# yielding every value found there -- more than one for a "foo[]" segment, since that means
+# "for every item in this list". A path that runs into a document with the field simply absent
+# (the schema default was never written out) yields nothing, which is correct: an absent field is
+# not a wrong value, it is Foundry's own default filling in.
+def resolve_document_path(tmpvalue, tmpparts):
+    if not tmpparts:
+        yield tmpvalue
+        return
+    tmppart = tmpparts[0]
+    if tmppart.endswith("[]"):
+        tmpkey = tmppart[:-2]
+        if not isinstance(tmpvalue, dict) or not isinstance(tmpvalue.get(tmpkey), list):
+            return
+        for tmpitem in tmpvalue[tmpkey]:
+            yield from resolve_document_path(tmpitem, tmpparts[1:])
+    else:
+        if not isinstance(tmpvalue, dict) or tmppart not in tmpvalue:
+            return
+        yield from resolve_document_path(tmpvalue[tmppart], tmpparts[1:])
+
+
+# This is the function which runs pass B -- every value the shipped documents actually carry for a
+# field pass A could resolve, checked against that field's own choices.
+def check_document_choices(tmpresolvablefields):
+    tmpdocsdir = os.path.join(ROOT, "src", "packs", "documents")
+    tmpchecked = 0
+    tmpviolations = []
+
+    for tmpfilename in sorted(os.listdir(tmpdocsdir)):
+        if not tmpfilename.endswith(".json"):
+            continue
+        with open(os.path.join(tmpdocsdir, tmpfilename), encoding="utf-8") as fh:
+            tmpdocs = json.load(fh)
+        for tmpdoc in tmpdocs:
+            tmpschemafile = DOC_TYPE_SCHEMA_FILES.get(tmpdoc.get("type"))
+            if not tmpschemafile:
+                continue
+            for tmppath, tmpvalues in tmpresolvablefields.get(tmpschemafile, []):
+                for tmpvalue in resolve_document_path(tmpdoc.get("system", {}), tmppath.split(".")):
+                    tmpchecked += 1
+                    if tmpvalue not in tmpvalues:
+                        tmpviolations.append("%s %r: %s = %r is not one of %s"
+                                              % (tmpfilename, tmpdoc.get("name"), tmppath, tmpvalue,
+                                                 sorted(tmpvalues)))
+
+    print("  choices/blank sweep: %d document value(s) checked against their field's choices" % tmpchecked)
+    if tmpviolations:
+        problems.extend(tmpviolations)
 
 
 def copy_tree(tmpsource, tmpdest, tmpsuffixes):
@@ -278,6 +684,13 @@ def main():
     else:
         print("  syntax-check covers all %d modules" % len(tmpmodules))
 
+    # @MARKER RETIRED DOCUMENTS SWEEP AND CHOICES/BLANK SWEEP
+    # See the @MARKER comments above main() for what each of these does and why one is a warning
+    # and the other fails the build.
+    check_retired_documents_complete()
+    tmpresolvablechoicefields = check_choices_blank_sweep()
+    check_document_choices(tmpresolvablechoicefields)
+
     if problems:
         print("\n  %d PROBLEM(S):" % len(problems))
         for tmpproblem in problems:
@@ -360,9 +773,18 @@ def check_release_version(tmpversion):
 
 # This is the function which runs a git command and returns its output, or None where git is not
 # available or the command fails -- a build outside a checkout must still work.
+#
+# encoding="utf-8" is not optional here: git show'ing a historical src/packs/documents/*.json
+# (the RETIRED DOCUMENTS SWEEP below does this a few hundred times) hits names with a real curly
+# apostrophe ('Ba'Cora'). subprocess's text=True with no encoding falls back to the console's own
+# codepage, cp1252 on this machine, which cannot represent that character at all -- it does not
+# raise where you would notice, it corrupts silently on some Python builds and raises inside a
+# background reader thread on others, and either way the string that comes back does not match
+# the UTF-8 the rest of this codebase reads and writes everywhere else.
 def git_output(tmpargs):
     try:
-        tmpresult = subprocess.run(tmpargs, cwd=ROOT, capture_output=True, text=True, timeout=15)
+        tmpresult = subprocess.run(tmpargs, cwd=ROOT, capture_output=True, text=True, timeout=15,
+                                    encoding="utf-8", errors="replace")
     except (OSError, subprocess.SubprocessError):
         return None
     return tmpresult.stdout if tmpresult.returncode == 0 else None

@@ -1,5 +1,8 @@
 # 2026-09-19 — The hand-off backlog, cleared down
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 All nineteen notes in `docs/sonnet/` were triaged against the code as it stands, not against their
 own wording. Several items were already done, two were obsolete, and the rest are either closed
 below or listed here as still open. **This note supersedes the numbered items in every earlier

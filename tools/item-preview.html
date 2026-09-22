@@ -67,6 +67,46 @@
 	<div class="window-content" id="raceNote"></div>
 </div>
 
+<div class="frame imagine sheet item race">
+	<div class="frame-title">Race form, winged &mdash; Fairy(Winged): physiqueLock "slight", sourceRace "Fairy"</div>
+	<div class="window-content" id="raceFairyWinged"></div>
+</div>
+
+<div class="frame imagine sheet item race">
+	<div class="frame-title">Race form, wingless &mdash; Fairy(Dark Wingless): physiqueLock "ordinary", sourceRace "Fairy(Dark)"</div>
+	<div class="window-content" id="raceFairyDarkWingless"></div>
+</div>
+
+<div class="frame imagine sheet item race">
+	<div class="frame-title">Race form, [Other] material kept &mdash; Maginos(Metal): sourceRace differs, physiqueLock empty</div>
+	<div class="window-content" id="raceMaginosMetal"></div>
+</div>
+
+<div class="frame imagine sheet item race">
+	<div class="frame-title">Slight physique overlay &mdash; Gremlin, the one race left that has a variant</div>
+	<div class="window-content" id="raceGremlin"></div>
+</div>
+
+<div class="frame imagine sheet item race">
+	<div class="frame-title">Famorian &mdash; breed table (editable) and evoke catalogue (read-only chips)</div>
+	<div class="window-content" id="raceFamorian"></div>
+</div>
+
+<div class="frame imagine sheet item race">
+	<div class="frame-title">Formless &mdash; formlessHosts editable as a comma list</div>
+	<div class="window-content" id="raceFormless"></div>
+</div>
+
+<div class="frame imagine sheet item class">
+	<div class="frame-title">Class &mdash; Mage: What This Class Gives, classSkillList with nonCaster alternatives, archMortal</div>
+	<div class="window-content" id="classMage"></div>
+</div>
+
+<div class="frame imagine sheet item class">
+	<div class="frame-title">Class, path &mdash; Inquisitor(Bless): baseClass/path, blockedRaces</div>
+	<div class="window-content" id="classInquisitorBless"></div>
+</div>
+
 <script type="module">
 // Standalone preview of the three item sheets. Foundry is not present, so its globals are
 // stubbed; the context each sheet builds in _prepareContext is reproduced here by hand, and the
@@ -161,18 +201,50 @@ const ATTRIBUTE_KEYS = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", 
 const classDocs = await (await fetch("../src/packs/documents/classes.json")).json();
 const classSource = classDocs.find(d => d.name === "Elemental Dancer(Water)");
 if (!classSource) { throw new Error("missing class in the extracted content: Elemental Dancer(Water)"); }
-const classItem = { name: classSource.name, img: "", system: structuredClone(classSource.system) };
-const classSys = classItem.system;
-const classCtx = {
-	item: classItem, system: classSys,
-	attribQualifyCells: ATTRIBUTE_KEYS.map((key, index) => ({
-		key, index, value: classSys.requirements.attribQualify[index] ?? 0
-	})),
-	titleRows: (classSys.advancement.titles ?? []).map((name, index) => ({
-		index, number: index + 1, name, skills: (classSys.advancement.classSkills ?? [])[index] ?? ""
-	})),
-	classModRows: (classSys.classMods ?? []).map((value, index) => ({ index, value }))
-};
+
+// Mirrors module/sheets/item-sheet.mjs's ImagineClassSheet._prepareContext, including the two
+// blocks added this pass: classSkillListRows (with the requires label resolved, since the
+// template has no lookup helper for it) and archMortalAttributeRows (the twelve attribute
+// entries filtered to the ones that are not blank).
+const REQUIRES_LABELS = { "": "Any race", caster: "Casting races", nonCaster: "No-casting races" };
+function buildClassCtx(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	return {
+		item, system: sys,
+		attribQualifyCells: ATTRIBUTE_KEYS.map((key, index) => ({
+			key, index, value: sys.requirements.attribQualify[index] ?? 0
+		})),
+		titleRows: (sys.advancement.titles ?? []).map((name, index) => ({
+			index, number: index + 1, name, skills: (sys.advancement.classSkills ?? [])[index] ?? ""
+		})),
+		classModRows: (sys.classMods ?? []).map((value, index) => ({ index, value })),
+		classSkillListRows: (sys.advancement.classSkillList ?? []).map((row) => ({
+			title: row.title, name: row.name, core: row.core,
+			requiresLabel: REQUIRES_LABELS[row.requires] ?? REQUIRES_LABELS[""]
+		})),
+		archMortalAttributeRows: ATTRIBUTE_KEYS
+			.map((key) => ({ key, value: sys.archMortal.attributes[key] }))
+			.filter((row) => row.value)
+	};
+}
+const classCtx = buildClassCtx(classSource);
+
+// Mage and Inquisitor(Bless), the two real documents item 5 of the 2026-09-22 hand-off asks this
+// pass to round-trip: Mage has classSkillList entries requiring "nonCaster", which is what
+// classSkillListRows' hover label exists to say; Inquisitor(Bless) is a path document, so it
+// exercises baseClass/path and its own blockedRaces.
+for (const name of ["Mage", "Inquisitor(Bless)"]) {
+	if (!classDocs.find(d => d.name === name)) { throw new Error(`missing class in the extracted content: ${name}`); }
+}
+const classMageCtx = buildClassCtx(classDocs.find(d => d.name === "Mage"));
+const classInquisitorBlessCtx = buildClassCtx(classDocs.find(d => d.name === "Inquisitor(Bless)"));
+if (!classMageCtx.archMortalAttributeRows.length) {
+	throw new Error("Mage has no archMortal attribute rows: the Arch Mortal panel is no longer exercised");
+}
+if (!classInquisitorBlessCtx.system.path) {
+	throw new Error("Inquisitor(Bless) has no path: the baseClass/path line is no longer exercised");
+}
 
 // --- armour and a shield, both taken from the extracted content ---------------------
 // Skin Suit(Watertight) covers all 19 locations, so it exercises the whole coverage grid;
@@ -248,11 +320,37 @@ function buildRaceCtx(source) {
 			  cells: ATTRIBUTE_KEYS.map((key) => ({ key, value: sys.attributeMods[key] })) },
 			{ group: "attributeLimits", label: "Limits",
 			  cells: ATTRIBUTE_KEYS.map((key) => ({ key, value: sys.attributeLimits[key] })) }
-		]
+		],
+		// The two fields ImagineRaceSheet._prepareContext adds beyond a straight pass-through of
+		// system -- see module/sheets/item-sheet.mjs @MARKER RACE SHEET.
+		formlessHostsText: (sys.formlessHosts ?? []).join(", "),
+		famorianBreedRows: (sys.famorian?.breeds ?? []).map((row, index) => ({ index, ...row }))
 	};
 }
 const raceCtx = buildRaceCtx(raceSource);
 const raceNoteCtx = buildRaceCtx(raceNoteSource);
+
+// --- the race forms, Famorian and Formless, taken straight from the extracted content ----------
+// Fairy(Winged), Fairy(Dark Wingless) and Maginos(Metal) exercise the Form/Source race lines the
+// "What This Race Gives" panel gained this pass; Nixie above already covers the "shows neither"
+// case. Gremlin is the one race left with a slightPhysique variant now that the four faeries
+// became documents of their own. Famorian and Formless exercise the two new editable blocks.
+for (const name of ["Fairy(Winged)", "Fairy(Dark Wingless)", "Maginos(Metal)", "Gremlin", "Famorian", "Formless"]) {
+	const doc = raceDocs.find(d => d.name === name);
+	if (!doc) { throw new Error(`missing race in the extracted content: ${name}`); }
+}
+const raceFairyWingedCtx = buildRaceCtx(raceDocs.find(d => d.name === "Fairy(Winged)"));
+const raceFairyDarkWinglessCtx = buildRaceCtx(raceDocs.find(d => d.name === "Fairy(Dark Wingless)"));
+const raceMaginosMetalCtx = buildRaceCtx(raceDocs.find(d => d.name === "Maginos(Metal)"));
+const raceGremlinCtx = buildRaceCtx(raceDocs.find(d => d.name === "Gremlin"));
+const raceFamorianCtx = buildRaceCtx(raceDocs.find(d => d.name === "Famorian"));
+const raceFormlessCtx = buildRaceCtx(raceDocs.find(d => d.name === "Formless"));
+if (!raceFamorianCtx.famorianBreedRows.length) {
+	throw new Error("Famorian has no breed rows: the breed table is no longer exercised");
+}
+if (!raceFormlessCtx.formlessHostsText) {
+	throw new Error("Formless has no formlessHosts: the editable host field is no longer exercised");
+}
 
 // @MARKER THE THREE SHEETS ADDED 2026-09-19
 // Equipment, weapon and skill used the core default sheet until the Equipment tab gained buttons
@@ -297,7 +395,15 @@ for (const [id, ctx, body] of [
 	["armor",  armorCtx,  "item-armor"],
 	["shield", shieldCtx, "item-armor"],
 	["race",   raceCtx,   "item-race"],
-	["raceNote", raceNoteCtx, "item-race"]
+	["raceNote", raceNoteCtx, "item-race"],
+	["raceFairyWinged", raceFairyWingedCtx, "item-race"],
+	["raceFairyDarkWingless", raceFairyDarkWinglessCtx, "item-race"],
+	["raceMaginosMetal", raceMaginosMetalCtx, "item-race"],
+	["raceGremlin", raceGremlinCtx, "item-race"],
+	["raceFamorian", raceFamorianCtx, "item-race"],
+	["raceFormless", raceFormlessCtx, "item-race"],
+	["classMage", classMageCtx, "item-class"],
+	["classInquisitorBless", classInquisitorBlessCtx, "item-class"]
 ]) {
 	const header = await render("../templates/item/item-header.hbs", ctx);
 	const rest = await render(`../templates/item/${body}.hbs`, ctx);

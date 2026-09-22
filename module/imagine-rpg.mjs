@@ -48,6 +48,7 @@ import {
 } from "./availability.mjs";
 import { refreshOpenWindows } from "./sheet-theme.mjs";
 import { populateItemDirectory, clearItemDirectory } from "./item-directory.mjs";
+import { registerChangelog, showChangelog, showChangelogIfNew } from "./changelog.mjs";
 
 // @MARKER SYSTEM CONSTANTS
 export const IMAGINE = {
@@ -228,7 +229,11 @@ Hooks.once("init", function () {
 		// The Level Up window, also a button on the character sheet. Experience is added through
 		// it rather than typed, because his cap, his refusals and the Arch Mortal line all apply.
 		levelUp: (tmpactor) => new ImagineLevelUp(tmpactor).render(true),
-		addExperience: addExperience
+		addExperience: addExperience,
+		// @MARKER CHANGELOG
+		// The What's New window, every release. It also opens by itself once per user after an
+		// update; see module/changelog.mjs.
+		showChangelog: showChangelog
 	};
 
 	// Records whether the content has ever been imported into this world, so the first-launch
@@ -313,6 +318,10 @@ Hooks.once("init", function () {
 	// Grants a title's class skills when the title is reached. See module/class-advancement.mjs.
 	registerClassAdvancement();
 
+	// @MARKER CHANGELOG
+	// The What's New window and its Configure Settings button. See module/changelog.mjs.
+	registerChangelog();
+
 	game.settings.registerMenu("imagine-rpg", "availabilityMenu", {
 		name: "Content Availability",
 		label: "Configure",
@@ -345,6 +354,14 @@ Hooks.once("ready", async function () {
 	// Recorded either way. Declining is an answer, and repeating the question is rude.
 	await game.settings.set("imagine-rpg", "contentImported", true);
 	if (tmpconfirmed) { await importAllContent(); }
+});
+
+// @MARKER WHAT'S NEW
+// Every user, not only the Game Master: a player updating the system on their own machine is
+// updating it too, and should see what changed. Shown once per version per user.
+Hooks.once("ready", async function () {
+	try { await showChangelogIfNew(); }
+	catch (tmperror) { console.warn("Imagine RPG | the What's New window could not be shown", tmperror); }
 });
 
 // @MARKER ADD NEW sheet specific functions HERE

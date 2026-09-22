@@ -26,6 +26,7 @@ current:
 | `ApplicationV2`: `title` getter overridable, `element` is an `HTMLElement` | yes, both |
 | `DocumentSheetV2#_processFormData(event, form, formData)` | yes — **returns an EXPANDED object** |
 | `updateDocument` hook `(document, changed, options, userId)` | yes; fires on **all** clients, `options` is a partial of the update operation |
+| `Folder#ancestors` | yes -- "the list of ancestors of this folder, starting with the parent." Checked 2026-09-22 against `foundryvtt.com/api/v14`, for `module/item-directory.mjs`'s retired-item sweep, which walks `tmpitem.folder.ancestors?.some(...)` to find items anywhere under a root folder rather than only directly inside it. |
 
 **`system.json` is correct**: `documentTypes` declares 2 actor and 9 item types, and every one has a
 data model registered for it in `init`. A mismatch there is the classic first-run failure — an actor

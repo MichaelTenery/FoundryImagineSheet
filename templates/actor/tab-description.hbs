@@ -13,7 +13,7 @@
 	<ul class="band-list tendencies-row">
 		<li><label>Tendencies</label>
 			<span><input type="text" name="system.identity.tendencies" value="{{system.identity.tendencies}}"
-				placeholder="Moral, Amoral, Aggressive..."></span></li>
+				title="{{system.identity.tendencies}}" placeholder="Moral, Amoral, Aggressive..."></span></li>
 	</ul>
 
 	{{!-- What the race gives. For a half race this is already the two combined: skills from both
@@ -29,6 +29,11 @@
 		<p class="muted">A member of this race begins play between {{race.ages.startLow}} and
 			{{race.ages.startHigh}} years old and may live to {{race.ages.maxAge}}.
 			This one is <strong>{{../system.physical.age}}</strong>.</p>
+		{{!-- The physique lock: only set for a winged/wingless faerie form. The conflict a mixed
+		      Half Race can hold (one of each) is not shown here -- it is beside the other race
+		      issues, in ../system.identity.raceIssues, the way a barred class and an infertile pair
+		      already are. See docs/sonnet/2026-09-21-race-forms.md item 3. --}}
+		{{#if race.physiqueLock}}<p class="muted physique-lock">{{race.physiqueLock}}</p>{{/if}}
 		<p><label>Racial skills</label>
 			{{#each race.skills as |s|}}<span class="race-chip">{{s.name}}{{#if s.bonus}} {{s.bonus}}{{/if}}</span>{{else}}<span class="muted">none listed</span>{{/each}}
 			{{#if race.skillNote}}<span class="muted">({{race.skillNote}})</span>{{/if}}</p>
@@ -38,6 +43,18 @@
 			{{#each race.disabilities as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
 		{{#if race.immunities.length}}<p><label>Immunities</label>
 			{{#each race.immunities as |a|}}<span class="race-chip">{{a}}</span>{{/each}}</p>{{/if}}
+		{{!-- A Famorian's evokes: what its breed rolled, the budget spent against allowed ("3 of
+		      4"), and every evoke taken -- described by describeEvokes (famorian-rules.mjs), the
+		      numeric fifteen marked out from the ~105 that are listed with no figure attached, the
+		      same split the generator's evoke picker makes. See famorian.md items 2 and 6. --}}
+		{{#if race.famorian}}
+		<p><label>Breed</label> {{#if race.famorian.breed}}{{race.famorian.breed}}{{else}}<span class="muted">not yet rolled</span>{{/if}}
+			<span class="muted">&mdash; evokes {{race.famorian.budgetLabel}}</span>
+			{{#if race.famorian.animalType}}<span class="muted">, animal type {{race.famorian.animalType}}</span>{{/if}}</p>
+		<p><label>Evokes</label>
+			{{#each race.famorian.evokes as |e|}}<span class="race-chip{{#if e.numeric}} numeric{{/if}}"
+				{{#if e.detail}}title="{{e.detail}}"{{/if}}>{{e.label}}</span>{{else}}<span class="muted">none taken</span>{{/each}}</p>
+		{{/if}}
 	</div>
 	{{/with}}
 
@@ -65,23 +82,32 @@
 					</span></li>
 				<li><label>Weight</label>
 					<span><input type="number" name="system.physical.weight" value="{{system.physical.weight}}"> lb</span></li>
+				{{!-- These four hold generator-authored prose ("Fair, weathered", "Chestnut, braided")
+				      that can run past the field's width -- a title attribute keeps the full value
+				      one hover away without shrinking the paper theme's 13px type. See
+				      docs/sonnet/2026-09-20-first-install-bugs.md item 2. --}}
 				<li><label>Frame</label>
-					<span><input type="text" name="system.physical.frame" value="{{system.physical.frame}}"></span></li>
+					<span><input type="text" name="system.physical.frame" value="{{system.physical.frame}}"
+						title="{{system.physical.frame}}"></span></li>
 				<li><label>Hair</label>
-					<span><input type="text" name="system.physical.hair" value="{{system.physical.hair}}"></span></li>
+					<span><input type="text" name="system.physical.hair" value="{{system.physical.hair}}"
+						title="{{system.physical.hair}}"></span></li>
 				<li><label>Eyes</label>
-					<span><input type="text" name="system.physical.eyes" value="{{system.physical.eyes}}"></span></li>
+					<span><input type="text" name="system.physical.eyes" value="{{system.physical.eyes}}"
+						title="{{system.physical.eyes}}"></span></li>
 				<li><label>Skin</label>
-					<span><input type="text" name="system.physical.skin" value="{{system.physical.skin}}"></span></li>
+					<span><input type="text" name="system.physical.skin" value="{{system.physical.skin}}"
+						title="{{system.physical.skin}}"></span></li>
 				<li><label>Body Covering</label>
 					<span><input type="text" name="system.physical.bodyCovering" value="{{system.physical.bodyCovering}}"
-						placeholder="Scales, fur..."></span></li>
+						title="{{system.physical.bodyCovering}}" placeholder="Scales, fur..."></span></li>
 				<li><label>Age</label>
 					<span><input type="number" name="system.physical.age" value="{{system.physical.age}}"></span></li>
 				<li><label>Apparent Age</label>
 					<span><input type="number" name="system.physical.apparentAge" value="{{system.physical.apparentAge}}"></span></li>
 				<li><label>Maximum Age</label>
-					<span><input type="text" name="system.physical.maxAge" value="{{system.physical.maxAge}}"></span></li>
+					<span><input type="text" name="system.physical.maxAge" value="{{system.physical.maxAge}}"
+						title="{{system.physical.maxAge}}"></span></li>
 			</ul>
 		</div>
 

@@ -8,7 +8,7 @@
 		--bg: #f6f3ec; --panel: #fffdf8; --ink: #1f1c18; --muted: #6b655b; --rule: #d9d2c3; --accent: #6b4e2e;
 		--done: #2f7d3a; --done-bg: #e3f1e4;
 		--doing: #a86a00; --doing-bg: #fbecd0;
-		--todo: #55606e; --todo-bg: #e6eaf0;
+		--todo: #55606e; --todo-bg: #e6eaf0; --pinned: #7a5a9a; --pinned-bg: #efe8f5;
 		--blocked: #a2362e; --blocked-bg: #f7dfdc;
 	}
 	@media (prefers-color-scheme: dark) {
@@ -16,7 +16,7 @@
 			--bg: #1c1a17; --panel: #26231f; --ink: #ece6da; --muted: #a39b8d; --rule: #423d35; --accent: #d2a877;
 			--done: #7fc98a; --done-bg: #1f3323;
 			--doing: #e6b25a; --doing-bg: #3a2c12;
-			--todo: #a3b0c0; --todo-bg: #2a3038;
+			--todo: #a3b0c0; --todo-bg: #2a3038; --pinned: #c3a6e0; --pinned-bg: #33293d;
 			--blocked: #ee8a82; --blocked-bg: #3e1f1c;
 		}
 	}
@@ -33,11 +33,11 @@
 	.stat span { color: var(--muted); font-size: 12px; }
 	.stat[aria-pressed="true"] { outline: 2px solid var(--accent); }
 	.stat.completed { border-left-color: var(--done); } .stat.progress { border-left-color: var(--doing); }
-	.stat.notstarted { border-left-color: var(--todo); } .stat.blocked { border-left-color: var(--blocked); }
+	.stat.pinned { border-left-color: var(--pinned); } .stat.notstarted { border-left-color: var(--todo); } .stat.blocked { border-left-color: var(--blocked); }
 	.bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--rule); margin-bottom: 16px; }
 	.bar i { display: block; height: 100%; }
 	.bar .completed { background: var(--done); } .bar .progress { background: var(--doing); }
-	.bar .notstarted { background: var(--todo); } .bar .blocked { background: var(--blocked); }
+	.bar .pinned { background: var(--pinned); } .bar .notstarted { background: var(--todo); } .bar .blocked { background: var(--blocked); }
 
 	.filters { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 12px; margin-bottom: 12px;
 	           display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
@@ -62,11 +62,11 @@
 	details.epic > summary small { color: var(--muted); font-weight: 400; margin-left: 8px; }
 	.task { background: var(--panel); border: 1px solid var(--rule); border-left-width: 5px; border-radius: 6px; padding: 10px 12px; margin: 6px 0; }
 	.task.completed { border-left-color: var(--done); } .task.progress { border-left-color: var(--doing); }
-	.task.notstarted { border-left-color: var(--todo); } .task.blocked { border-left-color: var(--blocked); }
+	.task.pinned { border-left-color: var(--pinned); } .task.notstarted { border-left-color: var(--todo); } .task.blocked { border-left-color: var(--blocked); }
 	.task h3 { margin: 0; font-size: 14.5px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 	.badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 10px; white-space: nowrap; }
 	.badge.completed { background: var(--done-bg); color: var(--done); } .badge.progress { background: var(--doing-bg); color: var(--doing); }
-	.badge.notstarted { background: var(--todo-bg); color: var(--todo); } .badge.blocked { background: var(--blocked-bg); color: var(--blocked); }
+	.badge.pinned { background: var(--pinned-bg); color: var(--pinned); } .badge.notstarted { background: var(--todo-bg); color: var(--todo); } .badge.blocked { background: var(--blocked-bg); color: var(--blocked); }
 	.board { font-size: 11px; color: var(--muted); font-weight: 400; }
 	.summary { margin: 5px 0 0; color: var(--ink); }
 	.note { margin: 4px 0 0; color: var(--muted); font-size: 12.5px; font-style: italic; }
@@ -143,6 +143,8 @@
 //     In progress  the board says In Progress
 //     Blocked      the board says Blocked -- OR it is Backlog and either waiting on something outside the
 //                  code (waitingOn in the dependency file) or on a dependency that is not Done
+//     Pinned       the board says Pinned -- set aside by the user to come back to later, and not
+//                  to be started until they say so (added 2026-09-22)
 //     Not started  Backlog with every dependency Done
 "use strict";
 
@@ -150,7 +152,8 @@ const STATUS = {
 	completed:  { label: "Completed",   order: 0 },
 	progress:   { label: "In progress", order: 1 },
 	blocked:    { label: "Blocked",     order: 2 },
-	notstarted: { label: "Not started", order: 3 }
+	pinned:     { label: "Pinned",      order: 3 },
+	notstarted: { label: "Not started", order: 4 }
 };
 
 let tasks = [];            // every task, in board order within each epic
@@ -177,13 +180,13 @@ function parseBoard(text) {
 		if (!epic || !line.startsWith("|")) { continue; }
 		const cells = splitRow(line);
 		if (cells.length < 3) { continue; }
-		const st = cells[1].replace(/[*~_]/g, "").trim().match(/^(Done|In Progress|Backlog|Blocked)\b\s*(.*)$/i);
+		const st = cells[1].replace(/[*~_]/g, "").trim().match(/^(Done|In Progress|Backlog|Blocked|Pinned)\b\s*(.*)$/i);
 		if (!st) { continue; }                       // the header and separator rows
 		const kind = st[1].toLowerCase();
 		out.push({
 			epicNum: epic.num, epicTitle: epic.title,
 			name: cells[0].replace(/`/g, ""),
-			board: kind == "done" ? "completed" : kind == "in progress" ? "progress" : kind == "blocked" ? "blocked" : "notstarted",
+			board: kind == "done" ? "completed" : kind == "in progress" ? "progress" : kind == "blocked" ? "blocked" : kind == "pinned" ? "pinned" : "notstarted",
 			boardLabel: (st[1] + " " + st[2]).trim(),
 			full: cells.slice(2).join(" | ")
 		});
@@ -235,6 +238,7 @@ function work(t) {
 	t.unfinishedDeps = unfinished.map(d => d.id);
 	if (t.board == "completed") { t.status = "completed"; t.why = ""; return; }
 	if (t.board == "blocked") { t.status = "blocked"; t.why = "The board marks it Blocked."; return; }
+	if (t.board == "pinned") { t.status = "pinned"; t.why = "Pinned by the user: not to be started until they say so."; return; }
 	if (t.board == "progress") { t.status = "progress"; t.why = unfinished.length ? "Started before everything it depends on is done." : ""; return; }
 	if (t.waitingOn) { t.status = "blocked"; t.why = `Waiting on ${t.waitingOn}.`; return; }
 	if (unfinished.length) { t.status = "blocked"; t.why = "Waiting on " + unfinished.map(d => d.name).join(", ") + "."; return; }
@@ -276,7 +280,7 @@ const chip = (id, extraClass = "") => {
 };
 
 function drawStats() {
-	const counts = { completed: 0, progress: 0, blocked: 0, notstarted: 0 };
+	const counts = { completed: 0, progress: 0, blocked: 0, pinned: 0, notstarted: 0 };
 	for (const t of tasks) { counts[t.status]++; }
 	$("stats").innerHTML = Object.keys(STATUS).map(k =>
 		`<button class="stat ${k}" data-stat="${k}" aria-pressed="${state.statuses.size == 1 && state.statuses.has(k)}">` +

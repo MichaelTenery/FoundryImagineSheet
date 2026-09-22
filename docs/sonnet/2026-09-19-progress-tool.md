@@ -1,5 +1,8 @@
 # 2026-09-19 — Progress tool: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 `tools/progress.html` reads `docs/PROGRESS.md` and `docs/task-dependencies.json` and shows every task
 with its status and dependencies, filterable by name, status and dependency. Serve the project over
 HTTP and open `/tools/progress.html`, like the other tools.

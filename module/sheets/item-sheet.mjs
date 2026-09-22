@@ -382,6 +382,28 @@ export class ImagineClassSheet extends ImagineItemSheet {
 		var tmpmods = tmpsystem.classMods ?? [];
 		tmpcontext.classModRows = tmpmods.map((tmpvalue, tmpindex) => ({ index: tmpindex, value: tmpvalue }));
 
+		// This is the "What This Class Gives" block's data: classSkillList paired with a readable
+		// label for its `requires` choice, since the schema stores the raw key ("", "caster",
+		// "nonCaster") and the chip's hover text wants the label a player would actually read.
+		// REQUIRES_LABELS mirrors the choices object declared on the field itself
+		// (item-class.mjs, advancement.classSkillList.requires) -- kept as its own small copy here
+		// for the same reason ATTRIBUTE_KEYS is: the schema is not yet built when this module loads.
+		var tmpRequiresLabels = { "": "Any race", caster: "Casting races", nonCaster: "No-casting races" };
+		tmpcontext.classSkillListRows = (tmpsystem.advancement.classSkillList ?? []).map((tmprow) => ({
+			title: tmprow.title,
+			name: tmprow.name,
+			core: tmprow.core,
+			requiresLabel: tmpRequiresLabels[tmprow.requires] ?? tmpRequiresLabels[""]
+		}));
+
+		// Arch Mortal's twelve attribute entries are his own strings ("RM", "-1", "15") and mostly
+		// blank -- Mage sets four of the twelve. Filtered here rather than in the template, which
+		// has no way to test a SchemaField's properties for emptiness without listing all twelve by
+		// hand; ATTRIBUTE_KEYS gives the order every other attribute display in the system uses.
+		tmpcontext.archMortalAttributeRows = ATTRIBUTE_KEYS
+			.map((tmpkey) => ({ key: tmpkey, value: tmpsystem.archMortal.attributes[tmpkey] }))
+			.filter((tmprow) => tmprow.value);
+
 		return tmpcontext;
 	}
 
@@ -481,7 +503,11 @@ export class ImagineRaceSheet extends ImagineItemSheet {
 
 	static DEFAULT_OPTIONS = {
 		classes: ["imagine", "sheet", "item", "race"],
-		position: { width: 640, height: 760 }
+		position: { width: 640, height: 760 },
+		actions: {
+			addFamorianBreed: ImagineRaceSheet.#onAddFamorianBreed,
+			deleteFamorianBreed: ImagineRaceSheet.#onDeleteFamorianBreed
+		}
 	};
 
 	static PARTS = {
@@ -511,7 +537,46 @@ export class ImagineRaceSheet extends ImagineItemSheet {
 			}
 		];
 
+		// formlessHosts is an ARRAY in the schema and a comma list on the sheet, the same split
+		// ImagineSkillSheet already does for a skill's types -- see _processFormData below.
+		tmpcontext.formlessHostsText = (tmpsystem.formlessHosts ?? []).join(", ");
+
+		// The Famorian breed table, numbered so a row can be written back to the right entry. Only
+		// ever populated where famorian.isFamorian is true; empty for the other 111 races and the
+		// template does not render the section at all in that case.
+		tmpcontext.famorianBreedRows = (tmpsystem.famorian?.breeds ?? []).map((tmprow, tmpindex) => ({
+			index: tmpindex, ...tmprow
+		}));
+
 		return tmpcontext;
+	}
+
+	// formlessHosts is an ARRAY in the schema and a comma list on the sheet, so what the form
+	// hands back has to be split before it reaches the document, or the field fails validation --
+	// the same shape as ImagineSkillSheet's _processFormData for a skill's types.
+	_processFormData(event, form, formData) {
+		var tmpdata = super._processFormData(event, form, formData);
+		if (typeof tmpdata?.system?.formlessHosts == "string") {
+			tmpdata.system.formlessHosts = tmpdata.system.formlessHosts
+				.split(",").map(tmphost => tmphost.trim()).filter(tmphost => tmphost);
+		}
+		return tmpdata;
+	}
+
+	// This is the function which adds a blank Famorian breed row.
+	static async #onAddFamorianBreed() {
+		var tmpbreeds = [...(this.document.system.famorian?.breeds ?? [])];
+		tmpbreeds.push({ breed: "", low: 0, high: 0, evokes: "", when: "" });
+		await this.document.update({ "system.famorian.breeds": tmpbreeds });
+	}
+
+	// This is the function which removes one Famorian breed row.
+	static async #onDeleteFamorianBreed(event, target) {
+		var tmpindex = parseInt(target.dataset.index);
+		var tmpbreeds = [...(this.document.system.famorian?.breeds ?? [])];
+		if (isNaN(tmpindex) || tmpindex < 0 || tmpindex >= tmpbreeds.length) { return; }
+		tmpbreeds.splice(tmpindex, 1);
+		await this.document.update({ "system.famorian.breeds": tmpbreeds });
 	}
 }
 

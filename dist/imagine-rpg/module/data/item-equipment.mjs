@@ -23,6 +23,15 @@ export default class ImagineEquipmentData extends foundry.abstract.TypeDataModel
 			weight:   new fields.NumberField({ required: true, initial: 0 }),
 			quantity: new fields.NumberField({ required: true, integer: true, initial: 1, min: 0 }),
 
+			// His getItemWeight (sheet-worker.js:81979-81990) reads a bracketed quality tag out
+			// of the item's NAME and scales its WEIGHT by it: [Shoddy] x1.75, [Poor] x1.1,
+			// [Good] x.9, [High] x.8, [Master] x.75. Blank means average, which is x1. Stored
+			// here as a field rather than parsed from the name, the same tidying the [Float]
+			// marker got. General equipment has no magicBonus field of its own, so this always
+			// applies -- see resolveEncumbrance in combat-rules.mjs.
+			quality: new fields.StringField({ required: true, blank: true, initial: "",
+			             choices: ["", "Shoddy", "Poor", "Good", "High", "Master"] }),
+
 			// Set where this item's weight is already accounted for by another item, so it is
 			// not charged to encumbrance twice.
 			isTagalong: new fields.BooleanField({ required: true, initial: false }),

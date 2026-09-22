@@ -174,13 +174,19 @@
 	// 2026-09-20, which is what closed UPSTREAM-ISSUES item 38.
 	//
 	// For almost every race the choice is only -1 Strength and +1 Agility, which applyPhysique
-	// handles on the ratings and which never touches the race. Five races carry a second
-	// difference, and it is always a TRADE rather than a bonus:
-	//     Fairy, Fairy(Dark)   wings in the slight form; the wingless form gains two racial skills
-	//                          instead -- Climb and Cover Tracks for a Fairy, Climb and Wood Lore
-	//                          +10% for a Dark Fairy
-	//     Podling, Sporeling   wings in the slight form, no skill difference
-	//     Gremlin              flies either way; the ORDINARY form gains Climb
+	// handles on the ratings and which never touches the race. ONE race still carries a second
+	// difference here, and it is a TRADE rather than a bonus:
+	//     Gremlin   flies either way; the ORDINARY form gains Climb.
+	//
+	// Fairy, Fairy(Dark), Podling and Sporeling used to be the other four -- their slight form had
+	// wings, and for the two Fairies the wingless form traded them for extra racial skills. As of
+	// 2026-09-21 those four are no longer reached here: his sheet's wings-ARE-slight-physique
+	// branch became a second dropdown, and the port turned each branch into a race document of its
+	// own (`Fairy(Winged)`, `Fairy(Wingless)`, and so on) rather than a variant of one document.
+	// See @MARKER RACE FORMS below, `resolvePhysiqueLock`, and DECISIONS.md 2026-09-21 "The races
+	// he split with a second dropdown become races of their own". This block is not dead code --
+	// a homebrew race may still declare a `slightPhysique` variant the same way Gremlin does -- but
+	// Gremlin is now the only race the port itself ships one for.
 	//
 	// @MARKER RACE FORMS
 	// This is the function which says whether a character's race decides their physique for them.

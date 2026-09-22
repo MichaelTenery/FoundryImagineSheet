@@ -64,6 +64,18 @@
 			<ul class="band-list">
 				<li><label>Weight</label>
 					<span><input type="number" name="system.weight" value="{{system.weight}}" step="0.1"> lb</span></li>
+				{{!-- His getItemWeight (sheet-worker.js:81979-81990) scales a non-magical item's
+				weight by this tag; a magical plus replaces it rather than stacking. Blank is
+				average and takes no adjustment. --}}
+				<li><label>Quality</label>
+					<span><select name="system.quality">
+						<option value="" {{#unless system.quality}}selected{{/unless}}>Average</option>
+						<option value="Shoddy" {{#if (eq system.quality "Shoddy")}}selected{{/if}}>Shoddy</option>
+						<option value="Poor" {{#if (eq system.quality "Poor")}}selected{{/if}}>Poor</option>
+						<option value="Good" {{#if (eq system.quality "Good")}}selected{{/if}}>Good</option>
+						<option value="High" {{#if (eq system.quality "High")}}selected{{/if}}>High</option>
+						<option value="Master" {{#if (eq system.quality "Master")}}selected{{/if}}>Master</option>
+					</select></span></li>
 				<li><label>Quantity</label>
 					<span><input type="number" name="system.quantity" value="{{system.quantity}}" min="0"></span></li>
 				<li><label>Where</label>

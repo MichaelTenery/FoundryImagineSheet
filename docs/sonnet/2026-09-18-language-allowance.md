@@ -1,5 +1,8 @@
 # 2026-09-18 — Language allowance: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 The allowance is built (see `DECISIONS.md`, "The Intelligence language allowance"). Below is
 what was left for a cheaper window.
 

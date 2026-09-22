@@ -1,0 +1,70 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG importer test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the pure part of module/content-importer.mjs -- retiredNamesToRemove, which decides
+// WHICH retired document names a pack should still remove, with no Foundry document call in it.
+// importPack and item-directory.mjs's own sweep are both Foundry-bound and untestable here; both
+// call this function instead of doing the decision inline, so this is the whole decision covered.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/importer-test.html
+//
+// content-importer.mjs touches no Foundry global at import time -- only inside async functions
+// that are never called here -- so it imports cleanly outside Foundry, same as it must for
+// tools/syntax-check.html.
+const M = await import("../module/content-importer.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- retiredNamesToRemove, against the three cases the sonnet note asked for ------------------
+
+check("retired and present -> deleted",
+	M.retiredNamesToRemove(["Fairy"], [], ["Fairy", "Fairy(Winged)"]),
+	["Fairy"]);
+
+check("retired but back in the shipped file -> kept",
+	M.retiredNamesToRemove(["Fairy"], ["Fairy"], ["Fairy"]),
+	[]);
+
+check("not retired and absent from the file (homebrew) -> kept",
+	M.retiredNamesToRemove(["Fairy"], [], ["Daryl's Homebrew Sword"]),
+	[]);
+
+// --- a few more edges, since the function is now shared by two callers ------------------------
+
+check("a retired name nobody has ever created is simply not there to remove",
+	M.retiredNamesToRemove(["Fairy"], [], []),
+	[]);
+
+check("an empty or missing retired list removes nothing",
+	[M.retiredNamesToRemove([], ["Fairy"], ["Fairy"]), M.retiredNamesToRemove(undefined, [], ["Fairy"])],
+	[[], []]);
+
+check("several retired names are judged independently",
+	M.retiredNamesToRemove(["Fairy", "Podling", "Sporeling"], ["Podling"], ["Fairy", "Podling", "Sporeling"]),
+	["Fairy", "Sporeling"]);
+
+check("plain arrays and Sets are accepted the same way (importPack passes a Map's .keys() iterator)",
+	M.retiredNamesToRemove(["Fairy"], new Set(), new Map([["Fairy", "id1"]]).keys()),
+	["Fairy"]);
+
+// --- RETIRED_DOCUMENTS itself, so a typo in the table is caught here rather than at import time -
+
+check("RETIRED_DOCUMENTS still has its three known packs", Object.keys(M.RETIRED_DOCUMENTS).sort(),
+	["classes", "races", "skills"]);
+check("the split faerie forms are still on the races list", M.RETIRED_DOCUMENTS.races.includes("Fairy(Dark)"), true);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

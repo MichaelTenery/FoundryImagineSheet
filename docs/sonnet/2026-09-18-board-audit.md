@@ -1,5 +1,8 @@
 # 2026-09-18 — Board audit: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 This pass read the board against the code and corrected it (see `DECISIONS.md` 2026-09-18). It
 wrote no rules code. What it left for a cheaper window is below.
 

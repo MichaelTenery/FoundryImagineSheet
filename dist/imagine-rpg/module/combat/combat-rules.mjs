@@ -1398,6 +1398,205 @@ export const MODE_DAMAGE_TYPES = {
 		return tmpout;
 	}
 
+	// @MARKER ACQUIRING A MULTIPLE MISSILE COMBINATION
+	// Both skills are learned one launcher/missile pair at a time, by a skill roll against the
+	// skill's own chance. Ported from handleRollMultiMissileKnow (sheet-worker.js:88805) and
+	// handleRollMultiMissileLore (88950), which are identical apart from which list and chance
+	// they read. This only resolves the pure outcome of one roll; rolling the die, reading the
+	// character's own chance and writing the list back are the caller's job (see the Combat tab
+	// button this needs -- reported to the coordinator, since neither
+	// templates/actor/tab-combat.hbs nor the rest of module/sheets/actor-character-sheet.mjs is
+	// this workstream's file).
+	//
+	// NOTE FOR THE COORDINATOR: docs/sonnet/2026-09-16-multi-missile.md item 1 says the skills
+	// "carry the skills' Critical Failure rule: a failed attempt locks that specific combination
+	// out until the skill chance increases." No such lockout exists in either function above --
+	// there is no failed-attempt list anywhere in sheet-worker.js or the sheet's own attributes,
+	// and a failed roll does nothing but report failure, the same as an ordinary skill check. His
+	// generic "Critical Failure" result (sheet-worker.js:29439, more than 20 over the chance) is
+	// not even tested in either function -- both branch only on originalRoll>totalChance. Ported
+	// as his code actually reads; the lockout is not implemented here because it is not there to
+	// port. Worth asking him directly whether he meant to write it and did not, or the note's
+	// author was thinking of a different skill.
+
+	// His isWeaponThrown (sheet-worker.js:86481-86533): an ordered chain of name substrings, the
+	// same shape as PROJECTILE_MATCHES in combat-tables.mjs. NOT added to that file because it is
+	// a GENERATED file (see its own header) with no entry for this function in
+	// tools/extract/extract_combat_tables.py's source list, which this workstream does not own
+	// either -- so it is hand-kept here instead, in the same order-matters spirit.
+	//
+	// THE ORDER MATTERS and is preserved exactly. "Dagger" is tested before "Dagger(Parrying)" and
+	// "Dagger(Throwing)", which his own chain can therefore never reach -- the same kind of
+	// unreachable branch already documented on getSizeWeightMultiplier above, left rather than
+	// guessed at.
+	const THROWN_WEAPON_MATCHES = [
+		"Pebble(Fairy Sling)", "Bullet(Fairy Sling)", "Rock(Sling)", "Rock(Wrist Sling)",
+		"Fairy Knife", "Fairy Dagger", "Fairy Hand Axe", "Fairy Hand Hammer", "Fairy Spear",
+		"Giant Knife", "Giant Dagger", "Giant Hand Axe", "Giant Hand Hammer", "Giant Spear",
+		"Titan Spear", "Dart(Blow Gun)", "Javelin(Wood)", "Stick(Throwing)",
+		"Chakram(Edged Rings)", "Throwing Star", "Dagger", "Dagger(Parrying)", "Dagger(Throwing)",
+		"Knife", "Hand Axe", "Hand Hammer", "Hooked Net", "Javelin", "Spear", "Spear Sword",
+		"Stake", "Stake Staff", "Trident", "Caltrops(Calvary)", "Caltrops(Footmen)",
+		"Cloak(Hooked)", "Cloak(Weighted)", "Bola", "Boomerang(Metal)", "Boomerang(Wood)",
+		"Knife(Obsidian)", "Knife(Stone)", "Heroic Dagger", "Heroic Spear", "Shot(Ballista)",
+		"Shot(Heavy Ballista)", "Shot(Light Ballista)", "Boulder(Catapult)",
+		"Greek Fire(Catapult)", "Boulder(Trebuchet)"
+	];
+
+	// This is the function which says whether a weapon is thrown as a missile in its own right --
+	// a dagger, a hand axe, a javelin -- rather than being launched from something else.
+	export function isThrownWeapon(tmpname) {
+		var tmpweapon = "" + (tmpname ?? "");
+		for (const tmpsubstring of THROWN_WEAPON_MATCHES) {
+			if (tmpweapon.includes(tmpsubstring)) { return true; }
+		}
+		return false;
+	}
+
+	// His simplifyProjectileName (sheet-worker.js:87083-87105): trims a projectile's name to
+	// everything before its first ")" or "/", whichever comes first -- "Arrow(Long Bow/Broadhead)"
+	// and "Arrow(Long Bow/Normal)" both simplify to "Arrow(Long Bow", which is what lets one
+	// launcher match every arrowhead variant fired from it.
+	function simplifyProjectileName(tmpname) {
+		var tmpstring = "" + (tmpname ?? "");
+		for (var tmpi = 0; tmpi < tmpstring.length; tmpi++) {
+			if (tmpstring[tmpi] == ")" || tmpstring[tmpi] == "/") { return tmpstring.slice(0, tmpi); }
+		}
+		return tmpstring;
+	}
+
+	// His getLauncherFromProjectile (sheet-worker.js:86842-86939): an ordered chain like the one
+	// above, hand-kept here for the same reason. A projectile can name more than one launcher (a
+	// Bolt(Crossbow) fires from four Crossbow variants), so the right side is an array here rather
+	// than the comma-joined string his own sheet reads with .includes() -- an array of exact names
+	// does the same matching without the comma-parsing.
+	const MISSILE_LAUNCHER_MATCHES = [
+		["Arrow(Fairy Composite Bow", ["Fairy Composite Bow"]],
+		["Arrow(Fairy Great Bow", ["Fairy Great Bow"]],
+		["Arrow(Fairy Long Bow", ["Fairy Long Bow"]],
+		["Arrow(Fairy Short Bow", ["Fairy Short Bow"]],
+		["Arrow(Fairy Hand Crossbow", ["Fairy Hand Crossbow"]],
+		["Arrow(Fairy Heavy Crossbow", ["Fairy Heavy Crossbow"]],
+		["Arrow(Fairy Crossbow", ["Fairy Crossbow"]],
+		["Pebble(Fairy Sling)", ["Fairy Sling"]],
+		["Bullet(Fairy Sling)", ["Fairy Sling"]],
+		["Arrow(Giant Short Bow", ["Giant Short Bow"]],
+		["Arrow(Giant Long Bow", ["Giant Long Bow"]],
+		["Arrow(Giant Great Bow", ["Giant Great Bow"]],
+		["Arrow(Titan Bow", ["Titan Bow"]],
+		["Arrow(Long Bow", ["Bow(Long)"]],
+		["Arrow(Composite Bow", ["Bow(Composite)"]],
+		["Arrow(Compound Bow", ["Bow(Compound)"]],
+		["Arrow(Great Bow", ["Bow(Great)"]],
+		["Arrow(Horn Bow", ["Bow(Horn)"]],
+		["Arrow(Recurve Bow", ["Bow(Recurve)"]],
+		["Arrow(Short Bow", ["Bow(Short)"]],
+		["Arrow(Welsh Bow", ["Bow(Welsh)"]],
+		["Ball(Cannon)", ["Cannon(Early)", "Cannon", "Cannon(Heavy)"]],
+		["Grape Shot(Cannon)", ["Cannon(Early)", "Cannon", "Cannon(Heavy)"]],
+		["Exploding(Cannon)", ["Cannon(Early)", "Cannon", "Cannon(Heavy)"]],
+		["Lead Ball(Early Gun)", ["Early Derringer", "Single Shot Pistol", "Blunder Buss", "Long Rifle"]],
+		["Bolt(Heavy Crossbow", ["Crossbow(Heavy)", "Crossbow(Heavy/Double)", "Crossbow(Heavy/Over-Under)", "Crossbow(Heavy/Repeating)"]],
+		["Bolt(Hand Crossbow", ["Crossbow(Hand)", "Crossbow(Hand/Double)", "Crossbow(Hand/Over-Under)", "Crossbow(Hand/Repeating)"]],
+		["Bolt(Crossbow", ["Crossbow", "Crossbow(Double)", "Crossbow(Over-Under)", "Crossbow(Repeating)"]],
+		["Rock(Sling", ["Sling"]],
+		["Rock(Wrist Sling", ["Wrist Sling"]],
+		["Bullet(Sling", ["Sling"]],
+		["Bullet(Wrist Sling", ["Wrist Sling"]],
+		["Arrow(Primitive Bow", ["Bow(Primitive)"]],
+		["Dart(Blow Gun", ["Blow Gun"]],
+		["Javelin(Wood)", ["At’alta(Javelin Thrower)"]],
+		["Stick(Throwing)", ["At’alta(Javelin Thrower)"]],
+		["Bolt(Ballista", ["Ballista"]],
+		["Shot(Ballista", ["Ballista"]],
+		["Bolt(Heavy Ballista", ["Ballista(Heavy)"]],
+		["Shot(Heavy Ballista", ["Ballista(Heavy)"]],
+		["Bolt(Light Ballista", ["Ballista(Light)"]],
+		["Shot(Light Ballista", ["Ballista(Light)"]],
+		["Boulder(Catapult)", ["Catapult"]],
+		["Greek Fire(Catapult)", ["Catapult"]],
+		["Boulder(Trebuchet)", ["Trebuchet"]],
+		["Greek Fire(Trebuchet)", ["Trebuchet"]]
+	];
+
+	// This is the function which reads the launcher(s) a given projectile is fired from.
+	export function getLaunchersForProjectile(tmpname) {
+		var tmpsimple = simplifyProjectileName("" + (tmpname ?? ""));
+		for (const [tmpsubstring, tmplaunchers] of MISSILE_LAUNCHER_MATCHES) {
+			if (tmpsimple.includes(tmpsubstring)) { return tmplaunchers; }
+		}
+		return [];
+	}
+
+	// This is the function which says whether a chosen launcher and missile go together at all --
+	// his comboMatch, tested before a combination can be learned. Neither list nor chance matters
+	// here; this only says the pair is a real combination. His three-branch if/else-if (thrown,
+	// then ammunition, then launcher-named-directly) collapses to this because the last two
+	// branches run the identical check.
+	export function isValidMissileCombo(tmpLauncher, tmpMissile) {
+		var tmplauncher = ("" + (tmpLauncher ?? "")).trim();
+		var tmpmissile = ("" + (tmpMissile ?? "")).trim();
+		if (!tmplauncher || !tmpmissile) { return false; }
+
+		if (isThrownWeapon(tmpmissile)) { return tmplauncher == "Thrown"; }
+		if (isProjectileWeapon(tmpmissile) || isLauncherWeapon(tmplauncher)) {
+			return getLaunchersForProjectile(tmpmissile).includes(tmplauncher);
+		}
+		return false;
+	}
+
+	// This is the function which works out the pure outcome of one acquisition roll, in his own
+	// early-exit order: no launcher chosen, the combo already known, no missile chosen, the pair
+	// does not go together, the skill chance is under 1%, then pass or fail against the chance.
+	// His "isAutomatic" branch (a Game Master override for a creature) is left out -- this is the
+	// character flow, and a creature's override belongs with the creature sheet that reads it.
+	//
+	//   tmpinput = {
+	//       launcher:  the launcher chosen, or "Thrown" for a weapon thrown from the hand
+	//       missile:   the missile chosen
+	//       chance:    the character's own chance in this skill, Knowledge or Lore
+	//       list:      the combinations already learned, his comma-separated string
+	//       roll:      the 1d100 already rolled
+	//   }
+	//
+	// Returns { outcome, reason, list }. outcome is one of "noLauncher", "noMissile",
+	// "alreadyKnown", "invalidCombo", "noChance", "failed", "succeeded" -- list carries the
+	// combination forward ONLY on success, and is the input list unchanged otherwise.
+	export function resolveMissileComboAcquisition(tmpinput) {
+		var tmplauncher = ("" + (tmpinput?.launcher ?? "")).trim();
+		var tmpmissile = ("" + (tmpinput?.missile ?? "")).trim();
+		var tmpchance = parseInt(tmpinput?.chance) || 0;
+		var tmpcombos = parseMissileCombos(tmpinput?.list);
+		var tmproll = parseInt(tmpinput?.roll) || 0;
+		var tmpentry = tmplauncher + "/" + tmpmissile;
+		var tmpout = { outcome: "", reason: "", list: tmpinput?.list ?? "" };
+
+		if (!tmplauncher) {
+			tmpout.outcome = "noLauncher";
+			tmpout.reason = "No launcher was selected. Nothing done.";
+		} else if (tmpcombos.some(tmpcombo => tmpcombo.launcher == tmplauncher && tmpcombo.missile == tmpmissile)) {
+			tmpout.outcome = "alreadyKnown";
+			tmpout.reason = `${tmpentry} is already known. Nothing done.`;
+		} else if (!tmpmissile) {
+			tmpout.outcome = "noMissile";
+			tmpout.reason = "No missile was selected. Nothing done.";
+		} else if (!isValidMissileCombo(tmplauncher, tmpmissile)) {
+			tmpout.outcome = "invalidCombo";
+			tmpout.reason = `${tmplauncher} and ${tmpmissile} do not go together. Nothing done.`;
+		} else if (tmpchance < 1) {
+			tmpout.outcome = "noChance";
+			tmpout.reason = "There is no chance to acquire this, even if attempted. Nothing done.";
+		} else if (tmproll > tmpchance) {
+			tmpout.outcome = "failed";
+			tmpout.reason = `Rolled ${tmproll}% against a ${tmpchance}% chance. Failed.`;
+		} else {
+			tmpout.outcome = "succeeded";
+			tmpout.reason = `Rolled ${tmproll}% against a ${tmpchance}% chance. Succeeded.`;
+			tmpout.list = tmpout.list ? `${tmpout.list},${tmpentry}` : tmpentry;
+		}
+		return tmpout;
+	}
+
 	// This is the function which gives Projectile Lore's damage for one attack.
 	// Ported from handlePhysicalAttacks (sheet-worker.js:64518-64545 and 64990).
 	//
@@ -1638,8 +1837,6 @@ export const MODE_DAMAGE_TYPES = {
 //     5. the total is read against the bands for his status label
 //
 // What is NOT ported yet, each needing something the port does not have:
-//     - quality tags ([Shoddy] x1.75 ... [Master] x.75) -- no quality field on items yet
-//     - [Float] items weighing nothing -- no float flag on items yet
 //     - Lighten Load, Spirit of the Donkey and the temporary weight/capacity modifiers -- magic
 //       items, which are the deferred magic phase
 //
@@ -1733,6 +1930,26 @@ export const MODE_DAMAGE_TYPES = {
 		return MAGIC_WEIGHT_MULTIPLIERS[parseInt(tmpplus) || 0] ?? 1;
 	}
 
+	// His quality-tag weight adjustments (getItemWeight, sheet-worker.js:81979-81990), read off
+	// the item's `quality` field rather than parsed out of its name. Average, the blank choice,
+	// takes no adjustment. A magical plus REPLACES this rather than stacking with it -- his code
+	// only reaches this branch "if not magical" -- so resolveEncumbrance below only applies it
+	// when the item's magicBonus is 0.
+	const QUALITY_WEIGHT_MULTIPLIERS = {
+		// quality:   multiplier
+		Shoddy:  1.75,
+		Poor:    1.1,
+		Good:    0.9,
+		High:    0.8,
+		Master:  0.75
+	};
+
+	// This is the function which gives the multiplier a non-magical item's quality tag puts on
+	// its weight. Blank, unrecognised or absent all fall through to 1 (average).
+	export function getQualityWeightMultiplier(tmpquality) {
+		return QUALITY_WEIGHT_MULTIPLIERS[("" + (tmpquality ?? "")).trim()] ?? 1;
+	}
+
 	// This is the function which reads a carried weight against the four bands and returns his
 	// label, with the book's speed factor and whether the being can still run.
 	export function getEncumbranceBand(tmpcarried, tmpbands) {
@@ -1776,8 +1993,14 @@ export const MODE_DAMAGE_TYPES = {
 			if (itemFloats(tmpitem)) { continue; }
 			if (tmpsys.location != "equipped" && tmpsys.location != "carried") { continue; }
 
+			// A magical plus and a quality tag never stack -- his getItemWeight only reads the
+			// quality tag "if not magical". Zero is his (and this port's) "not magical".
+			var tmpmagicbonus = parseInt(tmpsys.magicBonus) || 0;
+			var tmpqualitymulti = (tmpmagicbonus == 0) ? getQualityWeightMultiplier(tmpsys.quality) : 1;
+
 			var tmpweight = (parseFloat(tmpsys.weight) || 0)
 			              * getMagicWeightMultiplier(tmpsys.magicBonus)
+			              * tmpqualitymulti
 			              * (tmpsys.quantity ?? 1);
 			if (tmpitem.type == "weapon") { tmpweapons = tmpweapons + tmpweight; }
 			else                          { tmpscaled  = tmpscaled  + tmpweight; }

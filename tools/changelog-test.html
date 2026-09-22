@@ -1,0 +1,101 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG changelog test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the pure part of module/changelog.mjs -- reading CHANGELOG.md into releases, choosing
+// which a user has not seen, and the small Markdown reader. The window itself is Foundry-bound and
+// defined lazily, so the module imports cleanly here.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/changelog-test.html
+//
+// The last block runs against the REAL CHANGELOG.md, so a heading written in a shape the parser
+// cannot read is caught here rather than by a player who sees an empty window.
+const M = await import("../module/changelog.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- versions ----------------------------------------------------------------------------------
+
+check("a release heading reads as its version", M.readVersion("0.16.1 — 2026-09-22"), "0.16.1");
+check("'0.3.0 and earlier' reads as 0.3.0", M.readVersion("0.3.0 and earlier — 2026-09-20"), "0.3.0");
+check("a non-version heading reads as null", M.readVersion("What to look at in 0.14.0"), null);
+check("0.10.0 is newer than 0.9.0 (numeric, not string, comparison)", M.compareVersions("0.10.0", "0.9.0") > 0, true);
+check("equal versions compare 0", M.compareVersions("0.16.1", "0.16.1"), 0);
+check("never having seen one is older than everything", M.compareVersions("", "0.0.1") < 0, true);
+
+// --- parsing -------------------------------------------------------------------------------------
+
+const SAMPLE = [
+	"# Changelog", "", "Publishing notes nobody updating needs.", "", "---", "",
+	"## 0.3.0 — 2026-09-22", "", "Third.", "",
+	"## What to look at in 0.2.0", "", "Look here.", "",
+	"## 0.2.0 — 2026-09-21", "", "Second.", "",
+	"## 0.1.0 — 2026-09-20", "", "First."
+].join("\n");
+const parsed = M.parseChangelog(SAMPLE);
+
+check("three releases, newest first, preamble dropped", parsed.map(e => e.version), ["0.3.0", "0.2.0", "0.1.0"]);
+check("the preamble never reaches a release", parsed.some(e => e.body.includes("Publishing")), false);
+check("a non-version section is carried into the release below it",
+	parsed[1].body.includes("### What to look at in 0.2.0") && parsed[1].body.includes("Look here."), true);
+check("...and not into the release above it", parsed[0].body.includes("Look here."), false);
+
+// --- which releases are unseen ---------------------------------------------------------------------
+
+check("seen 0.1.0, running 0.3.0 -> 0.3.0 and 0.2.0",
+	M.entriesSince(parsed, "0.1.0", "0.3.0").map(e => e.version), ["0.3.0", "0.2.0"]);
+check("never seen one -> only the current release",
+	M.entriesSince(parsed, "", "0.3.0").map(e => e.version), ["0.3.0"]);
+check("a release newer than the installed version is not shown",
+	M.entriesSince(parsed, "0.1.0", "0.2.0").map(e => e.version), ["0.2.0"]);
+check("already seen the current version -> nothing",
+	M.entriesSince(parsed, "0.3.0", "0.3.0").length, 0);
+
+// --- markdown --------------------------------------------------------------------------------------
+
+check("bold and code", M.renderChangelogMarkdown("**Fixed** the `importer`."),
+	"<p><strong>Fixed</strong> the <code>importer</code>.</p>");
+check("a paragraph wrapped across lines joins into one", M.renderChangelogMarkdown("one\ntwo\n\nthree"),
+	"<p>one two</p>\n<p>three</p>");
+check("a numbered list with an indented continuation line",
+	M.renderChangelogMarkdown("1. **First** item\n   continues\n2. Second"),
+	"<ol><li><strong>First</strong> item continues</li><li>Second</li></ol>");
+check("a quote", M.renderChangelogMarkdown("> **Careful.** Wait."),
+	"<blockquote><p><strong>Careful.</strong> Wait.</p></blockquote>");
+check("HTML in the text is escaped, never passed through",
+	// "<\/script>" rather than the plain tag: inside this page's own <script>, the plain one ends it.
+	M.renderChangelogMarkdown("<script>alert(1)<\/script> & more"),
+	"<p>&lt;script&gt;alert(1)&lt;/script&gt; &amp; more</p>");
+check("an http link becomes a link; a javascript: one stays text",
+	[M.renderChangelogMarkdown("[docs](https://example.com)"), M.renderChangelogMarkdown("[x](javascript:alert(1))")],
+	["<p><a href=\"https://example.com\" target=\"_blank\" rel=\"noopener\">docs</a></p>",
+	 "<p>[x](javascript:alert(1))</p>"]);
+check("a heading inside a release steps down one level", M.renderChangelogMarkdown("### Look here"),
+	"<h4>Look here</h4>");
+
+// --- the real CHANGELOG.md -----------------------------------------------------------------------
+
+const REAL = await (await fetch("../CHANGELOG.md", { cache: "no-store" })).text();
+const SYSTEM = await (await fetch("../system.json", { cache: "no-store" })).json();
+const real = M.parseChangelog(REAL);
+check("the real changelog has an entry for the version system.json declares",
+	real.some(e => M.compareVersions(e.version, SYSTEM.version) == 0), true);
+check("the real changelog's releases are written newest first",
+	real.every((e, i) => i == 0 || M.compareVersions(real[i - 1].version, e.version) >= 0), true);
+check("no release renders a stray '**' (an unclosed bold)",
+	real.filter(e => M.renderChangelogMarkdown(e.body).includes("**")).map(e => e.version), []);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

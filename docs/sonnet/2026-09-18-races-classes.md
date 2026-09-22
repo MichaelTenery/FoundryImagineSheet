@@ -1,5 +1,8 @@
 # 2026-09-18 — Races & Classes: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Covers three Opus passes the same day: half races, the rest of a race (skills, abilities, ages,
 fertility, barred classes), and every class's skills by title with class paths and GME. See
 `DECISIONS.md`, the three 2026-09-18 entries on those, and `UPSTREAM-ISSUES.md` items 32 and 33.

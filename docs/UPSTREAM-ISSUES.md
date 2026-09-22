@@ -1564,3 +1564,62 @@ on the wingless form).
 
 At the user's instruction the port now carries the D'Wisp note on both Dark Fairy forms, but has
 **not** added the skill. Should a Dark Fairy have Animal Shape, and at what bonus?
+
+## 51. Is `Mixed` flexibility meant to be Semi-Flexible?
+
+**Status:** open · **Severity:** low — affects which pieces may sit directly against the skin
+
+Found while building the Equip Best Armour button. `armorvalueslist` column 1 gives a piece's
+flexibility class, and one of the values it carries is `Mixed` alongside `Clothing`, `Flexible`,
+`Semi-Flexible` and the three `Rigid/...` composites. The Player's Guide's layering rules (~p.190)
+never mention a `Mixed` class at all — only Flexible, Semi-Flexible, Rigid, and the composites — so
+there is nothing in the book to say where it sits in the stiffness order or whether it may be worn
+against the body.
+
+The port currently treats `Mixed` as equivalent to `Semi-Flexible` in both respects:
+`module/equip-rules.mjs` line 32 gives it the same stiffness number (2), and lines 84-85 let a
+`Mixed` piece be the first layer against the skin the same way a `Semi-Flexible` one can, on the
+reasoning that the book only requires the first layer to be flexible or padded, and refusing a
+`Mixed` piece there (a chain shirt, in the pieces checked) left the character no legal way to wear
+it at all. That is a guess at what you meant, not a rule read off your sheet or the books.
+
+Is `Mixed` the same as `Semi-Flexible` for layering purposes, or does it belong somewhere else in
+the stiffness order? If it is its own class with its own rule, `getLocationStack` in
+`module/equip-rules.mjs` is where the fix goes.
+
+## 52. Does a racial skill's bonus to a Social skill ever actually apply?
+
+**Status:** open · **Severity:** unclear — the table it depends on looks unreachable as written
+
+Found 2026-09-22 chasing Daryl's "racial bonuses to Social skills aren't covered" report. Your
+sheet does have such a table: `getRaceClassSocialMod` (sheet-worker.js:57649) gives a small, named
+list of Social skills a flat bonus when the character holds a specific racial or class skill —
+Acting +15% for Disguise, Animal Training +15% for Speak to Animal or Tame Animal, Begging +15%
+for Disguise, Meteorology +10% for Direction Knowledge, Distance Knowledge or Smell,
+Perfume/Scent Making +10% for Herb Lore, Tightrope Walking +10% for Balance.
+
+It is called from `getExtraSocialMods` (57589), which is the function `setSocialSkillAbility`
+(56962) uses to total a Social skill's modifiers. But the call itself looks wrong:
+
+```
+57599   for (var i=0; i<20; i++) {
+57600       tmpskillname=""+raceskills[i];
+57601       tmpracemod=tmpracemod+parseInt(getRaceClassSocialMod(tmpskill1,raceskills))||0;
+57602   }
+```
+
+`tmpskillname` is assigned the i'th racial skill and then never used — the call on the next line
+passes `raceskills`, the **whole array**, where `getRaceClassSocialMod`'s second parameter is
+compared against a single skill name with `==` ("Disguise", "Speak to Animal", and so on). An
+array compared to a string with `==` coerces the array to a comma-joined string first, so the
+comparison is true only if a character's entire racial skill list, joined by `", "`, is byte-for-
+byte one of those six names — which in practice means never, and the loop runs it 20 times over
+regardless, once per slot, all with the same (wrong) argument. `tmpskillname` reads like the
+argument that was meant to go there.
+
+**The port does not carry this table at all** — checked against `module/skills-rules.mjs`, which
+handles Social skill totals, and nothing there applies a racial term. Whether that is a gap worth
+closing depends on the answer here: if the call is meant to work, the fix is `getRaceClassSocialMod(tmpskill1, tmpskillname)`,
+and the port should add the table (small — six rows) to the Social skill total the way class-skill
+bonuses already are. If the array-vs-string comparison is not a bug but some Roll20-specific
+coercion you relied on, or if this feature was abandoned deliberately, say so and it stays out.

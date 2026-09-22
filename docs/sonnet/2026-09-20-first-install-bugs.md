@@ -1,5 +1,8 @@
 # Left for a cheaper window — 2026-09-20, first-install bug pass
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Daryl installed the system for the first time and reported four things. All four are fixed; what
 follows is the mechanical extension of patterns this pass established, plus one item that is
 blocked on him rather than on effort.

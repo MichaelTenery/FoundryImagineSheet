@@ -1,5 +1,8 @@
 # 2026-09-19 — Finishing classes: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 The class half of the Races & Classes row is closed. New this pass: `module/class-rules.mjs` (pure
 rules), `module/class-advancement.mjs` (the grant and its hooks), the corrected class-progression
 panel on the Skills tab, the title gate on a skill roll, and path-aware availability keys. See

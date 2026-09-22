@@ -31,22 +31,21 @@
 		<div class="panel">
 			<h3>Requirements</h3>
 			<ul class="band-list">
-				<li><label>Alignment</label>
-					<span><input type="text" name="system.requirements.alignment" value="{{system.requirements.alignment}}"></span></li>
 				<li><label>Focus attributes</label>
 					<span><input type="text" name="system.requirements.focusAttributes" value="{{system.requirements.focusAttributes}}" placeholder="STR, AGL"></span></li>
 			</ul>
+			{{!-- Alignment ran to 47 characters for Vivisectionist ("Evil (Active), Fanatical Evil
+			      (Active), Immoral") -- too long for the band-list's field, which is sized for a
+			      one-word answer like "Any". Wide-field instead, same fix as the race sheet's
+			      skill note. --}}
+			<label class="wide-field">Alignment
+				<input type="text" name="system.requirements.alignment" value="{{system.requirements.alignment}}"
+					title="{{system.requirements.alignment}}"></label>
 		</div>
 
 		<div class="panel">
 			<h3>Classification</h3>
 			<ul class="band-list">
-				<li><label>Class type</label>
-					<span><input type="text" name="system.classType" value="{{system.classType}}" placeholder="Warrior subclass"></span></li>
-				<li><label>Armour usage</label>
-					<span><input type="text" name="system.armorUsage" value="{{system.armorUsage}}"></span></li>
-				<li><label>Weapon usage</label>
-					<span><input type="text" name="system.weaponUsage" value="{{system.weaponUsage}}"></span></li>
 				<li><label>Class skill slots needed</label>
 					<span><input type="number" name="system.skillSlotsNeeded" value="{{system.skillSlotsNeeded}}" min="0"></span></li>
 			</ul>
@@ -56,15 +55,39 @@
 		</div>
 	</div>
 
+	{{!-- Class type, armour usage and weapon usage were single-line band-list inputs sized for
+	      "Warrior subclass", but his real data runs to whole paragraphs -- Kineticist's armour
+	      usage is 376 characters ("Cloth, leather, and wood only. Clasps, buckles, jewelry..."),
+	      well past anything a one-line field or a title tooltip could make readable. Textareas
+	      instead, the same as Description below, so his longer entries are read rather than
+	      guessed at. --}}
+	<div class="panel-row">
+		<div class="panel">
+			<h3>Class Type</h3>
+			<textarea name="system.classType" rows="3" placeholder="Warrior subclass">{{system.classType}}</textarea>
+		</div>
+		<div class="panel">
+			<h3>Armour Usage</h3>
+			<textarea name="system.armorUsage" rows="3">{{system.armorUsage}}</textarea>
+		</div>
+		<div class="panel">
+			<h3>Weapon Usage</h3>
+			<textarea name="system.weaponUsage" rows="3">{{system.weaponUsage}}</textarea>
+		</div>
+	</div>
+
 	<div class="panel-row">
 		<div class="panel">
 			<h3>Attack Progression</h3>
 			<ul class="band-list">
 				<li><label>Attack skill</label>
 					<span><input type="text" name="system.attackSkill" value="{{system.attackSkill}}"></span></li>
-				<li><label>Attack skill list</label>
-					<span><input type="text" name="system.attackSkillList" value="{{system.attackSkillList}}"></span></li>
 			</ul>
+			{{!-- attackSkillList runs to 126 characters for Cacophonist -- a whole title
+			      progression sentence, not a value a one-line band-list field can show. --}}
+			<label class="wide-field">Attack skill list
+				<input type="text" name="system.attackSkillList" value="{{system.attackSkillList}}"
+					title="{{system.attackSkillList}}"></label>
 		</div>
 
 		<div class="panel">
@@ -151,6 +174,54 @@
 		<li><label>Second</label>
 			<span><input type="text" name="system.advancement.goalAttr2" value="{{system.advancement.goalAttr2}}"></span></li>
 	</ul>
+
+	{{!-- What the class GIVES and requires, as opposed to what it modifies -- the same omission
+	      item 1 of 2026-09-20-first-install-bugs.md found on the race sheet: blockedRaces,
+	      classSkillList, nonClassed, baseClass/path and archMortal were all stored and read by the
+	      character but shown nowhere on the class itself. Chips, not editable rows, and no
+	      add/remove buttons -- the SAME call the race sheet already made for racialSkills,
+	      abilities, disabilities, immunities and fertileWith: these come from his tables, and a
+	      Game Master who wants to change one uses the raw-data editor. (2026-09-18-races-classes.md
+	      item 1 once asked for classSkillList as editable rows with a requires dropdown;
+	      2026-09-20-first-install-bugs.md item 1 is the later call and this follows it.)
+
+	      His own racialSkills/abilities chips on the race sheet stay read-only by the same
+	      decision -- see that template's comment above "What This Race Gives". --}}
+	<h3 class="section-head">What This Class Gives</h3>
+	<div class="panel race-panel">
+		<p><label>Base class</label>
+			{{#if system.baseClass}}<span>{{system.baseClass}}</span>{{else}}<span class="muted">is a base class</span>{{/if}}</p>
+		{{#if system.path}}<p><label>Path</label> <span>{{system.path}}</span></p>{{/if}}
+		{{#if system.nonClassed}}<p><label>Non-classed</label>
+			<span class="race-chip">no class skills, no racial title-1 Endurance bonus</span></p>{{/if}}
+
+		<p><label>Blocked races</label>
+			{{#each system.blockedRaces as |r|}}<span class="race-chip">{{r}}</span>{{else}}<span class="muted">none -- any race may take this class</span>{{/each}}</p>
+
+		<p><label>Class skills</label>
+			{{#each classSkillListRows as |s|}}<span class="race-chip" title="{{s.requiresLabel}}">T{{s.title}} {{s.name}}{{#if s.core}} (core){{/if}}</span>{{else}}<span class="muted">none listed -- his classtitledict carries no skill column; see the Titles and Class Skills section above</span>{{/each}}</p>
+		<p class="muted">Hover a chip for which races it requires. "Core" marks the class's own +30%
+		skills, from his setClassSkillLists.</p>
+	</div>
+
+	{{!-- ARCH MORTAL. What a character of this class must hold before passing 10th title, from his
+	      archmortalqualifylist. Attribute entries are HIS OWN STRINGS, not numbers -- "RM" means
+	      the character's racial maximum, and a negative number means that maximum plus the number,
+	      floored at 0 -- so they are shown as written rather than resolved, which only a character
+	      (not the class alone) can do. Empty attribute entries are omitted; a race with no
+	      requirement at all shows nothing. --}}
+	{{#if archMortalAttributeRows.length}}
+	<h3 class="section-head">Arch Mortal Qualifications</h3>
+	<div class="panel race-panel">
+		<p><label>Attributes</label>
+			{{#each archMortalAttributeRows as |a|}}<span class="race-chip">{{a.key}} {{a.value}}</span>{{/each}}</p>
+		{{#if system.archMortal.skills.length}}<p><label>Skills</label>
+			{{#each system.archMortal.skills as |s|}}<span class="race-chip">{{s.name}} {{s.chance}}%</span>{{/each}}</p>{{/if}}
+		{{#if system.archMortal.special}}<p><label>Special</label> <span>{{system.archMortal.special}}</span></p>{{/if}}
+		<p class="muted">Also required: holding any power at all, which is not a field here because it
+		is simply having one. "RM" is the character's own racial maximum for that attribute.</p>
+	</div>
+	{{/if}}
 
 	<h3 class="section-head">Description</h3>
 	<textarea name="system.description" rows="5">{{system.description}}</textarea>

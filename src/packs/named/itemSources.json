@@ -2971,7 +2971,7 @@
   },
   "Crossbow(Heavy)": {
    "sourcebook": "Imagine Master Index",
-   "page": "400"
+   "page": "331"
   },
   "Crossbow(Heavy/Double)": {
    "sourcebook": "Imagine Master Index",
@@ -3736,10 +3736,6 @@
    "sourcebook": "Mysteries of the Planes",
    "page": "121"
   },
-  "Fairy": {
-   "sourcebook": "Imagine Master Index",
-   "page": "70"
-  },
   "Fairy Bastard Sword": {
    "sourcebook": "Imagine Master Index",
    "page": "326"
@@ -3852,8 +3848,21 @@
    "sourcebook": "Imagine Master Index",
    "page": "326"
   },
-  "Fairy(Dark)": {
-   "sourcebook": "Aspects of the Wild"
+  "Fairy(Dark Winged)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "70"
+  },
+  "Fairy(Dark Wingless)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "70"
+  },
+  "Fairy(Winged)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "70"
+  },
+  "Fairy(Wingless)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "70"
   },
   "Falchion": {
    "sourcebook": "Imagine Master Index",
@@ -3869,6 +3878,10 @@
   },
   "Familiar": {
    "sourcebook": "Conquest of the Eternal"
+  },
+  "Famorian": {
+   "sourcebook": "Imagine Master Index",
+   "page": "205"
   },
   "Far Sight": {
    "sourcebook": "Imagine Master Index",
@@ -4136,6 +4149,9 @@
   "Fork": {
    "sourcebook": "Imagine Master Index",
    "page": "410"
+  },
+  "Formless": {
+   "sourcebook": "Epitaph of the Fallen"
   },
   "Fortune Telling": {
    "sourcebook": "Player's Guide",
@@ -4614,7 +4630,7 @@
   },
   "Goblin(Forest)": {
    "sourcebook": "Imagine Master Index",
-   "page": "430"
+   "page": "102"
   },
   "Goblin(Mountain)": {
    "sourcebook": "Master's Manual",
@@ -5658,9 +5674,49 @@
    "sourcebook": "Imagine Master Index",
    "page": "91"
   },
+  "Infravision 120": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
   "Infravision 120'": {
    "sourcebook": "Imagine Master Index",
    "page": "314"
+  },
+  "Infravision 180": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 180'": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 20'": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 30": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 30'": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 60": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 60'": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 90": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision 90'": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
   },
   "Infravision(120)": {
    "sourcebook": "Imagine Master Index",
@@ -5679,6 +5735,26 @@
    "page": "91"
   },
   "Infravision(90)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision120": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision180": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision30": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision60": {
+   "sourcebook": "Imagine Master Index",
+   "page": "91"
+  },
+  "Infravision90": {
    "sourcebook": "Imagine Master Index",
    "page": "91"
   },
@@ -6605,6 +6681,22 @@
    "sourcebook": "Imagine Master Index",
    "page": "208"
   },
+  "Maginos(Clay)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "208"
+  },
+  "Maginos(Metal)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "208"
+  },
+  "Maginos(Stone)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "208"
+  },
+  "Maginos(Wood)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "208"
+  },
   "Magnetokinesis": {
    "sourcebook": "Mysteries of the Planes",
    "page": "147"
@@ -7439,7 +7531,11 @@
    "sourcebook": "Mysteries of the Planes",
    "page": "68"
   },
-  "Podling": {
+  "Podling(Winged)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "210"
+  },
+  "Podling(Wingless)": {
    "sourcebook": "Imagine Master Index",
    "page": "210"
   },
@@ -9026,7 +9122,7 @@
   },
   "Spectacles(Reading)": {
    "sourcebook": "Imagine Master Index",
-   "page": "440"
+   "page": "411"
   },
   "Speed": {
    "sourcebook": "Master's Manual"
@@ -9085,7 +9181,11 @@
    "sourcebook": "Imagine Master Index",
    "page": "486"
   },
-  "Sporeling": {
+  "Sporeling(Winged)": {
+   "sourcebook": "Imagine Master Index",
+   "page": "71"
+  },
+  "Sporeling(Wingless)": {
    "sourcebook": "Imagine Master Index",
    "page": "71"
   },

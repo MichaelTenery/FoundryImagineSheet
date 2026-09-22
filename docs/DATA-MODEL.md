@@ -174,7 +174,8 @@ skill Item system:
   abilityBonus     number
   misc             number
   acquiredAtTitle  number        # the class title it arrives at; 0 for racial and social
-  isRestricted     bool          # cannot be attempted untrained
+  isRestricted     bool          # cannot be attempted untrained. Read from the books' "Restricted: Yes/No"
+                                 # for class/racial skills (366 found); social skills have no such field
   # DERIVED: combinedAttributes, baseChance, totalChance,
   #          usableByTitle + titleGateReason (his "cannot be used before <name> title")
 ```
@@ -280,6 +281,53 @@ class Item system:
   title              number      # 0 means "follow the character's own title"
 ```
 
+## 4c. The resistance roll
+
+Added 2026-09-21, when Daryl's 0.11.1 Blocker report showed the Attributes tab offering the five
+resistance figures (Magic, Illusion, Control, Poison, Disease) with no way to roll any of them.
+The rule lives in `module/resistance-rules.mjs`, Foundry-free so it can be exercised outside it;
+what follows is the shape, not a restatement of the code, which the comment above each function
+already carries in full — read that for the "why", this table is for "where does it sit".
+
+**His branch order**, kept exactly, and the same for all five tracks (his `handleMagicResist` and
+four identical handlers, sheet-worker.js:1231 onward):
+
+1. **Immune** — the track is immune; nothing is rolled and nothing is said to have been resisted,
+   only that the effect had no effect.
+2. **200% or more** — his "virtually immune"; resisted without consulting the roll at all.
+3. **A natural 1** — an automatic success. **This is the one departure from his sheet**: none of
+   his five handlers special-case a roll of 1. It is the convention every other percentile check in
+   the port follows, and Daryl's bug report asked for it. It only changes the answer at a 0%
+   chance, which is the one case where a natural 1 is not already a success by arithmetic.
+   Flagged for his confirmation as `UPSTREAM-ISSUES.md` item 48.
+4. **A natural 100** — an automatic failure.
+5. **Otherwise**, his three-way comparison against the chance and its half: over the chance fails,
+   over the half succeeds in full, at or under the half succeeds by half.
+
+**His half rounds UP, not down.** `halfResistance` is `Math.floor((chance + 1) / 2)` — at 51% the
+half is 26, not 25. This is `parseInt((chance + 1) / 2)` in his handlers, kept as written. It
+**disagrees with the attribute save's half** in the same codebase
+(`#onRollAttributeSave` in both actor sheets, `Math.floor(chance / 2)`, a plain floor) — both are
+his, from different parts of his file, and the port keeps both as written rather than making them
+agree. If they are meant to be one rule, that is his call, tracked in `UPSTREAM-ISSUES.md` item 48.
+
+**Outcomes**, `RESIST_OUTCOMES`, in his own words so a chat card reads the way his sheet does:
+`"Resisted by half"`, `"Resisted"`, `"Did not resist"` — plus `"Immune"`, which is not in that
+table because it is said differently (`describeResistanceRoll`).
+
+**One more repair, not a rule change.** His handlers read the chance out of `getAttrs`, which hands
+back a STRING, then add the modifier with `+` — so `"50" + 0` is the string `"500"`, not the number
+50. Every two-digit resistance therefore reads over 199 and reports "virtually immune" regardless
+of the roll, and a one-digit one is silently multiplied by ten. `resolveResistanceRoll` parses the
+chance to a number before adding the modifier, on the same footing as `lesserAge` and the Monk
+column repair elsewhere in the port — it does what he evidently meant, and the slip is reported
+rather than silently fixed: `UPSTREAM-ISSUES.md` item 48.
+
+`resolveResistanceRoll(tmpChance, tmpRoll, tmpIsImmune, tmpModifier)` returns everything a chat
+card needs — `chance`, `half`, `roll`, `modifier`, `resisted` (bool), `byHalf` (bool), `outcome`,
+`reason` — and `describeResistanceRoll` turns that into the one line the chat card shows, shared by
+the character and creature sheets so they say it the same way.
+
 ## 5. Content extraction pipeline
 
 **Decision: parse the dictionaries mechanically; do not hand-port.**
@@ -357,7 +405,10 @@ Acyclic; order matters:
 9. Skill slots ← Knowledge table
 10. Skill base chances ← governing attributes − skill rating, ×5
 11. Skill totals ← base + starting + ability + misc
-12. Encumbrance ← carried weight vs. STR load limit
+12. Encumbrance ← carried weight vs. STR load limit. Each weapon, armour and equipment item
+    has a `quality` (`""`/Shoddy/Poor/Good/High/Master) that scales its weight, applied only when its
+    `magicBonus` is 0 -- a magic plus replaces it, never stacks (his `getItemWeight`,
+    sheet-worker.js:81979-81990; `QUALITY_WEIGHT_MULTIPLIERS` in combat-rules.mjs)
 13. Movement ← race base − encumbrance penalties
 14. Combat modifiers ← attribute modifiers + effects + misc
 

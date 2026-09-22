@@ -23,10 +23,11 @@ import {
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
-	readFormlessPair, combineFormless } from "../race-rules.mjs";
-import { applyFamorianEvokes, checkEvokeBudget } from "../famorian-rules.mjs";
+	readFormlessPair, combineFormless, resolvePhysiqueLock } from "../race-rules.mjs";
+import { applyFamorianEvokes, checkEvokeBudget, describeEvokes } from "../famorian-rules.mjs";
 import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions,
          checkClassSkillTitle } from "../class-rules.mjs";
+import { checkClassQualification } from "../chargen-rules.mjs";
 import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../advancement-rules.mjs";
 
 const fields = foundry.data.fields;
@@ -396,7 +397,14 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// raceItems is always the real items, in the order they were added; the first is the one
 		// whose body and special movement a half race keeps.
 		this.raceItems = this._findItems("race");
-		this.raceItem  = this._getEffectiveRace(this.raceItems);
+		// _getEffectiveRace reports two things: the race the rest of the model reads, and (a
+		// Formless only) what is wrong with its host pairing. The second used to be written
+		// straight to identity.formlessIssue from inside that function -- the only base-data step
+		// that touched identity, which _prepareIdentity otherwise owns alone. Stashed here instead
+		// and assigned there; see docs/sonnet/2026-09-21-formless-and-resistances.md item 6.
+		var tmpeffectiverace = this._getEffectiveRace(this.raceItems);
+		this.raceItem = tmpeffectiverace.race;
+		this._formlessIssue = tmpeffectiverace.formlessIssue;
 
 		// A character may hold more than one class. The Player's Guide allows a dual-classed
 		// character who meets both classes' requirements, and his Roll20 sheet has no provision
@@ -431,8 +439,11 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 	//                         race-type list but not implemented ("not yet implemented. Nothing
 	//                         done."), so there is no rule of his to follow for a third race; the
 	//                         extras are reported on identity.raceWarning rather than dropped silently.
+	// Returns { race, formlessIssue } rather than the race alone -- the caller (prepareBaseData)
+	// stashes formlessIssue on the instance, and _prepareIdentity is the one that writes it into
+	// identity, the way every other identity.* field is set. See the note at the call site.
 	_getEffectiveRace(tmpraceitems) {
-		if (tmpraceitems.length == 0) { return null; }
+		if (tmpraceitems.length == 0) { return { race: null, formlessIssue: "" }; }
 
 		// @MARKER FORMLESS
 		// A Formless is not half of anything: it is a psyche, and its second race is the body it
@@ -442,11 +453,16 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		var tmpformless = readFormlessPair(tmpraceitems.map(tmprace => tmprace.system),
 			tmpraceitems.map(tmprace => tmprace.name));
 		if (tmpformless.isFormless) {
-			this.identity.formlessIssue = tmpformless.issue ?? "";
-			if (!tmpformless.host) { return tmpraceitems.find(tmprace => tmprace.system.formless); }
+			var tmpformlessissue = tmpformless.issue ?? "";
+			if (!tmpformless.host) {
+				return { race: tmpraceitems.find(tmprace => tmprace.system.formless), formlessIssue: tmpformlessissue };
+			}
 			return {
-				name:   `${tmpformless.psyche === tmpraceitems[0].system ? tmpraceitems[0].name : tmpraceitems[1].name}[${tmpformless.hostName}]`,
-				system: combineFormless(tmpformless.psyche, tmpformless.host)
+				race: {
+					name:   `${tmpformless.psyche === tmpraceitems[0].system ? tmpraceitems[0].name : tmpraceitems[1].name}[${tmpformless.hostName}]`,
+					system: combineFormless(tmpformless.psyche, tmpformless.host)
+				},
+				formlessIssue: tmpformlessissue
 			};
 		}
 
@@ -464,21 +480,27 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			};
 			var tmpbuilt = applyFamorianEvokes(tmpraceitems[tmpfamorianat].system, tmpchosen, tmpbonuses);
 			if (tmpraceitems.length == 1) {
-				return { name: tmpraceitems[0].name, system: tmpbuilt };
+				return { race: { name: tmpraceitems[0].name, system: tmpbuilt }, formlessIssue: "" };
 			}
 			// A Famorian half race combines the BUILT Famorian, so its evokes reach the blend.
 			var tmpother = tmpraceitems.find((tmprace, tmpindex) => tmpindex != tmpfamorianat);
 			return {
-				name:   getHalfRaceName(tmpraceitems[0].name, tmpraceitems[1].name),
-				system: (tmpfamorianat == 0) ? combineHalfRace(tmpbuilt, tmpother.system)
-				                             : combineHalfRace(tmpother.system, tmpbuilt)
+				race: {
+					name:   getHalfRaceName(tmpraceitems[0].name, tmpraceitems[1].name),
+					system: (tmpfamorianat == 0) ? combineHalfRace(tmpbuilt, tmpother.system)
+					                             : combineHalfRace(tmpother.system, tmpbuilt)
+				},
+				formlessIssue: ""
 			};
 		}
 
-		if (tmpraceitems.length == 1) { return tmpraceitems[0]; }
+		if (tmpraceitems.length == 1) { return { race: tmpraceitems[0], formlessIssue: "" }; }
 		return {
-			name:   getHalfRaceName(tmpraceitems[0].name, tmpraceitems[1].name),
-			system: combineHalfRace(tmpraceitems[0].system, tmpraceitems[1].system)
+			race: {
+				name:   getHalfRaceName(tmpraceitems[0].name, tmpraceitems[1].name),
+				system: combineHalfRace(tmpraceitems[0].system, tmpraceitems[1].system)
+			},
+			formlessIssue: ""
 		};
 	}
 
@@ -823,6 +845,11 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 	// name. The single-class strings stay exactly what they were, so nothing that reads className
 	// has to know about any of this.
 	_prepareIdentity() {
+		// Set in _getEffectiveRace, during prepareBaseData -- see the note at that call site. Only
+		// ever populated on a Formless (checkEvokeBudget-style "" everywhere else), so this is safe
+		// to write unconditionally: a non-Formless character's issues array never reads it.
+		this.identity.formlessIssue = this._formlessIssue ?? "";
+
 		this.identity.raceName  = this.raceItem ? this.raceItem.name : "";
 		// His race_type values; only these two are implemented in his sheet.
 		// A Formless and its host are two race items and are NOT a Half Race: his race_type for
@@ -837,13 +864,24 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// What the race (or the half race, already combined) gives, for the sheet to show. Listed,
 		// not applied: the ability mechanics and the racial-skill picker are not ported yet.
 		var tmpracesys = this.raceItem ? this.raceItem.system : null;
+		// The physique lock -- winged/wingless faerie forms only -- read off the RAW race items,
+		// before a Half Race averages them, because that is the only place a conflict between two
+		// locks can still be seen. Reported beside the panel's other race lines when one side is
+		// locked; the conflict itself (one winged, one wingless) is reported in _getRaceIssues
+		// instead, beside the barred-class and infertile-pair issues -- see race-forms.md item 3.
+		var tmpphysiquelock = resolvePhysiqueLock(this.raceItems.map(tmprace => tmprace.system));
 		this.identity.race = tmpracesys ? {
 			skills:       tmpracesys.racialSkills ?? [],
 			skillNote:    tmpracesys.racialSkillNote ?? "",
 			abilities:    tmpracesys.abilities ?? [],
 			disabilities: tmpracesys.disabilities ?? [],
 			immunities:   tmpracesys.immunities ?? [],
-			ages:         tmpracesys.ages ?? { startLow: 0, startHigh: 0, maxAge: "" }
+			ages:         tmpracesys.ages ?? { startLow: 0, startHigh: 0, maxAge: "" },
+			physiqueLock: tmpphysiquelock.locked ? tmpphysiquelock.reason : "",
+			// The evokes a Famorian has taken, for the Description tab's Race panel. Null for
+			// every other race -- describeEvokes and checkEvokeBudget are the exported functions
+			// famorian.md item 6 says nothing calls yet; this is what calls them.
+			famorian: this._prepareFamorianDisplay(tmpracesys)
 		} : null;
 		this.identity.className = this.classItem ? this.classItem.name : "";
 		this.identity.classType = this.classItem ? this.classItem.system.classType : "";
@@ -852,15 +890,36 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// is a real document rather than a fixture carrying the method in both places.
 		this.identity.titleName = ImagineCharacterData.getClassTitleName(this.classItem, this.identity.title);
 
+		// Final attributes, race included, for checkClassQualification -- the same shape
+		// checkFinalAttributes returns in character generation ({ key: { final } }), built here off
+		// the character's own already-derived attributes rather than re-run through the generator's
+		// rating math, since _prepareAttributes has already settled them by this point.
+		var tmpqualifyfinals = {};
+		for (const tmpkey of Object.keys(this.attributes)) {
+			tmpqualifyfinals[tmpkey] = { final: this.attributes[tmpkey].value };
+		}
+		var tmpracenames = this.raceItems.map(tmprace => tmprace.name);
+
 		this.identity.classes = this.classItems.map(tmpclass => {
 			var tmptitle = this._getClassTitle(tmpclass);
+			// The same "what stops this class" check the generator's dropdown makes
+			// (checkClassQualification, chargen-rules.mjs), read against this character's own
+			// final attributes rather than the rolled-but-not-applied figures the generator has.
+			// A character taken with the override still shows its shortfall here, on the finished
+			// sheet, rather than looking like any other. See first-install-bugs.md item 8.
+			var tmpblocked = isClassBlockedForRaces(tmpclass.system.blockedRaces, tmpracenames);
+			var tmpqualifyissues = checkClassQualification(tmpclass.system, tmpqualifyfinals, tmpracenames, tmpblocked);
+			var tmpqualifysummary = this._summarizeClassQualification(tmpqualifyissues);
 			return {
 				id: tmpclass.id,
 				name: tmpclass.name,
 				classType: tmpclass.system.classType,
 				title: tmptitle,
 				titleName: ImagineCharacterData.getClassTitleName(tmpclass, tmptitle),
-				skillSlotsNeeded: parseInt(tmpclass.system.skillSlotsNeeded) || 0
+				skillSlotsNeeded: parseInt(tmpclass.system.skillSlotsNeeded) || 0,
+				qualified: !tmpqualifyissues.length,
+				qualificationShort: tmpqualifysummary.short,
+				qualificationFull: tmpqualifysummary.full
 			};
 		});
 		this.identity.isDualClass = this.identity.classes.length > 1;
@@ -877,6 +936,46 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.identity.dualClassIssues = this._getDualClassIssues();
 		this.identity.raceIssues = this._getRaceIssues();
 		this._prepareClassProgression();
+	}
+
+	// This is the function which builds the Famorian evoke display for the Description tab's Race
+	// panel: the breed, the budget spent against allowed ("3 of 4"), and every evoke taken --
+	// numeric or not -- through describeEvokes. Null for every race that is not a Famorian.
+	//
+	// tmpraceitems (the RAW race documents) rather than raceItem/tmpracesys carry the evoke
+	// catalogue too, since applyFamorianEvokes only touches attributeMods/endurance/resistanceMods/
+	// movement -- but tmpracesys is what identity.race is already built from, so it is read here
+	// rather than re-finding the race item.
+	_prepareFamorianDisplay(tmpracesys) {
+		if (!tmpracesys?.famorian?.isFamorian) { return null; }
+		var tmpfamorian = this.physical.famorian ?? {};
+		var tmpchosen = tmpfamorian.evokes ?? [];
+		var tmpbonuses = { str: tmpfamorian.strBonus ?? 0, agl: tmpfamorian.aglBonus ?? 0, vit: tmpfamorian.vitBonus ?? 0 };
+		// null-equivalent: -1 means "All", his breed with no ceiling -- the same reading
+		// checkEvokeBudget already uses in _getRaceIssues below.
+		var tmpallowed = (tmpfamorian.evokesAllowed ?? 0) < 0 ? null : tmpfamorian.evokesAllowed;
+		var tmpbudget = checkEvokeBudget(tmpchosen, tmpallowed);
+		return {
+			breed: tmpfamorian.breed ?? "",
+			animalType: tmpfamorian.animalType ?? "",
+			evokes: describeEvokes(tmpracesys, tmpchosen, tmpbonuses),
+			budgetLabel: `${tmpbudget.used} of ${tmpbudget.allowed === null ? "All" : tmpbudget.allowed}`
+		};
+	}
+
+	// This is the function which turns a class's qualification issues into the short form the
+	// generator's own class dropdown uses ("needs STR 13, INT 15") and the full sentence for a
+	// tooltip -- the same split chargen-view.mjs makes for the same reason: a tight space (the
+	// header's identity line) gets the short one, and the reason stays readable on hover.
+	_summarizeClassQualification(tmpIssues) {
+		if (!tmpIssues.length) { return { short: "", full: "" }; }
+		var tmpShort = tmpIssues
+			.map(tmpIssue => (tmpIssue.match(/Needs (\w+ \d+)/) ?? [])[1])
+			.filter(tmpPart => tmpPart);
+		return {
+			short: tmpShort.length ? "needs " + tmpShort.join(", ") : tmpIssues[0],
+			full: tmpIssues.join(" ")
+		};
 	}
 
 	// @MARKER ADVANCEMENT
@@ -1018,6 +1117,14 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				tmpissues.push(`${tmpfirst.name} and ${this.raceItems[1].name} cannot have children together.`);
 			}
 		}
+
+		// A Half Race holding one winged and one wingless faerie form: neither physique lock is
+		// right for both halves, so this is reported beside the barred-class and infertile-pair
+		// issues above rather than decided here. Same call, same text -- resolvePhysiqueLock's own
+		// reason. See docs/sonnet/2026-09-21-race-forms.md item 3.
+		var tmpphysiqueconflict = resolvePhysiqueLock(this.raceItems.map(tmprace => tmprace.system));
+		if (tmpphysiqueconflict.conflict) { tmpissues.push(tmpphysiqueconflict.reason); }
+
 		return tmpissues;
 	}
 

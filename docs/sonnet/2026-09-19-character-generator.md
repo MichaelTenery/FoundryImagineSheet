@@ -1,5 +1,8 @@
 # 2026-09-19 — Character generator: mechanical follow-through
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 The generator is built: `module/chargen-rules.mjs` (rules), `module/chargen-view.mjs` (what each
 step shows), `module/apps/character-generator.mjs` (the window),
 `templates/apps/character-generator.hbs`, `tools/chargen-test.html` and

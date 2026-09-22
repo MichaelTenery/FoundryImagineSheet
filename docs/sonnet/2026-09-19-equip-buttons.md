@@ -1,5 +1,8 @@
 # Sonnet follow-through: Equip Best Armour / Remove All Arms
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 Left undone on purpose (mechanical, or waiting on a decision by the developer):
 
 1. **Same two buttons inside the Character Generator.** The generator has no equipment step

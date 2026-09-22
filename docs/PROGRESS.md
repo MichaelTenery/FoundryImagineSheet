@@ -54,6 +54,8 @@ Status values: `Backlog` / `In Progress` / `Blocked` / `Done`.
 
 **Play-testing feedback on 0.16.0, 2026-09-22, version 0.16.1.** Five reports, three fixed, two pinned. **"Animal Shape: (water animals only)" on almost every race** was not data: it was the grey placeholder of the race sheet's Skill note field, Nixie's note used as an example, and an example in an empty field reads as the race's own. Removed; Nixie is still the only race carrying it. **Plain `Fairy` and `Fairy(Dark)` beside their four forms** were left over from before the split: the importer matches by name, so it adds and updates but never removes a document the source has dropped. A new explicit `RETIRED_DOCUMENTS` list in `module/content-importer.mjs` takes them out on the next import (also `Podling`, `Sporeling`, and the two classes split by path, `Elemental Dancer` and `Innominate`), and the Items-sidebar fill removes them from its own folders. The "Awaiting the developer" text the report quoted was the description of those retired races, and goes with them. **Dark Fairy's Animal Shape may take a D'Wisp's form** -- Aspects of the Wild p.4 -- added as a skill note on both forms through `src/packs/manual/races.json`. His sheet gives the Dark Fairy no Animal Shape skill at all, though; asked in `UPSTREAM-ISSUES.md` item 50. **Pinned by the user:** Formless body-switching (a free-text *Formless: Bodies* field on the Description tab stands in until it is built) and the pre-release clean-up of race descriptions. Both are rows in Epic 2. **Famorian evokes are not limited by animal type, deliberately**: his sheet does not limit them either, and the user's call is that the Game Master polices it. The bestiaries do give each animal an Evoke Package, so it is buildable later; a Backlog row in Epic 2. See `DECISIONS.md` 2026-09-22.
 
+**The Sonnet backlog, worked through, 2026-09-22, version 0.17.0.** All 29 hand-off notes in `docs/sonnet/` were triaged against the code: most items had already been built by later passes, some wait on the developer, and the rest (about 35) were built in nine parallel streams. **Built:** race sheet shows form, source race, Gremlin's slight-physique variant, the Famorian breed table (editable) and evoke list, and edits `formlessHosts`; class sheet shows barred races, class skills, base class/path and Arch Mortal requirements; character sheet shows Famorian evokes and budget, the physique lock, the winged/wingless Half Race conflict and class qualification; the generator equips the best starting armour; item `quality` scales weight; his multi-missile acquisition roll ported as rules (no sheet button yet); `isRestricted` read from the books for 366 skills; equipment grouped by type and an XXX folder in the Items sidebar; `RETIRED_DOCUMENTS` tested, and the build warns when it is incomplete; a choices/blank sweep in the build; a manual-content loader test; a window-chrome harness; the stylesheet's colour literals themed; resistance roll, `sourceRace`/`physiqueLock`/`formlessHosts` documented. **And a What's New window** showing CHANGELOG.md once per user after each update (the user's request). **Two defects found on the way:** source attribution depended on Python's per-run set order, so a rebuild could move an item's page with no code change (now fixed, and three pages improved); and `build_system.py` read git output as cp1252 on Windows. **New for the developer:** `UPSTREAM-ISSUES.md` items 51 (Mixed flexibility) and 52 (racial social-skill bonuses: his table exists, the port lacks it, and his lookup passes an array where a name is expected). **Left, with reasons**, in `docs/sonnet/2026-09-22-sonnet-backlog.md`. See `DECISIONS.md` 2026-09-22.
+
 **Open with the developer:** `UPSTREAM-ISSUES.md` item 2 (Gaunt), item 3 (is the sheet current), item 4 (saves' half-chance vs ±20%), item 5 edge cases, item 10's Enhanced Perception double count, items 28 and 29 (multi-missile), and new items 38 (can a Fairy fly?) and 39 (two slips in the inline race rows).
 
 ---
@@ -145,18 +147,28 @@ Status values: `Backlog` / `In Progress` / `Blocked` / `Done`.
 6. Commit with a message describing what changed and why.
 
 **The test routine.** Serve the repository over HTTP and open each suite; they stub Foundry, so
-they run in any browser. As of 2026-09-19 the figures are:
+they run in any browser. As of 2026-09-22 the figures are:
 
 | suite | file | checks |
 |---|---|---|
-| Combat rules | `tools/combat-test.html` | 411 |
-| Derivation (character model) | `tools/derive-test.html` | 364 |
+| Combat rules | `tools/combat-test.html` | 442 |
+| Derivation (character model) | `tools/derive-test.html` | 499 |
 | Creature derivation | `tools/creature-test.html` | 145 |
 | Advancement rules | `tools/advancement-test.html` | 101 |
-| Character generation | `tools/chargen-test.html` | 75 |
+| Character generation | `tools/chargen-test.html` | 83 |
 | Content availability | `tools/availability-test.html` | 46 |
-| Level-up walk (real writing code) | `tools/levelup-walk.html` | 34 |
-| Module parse check | `tools/syntax-check.html` | 40 modules |
+| Level-up walk (real writing code) | `tools/levelup-walk.html` | 37 |
+| Equip rules | `tools/equip-test.html` | 21 |
+| Importer (retired documents) | `tools/importer-test.html` | 9 |
+| Changelog window | `tools/changelog-test.html` | 24 |
+| Window chrome (every item sheet scrolls) | `tools/window-test.html` | 19 |
+| Manual-content loader (Python) | `python tools/extract/test_manual_content.py` | 82 |
+| Module parse check | `tools/syntax-check.html` | 49 modules |
+
+**A plain `python -m http.server` lets the browser cache modules**, and on 2026-09-22 several
+passes found a reloaded suite still running the previous copy of a module it imports. Serve with
+`Cache-Control: no-store` (any small handler that sets it will do), or the numbers above can be a
+stale file's.
 
 ```bash
 python -m http.server 8777 --bind 127.0.0.1

@@ -16,6 +16,16 @@
 			{{else}}
 			<span class="field"><label>Class</label><span class="readout">{{#if system.identity.className}}{{system.identity.className}}{{else}}&mdash;{{/if}}</span></span>
 			<span class="field"><label>Title</label><span class="readout">{{system.identity.title}} {{system.identity.titleName}}</span></span>
+			{{!-- What stops this class -- checkClassQualification against the character's own final
+			      attributes, the same check the generator's class dropdown makes. Shortfall only,
+			      in this tight space; the full sentence is the tooltip. A character taken with the
+			      override says so here rather than looking like any other. See
+			      docs/sonnet/2026-09-20-first-install-bugs.md item 8. --}}
+			{{#with (lookup system.identity.classes 0) as |c|}}
+			{{#unless c.qualified}}
+			<span class="field class-qualification-issue" title="{{c.qualificationFull}}">{{c.qualificationShort}}</span>
+			{{/unless}}
+			{{/with}}
 			{{/if}}
 		</div>
 
@@ -40,7 +50,12 @@
 					{{c.title}}
 					<button type="button" class="title-step" data-action="stepClassTitle"
 						data-item-id="{{c.id}}" data-step="1" data-tooltip="On a title">+</button>
-					{{c.titleName}}</span></span>
+					{{c.titleName}}</span>
+				{{!-- Same qualification check as the single-class field above. --}}
+				{{#unless c.qualified}}
+				<span class="class-qualification-issue" title="{{c.qualificationFull}}">{{c.qualificationShort}}</span>
+				{{/unless}}
+			</span>
 			{{/each}}
 		</div>
 		{{#if system.identity.dualClassIssues.length}}
@@ -53,7 +68,8 @@
 
 		<div class="identity-line">
 			<span class="field"><label>Alignment</label>
-				<input type="text" name="system.identity.alignment" value="{{system.identity.alignment}}"></span>
+				<input type="text" name="system.identity.alignment" value="{{system.identity.alignment}}"
+					title="{{system.identity.alignment}}"></span>
 			<span class="field"><label>Exp</label>
 				<input type="number" name="system.identity.exp" value="{{system.identity.exp}}"></span>
 			<span class="field"><label>Goal</label>

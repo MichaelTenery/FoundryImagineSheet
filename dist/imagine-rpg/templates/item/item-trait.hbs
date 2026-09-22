@@ -21,14 +21,23 @@
 						<option value="{{c}}" {{#if (eq c ../system.category)}}selected{{/if}}>{{c}}</option>
 						{{/each}}
 					</select></span></li>
-				<li><label>Canonical name</label>
-					<span><input type="text" name="system.canonicalName" value="{{system.canonicalName}}"
-						placeholder="{{item.name}}"></span></li>
 			</ul>
 			<p class="muted">The canonical name is what his sheet displays when the entry is looked up
 			by a different spelling &mdash; "Acid Regeneration" resolves to "Regeneration(Acid)".</p>
 		</div>
+	</div>
 
+	{{!-- Was a band-list row, ~90px wide, sized for "Regeneration(Acid)". His longest canonical
+	      name runs to 44 characters ("Prehensile Tentacles With Prehensile Fingers"), which the
+	      band-list clipped to about a dozen visible characters -- Daryl's screenshot showed
+	      "Energy(Complete)" cut to "Energy(Compl". Moved to a wide-field, the same fix the race
+	      sheet's skill note got for the same reason, with the full value also on the title
+	      attribute for a still-longer future entry. --}}
+	<label class="wide-field">Canonical name
+		<input type="text" name="system.canonicalName" value="{{system.canonicalName}}"
+			placeholder="{{item.name}}" title="{{system.canonicalName}}"></label>
+
+	<div class="panel-row">
 		<div class="panel">
 			<h3>Values</h3>
 			<ul class="band-list">

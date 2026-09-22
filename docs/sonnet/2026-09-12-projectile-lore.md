@@ -1,5 +1,8 @@
 # Left for Sonnet — 2026-09-12, Projectile Lore pass
 
+> **2026-09-22: every item below was re-checked against the code and the mechanical ones built.**
+> Current status of each is in `2026-09-22-sonnet-backlog.md`, which wins where this note disagrees.
+
 > **Items 1-4 DONE 2026-09-14.** A real Archer at title 12 (weapon/missile/projectile titles
 > 12/3/7, all reachable at once) confirmed the Lore panel shows all three rows and the chat card
 > shows "+10 projectile lore (2/die)" on a real Long Bow attack — both as a second, isolated
