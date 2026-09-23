@@ -28,7 +28,17 @@ const CONTENT_PACKS = [
 	// single pack would overwrite one with the other.
 	{ file: "abilities",    pack: "abilities",    label: "Imagine Abilities",    type: "Item" },
 	{ file: "disabilities", pack: "disabilities", label: "Imagine Disabilities", type: "Item" },
-	{ file: "immunities",   pack: "immunities",   label: "Imagine Immunities",   type: "Item" }
+	{ file: "immunities",   pack: "immunities",   label: "Imagine Immunities",   type: "Item" },
+
+	// His Magic/Lore tab. In the consumables and lore packs a NAME is shared between kinds --
+	// "Anger" is a song and a poem, "Break Love" a candle ritual and a ritual -- so those two are
+	// matched on kind and name ("matchKind"), where every other pack is matched on name alone.
+	// Abilities and their siblings were split into three packs for the same collision; these are
+	// not, because there are thirteen lore kinds and thirteen compendia of them would bury the rest.
+	{ file: "consumables",  pack: "consumables",  label: "Imagine Consumables",  type: "Item", matchKind: true },
+	{ file: "lore",         pack: "lore",         label: "Imagine Lore",         type: "Item", matchKind: true },
+	{ file: "spells",       pack: "spells",       label: "Imagine Spells",       type: "Item" },
+	{ file: "invocations",  pack: "invocations",  label: "Imagine Invocations",  type: "Item" }
 ];
 
 const SOURCE_PATH = "systems/imagine-rpg/src/packs/documents";
@@ -76,6 +86,12 @@ export const RETIRED_DOCUMENTS = {
 	}
 
 
+	// This is the function which says what a document is matched on when the import looks for it in
+	// the compendium: its name, or -- in a pack where names repeat between kinds -- its kind and name.
+	export function getImportKey(tmpdefinition, tmpname, tmpkind) {
+		return tmpdefinition?.matchKind ? `${tmpkind ?? ""}|${tmpname}` : tmpname;
+	}
+
 	// This is the function which reads one document file shipped with the system.
 	async function loadContentFile(tmpname) {
 		var tmpresponse = await fetch(`${SOURCE_PATH}/${tmpname}.json`);
@@ -111,14 +127,18 @@ export const RETIRED_DOCUMENTS = {
 		var tmpwaslocked = tmppack.locked;
 		if (tmpwaslocked) { await tmppack.configure({ locked: false }); }
 
-		var tmpindex = await tmppack.getIndex();
+		var tmpindex = await tmppack.getIndex({ fields: ["system.kind"] });
 		var tmpexisting = new Map();
-		for (const tmpentry of tmpindex) { tmpexisting.set(tmpentry.name, tmpentry._id); }
+		var tmpexistingkeys = new Map();
+		for (const tmpentry of tmpindex) {
+			tmpexisting.set(tmpentry.name, tmpentry._id);
+			tmpexistingkeys.set(getImportKey(tmpdefinition, tmpentry.name, tmpentry.system?.kind), tmpentry._id);
+		}
 
 		var tmptocreate = [];
 		var tmptoupdate = [];
 		for (const tmpdoc of tmpdocs) {
-			var tmpid = tmpexisting.get(tmpdoc.name);
+			var tmpid = tmpexistingkeys.get(getImportKey(tmpdefinition, tmpdoc.name, tmpdoc.system?.kind));
 			if (tmpid) {
 				tmptoupdate.push({ _id: tmpid, type: tmpdoc.type, system: tmpdoc.system });
 			} else {

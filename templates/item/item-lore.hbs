@@ -1,0 +1,89 @@
+{{!--
+	Lore body: one known ballad, candle ritual, empathy ritual, glyph, hymn, poem, poison or potion
+	recipe, ritual, rune, song, sympathy ritual or evoke. One root element, as every PART must be.
+
+	The rating is what the entry costs to memorize, and the modifier is added when it is used --
+	his two numbers on every lore row. Memorizing, using and brewing are on the character's Magic &
+	Lore tab, where the skill's chance is.
+--}}
+<section class="imagine-item-body lore">
+
+	<div class="panel-row">
+		<div class="panel">
+			<h3>What it is</h3>
+			<ul class="band-list">
+				<li><label>Kind</label>
+					<span><select name="system.kind">
+						{{#each config.kinds as |k|}}
+						<option value="{{k.value}}" {{#if k.selected}}selected{{/if}}>{{k.label}}</option>
+						{{/each}}
+					</select></span></li>
+				{{#unless isEvoke}}
+				<li><label>Rating</label>
+					<span><input type="number" name="system.rating" value="{{system.rating}}" min="0"></span></li>
+				<li><label>Modifier</label>
+					<span><input type="number" name="system.modifier" value="{{system.modifier}}"></span></li>
+				<li><label>Memorized</label>
+					<span><input type="checkbox" name="system.memorized" {{#if system.memorized}}checked{{/if}}></span></li>
+				{{/unless}}
+			</ul>
+			{{#if learnSkill}}
+			<p class="muted">Learned with {{learnSkill}}{{#if useSkill}}, used with {{useSkill}}{{/if}}.</p>
+			{{else}}{{#if useSkill}}
+			<p class="muted">Used with {{useSkill}}.</p>
+			{{/if}}{{/if}}
+		</div>
+
+		<div class="panel">
+			<h3>Timing</h3>
+			<ul class="band-list">
+				{{#unless isRecipe}}
+				<li><label>Start time</label>
+					<span><input type="text" name="system.startTime" value="{{system.startTime}}"></span></li>
+				{{/unless}}
+				<li><label>Duration</label>
+					<span><input type="text" name="system.duration" value="{{system.duration}}"></span></li>
+				{{#if hasComponent}}
+				<li><label>Needs</label>
+					<span><input type="text" name="system.component" value="{{system.component}}"></span></li>
+				{{/if}}
+				{{#if isRune}}
+				<li><label>Rune type</label>
+					<span><input type="text" name="system.runeType" value="{{system.runeType}}"></span></li>
+				{{/if}}
+				{{#if isHymn}}
+				<li><label>Alignment</label>
+					<span><input type="text" name="system.alignment" value="{{system.alignment}}"></span></li>
+				{{/if}}
+			</ul>
+		</div>
+	</div>
+
+	{{#if isRecipe}}
+	<div class="panel-row">
+		<div class="panel">
+			<h3>Recipe</h3>
+			<ul class="band-list">
+				<li><label>Next batch</label>
+					<span><input type="number" name="system.batchDoses" value="{{system.batchDoses}}" min="0"> doses</span></li>
+				{{#if isPoisonRecipe}}
+				<li><label>Type / potency</label>
+					<span>{{system.poisonType}} / {{system.poisonPotency}}</span></li>
+				<li><label>Made as</label>
+					<span><select name="system.form">
+						{{#each config.forms as |f|}}<option value="{{f.value}}" {{#if f.selected}}selected{{/if}}>{{f.value}}</option>{{/each}}
+					</select></span></li>
+				{{else}}
+				<li><label>Value</label>
+					<span><input type="text" name="system.value" value="{{system.value}}"></span></li>
+				{{/if}}
+			</ul>
+			<p class="muted">Brewed from the Magic &amp; Lore tab: a success adds the batch to the
+			character's consumables.</p>
+		</div>
+	</div>
+	{{/if}}
+
+	<h3 class="section-head">Description</h3>
+	<textarea name="system.description" rows="6">{{system.description}}</textarea>
+</section>

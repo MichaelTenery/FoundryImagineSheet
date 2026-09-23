@@ -1431,3 +1431,24 @@ input.source-unknown {
 .imagine.situation-mods .situation-foot button { width: auto; }
 .imagine.situation-mods .empty { color: var(--imagine-muted); padding: 10px; }
 .imagine-chat .situation, .imagine-chat .situation-notes { font-size: 11px; }
+
+
+/* @MARKER MAGIC AND LORE TAB ---------------------------------------------------------------------
+   His Magic/Lore tab: consumables, lores, spells, invocations (templates/actor/tab-magic.hbs).
+   Built from the skills tab's groups and tables, so only what differs is here. */
+.imagine-magic .magic-summary { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.imagine-magic .magic-summary button { width: auto; margin-left: auto; }
+.imagine-magic .magic-summary .alarm { color: var(--imagine-alarm); font-weight: 600; }
+.imagine-magic .magic-group summary .magic-skill { font-weight: normal; font-size: 11px; margin-left: 8px; }
+.imagine-magic .magic-table .col-detail { font-size: 11px; max-width: 280px; overflow: hidden;
+	text-overflow: ellipsis; white-space: nowrap; }
+.imagine-magic .magic-table .col-roll button { width: auto; padding: 0 8px; }
+.imagine-magic .magic-table .col-row-actions { white-space: nowrap; }
+.imagine-magic .mem-toggle { color: var(--imagine-muted); }
+.imagine-magic .mem-toggle.on { color: var(--imagine-accent); font-weight: 700; }
+.imagine-magic .magic-other { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.imagine-magic .magic-other select { width: auto; }
+.imagine-magic .magic-other button { width: auto; }
+.imagine.item-picker .learn-by-roll { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.imagine-chat .imagine-magic-card p, .imagine-magic-card p { margin: 4px 0; }
+.imagine-starting-lore ul { margin: 4px 0 4px 16px; padding: 0; }

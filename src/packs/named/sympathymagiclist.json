@@ -1,0 +1,354 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "sympathymagiclist",
+    "lines": [
+      146295,
+      146352
+    ]
+  },
+  "_fields": [
+    "name",
+    "rating",
+    "modifier",
+    "startTime",
+    "duration",
+    "component",
+    "description"
+  ],
+  "entries": {
+    "Drain": {
+      "name": "Drain",
+      "rating": "17",
+      "modifier": "-10",
+      "startTime": "1 min.",
+      "duration": "Instant",
+      "component": "Cup",
+      "description": "Allows the user to transfer one attribute point per 2 Practitioner Titles from any attribute (except Social Class) of the focus being to the practitioner. Points revert back at a rate of one per hour."
+    },
+    "Hate": {
+      "name": "Hate",
+      "rating": "16",
+      "modifier": "-5",
+      "startTime": "30 min.",
+      "duration": "Instant",
+      "component": "Hair",
+      "description": "Causes the focus to have a negative reaction to a being of the skill user`s choice, unless a Control Resistance is successful."
+    },
+    "Hurt": {
+      "name": "Hurt",
+      "rating": "15",
+      "modifier": "0",
+      "startTime": "10 min.",
+      "duration": "Instant",
+      "component": "Blood",
+      "description": "Damages 1d4 per Practitioner Titles to one named area."
+    },
+    "Leech": {
+      "name": "Leech",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "30 min.",
+      "duration": "1 day",
+      "component": "Gem",
+      "description": "Allows the practitioner to steal the use of one magical skill, power or spell from the focus for one full day. During this time, the victim cannot use the ability."
+    },
+    "Poverty": {
+      "name": "Poverty",
+      "rating": "17",
+      "modifier": "-10",
+      "startTime": "1 hour",
+      "duration": "1 day",
+      "component": "Coin",
+      "description": "The next monetary transaction attempted by the focus being will go against them, generating a loss of money. The transaction must occur within one day of the ritual."
+    },
+    "Unlucky": {
+      "name": "Unlucky",
+      "rating": "16",
+      "modifier": "-5",
+      "startTime": "10 min.",
+      "duration": "1 day",
+      "component": "Clover",
+      "description": "Grants 4 unlucky points to be used against the focus by the skill user or any they inform of the unlucky ritual. Each point can be used to alter a die roll by +/- 1 or 5% (whichever is applicable) against the focus. Only one point can be used at a time."
+    },
+    "Vulnerable": {
+      "name": "Vulnerable",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "20 min.",
+      "duration": "1 day",
+      "component": "Clothing",
+      "description": "Focus is -5% to Magic, Illusion and Control Resistances for one full day."
+    },
+    "Fumble": {
+      "name": "Fumble",
+      "rating": "20",
+      "modifier": "-25",
+      "startTime": "5 min.",
+      "duration": "Varies",
+      "component": "Fingernails",
+      "description": "Causes victim to be -2/-10% to all physical action (Agility save, combat skill, stealth/intrusive, etc.) per Practitioner Title. Lasts 1 hour per Practitioner Title."
+    },
+    "Enfeeble": {
+      "name": "Enfeeble",
+      "rating": "25",
+      "modifier": "-50",
+      "startTime": "1 hour",
+      "duration": "Varies",
+      "component": "Sweat",
+      "description": "The victim temporarily loses 1/10 of their lifespan per Practitioner Title. Physical and mental effects are based on age. The victim does not gain the Wisdom and Knowledge bonuses usually afforded to older beings. If 100% of lifespan is reached by this effect, the enfeebled being suffers a heart attack and organ failure. The heart attack re-occurs every hour of effect until the effect ends or the victim is dead. Enfeeble last 1 hour per Practitioner Title."
+    },
+    "Feral Instinct": {
+      "name": "Feral Instinct",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "30 min.",
+      "duration": "1 day",
+      "component": "Hair",
+      "description": "Causes one named being to feel and behave with the tendencies of one chosen animal for a full day. For example, if monkey was chosen, the focus being would crave bananas, try to pick insects from the hair of others, and make occasional ooh-ooh noises."
+    },
+    "Lycanthropy": {
+      "name": "Lycanthropy",
+      "rating": "22",
+      "modifier": "-35",
+      "startTime": "1 hour",
+      "duration": "Permanent",
+      "component": "Blood",
+      "description": "Causes one named being to be afflicted with the lycanthropy of the practitioner`s choice. The victim is afforded a Disease Resistance to avoid."
+    },
+    "Crack Crypt": {
+      "name": "Crack Crypt",
+      "rating": "20",
+      "modifier": "-25",
+      "startTime": "1 hour",
+      "duration": "Varies",
+      "component": "Crypt Piece",
+      "description": "Creates an opening in a crypt or tomb, large enough to admit a humanoid being. The hole remains for 10 minutes per Practitioner Title before the crypt reseals itself. This ritual breaks the Empathy Magic Ritual Seal Crypt by using a contest of Will Force, modified by Practitioner Titles and Will Force differences (+/-5% per)."
+    },
+    "Unholy Barrier": {
+      "name": "Unholy Barrier",
+      "rating": "25",
+      "modifier": "-50",
+      "startTime": "2 hours",
+      "duration": "Varies",
+      "component": "Divine Symbol",
+      "description": "Creates an alignment colored barrier around the ritualist, protecting the ritualist from good-aligned divine magical spells, skills, weapons, etc. This lasts 1 day per Practitioner Title and remains in effect for the full amount of time, even after the ritualist is deceased."
+    },
+    "Still Good": {
+      "name": "Still Good",
+      "rating": "30",
+      "modifier": "-75",
+      "startTime": "1 hour",
+      "duration": "1 day",
+      "component": "Divine Symbol",
+      "description": "Blocks a single being from contacting their good deity for the use of any invocations or skills, including Commune, for a period of 24 hours."
+    },
+    "Trap Psyche": {
+      "name": "Trap Psyche",
+      "rating": "24",
+      "modifier": "-45",
+      "startTime": "1 hour",
+      "duration": "Varies",
+      "component": "Gem",
+      "description": "Places a special form of protection upon the target lasting 1 hour per Practioner Title, allowing the Mind, Spirit, and Soul to remain within the target`s Body upon death, instead of transitioning into ghost-form. The Body will house them for 1 hour per Will Force of the individual before the effects of Death of the Body take place. During this time, the Body can be animated by the trapped psyche (through Telekinesis if the focus has this skill), but all physical skills and Stats are halved."
+    },
+    "Burning": {
+      "name": "Burning",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "30 min.",
+      "duration": "1 day",
+      "component": "Skin",
+      "description": "Causes the focus to be extra-susceptible to burns, resulting in a -5% per Practitioner Title to Magic Resistances against fire, an extra 1d6 fire damage (including non-magical flames), and 1d4 damage per minute to all areas exposed to the sun."
+    },
+    "Clumsiness": {
+      "name": "Clumsiness",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "20 min.",
+      "duration": "1 day",
+      "component": "Glove",
+      "description": "Causes the focus to be clumsy, resulting in -5% per Practitioner Title to Agility saves."
+    },
+    "Distraction": {
+      "name": "Distraction",
+      "rating": "15",
+      "modifier": "0",
+      "startTime": "30 min.",
+      "duration": "1 day",
+      "component": "String/Twine",
+      "description": "Causes the focus to be easily distracted, resulting in -5% per Practitioner Title to Perception and Concentration (Intelligence save) rolls."
+    },
+    "Doubt": {
+      "name": "Doubt",
+      "rating": "16",
+      "modifier": "-5",
+      "startTime": "5 min.",
+      "duration": "1 day",
+      "component": "Hair",
+      "description": "Causes the focus to be doubtful of others and personal ideas, resulting in a -5% per Practitioner Title to Truth Tell and Informational skills."
+    },
+    "Forgetfulness": {
+      "name": "Forgetfulness",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "5 min.",
+      "duration": "1 day",
+      "component": "Blank Journal Page",
+      "description": "Causes the focus to temporarily forget a single memory of an event that transpired no more than 4 years ago per Practitioner Title."
+    },
+    "Frostbite": {
+      "name": "Frostbite",
+      "rating": "17",
+      "modifier": "-10",
+      "startTime": "5 min.",
+      "duration": "1 day",
+      "component": "Claw/Fingernail",
+      "description": "Causes the focus to be extra-susceptible to low temperatures, resulting in a -5% per Practitioner Title to Magic Resistances against cold, and 1d4 damage per minute to body extremities in temperatures below freezing."
+    },
+    "Trust": {
+      "name": "Trust",
+      "rating": "17",
+      "modifier": "-10",
+      "startTime": "5 min.",
+      "duration": "1 day",
+      "component": "Eyelash",
+      "description": "Causes the focus to be overly trusting of others, resulting in a -5% per Practitioner Title to Truth Tell and Wisdom saves."
+    },
+    "Wingless": {
+      "name": "Wingless",
+      "rating": "17",
+      "modifier": "-10",
+      "startTime": "30 min.",
+      "duration": "1 day",
+      "component": "Feather/Wing Skin",
+      "description": "Weakens the focus`s natural wings, preventing them from granting the ability of flight. This ritual has no effect on mentally projected wings such as those of fairies."
+    },
+    "Corrupt Health": {
+      "name": "Corrupt Health",
+      "rating": "13",
+      "modifier": "10",
+      "startTime": "10 min.",
+      "duration": "Varies",
+      "component": "Blood",
+      "description": "Penalizes one target on the same plane as the ritualists to have -5% (per 3 full practitioner titles of the ritualist) to all Disease Resistance rolls for 1 hour per practitioner title."
+    },
+    "Corrupt Mystic": {
+      "name": "Corrupt Mystic",
+      "rating": "20",
+      "modifier": "-25",
+      "startTime": "10 min.",
+      "duration": "Varies",
+      "component": "Coin/Gem",
+      "description": "Penalizes one target on the same plane as the ritualists to have -5% (per 3 full practitioner titles of the ritualist) to all Magic Resistance rolls for 1 hour per practitioner title."
+    },
+    "Corrupt Truth": {
+      "name": "Corrupt Truth",
+      "rating": "15",
+      "modifier": "0",
+      "startTime": "10 min.",
+      "duration": "Varies",
+      "component": "Clothing",
+      "description": "Penalizes one target on the same plane as the ritualists to have -5% (per 3 full practitioner titles of the ritualist) to all Illusion Resistance rolls for 1 hour per practitioner title."
+    },
+    "Corrupt Vital": {
+      "name": "Corrupt Vital",
+      "rating": "16",
+      "modifier": "-5",
+      "startTime": "10 min.",
+      "duration": "Varies",
+      "component": "Saliva",
+      "description": "Penalizes one target on the same plane as the ritualists to have -5% (per 3 full practitioner titles of the ritualist) to all Poison Resistance rolls for 1 hour per practitioner title."
+    },
+    "Corrupt Will": {
+      "name": "Corrupt Will",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "10 min.",
+      "duration": "Varies",
+      "component": "Tear",
+      "description": "Penalizes one target on the same plane as the ritualists to have -5% (per 3 full practitioner titles of the ritualist) to all Control Resistance rolls for 1 hour per practitioner title."
+    },
+    "Forced Mind Swap": {
+      "name": "Forced Mind Swap",
+      "rating": "17",
+      "modifier": "-10",
+      "startTime": "1 hour",
+      "duration": "Varies",
+      "component": "Dried Skin",
+      "description": "The forced swap of minds with another being. Mental probing of the target occurs during the ritual and at the end of the ritual the ritualist or one designate. Makes a Control Resistance (if desired) and swaps minds with the target. The effect lasts 1 hour per practitioner title or permanently if 1 Will Force is spent by the ritualist."
+    },
+    "Reveal Spirit": {
+      "name": "Reveal Spirit",
+      "rating": "15",
+      "modifier": "0",
+      "startTime": "10 sec.",
+      "duration": "Instant",
+      "component": "None",
+      "description": "Causes all supernatural spirits, recently dead beings (ghosts), etc. to appear in some form even if the spirit doesn`t normally have a form (an outline or orb of aura) is created based on the alignment of the being. See the spell Reveal Aura. No save or resistance is allowed to avoid this effect but Non-Detection and like effects are proof against it."
+    },
+    "Bind the Dead": {
+      "name": "Bind the Dead",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "1 hour",
+      "duration": "Goal Complete",
+      "component": "Blood",
+      "description": "Ghosts will lose their required special requirements to be near where they died and or another item and be drawn and bound to the item the ritualist carries lasts for 1 day."
+    },
+    "Blood Bond": {
+      "name": "Blood Bond",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "1 hour",
+      "duration": "Goal Complete",
+      "component": "Blood",
+      "description": "Links the practitioner and up to 2 others per class title. The practitioner cuts themselves and each being participating cuts themselves and each place wound against wound to all of the participants exchanging blood, creating the bond. After this they can all sense the direction of any other in the bond and approximate distance. They must make a Control Resistance to attack or betray any of the others. This ritual lasts until specified goal or quest is completed."
+    },
+    "Conscript Spirit": {
+      "name": "Conscript Spirit",
+      "rating": "17",
+      "modifier": "-10",
+      "startTime": "1 hour",
+      "duration": "Varies",
+      "component": "Unholy Water",
+      "description": "Requires the burial place or body of where the spirit died. Or any anchoring object that the spirit prizes or prized while alive. Spirit gets a Control Resistance at -20% to be controlled by the practitioner for up to 1 hour per practitioner title."
+    },
+    "Death Pact": {
+      "name": "Death Pact",
+      "rating": "19",
+      "modifier": "-20",
+      "startTime": "1 hour",
+      "duration": "Until Converted",
+      "component": "Undead Part",
+      "description": "Practitioner performs this ritual on themselves or a single individual. A target undead type is chosen based on the component and an indelible mark placed somewhere on the body of the target. The target now has made a dark pact and upon their death will begin a conversion process. On the next night they convert into the undead type chosen by the component."
+    },
+    "Deny Good": {
+      "name": "Deny Good",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "1 hour",
+      "duration": "1 day",
+      "component": "Personal Item",
+      "description": "Requires an object handled by a good invocation user. This object and the particular good invoker are then focused on by the ritual performer who must have evil as part of their alignment or worship an evil deity. If the ritual skill roll is successful the good invoker focused on is unable to use any invocations for the remainder of the day."
+    },
+    "Devil Debt": {
+      "name": "Devil Debt",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "10 min.",
+      "duration": "Instant",
+      "component": "Black or Red Hoof",
+      "description": "Calls to the nearest Devil on the same plane (under 10th level). The Devil may make a Control Resistance to resist (if desired). There is a 1% chance a Demon comes instead. The Demon will be difficult to deal with and will likely demand a sacrifice. A Devil (or Demon) may come without resisting (GM`s discretion) if they are curious. Once present it will make itself known to practitioner. At that time the practitioner can make a request. The Devil may grant it but will demand a favor in return, creating a debt. The more that is asked the higher the request."
+    },
+    "Expulsion": {
+      "name": "Expulsion",
+      "rating": "18",
+      "modifier": "-15",
+      "startTime": "1 min.",
+      "duration": "Permanent",
+      "component": "Personal Item",
+      "description": "One being automatically fails all Affinity checks with anyone in the named group (ritualist must be a member of). Members of that group will shun the expelled individual and any interaction with the being requires a Will Force save."
+    }
+  }
+}

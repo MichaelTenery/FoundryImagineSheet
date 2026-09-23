@@ -221,6 +221,58 @@ MARTIALLOREVALUESLIST       = ["name", "type", "rating", "skillMod", "special"]
 MARTIALKNOWSTANCEVALUESLIST = ["name", "special"]
 MARTIALLORESTANCEVALUESLIST = ["name", "special"]
 
+
+# ---------------------------------------------------------------------------
+# @MARKER MAGIC AND LORE MAPS
+# ---------------------------------------------------------------------------
+# His Magic/Lore tab (the "e" button, sheet-magiclore) -- the consumables, the lores, the spells
+# and the invocations. Every one of these carries a header comment of his own above the
+# dictionary, so every map below is sourced "header", and each one keeps the name as column 0
+# because his rows repeat it there (the build checks the two agree -- one potion row does not).
+
+    # herblist -- source: header comment at sheet-worker.js:128573
+HERBLIST          = ["name", "herbType", "value", "potency", "duration", "description"]
+    # potionlist -- source: header comment at sheet-worker.js:133023
+POTIONLIST        = ["name", "value", "duration", "description"]
+    # elixirlist -- source: header comment at sheet-worker.js:134740
+ELIXIRLIST        = ["name", "value", "duration", "description"]
+    # charmlist -- source: header comment at sheet-worker.js:135629
+CHARMLIST         = ["name", "form", "willCost", "duration", "description"]
+    # balladlist -- source: header comment at sheet-worker.js:136861
+BALLADLIST        = ["name", "rating", "modifier", "startTime", "duration", "description"]
+    # candlelorelist -- source: header comment at sheet-worker.js:137466. "Candles" is the colour
+    # code of the candles the ritual burns ("BL,BN,GY").
+CANDLELORELIST    = ["name", "rating", "modifier", "startTime", "duration", "component", "description"]
+    # empathymagiclist -- source: header comment at sheet-worker.js:137970. "Object" is the focus.
+EMPATHYMAGICLIST  = ["name", "rating", "modifier", "startTime", "duration", "component", "description"]
+    # glyphlist -- source: header comment at sheet-worker.js:138530
+GLYPHLIST         = ["name", "rating", "modifier", "description"]
+    # hymnlorelist -- source: header comment at sheet-worker.js:139116
+HYMNLORELIST      = ["name", "rating", "modifier", "startTime", "duration", "description"]
+    # poemlist -- source: header comment at sheet-worker.js:141890. SEVEN columns under a header of
+    # six names: "Start Time" is two cells, the amount and its unit ("3d6", "sec."), which every
+    # one of the 51 rows keeps apart. The build joins them.
+POEMLIST          = ["name", "rating", "modifier", "startTime", "startTimeUnit", "duration", "description"]
+    # rituallist -- source: header comment at sheet-worker.js:143037
+RITUALLIST        = ["name", "rating", "modifier", "startTime", "duration", "description"]
+    # runelist -- source: header comment at sheet-worker.js:143887
+RUNELIST          = ["name", "rating", "modifier", "runeType", "description"]
+    # songlist -- source: header comment at sheet-worker.js:145378
+SONGLIST          = ["name", "rating", "modifier", "startTime", "duration", "description"]
+    # sympathymagiclist -- source: header comment at sheet-worker.js:146295. "Object" again.
+SYMPATHYMAGICLIST = ["name", "rating", "modifier", "startTime", "duration", "component", "description"]
+    # evokedict -- source: obvious. His comment calls it "the data dictionary object for all evoke
+    # abilities" and each row is a name and one sentence.
+EVOKEDICT         = ["name", "description"]
+    # spellslist -- source: header comment at sheet-worker.js:160160. "Magic Name" is the spell's
+    # name in the old tongue (Chill is "Ath-Carmor"); "Type" is his aspect list ("Cre, Dis, Eng").
+SPELLSLIST        = ["name", "level", "magicName", "save", "memTime", "spellTypes", "fail",
+                     "castTime", "range", "area", "duration", "distance", "description"]
+    # invocationslist -- source: header comment at sheet-worker.js:152811. "Uses/Per" is a
+    # fraction of a day, ".166" for once in six days.
+INVOCATIONSLIST   = ["name", "level", "alignment", "save", "prayerTime", "uses", "invokeTime",
+                     "range", "area", "duration", "distance", "description"]
+
 MAPS = {
     "skilldict": SKILLDICT,
     "abilitylist@176213": TRAITDICT,
@@ -247,6 +299,23 @@ MAPS = {
     "martiallorevalueslist": MARTIALLOREVALUESLIST,
     "martialknowstancevalueslist": MARTIALKNOWSTANCEVALUESLIST,
     "martiallorestancevalueslist": MARTIALLORESTANCEVALUESLIST,
+    "herblist": HERBLIST,
+    "potionlist": POTIONLIST,
+    "elixirlist": ELIXIRLIST,
+    "charmlist": CHARMLIST,
+    "balladlist": BALLADLIST,
+    "candlelorelist": CANDLELORELIST,
+    "empathymagiclist": EMPATHYMAGICLIST,
+    "glyphlist": GLYPHLIST,
+    "hymnlorelist": HYMNLORELIST,
+    "poemlist": POEMLIST,
+    "rituallist": RITUALLIST,
+    "runelist": RUNELIST,
+    "songlist": SONGLIST,
+    "sympathymagiclist": SYMPATHYMAGICLIST,
+    "evokedict": EVOKEDICT,
+    "spellslist": SPELLSLIST,
+    "invocationslist": INVOCATIONSLIST,
 }
 MAPS.update(RATING_VALUE_MAPS)
 

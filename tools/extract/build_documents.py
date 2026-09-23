@@ -1548,6 +1548,8 @@ PACK_TYPES = {
     "equipment": ("equipment", None), "races": ("race", None), "classes": ("class", None),
     "abilities": ("trait", "ability"), "disabilities": ("trait", "disability"),
     "immunities": ("trait", "immunity"),
+    "consumables": ("consumable", None), "lore": ("lore", None),
+    "spells": ("spell", None), "invocations": ("invocation", None),
 }
 
 
@@ -1632,6 +1634,24 @@ def apply_manual_content(tmppack, tmpdocs):
         tmpsystem = {k: v for k, v in tmprow.items() if not k.startswith("_")}
         for tmpfield in unknown_fields(tmpsystem, tmpknown):
             note("manual-unknown-field", where, "%s is not a field of this pack's documents" % tmpfield)
+
+        # @MARKER KIND-KEYED PACKS
+        # In the consumables and lore packs a name is not a key -- "Anger" is a song and a poem --
+        # so an entry that names its kind is matched on kind and name. One that does not is matched
+        # on its name only while that name is unique in the pack, and reported otherwise rather than
+        # laid over whichever came first.
+        if tmppack in KIND_KEYED_PACKS:
+            tmpsamename = [d for d in tmpdocs if d["name"] == tmpname]
+            if tmprow.get("kind"):
+                tmpsamename = [d for d in tmpsamename if d["system"].get("kind") == tmprow["kind"]]
+            elif len(tmpsamename) > 1:
+                note("manual-ignored", where, "that name is %s; say which with \"kind\""
+                     % " and ".join(sorted({"a " + str(d["system"].get("kind")) for d in tmpsamename})))
+                continue
+            if tmpsamename:
+                tmpbyname[tmpname] = tmpsamename[0]
+            else:
+                tmpbyname.pop(tmpname, None)
 
         if tmpname in tmpbyname or tmpname in tmpbases:
             if not tmprow.get("_override"):
@@ -1719,6 +1739,141 @@ def build_traits(tmpcategory):
     return docs
 
 
+# @MARKER MAGIC AND LORE
+# His Magic/Lore tab's content, as four packs: consumables (herbs, potions, elixirs, charms),
+# lore (the twelve lores and the evokes), spells and invocations. Poisons are not here -- a poison
+# is built from a type and a potency by getPoisonDetails, not listed, so the sheet makes one when
+# it is wanted (module/lore-rules.mjs).
+#
+# Each document carries its kind, as his repeating-section name, and the magic subsystem that kind
+# answers to. The subsystems are those of MAGIC_KINDS in module/lore-rules.mjs, which is the one
+# place they are decided; this table only repeats them so the build does not have to run JavaScript.
+MAGIC_SUBSYSTEM_OF = {
+    "herb": "herbalism", "potion": "herbalism", "elixir": "herbalism", "charm": "charms",
+    "ballad": "bardic", "hymn": "bardic", "poem": "bardic", "song": "bardic",
+    "candlelore": "candlelore", "empathymagic": "empathy", "sympathymagic": "sympathy",
+    "glyph": "glyphs", "rune": "runes", "ritual": "rituals", "evoke": "evoke",
+    "spell": "arcane", "invocation": "divine",
+}
+
+# The packs where names repeat between kinds, and so are matched on kind AND name -- by the
+# manual layer here, by the importer (content-importer.mjs) and by the Items sidebar fill.
+KIND_KEYED_PACKS = {"consumables", "lore"}
+
+# The packs his Master Index has not been matched against yet. apply_sources looks a document up
+# by NAME, and in these packs a name is not enough: his rune Balance would take the page of the
+# Balance skill, and his spell Chill and invocation Chill are different entries on different pages.
+# Until an attribution pass that knows the kind is written, these are marked XXX honestly rather
+# than attributed wrongly. docs/sonnet/2026-09-22-magic-lore-tab.md.
+NOT_YET_ATTRIBUTED_PACKS = {"consumables", "lore", "spells", "invocations"}
+
+
+def magic_row_name(tmpkey, tmprow, where):
+    """The name of one of his magic rows. The key is the name his code looks the row up BY, so it
+    wins; a row whose own name column disagrees is reported, since his sheet displays the column."""
+    tmpname = clean_text(tmpkey)
+    tmpcolumn = clean_text(str(tmprow.get("name", tmpkey)))
+    if tmpcolumn != tmpname:
+        note("magic-name-mismatch", where, "keyed %r but its name column says %r" % (tmpname, tmpcolumn))
+    return tmpname
+
+
+def magic_text(tmprow, tmpfield):
+    return clean_text(str(tmprow.get(tmpfield, "") or ""))
+
+
+def build_consumables():
+    docs = []
+    for tmpdict, tmpkind in (("herblist", "herb"), ("potionlist", "potion"),
+                             ("elixirlist", "elixir"), ("charmlist", "charm")):
+        payload = load_named(tmpdict)
+        if not payload:
+            continue
+        for tmpkey, tmprow in payload["entries"].items():
+            where = "%s/%s" % (tmpdict, tmpkey)
+            docs.append(make_doc(magic_row_name(tmpkey, tmprow, where), "consumable", {
+                "kind": tmpkind,
+                "subsystem": MAGIC_SUBSYSTEM_OF[tmpkind],
+                "doses": 1,
+                "herbType": magic_text(tmprow, "herbType"),
+                "value": magic_text(tmprow, "value"),
+                "potency": magic_text(tmprow, "potency"),
+                "duration": magic_text(tmprow, "duration"),
+                "willCost": magic_text(tmprow, "willCost"),
+                "form": magic_text(tmprow, "form"),
+                "sourcebook": "XXX",
+                "description": magic_text(tmprow, "description"),
+            }))
+    return docs
+
+
+def build_lore():
+    docs = []
+    tmphymns = (load_named("hymnAlignments") or {}).get("entries", {})
+    for tmpdict, tmpkind in (("balladlist", "ballad"), ("candlelorelist", "candlelore"),
+                             ("empathymagiclist", "empathymagic"), ("glyphlist", "glyph"),
+                             ("hymnlorelist", "hymn"), ("poemlist", "poem"), ("rituallist", "ritual"),
+                             ("runelist", "rune"), ("songlist", "song"),
+                             ("sympathymagiclist", "sympathymagic"), ("evokedict", "evoke")):
+        payload = load_named(tmpdict)
+        if not payload:
+            continue
+        for tmpkey, tmprow in payload["entries"].items():
+            where = "%s/%s" % (tmpdict, tmpkey)
+            tmpname = magic_row_name(tmpkey, tmprow, where)
+            # A poem's start time is two cells, the amount and the unit ("3d6", "sec.").
+            tmpstart = magic_text(tmprow, "startTime")
+            if tmprow.get("startTimeUnit"):
+                tmpstart = (tmpstart + " " + magic_text(tmprow, "startTimeUnit")).strip()
+            docs.append(make_doc(tmpname, "lore", {
+                "kind": tmpkind,
+                "subsystem": MAGIC_SUBSYSTEM_OF[tmpkind],
+                "rating": to_number(tmprow.get("rating"), where, "rating"),
+                "modifier": to_number(tmprow.get("modifier"), where, "modifier"),
+                "startTime": tmpstart,
+                "duration": magic_text(tmprow, "duration"),
+                "component": magic_text(tmprow, "component"),
+                "runeType": magic_text(tmprow, "runeType"),
+                "alignment": tmphymns.get(tmpname, "") if tmpkind == "hymn" else "",
+                "memorized": False,
+                "sourcebook": "XXX",
+                "description": magic_text(tmprow, "description"),
+            }))
+    return docs
+
+
+def build_spells():
+    payload = load_named("spellslist")
+    if not payload:
+        return []
+    docs = []
+    for tmpkey, tmprow in payload["entries"].items():
+        where = "spellslist/%s" % tmpkey
+        tmpsystem = {"subsystem": "arcane", "memorized": False, "sourcebook": "XXX"}
+        tmpsystem["level"] = to_number(tmprow.get("level"), where, "level")
+        for tmpfield in ("magicName", "save", "memTime", "spellTypes", "fail", "castTime", "range",
+                         "area", "duration", "distance", "description"):
+            tmpsystem[tmpfield] = magic_text(tmprow, tmpfield)
+        docs.append(make_doc(magic_row_name(tmpkey, tmprow, where), "spell", tmpsystem))
+    return docs
+
+
+def build_invocations():
+    payload = load_named("invocationslist")
+    if not payload:
+        return []
+    docs = []
+    for tmpkey, tmprow in payload["entries"].items():
+        where = "invocationslist/%s" % tmpkey
+        tmpsystem = {"subsystem": "divine", "memorized": False, "sourcebook": "XXX"}
+        tmpsystem["level"] = to_number(tmprow.get("level"), where, "level")
+        for tmpfield in ("alignment", "save", "prayerTime", "uses", "invokeTime", "range", "area",
+                         "duration", "distance", "description"):
+            tmpsystem[tmpfield] = magic_text(tmprow, tmpfield)
+        docs.append(make_doc(magic_row_name(tmpkey, tmprow, where), "invocation", tmpsystem))
+    return docs
+
+
 BUILDERS = {
     "skills": build_skills,
     "weapons": build_weapons,
@@ -1729,6 +1884,10 @@ BUILDERS = {
     "abilities": lambda: build_traits("ability"),
     "disabilities": lambda: build_traits("disability"),
     "immunities": lambda: build_traits("immunity"),
+    "consumables": build_consumables,
+    "lore": build_lore,
+    "spells": build_spells,
+    "invocations": build_invocations,
 }
 
 
@@ -1946,8 +2105,20 @@ def write_unattributed_report(tmpbuilt):
     tmpout.append("\n## What is not\n\n| pack | no source | of |\n|---|---:|---:|\n")
     for tmppack in sorted(tmprows):
         tmpout.append("| %s | %d | %d |\n" % (tmppack, len(tmprows[tmppack]), tmptotals[tmppack]))
+
+    # The magic and lore packs have not been through attribution at all yet -- see
+    # NOT_YET_ATTRIBUTED_PACKS -- so every one of their documents is here, and listing 2,500 names
+    # would bury the list below, which somebody can actually work through.
+    tmpwaiting = sorted(p for p in tmprows if p in NOT_YET_ATTRIBUTED_PACKS and tmprows[p])
+    if tmpwaiting:
+        tmpout.append("\n### Not yet attributed at all: %s\n\n" % ", ".join(tmpwaiting))
+        tmpout.append("These packs (his Magic/Lore tab, added 2026-09-22) are marked XXX throughout and are not\n"
+                      "listed name by name. Attribution looks a document up by NAME, and in these packs a name\n"
+                      "is not enough -- his rune Balance would take the Balance skill's page, and his spell and\n"
+                      "invocation Chill are different entries. They wait for an attribution pass that knows the\n"
+                      "kind: `docs/sonnet/2026-09-22-magic-lore-tab.md`.\n")
     for tmppack in sorted(tmprows):
-        if not tmprows[tmppack]:
+        if not tmprows[tmppack] or tmppack in NOT_YET_ATTRIBUTED_PACKS:
             continue
         tmpout.append("\n### %s (%d)\n\n" % (tmppack, len(tmprows[tmppack])))
         for tmpname in tmprows[tmppack]:
@@ -1976,7 +2147,10 @@ def main():
     for tmpname, tmpbuilder in BUILDERS.items():
         # Sources first, then the manual layer: a hand-authored entry that names its own
         # sourcebook must still win, and an override exists precisely to overrule what we derived.
-        docs = apply_manual_content(tmpname, apply_sources(tmpbuilder()))
+        tmpgenerated = tmpbuilder()
+        if tmpname not in NOT_YET_ATTRIBUTED_PACKS:
+            tmpgenerated = apply_sources(tmpgenerated)
+        docs = apply_manual_content(tmpname, tmpgenerated)
         tmpbuilt[tmpname] = docs
         total += len(docs)
         print(f"{tmpname:14} {len(docs):10}")

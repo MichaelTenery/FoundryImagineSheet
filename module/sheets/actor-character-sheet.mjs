@@ -21,6 +21,10 @@ import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import ImagineItemPicker from "../apps/item-picker.mjs";
+import { buildMagicPanel } from "../magic-view.mjs";
+import { useConsumable, addDose, toggleMemorized, useLore, brewRecipe, addPoison,
+         postMagic } from "../magic-actions.mjs";
+import { provideStartingLore } from "../starting-lore.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
          learnMartialStance, masterMartialStance, learnMartialSubskill,
          learnMartialLoreValue } from "../combat/martial-attack.mjs";
@@ -69,6 +73,17 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		window: { resizable: true },
 		form: { submitOnChange: true },
 		actions: {
+			// The Magic & Lore tab, all in the @MARKER MAGIC AND LORE block below; what each does is
+			// in module/magic-actions.mjs.
+			addMagic: ImagineCharacterSheet.#onAddMagic,
+			addOtherMagic: ImagineCharacterSheet.#onAddOtherMagic,
+			useConsumable: ImagineCharacterSheet.#onUseConsumable,
+			addDose: ImagineCharacterSheet.#onAddDose,
+			toggleMemorized: ImagineCharacterSheet.#onToggleMemorized,
+			useLore: ImagineCharacterSheet.#onUseLore,
+			brewRecipe: ImagineCharacterSheet.#onBrewRecipe,
+			postMagic: ImagineCharacterSheet.#onPostMagic,
+			provideStartingLore: ImagineCharacterSheet.#onProvideStartingLore,
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
 			rollResistance: ImagineCharacterSheet.#onRollResistance,
 			rollSkill: ImagineCharacterSheet.#onRollSkill,
@@ -114,7 +129,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		skills:      { template: "systems/imagine-rpg/templates/actor/tab-skills.hbs", scrollable: [""] },
 		combat:      { template: "systems/imagine-rpg/templates/actor/tab-combat.hbs", scrollable: [""] },
 		equipment:   { template: "systems/imagine-rpg/templates/actor/tab-equipment.hbs", scrollable: [""] },
-		description: { template: "systems/imagine-rpg/templates/actor/tab-description.hbs", scrollable: [""] }
+		description: { template: "systems/imagine-rpg/templates/actor/tab-description.hbs", scrollable: [""] },
+		magic:       { template: "systems/imagine-rpg/templates/actor/tab-magic.hbs", scrollable: [""] }
 	};
 
 	static TABS = {
@@ -124,7 +140,9 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				{ id: "skills",      icon: "fa-solid fa-list-check" },
 				{ id: "combat",      icon: "fa-solid fa-khanda" },
 				{ id: "equipment",   icon: "fa-solid fa-sack" },
-				{ id: "description", icon: "fa-solid fa-scroll" }
+				{ id: "description", icon: "fa-solid fa-scroll" },
+				// His Magic/Lore tab ("e", sheet-magiclore): consumables, lores, spells, invocations.
+				{ id: "magic",       icon: "fa-solid fa-hat-wizard" }
 			],
 			initial: "attributes",
 			labelPrefix: "IMAGINE.Tab"
@@ -155,6 +173,9 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.chosenAttackSkillChoices = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert", "Master"]
 			.map(tmpskill => ({ value: tmpskill, label: tmpskill,
 			                    selected: tmpskill == this.document.system.combat.chosenAttackSkill }));
+		// The Magic & Lore tab, worked out in module/magic-view.mjs. The magic switches decide which
+		// of its sections exist at all.
+		tmpcontext.magic = buildMagicPanel(this.document, game.imagine?.getAvailabilityRules?.() ?? null, game.user?.isGM);
 		tmpcontext.lore = ImagineCharacterSheet.#buildLorePanel(this.document.system);
 		// The Situation Mods bar, one line, as his combat page shows it.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
@@ -662,6 +683,84 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			modal: true
 		});
 		if (tmpconfirmed) { await tmpitem.delete(); }
+	}
+
+	// @MARKER MAGIC AND LORE
+	// The Magic & Lore tab's buttons. Each finds its item and hands it on; the work is in
+	// module/magic-actions.mjs, the rules in module/lore-rules.mjs.
+
+	// This is the function which opens the picker on one kind -- a herb, a ballad, a spell. A poison
+	// is not picked: his poisons are built from a type and a potency, so it has its own small form.
+	static async #onAddMagic(event, target) {
+		event.preventDefault();
+		var tmpwhat = target.dataset.what;
+		if (tmpwhat == "poison" || tmpwhat == "poisonrecipe") {
+			await addPoison(this.document, tmpwhat == "poisonrecipe");
+			return;
+		}
+		new ImagineItemPicker(this.document, tmpwhat).render(true);
+	}
+
+	// This is the function behind "Add other lore": the same, for the kind chosen in the dropdown
+	// beside the button.
+	static async #onAddOtherMagic(event, target) {
+		event.preventDefault();
+		var tmpselect = target.closest(".magic-other")?.querySelector("select");
+		if (!tmpselect?.value) { return; }
+		target.dataset.what = tmpselect.value;
+		await ImagineCharacterSheet.#onAddMagic.call(this, event, target);
+	}
+
+	// This is the function which finds the item a Magic & Lore row's button belongs to.
+	#magicItem(target) {
+		return this.document.items.get(target.closest("[data-item-id]")?.dataset.itemId ?? target.dataset.itemId);
+	}
+
+	static async #onUseConsumable(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await useConsumable(this.document, tmpitem); }
+	}
+
+	static async #onAddDose(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await addDose(this.document, tmpitem); }
+	}
+
+	static async #onToggleMemorized(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await toggleMemorized(this.document, tmpitem); }
+	}
+
+	static async #onUseLore(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await useLore(this.document, tmpitem, event); }
+	}
+
+	static async #onBrewRecipe(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await brewRecipe(this.document, tmpitem, event); }
+	}
+
+	static async #onPostMagic(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await postMagic(this.document, tmpitem); }
+	}
+
+	// This is the function behind the Game Master's "Provide starting lore" -- his "If unchecked GM
+	// can provide after generation". Asked first, since it rolls and adds, and running it on a
+	// character who already had it gives them more (never the same entry twice, but more doses).
+	static async #onProvideStartingLore(event, target) {
+		event.preventDefault();
+		if (!game.user?.isGM) { return; }
+		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
+			window: { title: "Provide starting lore" },
+			content: `<p>Roll ${this.document.name}'s starting lore, as his character creation does? One entry for
+				every lore skill held, stocks of herbs, potions and poisons, and starting spells for a caster.</p>
+				<p class="hint">Nothing already known is added twice; doses of anything already carried are added to it.</p>`,
+			rejectClose: false,
+			modal: true
+		});
+		if (tmpconfirmed) { await provideStartingLore(this.document); }
 	}
 
 	// This is the function which TAKES OFF every weapon and every piece of armour, shields

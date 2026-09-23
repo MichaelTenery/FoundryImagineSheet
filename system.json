@@ -49,7 +49,11 @@
       "equipment": {},
       "creatureAttack": {},
       "power": {},
-      "trait": {}
+      "trait": {},
+      "consumable": {},
+      "lore": {},
+      "spell": {},
+      "invocation": {}
     }
   },
   "url": "https://github.com/MichaelTenery/FoundryImagineSheet",

@@ -82,7 +82,14 @@ import {
 			// three off unless asked for -- see module/starting-kit.mjs. The style only matters to
 			// the clothing, and only for the races whose wardrobe varies by it.
 			startingKit: { byCulture: false, byStatus: false, bySkills: false },
-			clothingStyle: "western"
+			clothingStyle: "western",
+			// @MARKER STARTING LORE
+			// His last creation step's "Provide random lore for starting spells, all relevant skills,
+			// and related consumables" (attr_do_random_lore) -- see module/starting-lore.mjs. ON here,
+			// where his sheet leaves it off: the port had no way to give a character its lore at all,
+			// which is what was reported, and "If unchecked GM can provide after generation" is still
+			// true -- the Magic & Lore tab has the Game Master's button. DECISIONS.md 2026-09-22.
+			randomLore: true
 		};
 	}
 

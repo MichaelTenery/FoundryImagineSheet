@@ -32,12 +32,16 @@
 //==================================================================================================================
 
 import { RETIRED_DOCUMENTS, retiredNamesToRemove } from "./content-importer.mjs";
+import { MAGIC_KINDS, LORE_KINDS } from "./lore-rules.mjs";
 
 const SOURCE_PATH = "systems/imagine-rpg/src/packs/documents";
 
 // Items are created in batches. One call with four thousand documents in it makes Foundry
 // unresponsive for the duration and gives no sign of progress; this way the notification can move.
 const BATCH = 250;
+
+// The level folders in number order -- sorted as text, "Level 10" would come before "Level 2".
+const LEVEL_FOLDERS = [...Array.from({ length: 21 }, (tmpunused, tmpindex) => `Level ${tmpindex}`), "Level 21 and above"];
 
 // @MARKER THE SHAPE OF THE DIRECTORY
 // Each entry is one top-level folder. `group` returns the subfolder a document belongs in, or ""
@@ -104,8 +108,45 @@ const DIRECTORY = [
 	{ file: "equipment",    folder: "Equipment",    group: byEquipmentType },
 	{ file: "abilities",    folder: "Abilities",    group: byLetter },
 	{ file: "disabilities", folder: "Disabilities", group: byLetter },
-	{ file: "immunities",   folder: "Immunities",   group: byLetter }
+	{ file: "immunities",   folder: "Immunities",   group: byLetter },
+
+	// His Magic/Lore tab, grouped as his tab groups it: by kind first. The two long lists split
+	// again -- herbs (351) and runes (211) by letter, hymns by the alignment his starting lists
+	// give them. Spells and invocations go by level, which is how a caster looks one up.
+	//
+	// All four packs are XXX throughout until an attribution pass that knows the kind exists
+	// (NOT_YET_ATTRIBUTED_PACKS in build_documents.py), so they are NOT pulled out into the shared
+	// XXX folder: that would move 2,486 entries out of the grouping that makes them findable and
+	// into one that says nothing except that nobody has matched them to a page yet.
+	{
+		file: "consumables", folder: "Consumables", keepUnattributed: true,
+		order: ["Herbs", "Potions", "Elixirs", "Charms"],
+		group: (tmpdoc) => {
+			var tmpheading = MAGIC_KINDS[tmpdoc.system?.kind]?.heading ?? "Other";
+			return tmpdoc.system?.kind == "herb" ? tmpheading + "/" + byLetter(tmpdoc) : tmpheading;
+		}
+	},
+	{
+		file: "lore", folder: "Lore", keepUnattributed: true,
+		order: LORE_KINDS.map(tmpkind => MAGIC_KINDS[tmpkind].heading),
+		group: (tmpdoc) => {
+			var tmpkind = tmpdoc.system?.kind;
+			var tmpheading = MAGIC_KINDS[tmpkind]?.heading ?? "Other";
+			if (tmpkind == "rune") { return tmpheading + "/" + byLetter(tmpdoc); }
+			if (tmpkind == "hymn") { return tmpheading + "/" + (tmpdoc.system?.alignment || "Not on a starting list"); }
+			return tmpheading;
+		}
+	},
+	{ file: "spells",      folder: "Spells",      keepUnattributed: true, order: LEVEL_FOLDERS, group: byLevel },
+	{ file: "invocations", folder: "Invocations", keepUnattributed: true, order: LEVEL_FOLDERS, group: byLevel }
 ];
+
+// A spell or invocation by its level. His spells run past 20 -- a handful at 25 to 1000 -- and
+// those share one folder rather than eleven nearly empty ones.
+function byLevel(tmpdoc) {
+	var tmplevel = parseInt(tmpdoc.system?.level) || 0;
+	return tmplevel > 20 ? "Level 21 and above" : `Level ${tmplevel}`;
+}
 
 // The letter buckets, for the packs his tables give no category at all. Three letters to a folder
 // so a pack of 1,154 abilities lands around a hundred per folder rather than four hundred under S.
@@ -228,7 +269,7 @@ function byEquipmentType(tmpdoc) {
 
 			// Pull out anything unattributed before the ordinary grouping sees it, so it lands in the
 			// shared gap folder instead of buried in its usual category.
-			var tmpxxxdocs = tmpdocs.filter(tmpdoc => tmpdoc.system?.sourcebook == "XXX");
+			var tmpxxxdocs = tmpentry.keepUnattributed ? [] : tmpdocs.filter(tmpdoc => tmpdoc.system?.sourcebook == "XXX");
 			var tmpnormaldocs = tmpxxxdocs.length
 				? tmpdocs.filter(tmpdoc => tmpdoc.system?.sourcebook != "XXX")
 				: tmpdocs;

@@ -165,6 +165,38 @@ def run_pack(tmppack):
     check("%s: entry with the typo is still added" % tmppack, tmptyponame in tmpbyname)
 
 
+# This is the function which checks the one thing the per-pack run above cannot see: in the
+# consumables and lore packs a NAME is shared between kinds ("Anger" is a song and a poem), so an
+# override has to land on the kind it names, and one that names no kind has to be refused rather
+# than laid over whichever "Anger" came first.
+def run_kind_keyed():
+    tmppath = os.path.join(bd.MANUAL_DIR, "lore.json")
+    with open(tmppath, encoding="utf-8") as fh:
+        tmppayload = json.load(fh)
+    tmpsong = bd.make_doc("Anger", "lore", {"kind": "song", "rating": 16, "description": "his song"})
+    tmppoem = bd.make_doc("Anger", "lore", {"kind": "poem", "rating": 16, "description": "his poem"})
+    tmppayload["entries"] = {"Anger": {"_override": True, "kind": "poem", "description": "changed"}}
+    with open(tmppath, "w", encoding="utf-8") as fh:
+        json.dump(tmppayload, fh)
+    tmpresult = bd.apply_manual_content("lore", [tmpsong, tmppoem])
+    check("lore: an override naming its kind lands on that kind",
+          tmppoem["system"]["description"] == "changed" and tmpsong["system"]["description"] == "his song")
+    check("lore: nothing is added when a kinded override matches", len(tmpresult) == 2)
+
+    bd.issues = []
+    tmpsong = bd.make_doc("Anger", "lore", {"kind": "song", "rating": 16, "description": "his song"})
+    tmppoem = bd.make_doc("Anger", "lore", {"kind": "poem", "rating": 16, "description": "his poem"})
+    tmppayload["entries"] = {"Anger": {"_override": True, "description": "changed"}}
+    with open(tmppath, "w", encoding="utf-8") as fh:
+        json.dump(tmppayload, fh)
+    tmpresult = bd.apply_manual_content("lore", [tmpsong, tmppoem])
+    check("lore: an override naming no kind is refused when the name is shared",
+          tmpsong["system"]["description"] == "his song" and tmppoem["system"]["description"] == "his poem"
+          and len(tmpresult) == 2)
+    check("lore: ...and the refusal is reported",
+          any(i["kind"] == "manual-ignored" and "say which" in i["detail"] for i in bd.issues))
+
+
 def main():
     tmpbefore = hash_real_manual_files()
 
@@ -177,6 +209,8 @@ def main():
         for tmppack in bd.PACK_TYPES:
             bd.issues = []
             run_pack(tmppack)
+        bd.issues = []
+        run_kind_keyed()
     finally:
         bd.MANUAL_DIR = tmpwaswritedir
         shutil.rmtree(tmptempdir, ignore_errors=True)

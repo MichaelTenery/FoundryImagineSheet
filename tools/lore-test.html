@@ -1,0 +1,316 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG lore test</title>
+<style>body{font:13px monospace;padding:1rem}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the Magic & Lore tab: module/lore-rules.mjs (his rules), module/lore-tables.mjs (what the
+// extraction read out of his chain), module/starting-lore.mjs (reading a character and making the
+// items) and module/magic-view.mjs (what the tab shows) -- and, against the real built content, that
+// every name his starting lists draw is a document the compendia will actually hold.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/lore-test.html
+// Serve with Cache-Control: no-store if a change seems not to have taken (see PROGRESS.md).
+const L = await import("../module/lore-rules.mjs");
+const T = await import("../module/lore-tables.mjs");
+const S = await import("../module/starting-lore.mjs");
+const V = await import("../module/magic-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// Dice from a list, in order -- and a loud failure if a rule rolls more than the test planned for.
+function dice(...tmpvalues) {
+	var tmpqueue = [...tmpvalues];
+	return (tmpsides) => {
+		if (!tmpqueue.length) { throw new Error("rolled more dice than the test scripted (d" + tmpsides + ")"); }
+		return tmpqueue.shift();
+	};
+}
+// A repeatable pseudo-random die, for the rules whose invariants matter more than their exact rolls.
+function seeded(tmpseed) {
+	var tmpstate = tmpseed;
+	return (tmpsides) => { tmpstate = (tmpstate * 1103515245 + 12345) % 2147483648; return 1 + (tmpstate % tmpsides); };
+}
+
+// --- the extraction ------------------------------------------------------------------------------
+check("his chain, in his order", T.STARTING_LORE_CHAIN.map(s => s.kind),
+	["ballad", "candlelore", "empathymagic", "glyph", "hymn", "poem", "poisonrecipe", "potionrecipe",
+	 "ritual", "rune", "song", "sympathymagic", "herb"]);
+check("hymns count Intone and Hymn Lore, songs Sing and Song Lore, poems Recite and Poem Lore",
+	["hymn", "song", "poem"].map(k => T.STARTING_LORE_CHAIN.find(s => s.kind == k).skills),
+	[["Intone", "Hymn Lore"], ["Sing", "Song Lore"], ["Recite", "Poem Lore"]]);
+check("potion and poison recipes bring a stock with them", T.STARTING_LORE_CHAIN.filter(s => s.stock).map(s => [s.kind, s.stock]),
+	[["poisonrecipe", "poison"], ["potionrecipe", "potion"]]);
+check("25 poison types, 17 potencies", [Object.keys(T.POISON_TYPES).length, Object.keys(T.POISON_POTENCIES).length], [25, 17]);
+check("the five casting skills", T.CASTING_SKILLS, ["Hermetic Lore", "Scroll Knowledge", "Arcane Pact", "Lightfire Knowledge", "Shadowfrost Knowledge"]);
+check("every spell ladder ends in his else (below 101)", Object.values(T.STARTING_SPELL_LADDERS).map(l => l[l.length - 1][0]), [101, 101, 101]);
+check("every ladder climbs", Object.values(T.STARTING_SPELL_LADDERS).map(l => l.every((r, i) => i == 0 || r[0] > l[i - 1][0])), [true, true, true]);
+check("twelve spell primers", Object.keys(T.SPELL_PRIMERS).length, 12);
+check("the two names his dictionaries do not hold are reported", T.LORE_NAMES_NOT_FOUND,
+	{ getUnalignedHymnList: ["Injury"], getHerbLoreList: ["Zebra Gras"] });
+
+// --- kinds -----------------------------------------------------------------------------------------
+check("every kind answers to a switch availability.mjs has", Object.values(L.MAGIC_KINDS).map(k => k.subsystem).filter(s =>
+	!["arcane", "divine", "evoke", "powers", "enchanting", "divineItems", "herbalism", "poisons", "charms", "bardic",
+	  "candlelore", "empathy", "sympathy", "glyphs", "runes", "rituals"].includes(s)), []);
+check("a hymn is learned with Hymn Lore and intoned", [L.MAGIC_KINDS.hymn.learn, L.MAGIC_KINDS.hymn.use], ["Hymn Lore", "Intone"]);
+check("getItemKind reads spells and invocations by type", [L.getItemKind({ type: "spell", system: {} }),
+	L.getItemKind({ type: "invocation" }), L.getItemKind({ type: "lore", system: { kind: "rune" } })], ["spell", "invocation", "rune"]);
+
+// --- dice, poisons, herbs --------------------------------------------------------------------------
+check("rollLoreDice 2d4+1", L.rollLoreDice("2d4+1", dice(3, 4)), 8);
+check("rollLoreDice 1d3", L.rollLoreDice("1d3", dice(2)), 2);
+check("rollLoreDice of nonsense is 0", L.rollLoreDice("Special", dice()), 0);
+var tmppoison = L.getPoisonDetails("IV", "C");
+check("poison IV/C: his name, duration, onset and rating", [tmppoison.name, tmppoison.duration, tmppoison.startTime, tmppoison.rating],
+	["Type: IV, Potency: C", "1d10 minutes", "2d4 hours", 4]);
+check("...and the onset written onto the end of the effect, as his does",
+	tmppoison.description, "If Poison Resistance succeeds: no damage or effect. If Poison Resistance fails: paralysis. Effect starts: 2d4 hours");
+check("poison XXV/Q is death either way, instantly", L.getPoisonDetails("XXV", "Q").description,
+	"If Poison Resistance succeeds: death. If Poison Resistance fails: death. Effect starts: Instantly");
+check("a type he does not have is null", L.getPoisonDetails("XXVI", "A"), null);
+check("his d10 poison form: 5 ingestive, 6 contact, 8 contact, 9 gaseous",
+	[5, 6, 8, 9].map(d => L.rollPoisonForm(dice(d))), ["Ingestive", "Contact", "Contact", "Gaseous"]);
+check("herb doses by value", ["1-4 pp.", "2-3 gp.", "2-4 sp.", "5 cp.", "?"].map(L.getHerbDoseDice),
+	["1d2", "1d4+1", "2d4+1", "3d6+1", "1d4"]);
+check("the good know types I-V; the evil all 25", [L.getStartingPoisonTypes("Good").types.length,
+	L.getStartingPoisonTypes("Lawful Evil").types.length, L.getStartingPoisonTypes("Neutral").doses], [5, 25, "2d4"]);
+
+// --- practitioner title and standing ---------------------------------------------------------------
+check("class skill acquired at 3, character title 5: practitioner 3", L.getPractitionerTitle("class", 3, 5), 3);
+check("class skill not reached reads 0, never negative", L.getPractitionerTitle("class", 7, 5), 0);
+check("racial: the character's title, at least 1", [L.getPractitionerTitle("racial", 0, 6), L.getPractitionerTitle("racial", 0, 0)], [6, 1]);
+check("social: 0, as his falls through", L.getPractitionerTitle("social", 0, 9), 0);
+var tmpskills = [
+	{ name: "Herb Lore", system: { totalChance: 40, category: "class", acquiredAtTitle: 2 } },
+	{ name: "Herb Lore", system: { totalChance: 55, category: "racial", acquiredAtTitle: 0 } },
+	{ name: "Rune Lore", system: { totalChance: 70, category: "class", acquiredAtTitle: 9, usableByTitle: false } },
+	{ name: "Sing(w)", system: { totalChance: 30, category: "racial" } }];
+var tmpstanding = L.getSkillStanding(tmpskills, "Herb Lore", 4);
+check("a skill held twice stands at its best copy", [tmpstanding.chance, tmpstanding.category, tmpstanding.practitionerTitle], [55, "racial", 4]);
+check("a class skill not yet reached reads 0", L.getSkillStanding(tmpskills, "Rune Lore", 4).chance, 0);
+check("a wilderness form answers to its name", L.getSkillStanding(tmpskills, "Sing", 4).chance, 30);
+check("not held", [L.getSkillStanding(tmpskills, "Glyph", 4).held, L.getSkillStanding(tmpskills, "Glyph", 4).chance], [false, 0]);
+
+// --- rolls ---------------------------------------------------------------------------------------
+check("use: not memorized, nothing rolled", L.resolveLoreUse({ chance: 60, memorized: false }, 5).outcome, "notMemorized");
+check("use: situational floors at 0 BEFORE the entry modifier goes on", L.resolveLoreUse(
+	{ chance: 10, situational: -50, entryModifier: 10, memorized: true }, 10), { outcome: "success", roll: 10, total: 10 });
+check("use: over 200 is a Grandmaster, whatever the die", L.resolveLoreUse({ chance: 230, memorized: true }, 100).outcome, "grandmaster");
+check("use: a natural 100 fails", L.resolveLoreUse({ chance: 150, memorized: true }, 100).outcome, "fumble");
+check("use: over the total fails", L.resolveLoreUse({ chance: 40, entryModifier: -5, memorized: true }, 36).outcome, "failure");
+check("use: an evoke needs no memorization", L.resolveLoreUse({ chance: 40, needsMemorized: false }, 20).outcome, "success");
+check("learn: nothing twice", L.resolveLoreLearn({ chance: 90, alreadyKnown: true }, 1).outcome, "alreadyKnown");
+check("learn: a negative chance is not floored, so nothing succeeds", L.resolveLoreLearn({ chance: -10 }, 1).outcome, "failure");
+check("learn: 200 learns outright", L.resolveLoreLearn({ chance: 180, situational: 30 }, 99).outcome, "grandmaster");
+check("brew: no batch, nothing done", L.resolveBrew({ chance: 80, batchDoses: 0 }, 5).outcome, "noBatch");
+check("brew: made", L.resolveBrew({ chance: 80, situational: -10, batchDoses: 3 }, 70).outcome, "success");
+check("isLoreSuccess", ["success", "grandmaster", "failure", "fumble"].map(L.isLoreSuccess), [true, true, false, false]);
+
+// --- consumables and memorization ----------------------------------------------------------------
+check("a dose spent", L.useConsumableDose("herb", 3), { used: true, remaining: 2, remove: false });
+check("the last dose removes the row, as his removeRepeatingRow does", L.useConsumableDose("potion", 1), { used: true, remaining: 0, remove: true });
+check("none left, nothing done", L.useConsumableDose("herb", 0).used, false);
+check("a charm is used without spending a count", L.useConsumableDose("charm", 0), { used: true, remaining: 0, remove: false });
+var tmpmem = L.getMemorizationTotals(3, 2, [{ kind: "ballad", rating: 4, memorized: true },
+	{ kind: "spell", level: 2, memorized: true }, { kind: "rune", rating: 9, memorized: false }, { kind: "evoke", rating: 5, memorized: true }]);
+check("(goal + 1) x Knowledge's points; a lore at its rating, a spell at its level; evokes and the unmemorized not counted",
+	[tmpmem.total, tmpmem.used, tmpmem.count, tmpmem.over], [9, 6, 2, false]);
+check("ONE thing may be memorized past the total", L.getMemorizationTotals(1, 0, [{ kind: "song", rating: 16, memorized: true }]),
+	{ total: 1, used: 1, available: 0, count: 1, over: false, byKind: { song: 16 } });
+check("two things past it are over", L.getMemorizationTotals(1, 0, [{ kind: "song", rating: 16, memorized: true },
+	{ kind: "poem", rating: 15, memorized: true }]).over, true);
+
+// --- counting lore skills --------------------------------------------------------------------------
+check("counts both names and the wilderness form", L.countLoreSkill(["Sing", "Song Lore", "Sing(w)", "Listen"], ["Sing", "Song Lore"]), 3);
+var tmpranger = { advancement: { classSkillList: [
+	{ title: 1, name: "Track" }, { title: 2, name: "Herb Lore" }, { title: 6, name: "Herb Lore" },
+	{ title: 11, name: "Herb Lore" }, { title: 3, name: "Scroll Knowledge", requires: "caster" },
+	{ title: 3, name: "Ritual Lore", requires: "nonCaster" }] } };
+var tmpcounted = L.getCountedSkillNames(["Wood Lore"], [tmpranger], false);
+check("his count reads the racial skills, then the class list for titles 1-10 only", tmpcounted,
+	["Wood Lore", "Track", "Herb Lore", "Herb Lore", "Scroll Knowledge"]);
+check("...a race that cannot cast counts the no-casting slot instead", L.getCountedSkillNames([], [tmpranger], true).includes("Ritual Lore"), true);
+
+// --- drawing ------------------------------------------------------------------------------------
+check("drawDistinct redraws a repeat", L.drawDistinct(["a", "b", "c"], 2, dice(1, 1, 3)), ["a", "c"]);
+check("drawDistinct stops when the list runs out instead of looping for ever", L.drawDistinct(["a", "b"], 5, dice(1, 2)).length, 2);
+check("the first hymn is the alignment's own", [L.getHymnList("Good", true, dice()) == T.STARTING_LORE_LISTS.getGoodHymnList,
+	L.getHymnList("Chaotic Evil", true, dice()) == T.STARTING_LORE_LISTS.getEvilHymnList,
+	L.getHymnList("", true, dice()) == T.STARTING_LORE_LISTS.getUnalignedHymnList], [true, true, true]);
+check("his includes() reads Non-Good as good", L.getHymnList("Non-Good", true, dice()) == T.STARTING_LORE_LISTS.getGoodHymnList, true);
+check("later hymns: unaligned, or a d2 between neutral and unaligned for the neutral",
+	[L.getHymnList("Good", false, dice()) == T.STARTING_LORE_LISTS.getUnalignedHymnList,
+	 L.getHymnList("Neutral", false, dice(1)) == T.STARTING_LORE_LISTS.getNeutralHymnList,
+	 L.getHymnList("Neutral", false, dice(2)) == T.STARTING_LORE_LISTS.getUnalignedHymnList], [true, true, true]);
+check("climbLadder: under the first rung", L.climbLadder([[5, "a"], [12, "b"], [101, "c"]], 4), "a");
+check("climbLadder: a roll equal to a rung is the next one", L.climbLadder([[5, "a"], [12, "b"], [101, "c"]], 5), "b");
+
+// --- starting lore, whole ------------------------------------------------------------------------
+var tmpnone = L.rollStartingLore({ skillNames: ["Track", "Listen"], herbCommonChance: 0 }, dice());
+check("no lore skills and no common Herb Lore: nothing, and no dice", [tmpnone.entries, tmpnone.equipment], [[], []]);
+
+// Herb Lore held once; the common roll (25 + 20 = 45) succeeds on 30, so two herbs.
+var tmplist = T.STARTING_LORE_LISTS.getHerbLoreList;
+var tmpherbs = L.rollStartingLore({ skillNames: ["Herb Lore"], herbCommonChance: 25,
+	herbValues: { [tmplist[0]]: "2-4 sp.", [tmplist[1]]: "1 gp." } }, dice(30, 1, 2, 3, 4, 1));
+check("Herb Lore once, plus the common chance +20 made: two herbs", tmpherbs.entries.map(e => e.name), [tmplist[0], tmplist[1]]);
+check("...silver 2d4+1 and gold 1d4+1", tmpherbs.entries.map(e => e.doses), [8, 2]);
+var tmpnointake = L.rollStartingLore({ skillNames: [], herbCommonChance: 90, noIntake: true }, dice());
+check("a race that takes nothing in gets no common herb", tmpnointake.entries, []);
+
+// Poison Lore held twice: his loop keeps only the last; here, one per instance (UPSTREAM-ISSUES).
+var tmppoisons = L.rollStartingLore({ skillNames: ["Poison Lore", "Poison Lore"], alignment: "Good" },
+	dice(4, 3, 1, 2, 1, 5, 9, 3));
+check("Poison Lore twice: two recipes, each with its stock", tmppoisons.entries.map(e => [e.kind, e.name, e.form ?? ""]),
+	[["poisonrecipe", "Type: IV, Potency: C", "Ingestive"], ["poison", "Type: IV, Potency: C", "Ingestive"],
+	 ["poisonrecipe", "Type: I, Potency: E", "Gaseous"], ["poison", "Type: I, Potency: E", "Gaseous"]]);
+check("...the good make 1d4+1 doses", tmppoisons.entries.filter(e => e.kind == "poison").map(e => e.doses), [3, 4]);
+
+var tmppotions = L.rollStartingLore({ skillNames: ["Potion Lore"] }, dice(1, 3));
+check("Potion Lore: a recipe and 1d3 of that potion", tmppotions.entries,
+	[{ kind: "potionrecipe", name: "Enhancing(All)" }, { kind: "potion", name: "Enhancing(All)", doses: 3 }]);
+
+// Starting spells: chance 45 gives 4, 1d4+2 rolled 3+2=5 is more; offensive/defensive/utility in turn.
+var tmpspells = L.rollStartingSpells({ casting: { name: "Scroll Knowledge", chance: 45 }, affinity: 30, fortune: 10 },
+	dice(20, 90, 3, 1, 1, 1, 5, 5, 2));
+check("the greater of 1d4+2 and chance/10, in offensive/defensive/utility order", tmpspells.spells,
+	["Hold Plant", "Magic Skin", "Chill", "Trip", "Distract"]);
+check("...and a primer when the Affinity roll is made", tmpspells.primer, T.SPELL_PRIMERS.Controlling);
+check("a best casting skill that is not one of his five gives no spells",
+	L.rollStartingSpells({ casting: { name: "Spell Lore", chance: 90 } }, dice()), { spells: [], primer: "" });
+check("findBestCastingSkill: a racial one with a chance wins",
+	L.findBestCastingSkill([{ name: "Arcane Pact", chance: 20 }], [{ name: "Scroll Knowledge", title: 1, chance: 60 }]), { name: "Arcane Pact", chance: 20 });
+check("findBestCastingSkill: else the class's earliest", L.findBestCastingSkill([],
+	[{ name: "Hermetic Lore", title: 4, chance: 5 }, { name: "Scroll Knowledge", title: 2, chance: 15 }]), { name: "Scroll Knowledge", chance: 15 });
+
+var tmpwhole = L.rollStartingLore({ skillNames: ["Ballad Lore", "Rune Lore", "Rune Lore", "Intone", "Glyph"],
+	alignment: "Neutral", casting: null }, seeded(11));
+check("a mixed lorist: 1 ballad, 2 runes, 1 hymn, 1 glyph", ["ballad", "rune", "hymn", "glyph"].map(k =>
+	tmpwhole.entries.filter(e => e.kind == k).length), [1, 2, 1, 1]);
+check("...and the two runes differ", new Set(tmpwhole.entries.filter(e => e.kind == "rune").map(e => e.name)).size, 2);
+
+// --- recipes -------------------------------------------------------------------------------------
+check("a potion recipe costs his 15", L.makePotionRecipe({ value: "25 gp.", duration: "1 hour", description: "x" }).rating, 15);
+var tmprecipe = L.makePoisonSystem("VII", "K", "Contact", true);
+check("a poison recipe's rating is its type's number, and it starts unmemorized",
+	[tmprecipe.name, tmprecipe.system.kind, tmprecipe.system.rating, tmprecipe.system.memorized], ["Type: VII, Potency: K", "poisonrecipe", 7, false]);
+check("a poison stock carries no rating", "rating" in L.makePoisonSystem("VII", "K", "Contact", false).system, false);
+
+// --- reading a character (starting-lore.mjs) -------------------------------------------------------
+var tmpactor = {
+	items: [
+		{ type: "skill", name: "Arcane Pact", system: { category: "racial", totalChance: 0 } },
+		{ type: "skill", name: "Song Lore", system: { category: "racial", totalChance: 35 } },
+		{ type: "skill", name: "Track", system: { category: "class", totalChance: 50, acquiredAtTitle: 1 } }],
+	system: {
+		identity: { title: 1, alignment: "Neutral Good", cannotCast: false, race: { disabilities: [] } },
+		characteristics: { affinity: { value: 42 }, fortune: { value: 17 } },
+		classItems: [{ system: tmpranger }],
+		getCommonSkillChance: (a1, a2, rating) => (a1 == "WIS" ? 12 : 30) - rating
+	}
+};
+var tmpcontent = { skills: [{ name: "Herb Lore", system: { attr1: "WIS", attr2: "", skillRating: 2 } },
+	{ name: "Scroll Knowledge", system: { attr1: "INT", attr2: "", skillRating: 5 } }], herbValues: { Aloe: "2 sp." } };
+var tmpinput = S.buildStartingLoreInput(tmpactor, tmpcontent);
+check("the counted names: racial skills, then the class list to title 10", tmpinput.skillNames,
+	["Arcane Pact", "Song Lore", "Track", "Herb Lore", "Herb Lore", "Scroll Knowledge"]);
+check("Herb Lore's common chance from its definition", tmpinput.herbCommonChance, 10);
+check("a racial casting skill at 0 does not win; the class's, not yet reached, at its base chance",
+	tmpinput.casting, { name: "Scroll Knowledge", chance: 25 });
+check("alignment, Affinity and Fortune read off the model", [tmpinput.alignment, tmpinput.affinity, tmpinput.fortune], ["Neutral Good", 42, 17]);
+
+// --- making the items ------------------------------------------------------------------------------
+var tmpdocs = {
+	consumables: [{ name: "Aloe Vera", system: { kind: "herb", value: "2-4 sp.", doses: 1 } },
+		{ name: "Healing", system: { kind: "potion", value: "40 gp.", duration: "Instant", description: "heals" } }],
+	lore: [{ name: "Anger", system: { kind: "poem", rating: 16 } }, { name: "Anger", system: { kind: "song", rating: 16 } }],
+	spells: [{ name: "Chill", system: { level: 1 } }]
+};
+var tmpheld = [{ id: "h1", type: "consumable", name: "Aloe Vera", system: { kind: "herb", doses: 2 } },
+	{ id: "h2", type: "lore", name: "Anger", system: { kind: "poem" } }];
+var tmpmade = S.buildStartingLoreItems({ entries: [
+		{ kind: "song", name: "Anger" }, { kind: "poem", name: "Anger" }, { kind: "herb", name: "Aloe Vera", doses: 3 },
+		{ kind: "herb", name: "Zebra Gras", doses: 2 }, { kind: "potionrecipe", name: "Healing" },
+		{ kind: "potion", name: "Healing", doses: 2 }, { kind: "spell", name: "Chill" },
+		{ kind: "poison", name: "Type: I, Potency: A", poisonType: "I", poisonPotency: "A", form: "Contact", doses: 2 },
+		{ kind: "poison", name: "Type: I, Potency: A", poisonType: "I", poisonPotency: "A", form: "Contact", doses: 1 }],
+	equipment: ["A Primer"], issues: [] }, tmpdocs, tmpheld);
+check("looked up by kind AND name: the song Anger, not the poem", tmpmade.create[0].system.kind, "song");
+check("the poem Anger is already known, so not added again", tmpmade.issues.some(i => i.includes("already known")), true);
+check("doses of a herb already carried go on its stack", tmpmade.update, [{ _id: "h1", "system.doses": 5 }]);
+check("his misspelt Zebra Gras is reported, not invented", tmpmade.issues.some(i => i.includes("Zebra Gras")), true);
+check("a potion recipe is made from the potion, at rating 15", tmpmade.create.filter(c => c.system.kind == "potionrecipe").map(c => [c.type, c.system.rating]), [["lore", 15]]);
+check("two stocks of one poison in one run are one stack", tmpmade.create.filter(c => c.system.kind == "poison").map(c => c.system.doses), [3]);
+check("the primer is equipment, carried", tmpmade.create.filter(c => c.type == "equipment").map(c => [c.name, c.system.location]), [["A Primer", "carried"]]);
+check("everything known arrives unmemorized", tmpmade.create.filter(c => c.type != "consumable" && c.type != "equipment").every(c => c.system.memorized === false), true);
+
+// --- the tab (magic-view.mjs) ------------------------------------------------------------------------
+var tmpsheetactor = {
+	items: [
+		{ id: "s1", type: "skill", name: "Song Lore", system: { totalChance: 45, category: "racial" } },
+		{ id: "s2", type: "skill", name: "Sing", system: { totalChance: 60, category: "racial" } },
+		{ id: "c1", type: "consumable", name: "Aloe Vera", system: { kind: "herb", doses: 2, value: "2-4 sp." } },
+		{ id: "l1", type: "lore", name: "Anger", system: { kind: "song", rating: 16, modifier: 10, memorized: true } },
+		{ id: "l2", type: "lore", name: "Balance", system: { kind: "rune", rating: 14, memorized: false } }],
+	system: { identity: { title: 3, goal: 1, race: { disabilities: [] } }, attributes: { knw: { mods: { memorizationPoints: 5 } } } }
+};
+var tmppanel = V.buildMagicPanel(tmpsheetactor, { magicEnabled: true, magicSubsystems: {} }, true);
+check("groups: songs (skill held), runes (an entry known) -- nothing else", tmppanel.loreGroups.map(g => g.kind), ["rune", "song"]);
+check("songs show both skills, learn and use", [tmppanel.loreGroups[1].learn.chance, tmppanel.loreGroups[1].use.chance], [45, 60]);
+check("everything else is under Add other lore", tmppanel.otherLore.some(o => o.what == "ballad") && tmppanel.otherLore.some(o => o.what == "spell"), true);
+check("memorization: (1 + 1) x 5, one song of rating 16 memorized -- over the total, but alone",
+	[tmppanel.memorization.total, tmppanel.memorization.used, tmppanel.memorization.over], [10, 10, false]);
+check("the consumables list the herb", tmppanel.consumables.rows.map(r => [r.name, r.doses]), [["Aloe Vera", 2]]);
+check("bardic magic switched off takes the songs away", V.buildMagicPanel(tmpsheetactor,
+	{ magicEnabled: true, magicSubsystems: { bardic: false } }, true).loreGroups.map(g => g.kind), ["rune"]);
+check("all magic off shows nothing", Object.keys(V.buildMagicPanel(tmpsheetactor, { magicEnabled: false }, false)), ["isGM", "magicOff"]);
+tmpsheetactor.system.identity.race.disabilities = ["No Intake"];
+check("a race with No Intake may add only charms", V.buildMagicPanel(tmpsheetactor, null, false).consumables.add.map(a => a.what), ["charm"]);
+
+// --- against the real built content ------------------------------------------------------------------
+var tmpload = async (tmpname) => (await fetch(`../src/packs/documents/${tmpname}.json`, { cache: "no-store" })).json();
+var tmpconsumables = await tmpload("consumables");
+var tmplore = await tmpload("lore");
+var tmpspellsdocs = await tmpload("spells");
+var tmpinvocations = await tmpload("invocations");
+check("built: 515 consumables, 961 lore entries, 550 spells, 460 invocations",
+	[tmpconsumables.length, tmplore.length, tmpspellsdocs.length, tmpinvocations.length], [515, 961, 550, 460]);
+var tmpkindof = { getBalladLoreList: "ballad", getCandleLoreList: "candlelore", getEmpathyMagicList: "empathymagic",
+	getGlyphList: "glyph", getGoodHymnList: "hymn", getEvilHymnList: "hymn", getNeutralHymnList: "hymn",
+	getUnalignedHymnList: "hymn", getPoemLoreList: "poem", getRitualLoreList: "ritual", getRuneLoreList: "rune",
+	getSongLoreList: "song", getSympathyMagicList: "sympathymagic" };
+var tmpunfound = [];
+for (const [tmplistname, tmpkind] of Object.entries(tmpkindof)) {
+	for (const tmpname of T.STARTING_LORE_LISTS[tmplistname]) {
+		if (!tmplore.some(d => d.name == tmpname && d.system.kind == tmpkind)) { tmpunfound.push(tmpname); }
+	}
+}
+for (const tmpname of T.STARTING_LORE_LISTS.getHerbLoreList) {
+	if (!tmpconsumables.some(d => d.name == tmpname && d.system.kind == "herb")) { tmpunfound.push(tmpname); }
+}
+for (const tmpname of T.STARTING_LORE_LISTS.getPotionLoreList) {
+	if (!tmpconsumables.some(d => d.name == tmpname && d.system.kind == "potion")) { tmpunfound.push(tmpname); }
+}
+for (const tmpladder of Object.values(T.STARTING_SPELL_LADDERS)) {
+	for (const [, tmpname] of tmpladder) { if (!tmpspellsdocs.some(d => d.name == tmpname)) { tmpunfound.push(tmpname); } }
+}
+check("every name his starting lists can draw is a built document, but his two", tmpunfound, ["Injury", "Zebra Gras"]);
+check("every built lore entry carries a kind and its switch", tmplore.every(d => L.MAGIC_KINDS[d.system.kind]?.subsystem == d.system.subsystem), true);
+check("names shared between kinds really are shared (why the packs match on kind)", ["Anger", "Healing", "Break Love"].map(n =>
+	new Set(tmplore.filter(d => d.name == n).map(d => d.system.kind)).size > 1), [true, true, true]);
+check("hymns carry the alignment of the starting list they are on", ["Absolution", "Concealment", "Aeromancy", "Communion"].map(n =>
+	tmplore.find(d => d.name == n && d.system.kind == "hymn")?.system.alignment), ["Good", "Evil", "Neutral", "Unaligned"]);
+check("a poem's two-cell start time is joined", tmplore.find(d => d.name == "Anger" && d.system.kind == "poem").system.startTime, "3d6 sec.");
+check("the misnamed potion keeps its own key", tmpconsumables.some(d => d.name == "Enhancing(Sight/Taste)"), true);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

@@ -20,12 +20,19 @@
 			{{#if search}}{{matched}} of {{total}} match{{else}}{{total}} available{{/if}}{{#if truncated}},
 			showing the first {{limit}} &mdash; type to narrow it{{/if}}
 		</p>
+		{{!-- His add buttons for a lore roll the lore skill to learn the entry (learnNewBallad and
+		      its siblings); only a success adds it. Untick to add outright. --}}
+		{{#if learnSkill}}
+		<label class="row learn-by-roll"><input type="checkbox" name="learnByRoll" {{#if learnByRoll}}checked{{/if}}>
+			Roll {{learnSkill}} to learn it ({{#if learnHeld}}{{learnChance}}%{{else}}not held &mdash; 0%{{/if}})</label>
+		{{/if}}
 	</header>
 
 	<section class="picker-body">
 		{{#each shown as |e|}}
 		<button type="button" class="picker-row" data-action="pickItem" data-id="{{e.id}}">
 			<span class="picker-name">{{e.name}}</span>
+			{{#if e.detail}}<span class="muted">{{e.detail}}</span>{{/if}}
 			{{#if e.system.sourcebook}}<span class="muted">{{e.system.sourcebook}}</span>{{/if}}
 		</button>
 		{{else}}
@@ -34,8 +41,13 @@
 	</section>
 
 	<footer class="picker-foot">
+		{{#if isMagic}}
+		<p class="muted">A consumable already carried gains a dose rather than a second row. Nothing
+			known is learned twice. The window stays open.</p>
+		{{else}}
 		<p class="muted">Added items are <strong>carried</strong>, not equipped. The window stays
 			open so a character can be kitted out in one go.</p>
+		{{/if}}
 		<button type="button" data-action="blankItem">Make a blank {{label}} instead</button>
 	</footer>
 

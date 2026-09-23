@@ -146,8 +146,8 @@ function parseItemSheets(text) {
 }
 
 const sheets = parseItemSheets(sheetSource);
-check(`module/sheets/item-sheet.mjs parsed: ${sheets.length} item sheet(s) found`, sheets.length === 9,
-	`expected the 9 registered in module/imagine-rpg.mjs, found ${sheets.length}: ${sheets.map(s => s.name).join(", ")}`);
+check(`module/sheets/item-sheet.mjs parsed: ${sheets.length} item sheet(s) found`, sheets.length === 13,
+	`expected the 13 registered in module/imagine-rpg.mjs, found ${sheets.length}: ${sheets.map(s => s.name).join(", ")}`);
 
 // @MARKER CONTENT PER SHEET
 // One document per sheet, chosen to be as LARGE as a real one gets rather than typical, so a sheet
@@ -297,6 +297,43 @@ function buildWeaponContext(source) {
 		].map(mode => ({ ...mode, available: !!sys[mode.key]?.available, mod: parseInt(sys[mode.key]?.mod) || 0 })) } };
 }
 
+// Mirror ImagineConsumableSheet and ImagineLoreSheet._prepareContext -- see module/sheets/item-sheet.mjs
+// @MARKER MAGIC AND LORE SHEETS. A poison is the consumable that shows the most, so one is built from
+// his poison tables rather than picked (no poison ships in a pack -- they are built, not listed).
+const LR = await import("../module/lore-rules.mjs");
+const LT = await import("../module/lore-tables.mjs");
+function buildConsumableContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	return { item, system: sys,
+		config: {
+			kinds: LR.CONSUMABLE_KINDS.map(k => ({ value: k, label: LR.MAGIC_KINDS[k].label, selected: k == sys.kind })),
+			forms: LR.POISON_FORMS.map(f => ({ value: f, selected: f == sys.form })),
+			poisonTypes: Object.keys(LT.POISON_TYPES).map(t => ({ value: t, selected: t == sys.poisonType })),
+			poisonPotencies: Object.keys(LT.POISON_POTENCIES).map(p => ({ value: p, selected: p == sys.poisonPotency }))
+		},
+		isHerb: sys.kind == "herb", isCharm: sys.kind == "charm", isPoison: sys.kind == "poison",
+		hasValue: ["herb", "potion", "elixir"].includes(sys.kind) };
+}
+function buildLoreContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	const def = LR.MAGIC_KINDS[sys.kind] ?? {};
+	return { item, system: sys,
+		config: {
+			kinds: LR.LORE_KINDS.map(k => ({ value: k, label: LR.MAGIC_KINDS[k].label, selected: k == sys.kind })),
+			forms: LR.POISON_FORMS.map(f => ({ value: f, selected: f == sys.form }))
+		},
+		learnSkill: def.learn || "", useSkill: def.use || "",
+		isRecipe: sys.kind == "potionrecipe" || sys.kind == "poisonrecipe", isPoisonRecipe: sys.kind == "poisonrecipe",
+		isRune: sys.kind == "rune", isHymn: sys.kind == "hymn",
+		hasComponent: ["candlelore", "empathymagic", "sympathymagic"].includes(sys.kind), isEvoke: sys.kind == "evoke" };
+}
+function buildPlainContext(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	return { item, system: item.system };
+}
+
 function buildSkillContext(source) {
 	const item = { name: source.name, img: "", system: structuredClone(source.system) };
 	return { item, system: item.system, config: { categories: ["class", "racial", "social"] },
@@ -306,9 +343,16 @@ function buildSkillContext(source) {
 // One document, or a synthetic context, per body template basename -- built once, up front, so
 // the render loop below is the same for every sheet regardless of where its content came from.
 const [equipmentDocs, weaponDocs, skillDocs, classDocs, armorDocs, raceDocs,
-       abilityDocs, disabilityDocs, immunityDocs] = await Promise.all(
-	["equipment", "weapons", "skills", "classes", "armor", "races", "abilities", "disabilities", "immunities"]
+       abilityDocs, disabilityDocs, immunityDocs, consumableDocs, loreDocs, spellDocs, invocationDocs] = await Promise.all(
+	["equipment", "weapons", "skills", "classes", "armor", "races", "abilities", "disabilities", "immunities",
+	 "consumables", "lore", "spells", "invocations"]
 		.map(loadPack));
+const poisonDoc = (() => {
+	const p = LR.makePoisonSystem("XXIV", "B", "Gaseous", false);
+	p.system.doses = 3;
+	p.system.description = p.system.description + " " + pickLargest(consumableDocs).system.description;
+	return p;
+})();
 const traitDocs = [...abilityDocs, ...disabilityDocs, ...immunityDocs];
 
 const CONTEXT_BY_TEMPLATE = {
@@ -320,7 +364,11 @@ const CONTEXT_BY_TEMPLATE = {
 	"item-trait":           () => buildTraitContext(pickLargest(traitDocs)),
 	"item-class":           () => buildClassContext(pickLargest(classDocs)),
 	"item-armor":           () => buildArmorContext(pickLargest(armorDocs)),
-	"item-race":            () => buildRaceContext(pickLargest(raceDocs))
+	"item-race":            () => buildRaceContext(pickLargest(raceDocs)),
+	"item-consumable":      () => buildConsumableContext(poisonDoc),
+	"item-lore":            () => buildLoreContext(pickLargest(loreDocs)),
+	"item-spell":           () => buildPlainContext(pickLargest(spellDocs)),
+	"item-invocation":      () => buildPlainContext(pickLargest(invocationDocs))
 };
 
 // @MARKER BUILD, RENDER, MEASURE

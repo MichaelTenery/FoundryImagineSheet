@@ -1,0 +1,136 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG Magic &amp; Lore preview</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>
+	body { margin: 0; background: #3a3632; font-family: "Signika", "Segoe UI", sans-serif; }
+	.frame { max-width: 860px; margin: 18px auto; background: #fdfbf6; border-radius: 5px;
+	         box-shadow: 0 8px 30px rgba(0,0,0,.45); overflow: hidden; }
+	.frame-title { background: #22201d; color: #d8d0c0; padding: 7px 12px; font-size: 13px; }
+	.window-content { padding: 12px 14px; }
+	.tab { display: block; }
+	.chat { max-width: 420px; margin: 10px auto 24px; background: #f0ece2; border: 1px solid #b9b0a0;
+	        border-radius: 4px; padding: 8px; font-size: 12px; }
+	.chat-title { color: #d8d0c0; text-align: center; font-size: 12px; margin-top: 18px; }
+	#status { color: #d8d0c0; font: 12px monospace; text-align: center; margin: 8px; }
+</style>
+
+<div id="status">running...</div>
+<div id="previews"></div>
+
+<script type="module">
+// The Magic & Lore tab, rendered against characters the REAL code made, end to end:
+//
+//     assembleCharacter        the generator's own assembly, from real race, class and skill documents
+//     ImagineCharacterData     the real model derives the character -- chances, Affinity, Fortune
+//     buildStartingLoreInput   reads that character as the generator's "Provide random lore" does
+//     rollStartingLore         his chain, with a fixed seed so the page is the same every load
+//     buildStartingLoreItems   turns the roll into items from the real built compendium content
+//     buildMagicPanel          what the tab shows, and templates/actor/tab-magic.hbs renders it
+//
+// Nothing here is a hand-made stand-in for the content: every herb, song and spell on screen is a
+// document from src/packs/documents/. Foundry is not present, so its globals are stubbed.
+//
+// Must be served over HTTP -- see tools/combat-test.html.
+globalThis.foundry = {
+	abstract: { TypeDataModel: class {
+		constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => ({ magicEnabled: true, magicSubsystems: {}, overrides: {}, sourcebooks: {} }) } };
+
+const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
+const CR = await import("../module/chargen-rules.mjs");
+const L = await import("../module/lore-rules.mjs");
+const SL = await import("../module/starting-lore.mjs");
+const V = await import("../module/magic-view.mjs");
+
+Handlebars.registerHelper("eq", (a, b) => a === b);
+
+const load = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`, { cache: "no-store" })).json());
+const [races, classes, skills, consumables, lore, spells] =
+	await Promise.all(["races", "classes", "skills", "consumables", "lore", "spells"].map(load));
+const content = { races, classes, skills, consumables, lore, spells,
+	herbValues: Object.fromEntries(consumables.filter(d => d.system.kind == "herb").map(d => [d.name, d.system.value])) };
+const tabSource = await (await fetch("../templates/actor/tab-magic.hbs", { cache: "no-store" })).text();
+const tabTemplate = Handlebars.compile(tabSource);
+
+function seeded(tmpseed) {
+	var tmpstate = tmpseed;
+	return (tmpsides) => { tmpstate = (tmpstate * 1103515245 + 12345) % 2147483648; return 1 + (tmpstate % tmpsides); };
+}
+
+// What Foundry's schema would fill in on a new actor and assembleCharacter leaves to it -- the same
+// defaults tools/chargen-preview.html gives the character it derives.
+const SCHEMA_DEFAULTS = {
+	characteristics: Object.fromEntries(["endurance", "perception", "affinity", "fortune"].map(k =>
+		[k, { titleBonus: 0, raceMod: 0, permMod: 0, tempMod: 0 }])),
+	resistances: Object.fromEntries(["magic", "illusion", "control", "poison", "disease"].map(k => [k, { misc: 0, immune: false }])),
+	body: { bodyType: "", areas: [], armorDamage: {} },
+	combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
+	          weaponLoreList: "", missileLoreList: "", projectileLoreList: "", chosenAttackSkill: "Beginner" },
+	skillSlotMoves: { racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0, racialSacrificed: 0, socialSacrificed: 0 },
+	movement: { walk: {}, jog: {}, run: {}, special: {}, specialName: "", travelHours: 0, restHours: 0, jumpStand: 0, jumpUp: 0 }
+};
+
+let idCounter = 0;
+function derive(actorData, items) {
+	for (const it of items) { it.id ??= "i" + (++idCounter); }
+	const system = new ImagineCharacterData({ ...structuredClone(actorData.system), ...structuredClone(SCHEMA_DEFAULTS),
+		combat: { ...structuredClone(SCHEMA_DEFAULTS.combat), ...structuredClone(actorData.system.combat ?? {}) } });
+	for (const it of items.filter(i => i.type == "class")) {
+		it.getTitleName = function (t) { const i = parseInt(t) - 1; const a = this.system.advancement.titles;
+		                                  return (i < 0 || i >= a.length) ? "" : a[i]; };
+	}
+	system.parent = { items, name: actorData.name };
+	system.prepareBaseData();
+	system.prepareDerivedData();
+	return { name: actorData.name, items, system };
+}
+
+// This is the function which makes one character the way the generator does, derives it, gives it
+// its starting lore, and renders its Magic & Lore tab.
+async function preview({ title, name, race, klass, ratings, alignment, racialSkills, seed }) {
+	const raceDoc = races.find(r => r.name == race);
+	const classDoc = classes.find(c => c.name == klass);
+	const choices = { name, raceNames: [race], className: klass, alignment, ratings,
+		classSkills: CR.getStartingClassSkills(classDoc.system, (raceDoc.system.disabilities ?? []).includes("Cannot Cast Spells")),
+		racialSkillNames: racialSkills, socialSkillNames: [] };
+	const assembled = CR.assembleCharacter(choices, content, seeded(seed));
+	let actor = derive(assembled.actor, assembled.items);
+
+	const input = SL.buildStartingLoreInput(actor, content);
+	const rolled = L.rollStartingLore(input, seeded(seed + 1));
+	const made = SL.buildStartingLoreItems(rolled, content, actor.items);
+	actor = derive(assembled.actor, [...actor.items, ...structuredClone(made.create)]);
+
+	const panel = V.buildMagicPanel(actor, game.imagine.getAvailabilityRules(), true);
+	const frame = document.createElement("div");
+	frame.innerHTML = `<div class="chat-title">${title}</div>
+		<div class="frame imagine sheet actor character"><div class="frame-title">${name} &mdash; ${race} ${klass}, title 1 &mdash; Magic &amp; Lore</div>
+		<div class="window-content">${tabTemplate({ magic: panel, tab: { active: true } })}</div></div>
+		<div class="chat"><strong>Starting lore</strong><ul>${made.added.map(a => `<li>${a}</li>`).join("")}</ul>
+		${made.issues.map(i => `<p class="muted">${i}</p>`).join("")}
+		<p class="muted">counted: ${input.skillNames.filter(n => L.STARTING_LORE_CHAIN === undefined || true).join(", ")}<br>
+		casting: ${input.casting ? input.casting.name + " " + input.casting.chance + "%" : "none"} &middot;
+		Affinity ${input.affinity} &middot; Fortune ${input.fortune} &middot; Herb Lore common ${input.herbCommonChance}%</p></div>`;
+	document.getElementById("previews").appendChild(frame);
+	return { panel, made };
+}
+
+const high = { str: 12, agl: 14, vit: 13, int: 17, wis: 18, knw: 18, app: 13, chm: 15, soc: 11, aur: 17, pty: 14, wil: 15 };
+const witch = await preview({ title: "A new White Witch: twelve lores in her class list, Herb Lore from title 1, Hermetic Lore for starting spells",
+	name: "Maren Ashgrove", race: "Human(Civilized:Village)", klass: "Witch(White)", ratings: high, alignment: "Good", racialSkills: [], seed: 41 });
+const bard = await preview({ title: "A new Bard of the Shadow Elves: Sing and Recite from title 1, Song Lore and Poison Lore from the race",
+	name: "Ithilwen", race: "Elf(Shadow)", klass: "Bard", ratings: high, alignment: "Neutral",
+	racialSkills: ["Song Lore", "Poison Lore"], seed: 7 });
+const warrior = await preview({ title: "A new Warrior, who holds no lore: the tab's empty state",
+	name: "Brom", race: "Human(Civilized:Village)", klass: "Warrior",
+	ratings: { ...high, str: 18, int: 10, knw: 10, wis: 10 }, alignment: "Good", racialSkills: [], seed: 3 });
+
+document.getElementById("status").textContent =
+	`Witch: ${witch.made.added.length} added, groups ${witch.panel.loreGroups.map(g => g.kind).join(", ")}; `
+	+ `Bard: ${bard.made.added.length} added, groups ${bard.panel.loreGroups.map(g => g.kind).join(", ")}; `
+	+ `Warrior: ${warrior.made.added.length} added.`;
+</script>

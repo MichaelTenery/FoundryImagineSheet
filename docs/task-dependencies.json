@@ -47,6 +47,10 @@
     "Base Magic":                         { "dependsOn": ["Combat module — phase 2", "Skills module", "Character Generation"], "note": "Deferred until the core phase is complete." },
     "Base Divine Magic":                  { "dependsOn": ["Combat module — phase 2", "Skills module", "Character Generation"], "note": "Deferred until the core phase is complete." },
     "Per-subsystem magic":                { "dependsOn": ["Base Magic", "Base Divine Magic", "Extend extraction"] },
+    "Magic & Lore tab":                   { "dependsOn": ["Extend extraction", "Skills module", "Design content/compendium layer"], "note": "The lore side of Layer 4, built ahead of the deferral at the user's request; casting is still Base Magic's." },
+    "Starting lore":                      { "dependsOn": ["Magic & Lore tab", "Character Generation"] },
+    "Lore use effects":                   { "dependsOn": ["Magic & Lore tab"] },
+    "Magic content attribution":          { "dependsOn": ["Magic & Lore tab"] },
 
     "ApplicationV2 character sheet":      { "dependsOn": ["Design Actor data model", "Attributes module", "Skills module", "Equipment module"], "waitingOn": "a running Foundry V14" },
     "Attribute save and skill roll":      { "dependsOn": ["Implement attribute-save", "Implement skill-check", "ApplicationV2 character sheet"], "waitingOn": "a running Foundry V14" },

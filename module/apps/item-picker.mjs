@@ -20,16 +20,48 @@
 
 import { explainAvailability } from "../availability.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { MAGIC_KINDS, getItemKind, getSkillStanding, resolveLoreLearn, isLoreSuccess,
+         makePotionRecipe } from "../lore-rules.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
-// Which compendium each gear type is picked from, and how to name it on screen.
+// Which compendium each thing is picked from, and how to name it on screen. The first three are
+// gear, by item type. The rest are the Magic & Lore tab's, by his kind: several kinds share one
+// compendium (every lore is in world.imagine-lore) and are told apart by system.kind, which is why
+// "kind" is here and the index is filtered by it.
+//
+// A potion RECIPE is picked from the potions -- a recipe is knowing how to make one -- and becomes
+// a lore item on the way (makePotionRecipe). A poison is not picked at all: his poisons are built
+// from a type and a potency, so the tab has its own small form for them.
 const PICKER_PACKS = {
-	//  item type   compendium                    heading
-	weapon:    { pack: "world.imagine-weapons",   label: "Weapon" },
-	armor:     { pack: "world.imagine-armor",     label: "Armour" },
-	equipment: { pack: "world.imagine-equipment", label: "Equipment" }
+	//  what           compendium                          item type          kind                  heading
+	weapon:        { pack: "world.imagine-weapons",     type: "weapon",     kind: "",              label: "Weapon" },
+	armor:         { pack: "world.imagine-armor",       type: "armor",      kind: "",              label: "Armour" },
+	equipment:     { pack: "world.imagine-equipment",   type: "equipment",  kind: "",              label: "Equipment" },
+	herb:          { pack: "world.imagine-consumables", type: "consumable", kind: "herb",          label: "Herb" },
+	potion:        { pack: "world.imagine-consumables", type: "consumable", kind: "potion",        label: "Potion" },
+	elixir:        { pack: "world.imagine-consumables", type: "consumable", kind: "elixir",        label: "Elixir" },
+	charm:         { pack: "world.imagine-consumables", type: "consumable", kind: "charm",         label: "Charm" },
+	potionrecipe:  { pack: "world.imagine-consumables", type: "lore",       kind: "potion",        label: "Potion recipe", becomes: "potionrecipe" },
+	ballad:        { pack: "world.imagine-lore",        type: "lore",       kind: "ballad",        label: "Ballad" },
+	candlelore:    { pack: "world.imagine-lore",        type: "lore",       kind: "candlelore",    label: "Candle ritual" },
+	empathymagic:  { pack: "world.imagine-lore",        type: "lore",       kind: "empathymagic",  label: "Empathy ritual" },
+	glyph:         { pack: "world.imagine-lore",        type: "lore",       kind: "glyph",         label: "Glyph" },
+	hymn:          { pack: "world.imagine-lore",        type: "lore",       kind: "hymn",          label: "Hymn" },
+	poem:          { pack: "world.imagine-lore",        type: "lore",       kind: "poem",          label: "Poem" },
+	ritual:        { pack: "world.imagine-lore",        type: "lore",       kind: "ritual",        label: "Ritual" },
+	rune:          { pack: "world.imagine-lore",        type: "lore",       kind: "rune",          label: "Rune" },
+	song:          { pack: "world.imagine-lore",        type: "lore",       kind: "song",          label: "Song" },
+	sympathymagic: { pack: "world.imagine-lore",        type: "lore",       kind: "sympathymagic", label: "Sympathy ritual" },
+	evoke:         { pack: "world.imagine-lore",        type: "lore",       kind: "evoke",         label: "Evoke" },
+	spell:         { pack: "world.imagine-spells",      type: "spell",      kind: "",              label: "Spell" },
+	invocation:    { pack: "world.imagine-invocations", type: "invocation", kind: "",              label: "Invocation" }
 };
+
+// The kind an item made by this picker ends up as -- a potion recipe is picked FROM the potions.
+function resultKind(tmpdefinition) {
+	return tmpdefinition.becomes ?? tmpdefinition.kind;
+}
 
 // Long lists are cut to this until a search narrows them. Nine hundred rows of armour render
 // slowly and read worse; the count above the list always says how many matched in full.
@@ -56,11 +88,19 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 	#type = "equipment";
 	#search = "";
 	#entries = null;
+	// His learn roll, for a lore he learns with a skill: on, as his add buttons always roll. Off
+	// adds the entry outright -- for a Game Master handing one out, or a sheet being caught up.
+	#learnByRoll = true;
 
 	constructor(tmpactor, tmptype, tmpoptions) {
 		super(tmpoptions ?? {});
 		this.#actor = tmpactor;
 		this.#type = PICKER_PACKS[tmptype] ? tmptype : "equipment";
+	}
+
+	// The skill his add button rolls to learn this kind, or "" for a kind that is simply added.
+	get #learnSkill() {
+		return MAGIC_KINDS[resultKind(PICKER_PACKS[this.#type])]?.learn ?? "";
 	}
 
 	get title() {
@@ -79,10 +119,12 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		if (!tmppack) { this.#entries = []; return this.#entries; }
 
 		var tmprules = game.imagine?.getAvailabilityRules?.() ?? null;
-		var tmpindex = await tmppack.getIndex({ fields: ["system.sourcebook", "system.types"] });
+		var tmpindex = await tmppack.getIndex({ fields: ["system.sourcebook", "system.types", "system.kind",
+			"system.subsystem", "system.level", "system.rating"] });
 		this.#entries = tmpindex
 			.map(tmpentry => ({ id: tmpentry._id, name: tmpentry.name, type: tmpentry.type,
 			                    system: tmpentry.system ?? {} }))
+			.filter(tmpentry => !tmpdefinition.kind || tmpentry.system.kind == tmpdefinition.kind)
 			.filter(tmpentry => explainAvailability(tmpentry, tmprules).available)
 			.sort((a, b) => a.name.localeCompare(b.name));
 		return this.#entries;
@@ -97,6 +139,20 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 			: tmpall;
 
 		tmpcontext.label = PICKER_PACKS[this.#type].label;
+		// What a row shows beside the name: a spell's or invocation's level, a lore's rating.
+		for (const tmpentry of tmpmatched.slice(0, PICKER_SHOWN)) {
+			tmpentry.detail = tmpentry.system.level ? `level ${tmpentry.system.level}`
+				: (tmpentry.system.rating ? `rating ${tmpentry.system.rating}` : "");
+		}
+		tmpcontext.learnSkill = this.#learnSkill;
+		tmpcontext.learnByRoll = this.#learnByRoll;
+		tmpcontext.isMagic = PICKER_PACKS[this.#type].type != this.#type;
+		if (this.#learnSkill) {
+			var tmpstanding = getSkillStanding(this.#actor?.items?.filter(i => i.type == "skill"),
+				this.#learnSkill, this.#actor?.system?.identity?.title);
+			tmpcontext.learnChance = tmpstanding.held ? tmpstanding.chance : 0;
+			tmpcontext.learnHeld = tmpstanding.held;
+		}
 		tmpcontext.search = this.#search;
 		tmpcontext.total = tmpall.length;
 		tmpcontext.matched = tmpmatched.length;
@@ -114,6 +170,9 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		// Typing filters as it goes, and the box keeps focus and caret across the re-render it
 		// causes -- a search that jumped to the end of the text on every keystroke would be
 		// unusable on a list this size.
+		var tmplearn = this.element.querySelector("input[name='learnByRoll']");
+		tmplearn?.addEventListener("change", (tmpevent) => { this.#learnByRoll = tmpevent.target.checked; });
+
 		var tmpsearch = this.element.querySelector("input[name='search']");
 		if (!tmpsearch) { return; }
 		tmpsearch.addEventListener("input", (tmpevent) => {
@@ -139,6 +198,12 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 
 		var tmpdata = tmpdoc.toObject();
 		delete tmpdata._id;
+		var tmpdefinition = PICKER_PACKS[this.#type];
+		if (tmpdefinition.type != this.#type) {
+			await this.#pickMagic(tmpdata, tmpdefinition);
+			this.render();
+			return;
+		}
 		// Carried, not equipped: a thing just acquired is in a pack, not in a hand.
 		tmpdata.system = { ...tmpdata.system, location: "carried" };
 		await this.#actor.createEmbeddedDocuments("Item", [tmpdata]);
@@ -149,15 +214,82 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		this.render();
 	}
 
+	// @MARKER MAGIC
+	// This is the function which puts a Magic & Lore entry on the character.
+	//
+	//     a consumable      added to the stack already carried, one dose more, or a new stack of one
+	//     a known entry     never twice; and for a lore learned with a skill, his learn roll first --
+	//                       learnNewBallad and its siblings (sheet-worker.js:136744): the lore skill,
+	//                       no entry modifier, 200% learns outright, a natural 100 fails
+	async #pickMagic(tmpdata, tmpdefinition) {
+		var tmpkind = resultKind(tmpdefinition);
+		var tmpactor = this.#actor;
+
+		if (tmpdefinition.type == "consumable") {
+			var tmpstack = tmpactor.items.find(tmpitem => tmpitem.type == "consumable"
+				&& tmpitem.system.kind == tmpkind && tmpitem.name == tmpdata.name);
+			if (tmpstack) {
+				var tmpnow = (parseInt(tmpstack.system.doses) || 0) + 1;
+				await tmpstack.update({ "system.doses": tmpnow });
+				ui.notifications.info(`${tmpdata.name}: ${tmpactor.name} now carries ${tmpnow}.`);
+			} else {
+				tmpdata.system.doses = 1;
+				await tmpactor.createEmbeddedDocuments("Item", [tmpdata]);
+				ui.notifications.info(`${tmpdata.name} added to ${tmpactor.name}.`);
+			}
+			return;
+		}
+
+		if (tmpkind == "potionrecipe") {
+			tmpdata = { name: tmpdata.name, type: "lore", img: tmpdata.img, system: makePotionRecipe(tmpdata.system) };
+		}
+		tmpdata.system.memorized = false;
+
+		var tmplabel = (MAGIC_KINDS[tmpkind]?.label ?? tmpkind).toLowerCase();
+		var tmpalready = tmpactor.items.find(tmpitem => getItemKind(tmpitem) == tmpkind && tmpitem.name == tmpdata.name);
+		if (tmpalready) {
+			ui.notifications.info(`${tmpactor.name} already knows the ${tmplabel} ${tmpdata.name}.`);
+			return;
+		}
+
+		var tmpskill = this.#learnSkill;
+		if (tmpskill && this.#learnByRoll) {
+			var tmpstanding = getSkillStanding(tmpactor.items.filter(i => i.type == "skill"), tmpskill,
+				tmpactor.system?.identity?.title);
+			var tmproll = await new Roll("1d100").evaluate();
+			var tmpresult = resolveLoreLearn({ chance: tmpstanding.chance, situational: 0, alreadyKnown: false }, tmproll.total);
+			var tmpwords = { success: "learned", grandmaster: "learned it outright, a Grandmaster of " + tmpskill,
+			                 failure: "failed to learn", fumble: "rolled a 100 and failed to learn" };
+			await ChatMessage.create({
+				speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+				flavor: `Learn ${tmplabel}: ${tmpdata.name} &mdash; `
+				      + `<strong>${isLoreSuccess(tmpresult.outcome) ? "learned" : "not learned"}</strong>`,
+				content: `<div class="imagine-skill-roll">${tmpskill} ${tmpresult.total}%${tmpstanding.held ? "" : " (not held)"}: `
+				       + `rolled ${tmpresult.roll} &mdash; ${tmpwords[tmpresult.outcome] ?? tmpresult.outcome}.</div>`,
+				rolls: [tmproll]
+			});
+			if (!isLoreSuccess(tmpresult.outcome)) { return; }
+		}
+
+		await tmpactor.createEmbeddedDocuments("Item", [tmpdata]);
+		ui.notifications.info(`${tmpdata.name} added to ${tmpactor.name}.`);
+	}
+
 	// This is the function which makes an empty item of this type, for something his tables do not
 	// carry. The same thing the Add buttons used to do, kept because homebrew needs a way in.
 	static async #onBlankItem(event, target) {
 		event.preventDefault();
-		var tmplabel = PICKER_PACKS[this.#type].label;
+		var tmpdefinition = PICKER_PACKS[this.#type];
+		var tmplabel = tmpdefinition.label;
+		var tmpkind = resultKind(tmpdefinition);
+		var tmpsystem = { location: "carried", quantity: 1, weight: 0 };
+		if (tmpdefinition.type != this.#type) {
+			tmpsystem = tmpkind ? { kind: tmpkind, subsystem: MAGIC_KINDS[tmpkind]?.subsystem ?? "" } : {};
+		}
 		var tmpcreated = await this.#actor.createEmbeddedDocuments("Item", [{
 			name: `New ${tmplabel}`,
-			type: this.#type,
-			system: { location: "carried", quantity: 1, weight: 0 }
+			type: tmpdefinition.type,
+			system: tmpsystem
 		}]);
 		await this.close();
 		if (tmpcreated?.length) { tmpcreated[0].sheet.render(true); }

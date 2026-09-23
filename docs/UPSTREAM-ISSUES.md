@@ -1749,3 +1749,68 @@ back (`MARTIAL_MOVE_CORRECTIONS`, `MARTIAL_STANCE_CORRECTIONS`, `MARTIAL_SKILLMO
 - The missing-limb checks (`racial_standard_disabilities` "All manipulator limbs lost" and the rest)
   are not ported, because the port does not track lost limbs yet. One of them tests a hold named
   "Leg Block" (67446), which is a block; "Leg" is presumably meant.
+
+## 57. Starting lore: Poison Lore held twice gives one recipe, not two
+
+**Status:** open · **Severity:** low -- a character is short one poison recipe and its stock
+
+Found 2026-09-22 porting "Provide random lore" (`provideRandomLoreAndLoreItems`, sheet-worker.js:146686).
+Every step of that chain builds its list with `if (first) { list = x; first = false; } else { list += "," + x; }`.
+`checkPoisonRecipeLore` (146965) has the same shape but never sets `first` to false, so each pass
+of its loop OVERWRITES the list, and a character holding Poison Lore twice (racial and class, say)
+ends with the last recipe drawn and its doses, and nothing for the first. Its own comment says
+"provide lore for each skill instance", and every sibling step does, so the port gives one recipe
+(and one stock) per instance. If only one was meant, say so and it is one line in `rollStartingLore`
+(`module/lore-rules.mjs`, @MARKER POISON STEP).
+
+## 58. Two names your starting-lore lists draw that your dictionaries do not hold
+
+**Status:** open · **Severity:** low -- a blank row, or nothing, where a herb or a hymn should be
+
+Found 2026-09-22 by checking every name in the fourteen `get<Lore>List` functions against the
+dictionary it is looked up in. Two miss:
+
+- **`Zebra Gras`** in `getHerbLoreList` (147313). `herblist` has **Zebra Grass** (128747) and so does
+  the herb dropdown. A new herbalist who draws it gets `getHerbDetails("Zebra Gras")`, which finds
+  nothing.
+- **`Injury`** in `getUnalignedHymnList` (146920). It is in the hymn dropdown (sheet HTML) and has a
+  case in `doHymnAction` (139894), but `hymnlorelist` has no row for it, so there is no rating,
+  modifier or description to add.
+
+The port reports both when drawn and adds nothing rather than an empty item
+(`tools/extract/extract_lore_tables.py` prints them on every run). Is Zebra Gras just the typo it
+looks like, and what are Injury's rating, modifier, start time, duration and description?
+
+## 59. Two slips in the potion code
+
+**Status:** open · **Severity:** cosmetic
+
+- **`potionlist` row `"Enhancing(Sight/Taste)"` (133073) has `"Enhancing(Sight/Smell)"` in its name
+  column.** Its description is the Sight/Taste one, so the row is right and the name is not. The row
+  added to a sheet displays Sight/Smell, the same name as the row above it. The port names it by its
+  key, Sight/Taste.
+- **`usePotionRecipe` (142826) rolls with the `poison-recipeuse` template**, so brewing a potion
+  shows a Poison Lore card title. `usePotionRecipeMod` uses the potion one.
+
+## 60. Starting lore counts class skills the character has not reached
+
+**Status:** open · **Severity:** a question -- the port follows your code
+
+`storeSkillCountForSkills` (98140) counts a lore skill across the racial rows AND the class rows for
+titles 1 to 10 -- and at creation `setFinalClassSkills` has written a class's whole progression onto
+those rows, reached or not (63177). So a new character gets starting entries for lores its class
+will not give until later: a new White Witch starts with a potion recipe though Potion Lore is her
+title-8 skill, and with a poison recipe from title 6. Your own comment on the function says "doesn't
+look at class skills over 10th title", which reads as deliberate -- a class's lore arriving with its
+first practitioner, entries and all. The port does the same. If it should count only the skills the
+character has reached (title 1 at creation), it is one filter in `getCountedSkillNames`
+(`module/lore-rules.mjs`).
+
+Two smaller things the port does differently, neither of which changes what can be drawn:
+
+- Your "already drawn?" tests are substring tests on the joined list, so "Healing" is refused after
+  "Super Healing", and the starting spell "Hold" after "Hold Plant" or "Hold Animal". The port
+  compares whole names.
+- A list shorter than the number of times the skill is held would loop for ever in your `while`
+  (none of your lists is that short, so it cannot happen with your data). The port stops when the
+  list runs out.

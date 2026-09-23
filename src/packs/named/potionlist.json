@@ -1,0 +1,660 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "potionlist",
+    "lines": [
+      133023,
+      133147
+    ]
+  },
+  "_fields": [
+    "name",
+    "value",
+    "duration",
+    "description"
+  ],
+  "entries": {
+    "Anti-Toxin-III": {
+      "name": "Anti-Toxin-III",
+      "value": "25 gp.",
+      "duration": "Instant",
+      "description": "Cures Type III and lower poisons."
+    },
+    "Anti-Toxin-V": {
+      "name": "Anti-Toxin-V",
+      "value": "50 gp.",
+      "duration": "Instant",
+      "description": "Cures Type V and lower poisons."
+    },
+    "Anti-Toxin-X": {
+      "name": "Anti-Toxin-X",
+      "value": "100 gp.",
+      "duration": "Instant",
+      "description": "Cures Type X and lower poisons."
+    },
+    "Anti-Toxin-XV": {
+      "name": "Anti-Toxin-XV",
+      "value": "150 gp.",
+      "duration": "Instant",
+      "description": "Cures Type XV and lower poisons."
+    },
+    "Anti-Toxin-XX": {
+      "name": "Anti-Toxin-XX",
+      "value": "200 gp.",
+      "duration": "Instant",
+      "description": "Cures Type XX and lower poisons."
+    },
+    "Anti-Toxin-XXV": {
+      "name": "Anti-Toxin-XXV",
+      "value": "250 gp.",
+      "duration": "Instant",
+      "description": "Cures all poisons."
+    },
+    "Breathe": {
+      "name": "Breathe",
+      "value": "100 gp.",
+      "duration": "2d6 hours",
+      "description": "Allows the imbiber to breathe underwater or in any environment including a vacuum. It allows the user to turn the molecules around them into useful oxygen which is magically transported to the lungs. In a total vacuum it uses extra body cells, mostly water. The potion lasts 2d6 hours, half that time in vacuum."
+    },
+    "Control(Humans)": {
+      "name": "Control(Humans)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Human within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Elves)": {
+      "name": "Control(Elves)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control an Elf within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Dwarves)": {
+      "name": "Control(Dwarves)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Dwarf within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Midfolk)": {
+      "name": "Control(Midfolk)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Midfolk within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Saurian)": {
+      "name": "Control(Saurian)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Saurian within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Insectoid)": {
+      "name": "Control(Insectoid)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control an Insectoid within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Wild-one)": {
+      "name": "Control(Wild-one)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Wild-one within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Exotics)": {
+      "name": "Control(Exotics)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control an Exotics within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Slimes)": {
+      "name": "Control(Slimes)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Slime within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Giants)": {
+      "name": "Control(Giants)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Giant within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Undead)": {
+      "name": "Control(Undead)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control an Undead within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Control(Dragons)": {
+      "name": "Control(Dragons)",
+      "value": "200 gp.",
+      "duration": "3d6 hours",
+      "description": "Gives the ability to control a Dragon within sight of the user, who fails their Control Resistance. For the duration of the potion the character can speak the language of the type they can control. If the resistance is made, the creatures are immune to further control by the user."
+    },
+    "Curing": {
+      "name": "Curing",
+      "value": "400 gp.",
+      "duration": "Instant",
+      "description": "A powerful healing potion that has the following effects: Cures all damage to the characters body, 95% chance of curing any disease the character possess, 75% chance of curing blindness or deafness, 65% chance of regenerating back a lost limb, 50% chance of curing Lycanthropy, 30% chance of Exorcism (as the skill)."
+    },
+    "Delusion": {
+      "name": "Delusion",
+      "value": "0",
+      "duration": "3d6 min.",
+      "description": "Imbiber believes they are affected as if under the influence of another potion for the duration. An Illusion Resistance is required to break the effect."
+    },
+    "Enduring(All)": {
+      "name": "Enduring(All)",
+      "value": "500 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to magic, normal weapons, and all energy types (except obliteration) for the duration."
+    },
+    "Enduring(Aura)": {
+      "name": "Enduring(Aura)",
+      "value": "300 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Aura energy type for the duration."
+    },
+    "Enduring(Cold)": {
+      "name": "Enduring(Cold)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Cold energy type for the duration."
+    },
+    "Enduring(Death)": {
+      "name": "Enduring(Death)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Death energy type for the duration."
+    },
+    "Enduring(Deterioration)": {
+      "name": "Enduring(Deterioration)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Deterioration energy type for the duration."
+    },
+    "Enduring(Dissonance)": {
+      "name": "Enduring(Dissonance)",
+      "value": "100 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Dissonance energy type for the duration."
+    },
+    "Enduring(Electricity)": {
+      "name": "Enduring(Electricity)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Electricity energy type for the duration."
+    },
+    "Enduring(Heat)": {
+      "name": "Enduring(Heat)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Heat energy type for the duration."
+    },
+    "Enduring(Life)": {
+      "name": "Enduring(Life)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Life energy type for the duration."
+    },
+    "Enduring(Light)": {
+      "name": "Enduring(Light)",
+      "value": "100 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Light energy type for the duration."
+    },
+    "Enduring(Normal Weapons)": {
+      "name": "Enduring(Normal Weapons)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to damage from normal weapons for the duration."
+    },
+    "Enduring(Magic)": {
+      "name": "Enduring(Magic)",
+      "value": "200 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Magic (weapons, powers, spells, items, etc.) for the duration."
+    },
+    "Enduring(Obliteration)": {
+      "name": "Enduring(Obliteration)",
+      "value": "400 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to Obliteration energy type for the duration."
+    },
+    "Enduring(Poison)": {
+      "name": "Enduring(Poison)",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to poisons for the duration."
+    },
+    "Enduring(Pressure)": {
+      "name": "Enduring(Pressure)",
+      "value": "100 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to pressure for the duration."
+    },
+    "Enduring(Repulsion)": {
+      "name": "Enduring(Repulsion)",
+      "value": "100 gp.",
+      "duration": "1d4 hours",
+      "description": "Imbiber is immune to repulsion for the duration."
+    },
+    "Enhancing(All)": {
+      "name": "Enhancing(All)",
+      "value": "400 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of hearing; allowing +80% to listen, +20% to surprise, -50% to be surprised, and +50% resistances to illusions of sound, but the imbiber takes double effect from sound spells like Thunderclap. Enhances a being`s sense of sight; granting far sight (x3 vision), and gaining +2 to hit with missile weapons, -30% to be surprised, and +50% resistances to illusions of sight, but the being is affected as night vision in bright light (-4 to hit and -2 damage) and double effects from light spells like Brilliance. Enhances a being`s sense of smell; allowing +60% to smell, and +50% resistances to illusions of smell. Enhances the being`s sense of taste; granting the ability to detect poison at a 99% chance, and +50% resistances to illusions of taste. Enhances the being`s sense of touch; allowing +25% to searches for secret doors and compartments, and +50% resistances to illusions of touch, but the imbiber takes +4 damage from physical attacks."
+    },
+    "Enhancing(Hearing)": {
+      "name": "Enhancing(Hearing)",
+      "value": "200 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of hearing; allowing +80% to listen, +20% to surprise, -50% to be surprised, and +50% resistances to illusions of sound, but the imbiber takes double effect from sound spells like Thunderclap."
+    },
+    "Enhancing(Sight)": {
+      "name": "Enhancing(Sight)",
+      "value": "200 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of sight; granting far sight (x3 vision), and gaining +2 to hit with missile weapons, -30% to be surprised, and +50% resistances to illusions of sight, but the being is affected as night vision in bright light (-4 to hit and -2 damage) and double effects from light spells like Brilliance."
+    },
+    "Enhancing(Smell)": {
+      "name": "Enhancing(Smell)",
+      "value": "200 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of smell; allowing +60% to smell, and +50% resistances to illusions of smell."
+    },
+    "Enhancing(Taste)": {
+      "name": "Enhancing(Taste)",
+      "value": "200 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances the being`s sense of taste; granting the ability to detect poison at a 99% chance, and +50% resistances to illusions of taste."
+    },
+    "Enhancing(Touch)": {
+      "name": "Enhancing(Touch)",
+      "value": "200 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances the being`s sense of touch; allowing +25% to searches for secret doors and compartments, and +50% resistances to illusions of touch, but the imbiber takes +4 damage from physical attacks."
+    },
+    "Enhancing(Hearing/Sight)": {
+      "name": "Enhancing(Hearing/Sight)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of hearing; allowing +80% to listen, +20% to surprise, -50% to be surprised, and +50% resistances to illusions of sound, but the imbiber takes double effect from sound spells like Thunderclap. Enhances a being`s sense of sight; granting far sight (x3 vision), and gaining +2 to hit with missile weapons, -30% to be surprised, and +50% resistances to illusions of sight, but the being is affected as night vision in bright light (-4 to hit and -2 damage) and double effects from light spells like Brilliance."
+    },
+    "Enhancing(Hearing/Smell)": {
+      "name": "Enhancing(Hearing/Smell)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of hearing; allowing +80% to listen, +20% to surprise, -50% to be surprised, and +50% resistances to illusions of sound, but the imbiber takes double effect from sound spells like Thunderclap. Enhances a being`s sense of smell; allowing +60% to smell, and +50% resistances to illusions of smell."
+    },
+    "Enhancing(Hearing/Taste)": {
+      "name": "Enhancing(Hearing/Taste)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of hearing; allowing +80% to listen, +20% to surprise, -50% to be surprised, and +50% resistances to illusions of sound, but the imbiber takes double effect from sound spells like Thunderclap. Enhances the being`s sense of taste; granting the ability to detect poison at a 99% chance, and +50% resistances to illusions of taste."
+    },
+    "Enhancing(Hearing/Touch)": {
+      "name": "Enhancing(Hearing/Touch)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of hearing; allowing +80% to listen, +20% to surprise, -50% to be surprised, and +50% resistances to illusions of sound, but the imbiber takes double effect from sound spells like Thunderclap. Enhances the being`s sense of touch; allowing +25% to searches for secret doors and compartments, and +50% resistances to illusions of touch, but the imbiber takes +4 damage from physical attacks."
+    },
+    "Enhancing(Sight/Smell)": {
+      "name": "Enhancing(Sight/Smell)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of sight; granting far sight (x3 vision), and gaining +2 to hit with missile weapons, -30% to be surprised, and +50% resistances to illusions of sight, but the being is affected as night vision in bright light (-4 to hit and -2 damage) and double effects from light spells like Brilliance. Enhances a being`s sense of smell; allowing +60% to smell, and +50% resistances to illusions of smell."
+    },
+    "Enhancing(Sight/Taste)": {
+      "name": "Enhancing(Sight/Smell)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of sight; granting far sight (x3 vision), and gaining +2 to hit with missile weapons, -30% to be surprised, and +50% resistances to illusions of sight, but the being is affected as night vision in bright light (-4 to hit and -2 damage) and double effects from light spells like Brilliance. Enhances the being`s sense of taste; granting the ability to detect poison at a 99% chance, and +50% resistances to illusions of taste."
+    },
+    "Enhancing(Sight/Touch)": {
+      "name": "Enhancing(Sight/Touch)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of sight; granting far sight (x3 vision), and gaining +2 to hit with missile weapons, -30% to be surprised, and +50% resistances to illusions of sight, but the being is affected as night vision in bright light (-4 to hit and -2 damage) and double effects from light spells like Brilliance. Enhances the being`s sense of touch; allowing +25% to searches for secret doors and compartments, and +50% resistances to illusions of touch, but the imbiber takes +4 damage from physical attacks."
+    },
+    "Enhancing(Smell/Taste)": {
+      "name": "Enhancing(Smell/Taste)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of smell; allowing +60% to smell, and +50% resistances to illusions of smell. Enhances the being`s sense of taste; granting the ability to detect poison at a 99% chance, and +50% resistances to illusions of taste."
+    },
+    "Enhancing(Smell/Touch)": {
+      "name": "Enhancing(Smell/Touch)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances a being`s sense of smell; allowing +60% to smell, and +50% resistances to illusions of smell. Enhances the being`s sense of touch; allowing +25% to searches for secret doors and compartments, and +50% resistances to illusions of touch, but the imbiber takes +4 damage from physical attacks."
+    },
+    "Enhancing(Taste/Touch)": {
+      "name": "Enhancing(Taste/Touch)",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Enhances the being`s sense of taste; granting the ability to detect poison at a 99% chance, and +50% resistances to illusions of taste. Enhances the being`s sense of touch; allowing +25% to searches for secret doors and compartments, and +50% resistances to illusions of touch, but the imbiber takes +4 damage from physical attacks."
+    },
+    "Enlarging": {
+      "name": "Enlarging",
+      "value": "75 gp.",
+      "duration": "10-40 min.",
+      "description": "Increases the imbiber`s size to a random height and weight with accompying Strength bonus."
+    },
+    "Flying": {
+      "name": "Flying",
+      "value": "50 gp.",
+      "duration": "1-6 hours",
+      "description": "Allows the user to fly as the spell Fly. The user may carry their weight limit or less aloft with them."
+    },
+    "Healing": {
+      "name": "Healing",
+      "value": "100 gp.",
+      "duration": "Immediate/3d6 min.",
+      "description": "Heals 3d6+3 to all areas of the body. It is magical and works against all types of damage including acid-based. lf this potion is ingested before the character takes damage, it will heal damage as it is taken, once for each area (this effect lasts only 3d6 minutes)."
+    },
+    "Life Giving": {
+      "name": "Life Giving",
+      "value": "1000 gp.",
+      "duration": "Instant",
+      "description": "Grants intelligence as the spell Endow Intelligence and gives or intensifies lifeforce to whatever object or animal on which it is applied. The effects are permanent. lt has no effect on an already sapient object or creature."
+    },
+    "Life Saving": {
+      "name": "Life Saving",
+      "value": "2000 gp.",
+      "duration": "Instant",
+      "description": "Resurrects a being if they make a Will Force save. lf a being is resurrected by this potion, then he or she must rest for 1 hour per day that she was dead. It doesn`t resurrect characters that have been dead for more days than they had Will Force in life."
+    },
+    "Mental Power": {
+      "name": "Mental Power",
+      "value": "300 gp.",
+      "duration": "1d4+1 hours",
+      "description": "Gives the user the following abilities: Improved Telepathy as the spell, Scrying as the spell, and Time Sight as the spell for the duration. All effects are at 20 Aura."
+    },
+    "Mystical Mage": {
+      "name": "Mystical Mage",
+      "value": "500 gp.",
+      "duration": "1d4 hours",
+      "description": "Grants the following for the duration: +1d4 Intelligence, and Knowledge, +4 Aura, +4 Aura Control, and 75% Thought Projection."
+    },
+    "Pious Priest": {
+      "name": "Pious Priest",
+      "value": "500 gp.",
+      "duration": "1d4 hours",
+      "description": "Grants the following for the duration: +1d4 Wisdom, Knowledge, and Piety, +20% to Commune, doubles Healing and Bless effects, and Protection from Good or Evil (100%) for duration."
+    },
+    "Polymorphing": {
+      "name": "Polymorphing",
+      "value": "300 gp.",
+      "duration": "2d6 hours",
+      "description": "Changes the imbiber into a predetermined creature for the duration as the spell Change Other (at 20 Aura)."
+    },
+    "Protection(Animals)": {
+      "name": "Protection(Animals)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Animals) unable to attack unless a Control Resistance is made. Animals referes to any altered or magical animals over 4 Intelligence. Those non-sapients under 5 are not afforded a resistance."
+    },
+    "Protection(Align:Evil)": {
+      "name": "Protection(Align:Evil)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Evil aligned beings) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Align:Good)": {
+      "name": "Protection(Align:Good)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Good aligned beings) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Align:Neutral)": {
+      "name": "Protection(Align:Neutral)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Neutral aligned beings) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Angels/Archons)": {
+      "name": "Protection(Angels/Archons)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Angels/Archons) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Demons/Devils)": {
+      "name": "Protection(Demons/Devils)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Demons/Devils) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Dragons)": {
+      "name": "Protection(Dragons)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Dragons) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Enemies)": {
+      "name": "Protection(Enemies)",
+      "value": "500 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (All Enemies) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Giants)": {
+      "name": "Protection(Giants)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Giants) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Humanoids)": {
+      "name": "Protection(Humanoids)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Humanoids) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Supernatural)": {
+      "name": "Protection(Supernatural)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Supernatural) unable to attack unless a Control Resistance is made."
+    },
+    "Protection(Undead)": {
+      "name": "Protection(Undead)",
+      "value": "150 gp.",
+      "duration": "4d6 min.",
+      "description": "Makes the opponent type (Undead) unable to attack unless a Control Resistance is made."
+    },
+    "Reducing": {
+      "name": "Reducing",
+      "value": "75 gp.",
+      "duration": "10d40 min.",
+      "description": "Reduces the imbiber to a predetermined height for the duration."
+    },
+    "Speed": {
+      "name": "Speed",
+      "value": "200 gp.",
+      "duration": "1d4 min.",
+      "description": "Increases the imbiber`s speed which has the following effects: imbiber always wins initiative, 2d4+2 extra seconds of action per round, -2 to be hit by physical attacks, -4 to be hit by missile attacks."
+    },
+    "Super Healing": {
+      "name": "Super Healing",
+      "value": "200 gp.",
+      "duration": "Immediate/3d6 min.",
+      "description": "Heals 3d8+6 to all areas of the body. It is magical and works against all types of damage including acid-based. lf this potion is ingested before the character takes damage, it will heal damage as it is taken, once for each area (this effect lasts only 3d6 minutes)."
+    },
+    "Telekinesis": {
+      "name": "Telekinesis",
+      "value": "200 gp.",
+      "duration": "3d4 min.",
+      "description": "Allows the imbiber to pick up objects with their mind. The total weight of all objects lifted cannot exceed 10 lb. per Intelligence point. The character can move the objects at a rate of 60` per 10 seconds."
+    },
+    "Telepathy": {
+      "name": "Telepathy",
+      "value": "100 gp.",
+      "duration": "1d4 hours",
+      "description": "Grants the ability to read minds for the duration, but not the ability to mentally attack."
+    },
+    "Tricky Thief": {
+      "name": "Tricky Thief",
+      "value": "500 gp.",
+      "duration": "1d4 hours",
+      "description": "Grants the following abilities: 2-5 Agility, invisibility 3 times during the potion`s effect, +1d4 seconds of action for the entire duration, immune to poison, detect treasure in a 30` radius, and Non-detection."
+    },
+    "Wondrous Warrior": {
+      "name": "Wondrous Warrior",
+      "value": "500 gp.",
+      "duration": "1d4 hours",
+      "description": "Grants the following: +1d4 Strength, Agility, Vitality, +3d6 Endurance points, and Berserking 50%."
+    },
+    "Animal Avoidance": {
+      "name": "Animal Avoidance",
+      "value": "50 gp.",
+      "duration": "3d4 hours",
+      "description": "Masks user`s scent, muffles user`s sounds and makes the affected being invisible. These effects only relate to animals and magical animal perceptions. Magical Animals can make a Control Resistance to avoid the effects of this potion."
+    },
+    "Regeneration": {
+      "name": "Regeneration",
+      "value": "300 gp.",
+      "duration": "1d4+2 hours",
+      "description": "Grants Greater Regeneration, 1d4 points are healed per 10 seconds to all wounded areas (including vitals). Cannot regenerate from fire or acid damage or if head and heart are separated."
+    },
+    "Conceal Life Force": {
+      "name": "Conceal Life Force",
+      "value": "100 gp.",
+      "duration": "6d10 min.",
+      "description": "Conceals life force, making the imbiber undetectable to Life Sense and the like."
+    },
+    "Crypt Invasion": {
+      "name": "Crypt Invasion",
+      "value": "50 gp.",
+      "duration": "Instant",
+      "description": "The mixture can be used on any non-magical stone or wood to burrow through it. Spread the mixture into the shape of a doorway, hole, or any other opening (large enough for a 6` humanoid) and let sit until it dissolves away the material."
+    },
+    "Death Stench": {
+      "name": "Death Stench",
+      "value": "50 gp.",
+      "duration": "Instant",
+      "description": "Disguise the imbiber as a corpse due to smell and slow respiration."
+    },
+    "Holy Fog": {
+      "name": "Holy Fog",
+      "value": "200 gp.",
+      "duration": "1 min.",
+      "description": "When the potion is smashed or broken, the chemical and magical reaction produces a thick fog with all the properties of holy water. The fog spreads across the ground at a height of 20` and covers an area 40` in diameter. Any creatures caught inside the fog will lose all visibility unless a Magic Resistance is made. Any undead caught inside the fog will be inflicted with 3d4 damage every second they remain within. Unless the fog is blown away, it dissipates after 1 minute."
+    },
+    "Life Sensing": {
+      "name": "Life Sensing",
+      "value": "100 gp.",
+      "duration": "3d4 hours",
+      "description": "Spread the paste over the wrappings and set out until the cloth is saturated. Tie the cloth around your eyes like a blindfold. The result will be the ability to life sense up to 60` away for the duration, as long as the blindfold is worn."
+    },
+    "Nightmare": {
+      "name": "Nightmare",
+      "value": "100 gp.",
+      "duration": "1 day",
+      "description": "The imbiber is plagued with nightmares (resulting in fatigue and even insanity) at their next sleep. Will Force save to avoid both fatigue and possible insanity."
+    },
+    "Phase": {
+      "name": "Phase",
+      "value": "200 gp.",
+      "duration": "Instant",
+      "description": "By consuming half the potion, the drinker is allowed to phase. Consuming the second half will allow the drinker to unphase."
+    },
+    "Turn a Deaf Ear": {
+      "name": "Turn a Deaf Ear",
+      "value": "150 gp.",
+      "duration": "Until Removed",
+      "description": "Allows the user to hear normal conversations but blocks sounds above a scream. If used to stop the wail or howl of a banshee, the wax `potion` has a Magic Resistance of 30%."
+    },
+    "Vampire Repulsion": {
+      "name": "Vampire Repulsion",
+      "value": "150 gp.",
+      "duration": "1d4 hours",
+      "description": "Gives the imbiber protection from vampires in the form of Coexist with Undead (as the spell at 20 Aura) but only towards vampires."
+    },
+    "Breath of the Sea": {
+      "name": "Breath of the Sea",
+      "value": "250 gp.",
+      "duration": "3d4 hours",
+      "description": "Grants breathe as the potion (or the spell Breathless), Invulnerability, and Endure Cold."
+    },
+    "Flight of the Zephyr": {
+      "name": "Flight of the Zephyr",
+      "value": "300 gp.",
+      "duration": "4d4 hours",
+      "description": "Grants Magical flight, Breathe as the potion (or the spell Breathless), Invulnerability, and Endure Cold. Within 30 minutes of the potion beginning to fail, magical flight becomes Levitation (allowing only for ascent or decent)."
+    },
+    "Salamander`s Touch": {
+      "name": "Salamander`s Touch",
+      "value": "250 gp.",
+      "duration": "2d4 hours",
+      "description": "Grants breathe as the potion (or the spell Breathless), Invulnerability, and Endure Heat."
+    },
+    "Masking Body": {
+      "name": "Masking Body",
+      "value": "250 gp.",
+      "duration": "1d4+1 hours",
+      "description": "Appear in an alternate illusionary form per the spells Illusion of Sight, Smell, Sound, Taste, Touch."
+    },
+    "Masking Mind": {
+      "name": "Masking Mind",
+      "value": "250 gp.",
+      "duration": "1d4+1 hours",
+      "description": "Appear to have an alternate mind per the spell Illusion of Feeling when mentally contacted, also acts as the spell Mind Set unless an Illusion Resistance is requested and made."
+    },
+    "Non-Detection": {
+      "name": "Non-Detection",
+      "value": "300 gp.",
+      "duration": "2d4+2 hours",
+      "description": "Acts as the spell Non-Detection for the duration."
+    },
+    "Plane Shifting": {
+      "name": "Plane Shifting",
+      "value": "500 gp.",
+      "duration": "2d4+2 hours",
+      "description": "Projects the spirit of the drinker onto an open plane of their choice. The drinker`s body remains in repose, breathing but otherwise unmoving for the duration."
+    },
+    "Shadow Walking": {
+      "name": "Shadow Walking",
+      "value": "200 gp.",
+      "duration": "2d4+2 hours",
+      "description": "Physically shifts the drinker unto the Plane of Shadow. The user remains there until the duration expires then is returned to their plane of origin. This potion will not work unless the Shadow Plane is accessible from the current plane."
+    },
+    "Sleeping Potion(Strong)": {
+      "name": "Sleeping Potion(Strong)",
+      "value": "50 gp.",
+      "duration": "Eternal",
+      "description": "Causes the imbiber to make a Magic Resistance or fall into a deep, unwaking dreamless sleep. The victim cannot be woken save by magical or divine effects. The victim is also sustained as the Sustenance invocation needing neither food nor water and Breathless as the spell, appearing to be in a near suspended state, though the victim still ages."
+    },
+    "Invisibility": {
+      "name": "Invisibility",
+      "value": "300 gp.",
+      "duration": "1d4+1 hours",
+      "description": "The imbiber becomes invisible and all light of any visible wave length passes through them until they take hostile action or the duration expires. Whenever hostile action is taken there is a 10% cumulative chance of appearing. The 1st hostile action is 10%, 2nd 20%, 3rd 30%, etc."
+    },
+    "Masking Spirit": {
+      "name": "Masking Spirit",
+      "value": "250 gp.",
+      "duration": "1d4+1 hours",
+      "description": "Appear to have an alternate spirit per the spell Illusion of Feeling when felt through life sense, etc. unless an Illusion Resistance is requested and made."
+    },
+    "Masking Soul": {
+      "name": "Masking Soul",
+      "value": "250 gp.",
+      "duration": "1d4+1 hours",
+      "description": "Appear to have an alternate soul per the spell Illusion of Feeling when felt through life sense, etc. unless an Illusion Resistance is requested and made."
+    },
+    "Silence": {
+      "name": "Silence",
+      "value": "100 gp.",
+      "duration": "1d4+1 hours",
+      "description": "The imbiber`s body no longer makes sound, except for speech when desired. Even involuntary noises are blocked."
+    },
+    "Teleportation": {
+      "name": "Teleportation",
+      "value": "300 gp.",
+      "duration": "Instant",
+      "description": "The imbiber concentrates on a person, place, or thing and then teleports to the nearest open location within sight of it, unless that person, place, or thing is protected by magic, such as Wall of Protection, etc."
+    },
+    "True Sight": {
+      "name": "True Sight",
+      "value": "300 gp.",
+      "duration": "1d4+1 hours",
+      "description": "The imbiber gains True Sight as the spell and is able to see through illusions, glamours, invisibility, masked Aura, spirits, etc. for the duration."
+    }
+  }
+}

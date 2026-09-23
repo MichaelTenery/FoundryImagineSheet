@@ -1,0 +1,15 @@
+{
+  "_about": "Hand-authored lore entries (ballads, candle rituals, empathy and sympathy rituals, glyphs, hymns, poems, rituals, runes, songs, evokes), merged into the generated pack by tools/extract/build_documents.py (apply_manual_content). Put entries under \"entries\", keyed by name, with the item's system fields. A new name is added, tagged sourcebook \"Custom\" unless you give one. A name his data already builds is ignored unless the entry says \"_override\": true, in which case only the fields you give are laid over his. In this pack names repeat between kinds (\"Anger\" is a song and a poem), so give \"kind\" on every entry: an override that names no kind is matched only while its name is unique, and a new entry with no kind takes the schema's default. Keys starting with _ are notes and never read. Full guide: docs/ADDING-CONTENT.md. Rebuild with: python tools/extract/build_documents.py --write",
+  "_example": {
+    "_note": "An example of the shape. Copy entries from here into \"entries\" to use them.",
+    "Hearthsong": {
+      "kind": "song",
+      "rating": 15,
+      "modifier": 0,
+      "startTime": "10 sec.",
+      "duration": "Song Ends",
+      "description": "Listeners feel at home; +10% to Affinity checks with the singer while the song lasts."
+    }
+  },
+  "entries": {}
+}

@@ -1,0 +1,16 @@
+{
+  "_about": "Hand-authored spells, merged into the generated pack by tools/extract/build_documents.py (apply_manual_content). Put entries under \"entries\", keyed by name, with the item's system fields. A new name is added, tagged sourcebook \"Custom\" unless you give one. A name his data already builds is ignored unless the entry says \"_override\": true, in which case only the fields you give are laid over his. Keys starting with _ are notes and never read. Full guide: docs/ADDING-CONTENT.md. Rebuild with: python tools/extract/build_documents.py --write",
+  "_example": {
+    "_note": "An example of the shape. Copy entries from here into \"entries\" to use them.",
+    "Kindle Hearth": {
+      "level": 1,
+      "save": "None",
+      "memTime": "5 min.",
+      "castTime": "10 sec.",
+      "range": "Touch",
+      "duration": "1 hour/AUR",
+      "description": "Lights a fire in a prepared hearth or pile of fuel."
+    }
+  },
+  "entries": {}
+}

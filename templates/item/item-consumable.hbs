@@ -1,0 +1,74 @@
+{{!--
+	Consumable body: a herb, potion, elixir, charm or poison. One root element, as the framework
+	requires of every PART.
+
+	Each kind has only some of his columns -- a herb has a part used, a value and how long it keeps;
+	a charm a form and a Will cost; a poison a type, a potency and a delivery -- so only the kind's
+	own are shown. Taking a dose is on the character's Magic & Lore tab, not here.
+--}}
+<section class="imagine-item-body consumable">
+
+	<div class="panel-row">
+		<div class="panel">
+			<h3>What it is</h3>
+			<ul class="band-list">
+				<li><label>Kind</label>
+					<span><select name="system.kind">
+						{{#each config.kinds as |k|}}
+						<option value="{{k.value}}" {{#if k.selected}}selected{{/if}}>{{k.label}}</option>
+						{{/each}}
+					</select></span></li>
+				<li><label>{{#if isCharm}}Carried{{else}}Doses{{/if}}</label>
+					<span><input type="number" name="system.doses" value="{{system.doses}}" min="0"></span></li>
+				{{#if isHerb}}
+				<li><label>Part used</label>
+					<span><input type="text" name="system.herbType" value="{{system.herbType}}" placeholder="Leaf, Root, Bark..."></span></li>
+				<li><label>Keeps</label>
+					<span><input type="text" name="system.potency" value="{{system.potency}}" placeholder="1 week/1 year"></span></li>
+				{{/if}}
+				{{#if hasValue}}
+				<li><label>Value</label>
+					<span><input type="text" name="system.value" value="{{system.value}}"></span></li>
+				{{/if}}
+				{{#if isCharm}}
+				<li><label>Made as</label>
+					<span><input type="text" name="system.form" value="{{system.form}}"></span></li>
+				<li><label>Will cost</label>
+					<span><input type="text" name="system.willCost" value="{{system.willCost}}"></span></li>
+				{{/if}}
+				<li><label>Duration</label>
+					<span><input type="text" name="system.duration" value="{{system.duration}}"></span></li>
+			</ul>
+		</div>
+
+		{{#if isPoison}}
+		<div class="panel">
+			<h3>Poison</h3>
+			<ul class="band-list">
+				<li><label>Type</label>
+					<span><select name="system.poisonType">
+						<option value=""></option>
+						{{#each config.poisonTypes as |t|}}<option value="{{t.value}}" {{#if t.selected}}selected{{/if}}>{{t.value}}</option>{{/each}}
+					</select></span></li>
+				<li><label>Potency</label>
+					<span><select name="system.poisonPotency">
+						<option value=""></option>
+						{{#each config.poisonPotencies as |p|}}<option value="{{p.value}}" {{#if p.selected}}selected{{/if}}>{{p.value}}</option>{{/each}}
+					</select></span></li>
+				<li><label>Delivered by</label>
+					<span><select name="system.form">
+						{{#each config.forms as |f|}}<option value="{{f.value}}" {{#if f.selected}}selected{{/if}}>{{f.value}}</option>{{/each}}
+					</select></span></li>
+				<li><label>Onset</label>
+					<span><input type="text" name="system.startTime" value="{{system.startTime}}"></span></li>
+			</ul>
+			<p class="muted">His poisons are built from a type (I&ndash;XXV) and a potency (A&ndash;Q),
+			not listed. Changing either here does not rewrite the effect below; add the poison again
+			from the Magic &amp; Lore tab for that.</p>
+		</div>
+		{{/if}}
+	</div>
+
+	<h3 class="section-head">Description</h3>
+	<textarea name="system.description" rows="6">{{system.description}}</textarea>
+</section>

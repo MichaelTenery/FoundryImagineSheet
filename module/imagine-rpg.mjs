@@ -25,13 +25,19 @@ import ImagineEquipmentData from "./data/item-equipment.mjs";
 import ImagineCreatureAttackData from "./data/item-creature-attack.mjs";
 import ImaginePowerData from "./data/item-power.mjs";
 import ImagineTraitData from "./data/item-trait.mjs";
+import ImagineConsumableData from "./data/item-consumable.mjs";
+import ImagineLoreData from "./data/item-lore.mjs";
+import ImagineSpellData from "./data/item-spell.mjs";
+import ImagineInvocationData from "./data/item-invocation.mjs";
 import ImagineCharacterSheet from "./sheets/actor-character-sheet.mjs";
 import ImagineCreatureSheet from "./sheets/actor-creature-sheet.mjs";
 import {
 	ImagineCreatureAttackSheet, ImaginePowerSheet, ImagineTraitSheet,
 	ImagineClassSheet, ImagineArmorSheet, ImagineRaceSheet,
-	ImagineEquipmentSheet, ImagineWeaponSheet, ImagineSkillSheet
+	ImagineEquipmentSheet, ImagineWeaponSheet, ImagineSkillSheet,
+	ImagineConsumableSheet, ImagineLoreSheet, ImagineSpellSheet, ImagineInvocationSheet
 } from "./sheets/item-sheet.mjs";
+import { provideStartingLore } from "./starting-lore.mjs";
 import { importAllContent } from "./content-importer.mjs";
 import { grantClassSkills, registerClassAdvancement } from "./class-advancement.mjs";
 import { addExperience } from "./advancement.mjs";
@@ -121,6 +127,15 @@ Hooks.once("init", function () {
 	CONFIG.Item.dataModels.power = ImaginePowerData;
 	CONFIG.Item.dataModels.trait = ImagineTraitData;
 
+	// @MARKER MAGIC AND LORE ITEMS
+	// His Magic/Lore tab: consumables held as doses (herbs, potions, elixirs, charms, poisons),
+	// lore entries known and memorized (ballads through runes, recipes and evokes), and spells and
+	// invocations. See module/lore-rules.mjs for what each kind is.
+	CONFIG.Item.dataModels.consumable = ImagineConsumableData;
+	CONFIG.Item.dataModels.lore = ImagineLoreData;
+	CONFIG.Item.dataModels.spell = ImagineSpellData;
+	CONFIG.Item.dataModels.invocation = ImagineInvocationData;
+
 	// @MARKER SHEET REGISTRATION
 	// The default core sheet is unregistered so it does not offer itself alongside ours.
 	foundry.documents.collections.Actors.unregisterSheet("core", foundry.applications.sheets.ActorSheetV2);
@@ -195,6 +210,30 @@ Hooks.once("init", function () {
 		label: "IMAGINE.Sheet.Skill"
 	});
 
+	// The Magic & Lore tab's four item types. Each is flat, but a lore entry's memorized tick and a
+	// consumable's doses are edited on the character's own tab; the sheets are for reading an entry
+	// whole and for authoring homebrew.
+	foundry.documents.collections.Items.registerSheet("imagine-rpg", ImagineConsumableSheet, {
+		types: ["consumable"],
+		makeDefault: true,
+		label: "IMAGINE.Sheet.Consumable"
+	});
+	foundry.documents.collections.Items.registerSheet("imagine-rpg", ImagineLoreSheet, {
+		types: ["lore"],
+		makeDefault: true,
+		label: "IMAGINE.Sheet.Lore"
+	});
+	foundry.documents.collections.Items.registerSheet("imagine-rpg", ImagineSpellSheet, {
+		types: ["spell"],
+		makeDefault: true,
+		label: "IMAGINE.Sheet.Spell"
+	});
+	foundry.documents.collections.Items.registerSheet("imagine-rpg", ImagineInvocationSheet, {
+		types: ["invocation"],
+		makeDefault: true,
+		label: "IMAGINE.Sheet.Invocation"
+	});
+
 	// @MARKER SYSTEM API
 	// Exposed so the content import can be run from a macro or the console at any time,
 	// not only when first prompted:  game.imagine.importContent()
@@ -222,6 +261,12 @@ Hooks.once("init", function () {
 		explainAvailability: explainAvailability,
 		// The step-by-step character generator; also a button in the Actors directory.
 		generateCharacter: () => new ImagineCharacterGenerator().render(true),
+		// @MARKER STARTING LORE
+		// His "Provide random lore" -- entries for every lore the character holds, stocks of herbs,
+		// potions and poisons, and starting spells. The generator runs it when its tick is on, and
+		// the Magic & Lore tab has a Game Master button for a character made any other way.
+		//     game.imagine.provideStartingLore(actor)
+		provideStartingLore: provideStartingLore,
 		// Gives a character every class skill their title has earned. It runs by itself when a
 		// title changes; this is here for a character imported from elsewhere, or one whose
 		// grant was refused when the content was switched off.

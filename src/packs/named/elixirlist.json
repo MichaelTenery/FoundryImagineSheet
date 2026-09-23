@@ -1,0 +1,108 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "elixirlist",
+    "lines": [
+      134740,
+      134760
+    ]
+  },
+  "_fields": [
+    "name",
+    "value",
+    "duration",
+    "description"
+  ],
+  "entries": {
+    "Cure All": {
+      "name": "Cure All",
+      "value": "400 gp.",
+      "duration": "Instant",
+      "description": "Removes Poison, Disease, and heals 3d6 damage to all body areas."
+    },
+    "Dust of Vanishing": {
+      "name": "Dust of Vanishing",
+      "value": "300 gp.",
+      "duration": "2d4 hours",
+      "description": "Causes what it is used on to remain invisible so long as no strong wind blows the dust off or sudden movements shake it off."
+    },
+    "Fairy Dust": {
+      "name": "Fairy Dust",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Allows one being to fly for the duration."
+    },
+    "Snake Oil": {
+      "name": "Snake Oil",
+      "value": "50 gp.",
+      "duration": "1d4 hours",
+      "description": "The drinker breaks out in a sweat that is oily. That sweat makes the surface of the being`s body more and more slippery until they cannot stand or even wear certain articles of clothing. Effect takes 10-40 seconds to fully manifest."
+    },
+    "Dragon`s Breath": {
+      "name": "Dragon`s Breath",
+      "value": "500-800 gp.",
+      "duration": "3 Breath Attacks",
+      "description": "Does 1d4 (cold), 1d6 (fire), 1d8 (electricity) or 1d10 (acid) per Title of the invoker in a breath cone of 2` long and 1` radius at the base per Class Title of the breather. After the imbiber breathes 3 times the effect ends."
+    },
+    "Cup of Confusion": {
+      "name": "Cup of Confusion",
+      "value": "100 gp.",
+      "duration": "2d4 hours",
+      "description": "Causes auditory hallucinations with feelings of euphoria, and a 20% chance of visual hallucinations. Grants +3 to STR and VIT. -3 to all Mental Attributes. A very high pain threshold is granted reducing all damage occurrences by 2 points. Lie skill is reduced by 50%."
+    },
+    "Earthen Stout": {
+      "name": "Earthen Stout",
+      "value": "100 gp.",
+      "duration": "2d4+1 hours",
+      "description": "Grants +30% to Poison and Disease Resistance, new resistances if currently inflicted. Immune to effects which halt or alter movement and effects which cause sleep or drowsiness."
+    },
+    "Gout Soup": {
+      "name": "Gout Soup",
+      "value": "100 gp.",
+      "duration": "1 day",
+      "description": "Grants +20% Disease Resistance, +1 Vitality, reduction of fever, swelling, and pain, +1d4+1 Endurance. Has very high pain threshold, reducing all damage by 2 points per occurrences."
+    },
+    "Healer`s Balm": {
+      "name": "Healer`s Balm",
+      "value": "200 gp.",
+      "duration": "Instant",
+      "description": "Heals 4d6+4 damage to all body areas."
+    },
+    "Herb-Soaked Bandages": {
+      "name": "Herb-Soaked Bandages",
+      "value": "100 gp.",
+      "duration": "Instant",
+      "description": "Each strip heals 1d4+1 if the wound is fresh (binding) and an additional 3d4+3 from the herbal infusion. It will also cure gangrene and blood poisoning if it is that body area."
+    },
+    "Infused Fruit": {
+      "name": "Infused Fruit",
+      "value": "300 gp.",
+      "duration": "2d4 hours",
+      "description": "Grants +1d4 to all physical Attributes. +20 Endurance. Immune to fear (and any control which would make someone run away). Immune to Shock. Immune to fatigue. Also counts as a full day`s food and drink."
+    },
+    "Mystic Marvel": {
+      "name": "Mystic Marvel",
+      "value": "500 gp.",
+      "duration": "2d4+1 hours",
+      "description": "Grants +1d4+1 Intelligence, +1d4+1 Aura, +(1-2) Will Force, +1d4+1 Aura Control, and Improved Telepathy."
+    },
+    "Planewalker`s Balm": {
+      "name": "Planewalker`s Balm",
+      "value": "300 gp.",
+      "duration": "2d4 hours",
+      "description": "Grants Immunity to Cold/Heat/Electricity/Acid/Pressure and gains magical flight."
+    },
+    "Rheumatic Oil": {
+      "name": "Rheumatic Oil",
+      "value": "100 gp.",
+      "duration": "2d4 hours",
+      "description": "Reduces joint pain, and makes joints work more effectively. +1 temporary Agility, +10% to skills that use Agility. +10% to Agility saves."
+    },
+    "Undead Paste": {
+      "name": "Undead Paste",
+      "value": "300 gp.",
+      "duration": "3d4 hours",
+      "description": "Can Life Sense up to 60`. Immune to the draining, disease, and/or poison effects of all Undead. Cannot be sensed by undead (those with physical eyes can still see them). All undead must make a Control Resistance to approach within 20`. Even if the Control Resistance is made, they must make another to attack. All undead compulsions are suppressed by any undead within 100` of the protected individual."
+    }
+  }
+}

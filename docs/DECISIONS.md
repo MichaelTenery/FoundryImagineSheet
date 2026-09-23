@@ -4363,3 +4363,110 @@ the real Combat tab and martial card against a real Martial Artist at title 6 (1
 verified:** anything needing a running Foundry V14 -- the dropdowns saving, the panel's open state
 surviving a re-render, the dialogs, `Roll#evaluate({ maximize })`, and the new schema reaching the
 database.
+
+## The Magic & Lore tab, his starting lore, and the content behind both (2026-09-22)
+
+Asked for directly: "Add a magic, lores, herbs, and potions etc tab to the character sheet and
+populate with relevant items. Also afik you are not generating relevant entries and inventory for
+lores." Both were true. His Magic/Lore tab (the "e" button, `sheet-magiclore`, sheet HTML 20087-30416)
+had no counterpart, none of its content had ever been shaped into documents though seventeen of its
+dictionaries were extracted, and his creation step's "Provide random lore" was not ported at all.
+The user asked for the implementation to go ahead while they were away; this pass ran on Opus
+without the usual model question.
+
+**It brings part of Layer 4 forward, on purpose, and only part.** CLAUDE.md defers magic until the
+core is done. What is built here is the CONTENT and the LORE side -- what a character carries and
+knows, how it is learned, used and memorized -- not casting. Spells and invocations are known,
+memorized at their level and read out; Aura Control, spell lore, the fail chance and the invocation
+engine are still Layer 4, and the tab says so where it shows them.
+
+**Four item types, not seventeen.** His tab is seventeen repeating sections, but they are four
+shapes: `consumable` (herb, potion, elixir, charm, poison -- carried as doses), `lore` (ballad,
+candle ritual, empathy ritual, glyph, hymn, poem, poison recipe, potion recipe, ritual, rune, song,
+sympathy ritual, evoke -- known, rated, memorized), `spell` and `invocation`. The KIND is his own
+section name, so it also names the magic switch (`MAGIC_SUBSYSTEMS` in availability.mjs was already
+keyed by those sections), and the item carries `system.subsystem`, which availability had been
+waiting for ("magic content items, once they exist, will carry a subsystem field of their own").
+The one table of kinds -- label, switch, learn skill, use skill -- is `MAGIC_KINDS` in
+`module/lore-rules.mjs`.
+
+**Names are not unique across kinds, so these packs match on kind AND name.** "Anger" is a song and
+a poem, "Break Love" a candle ritual and a ritual, "Healing" a ballad, a song, a poem and a potion.
+The abilities/disabilities/immunities precedent was three packs; thirteen lore packs would bury the
+compendium list, so instead the importer, the manual-content layer, the Items sidebar and every
+look-up key on kind and name for the consumables and lore packs (`matchKind` in content-importer.mjs,
+`KIND_KEYED_PACKS` in build_documents.py). A manual override that names no kind is refused when its
+name is shared, rather than laid over whichever came first; tested.
+
+**The content: 2,486 documents.** Column maps for all seventeen dictionaries from his header comments
+(`column_maps.py`, 54 clean), four new builders, packs `consumables` (515), `lore` (961), `spells`
+(550), `invocations` (460). The existing nine packs rebuild byte-identical. **Poisons are not
+documents**: his are built from a type (I-XXV) and a potency (A-Q) by three switches in
+`getPoisonDetails`, walked into `POISON_TYPES`/`POISON_POTENCIES`, and the tab builds one from a
+small form, as his sheet's three dropdowns do. Hymns carry the alignment of the starting list they
+appear on, which is the only record of it his data has.
+
+**Not attributed, and marked so.** Attribution looks a document up by NAME, and here a name is not
+enough -- his rune Balance would take the Balance skill's page, and his spell and invocation Chill
+are different entries. All four packs are XXX until an attribution pass that knows the kind exists
+(`NOT_YET_ATTRIBUTED_PACKS`); UNATTRIBUTED.md summarises them in one paragraph rather than 2,486
+lines, and the Items sidebar keeps them in their kind folders instead of pulling them into the XXX
+folder.
+
+**Starting lore is his chain, walked rather than transcribed.** `tools/extract/extract_lore_tables.py`
+follows `provideRandomLoreAndLoreItems` link by link -- thirteen steps, each counting one or two skill
+names and drawing that many different entries from a list of his -- and writes `module/lore-tables.mjs`:
+the chain, the nineteen lists (1,178 names), the poison tables, the five casting skills, the three
+starting-spell d100 ladders and the twelve spell primers. Every name is checked against its
+dictionary each run: two miss (`Zebra Gras`, and the hymn `Injury`, which has no row), UPSTREAM 58.
+The rules (`rollStartingLore`) are his wherever he is consistent: hymns by alignment first, then
+unaligned (or a d2 with neutral for the neutral); poison types by alignment with 2d6/2d4/1d4+1 doses;
+potions 1d3; herbs by value (platinum 1d2 ... copper 3d6+1); the common Herb Lore roll at +20 for one
+more herb unless the race takes nothing in; and starting spells for a caster whose best casting
+skill is one of his five -- the greater of 1d4+2 and a tenth of the chance, offensive, defensive and
+utility in turn, and a primer on an Affinity or Fortune roll.
+
+**Three places the port departs, each reported.** (1) His Poison Lore step never clears `first`, so
+two instances give one recipe; the port gives one per instance, as its own comment says and every
+sibling does (UPSTREAM 57). (2) His duplicate test is a substring test ("Healing" is refused after
+"Super Healing"); the port compares names. (3) His draw loops for ever if a list is shorter than the
+count; the port stops. Kept as he has it, though it may surprise: the count reads his class rows for
+titles 1-10, so a new White Witch starts with a potion recipe from her title-8 Potion Lore
+(UPSTREAM 60).
+
+**The generator's tick is ON by default; his is off.** His last creation step leaves "Provide random
+lore" unticked ("If unchecked GM can provide after generation"). The report was that the port does
+not generate lore at all, so the tick defaults on here, in his own words, on the Review step. The
+Game Master's "Provide starting lore" button on the tab is his "GM can provide after generation", and
+is how a character made before this, or by hand, gets it. Running it twice never teaches an entry
+twice; doses go onto the stack already carried.
+
+**Rolls follow his handlers.** Use (`handleUseBallad` and its twelve siblings): the use skill --
+Intone for a hymn, Recite for a poem, Sing for a song, the lore itself otherwise -- plus a situational
+modifier (his MOD button; Shift-click here), floored at 0, then the entry's own modifier, floored
+again; it must be memorized; 200% is a Grandmaster and a natural 100 always fails. Learn
+(`learnNewBallad` and siblings): the lore skill and the situational modifier only, nothing twice; the
+picker rolls it by default and a tick adds outright. Brew (`handleUsePotionRecipe`,
+`handleUsePoisonRecipe`): the lore against a batch size, no memorization needed, a success adds the
+batch. Memorization: (goal + 1) x Knowledge's points, against the rating of each memorized lore and
+the level of each memorized spell and invocation, with his one allowance kept -- a single item may
+exceed the total. Practitioner title from `storeTempSkillChanceAndMessage`: a class skill (title + 1 -
+acquired title), a racial or common skill the character's title, a social skill 0.
+
+**What a use does not do yet.** Every one of his use handlers ends in a `do<Kind>Action` switch that
+writes the effect with the practitioner title worked in -- "heal all listeners for 3d4=7 damage in up
+to 3 wounded body area(s)" -- and some change the character (Badger Thorn adds half Endurance). Those
+run to many thousands of lines and are not ported. A use reports the roll, the practitioner title and
+the entry's own description; applying it is the Game Master's. That is the next real piece of this
+work, and it needs judgement, not just transcription.
+
+**How it was checked.** `tools/lore-test.html` (103, new) covers the extraction, every rule, reading a
+stub character, making items by kind and name, the view, and -- against the real built packs -- that
+every name the starting lists can draw is a document, bar his two. `tools/magic-preview.html` (new)
+makes a White Witch, a Shadow Elf Bard and a Warrior through the generator's own `assembleCharacter`,
+derives them with the real model, rolls their starting lore through the real code against the real
+content, and renders the tab: 15, 15 and 0 entries. The window test gained the four sheets (27), the
+manual-content test the four packs and the kind-keyed override (122); availability 46, importer 9 and
+character generation 83 unchanged; 63 modules parse. **Not verified:** anything needing a running
+Foundry V14 -- the tab's buttons writing to items, the dialogs, the picker's learn roll, the
+generator giving lore after it creates the actor, and the importer building the four new compendia.
