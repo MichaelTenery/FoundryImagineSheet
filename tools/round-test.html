@@ -1,0 +1,345 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG round clock test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the round clock: module/combat/round-rules.mjs (the rules), module/round-view.mjs (what
+// the tracker and the Mr. Initiative window draw) and module/combat/combat-document.mjs (the combat
+// and combatant that keep the clock), checked against the Player's Guide's and the Master's
+// Manual's own worked examples wherever they give one.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/round-test.html
+//
+// The combat document extends Foundry's Combat and Combatant, so those two are stubbed below with
+// just enough behaviour to drive it -- updates that go through _preUpdate as Foundry's do, a reset,
+// a round counter, initiative rolls read from a script -- and a whole fight is run through it.
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+	return ok;
+}
+
+// --- Foundry, stubbed ---------------------------------------------------------------------------
+const notices = [];
+const messages = [];
+function setProperty(obj, key, value) {
+	const parts = key.split(".");
+	let o = obj;
+	for (const p of parts.slice(0, -1)) { o[p] ??= {}; o = o[p]; }
+	o[parts[parts.length - 1]] = value;
+}
+function expand(data) {
+	const out = {};
+	for (const [k, v] of Object.entries(data)) { setProperty(out, k, v); }
+	return out;
+}
+globalThis.foundry = {
+	utils: {
+		setProperty,
+		escapeHTML: (t) => String(t),
+		hasProperty: (o, k) => k.split(".").reduce((x, p) => (x && p in x) ? x[p] : undefined, o) !== undefined
+	}
+};
+globalThis.ui = { notifications: { info: (m) => notices.push(m), warn: (m) => notices.push(m) } };
+globalThis.game = { user: { isGM: true }, settings: { get: () => "publicroll" } };
+globalThis.CONST = { DICE_ROLL_MODES: { PRIVATE: "gmroll" } };
+globalThis.ChatMessage = { implementation: {
+	getSpeaker: (s) => s,
+	create: async (list) => { messages.push(...list); }
+} };
+const rollScript = [];   // the next initiative totals, in order
+globalThis.Combatant = class {
+	constructor(data, parent) { Object.assign(this, data); this.parent = parent; this.flags ??= {}; }
+	get isDefeated() { return false; }
+	async _preUpdate() {}
+	async update(data, options = {}) {
+		const changes = expand(data);
+		if ((await this._preUpdate(changes, options, game.user)) === false) { return; }
+		if ("initiative" in changes) { this.initiative = changes.initiative; }
+		if (changes.flags?.["imagine-rpg"]?.clock !== undefined) {
+			this.flags["imagine-rpg"] ??= {};
+			this.flags["imagine-rpg"].clock = JSON.parse(JSON.stringify(changes.flags["imagine-rpg"].clock));
+		}
+		return this;
+	}
+	getInitiativeRoll() {
+		const total = rollScript.shift();
+		return { total, evaluate: async () => {}, toMessage: async (data) => ({ ...data, total }) };
+	}
+};
+globalThis.Combat = class {
+	constructor() { this.round = 1; this.turn = 0; this.list = []; }
+	get combatants() {
+		const list = this.list;
+		return Object.assign([...list], { get: (id) => list.find(c => c.id == id) });
+	}
+	get turns() { return [...this.list].sort(this._sortCombatants); }
+	canUserModify() { return true; }
+	async update(data) { Object.assign(this, data); }
+	async resetAll() { for (const c of this.list) { c.initiative = null; } }   // flags untouched, as Foundry's
+	async nextRound() { this.round = this.round + 1; return this; }
+	async rollAll() {
+		for (const c of this.list) { if (c.initiative === null) { await c.update({ initiative: rollScript.shift() }); } }
+	}
+	async updateEmbeddedDocuments(type, updates, options) {
+		for (const u of updates) {
+			const { _id, ...rest } = u;
+			await this.combatants.get(_id).update(rest, options);
+		}
+	}
+};
+
+const R = await import("../module/combat/round-rules.mjs");
+const V = await import("../module/round-view.mjs");
+const D = await import("../module/combat/combat-document.mjs");
+const ImagineCombat = D.default;
+const ImagineCombatant = D.ImagineCombatant;
+
+const right = { handedness: "Right" };
+const labels = (state) => state.ticks.map(t => t.label);
+const states = (state) => state.ticks.map(t => t.state[0]).join("");   // l(ost) c(arried) s(pent) f(ree)
+const clockOf = (rolled, spends = []) => {
+	let c = R.newRoundClock(1, rolled);
+	for (const [s, hand, label] of spends) { c = R.addClockSpend(c, s, hand, label); }
+	return c;
+};
+
+// --- extra seconds (Master's Manual p.2 and p.100) -----------------------------------------
+check("-10 earns no extra seconds; -11 earns one", [R.getRollExtraSeconds(-10), R.getRollExtraSeconds(-11)], [0, 1]);
+check("-15 earns five, his own example", R.getRollExtraSeconds(-15), 5);
+check("ten at most: -20 and -30 both earn ten", [R.getRollExtraSeconds(-20), R.getRollExtraSeconds(-30)], [10, 10]);
+check("an ordinary roll or none earns none", [R.getRollExtraSeconds(5), R.getRollExtraSeconds(null)], [0, 0]);
+check("a roll's extra seconds and an effect's add, ten at most",
+	[R.getExtraSeconds(-15, 3), R.getExtraSeconds(-15, 8), R.getExtraSeconds(5, 3)], [8, 10, 3]);
+check("ten places in an ordinary round", labels({ ticks: R.getRoundTicks(0) }), ["1","2","3","4","5","6","7","8","9","10"]);
+check("three extra seconds split the first three: 1a 1b 2a 2b 3a 3b 4 ... 10",
+	labels({ ticks: R.getRoundTicks(3) }), ["1a","1b","2a","2b","3a","3b","4","5","6","7","8","9","10"]);
+check("the extra half is the first, per his sheet", R.getRoundTicks(1).slice(0, 2).map(t => t.extra), [true, false]);
+
+// --- off hand and hands (Player's Guide p.178) ------------------------------------------------
+check("p.178: a start on the 5th second loses four, two of them from the off hand", R.getOffhandLoss(4, "Right"), 2);
+check("the ambidextrous lose them one for one", R.getOffhandLoss(4, "Ambidextrous"), 4);
+check("half rounded up: three lost costs two", R.getOffhandLoss(3, "Left"), 2);
+check("a weapon in the left hand of a right-hander is on the off hand",
+	[R.getActionHand("left", "Right"), R.getActionHand("right", "Right")], ["off", "main"]);
+check("and the other way round for a left-hander", [R.getActionHand("right", "Left"), R.getActionHand("left", "Left")], ["off", "main"]);
+check("blank handedness reads as right-handed", R.getActionHand("left", ""), "off");
+check("an ambidextrous left hand still has its own seconds", [R.getActionHand("left", "Ambidextrous"), R.getActionHand("right", "Ambidextrous")], ["off", "main"]);
+check("two hands, or no hand (a bite), is the main clock", [R.getActionHand("both", "Right"), R.getActionHand("", "Right")], ["main", "main"]);
+
+// --- carry-over reaction (Player's Guide p.168) --------------------------------------------
+check("a reaction roll of 3 is three seconds on", R.getCarryReaction(3), 3);
+check("a 1 is the very next second; a 0 or a negative does not subtract below it",
+	[R.getCarryReaction(1), R.getCarryReaction(0), R.getCarryReaction(-4)], [1, 1, 1]);
+
+// --- the clock -----------------------------------------------------------------------------
+let s = R.resolveRoundClock(clockOf(null), right);
+check("no initiative, no clock", [s.ready, R.getClockSortKey(s), R.getClockInitiative(s)], [false, Infinity, null]);
+
+s = R.resolveRoundClock(clockOf(5), right);
+check("a 5: four seconds lost, acting in the 5th, six left", [states(s), s.ticks[s.next].label, s.left, s.lost], ["llllffffff", "5", 6, 4]);
+check("p.178's example off hand: 5 less 2 lost = 3 left", [s.offhand.cap, s.offhand.lost, s.offhand.pool, s.offhand.left], [5, 2, 3, 3]);
+check("before anything is spent the tracker still shows the roll", R.getClockInitiative(s), 5);
+
+s = R.resolveRoundClock(clockOf(1, [[3, "main", "Long Sword"], [3, "main", "Long Sword"], [3, "main", "Long Sword"]]), right);
+check("p.174: a speed-3 weapon swings three times in the round, one second to spare",
+	[s.used, s.left, s.ticks[s.next].label, s.done], [9, 1, "10", false]);
+check("each swing is shaded apart from the next", s.ticks.slice(0, 9).map(t => t.action), [0,0,0,1,1,1,2,2,2]);
+
+s = R.resolveRoundClock(clockOf(1, [[7, "main", "Great Sword"]]), right);
+check("p.178: on second 8 with nothing done in the off hand, only 3 seconds are left, not 5",
+	[s.ticks[s.next].label, s.offhand.left, s.offhand.expired], ["8", 3, 2]);
+
+s = R.resolveRoundClock(clockOf(2, [[1, "off", "Shield parry"]]), right);
+check("an off-hand parry spends the off hand and moves nobody", [s.ticks[s.next].label, s.offhand.spent, s.offhand.left, R.getClockInitiative(s)], ["2", 1, 3, 2]);
+s = R.resolveRoundClock(clockOf(5, [[4, "off", ""]]), right);
+check("an off hand spent past its pool is over, shown not refused", [s.offhand.left, s.offhand.over], [0, 1]);
+check("the ambidextrous have ten in the other hand, and lose one for one",
+	(() => { const a = R.resolveRoundClock(clockOf(5), { handedness: "Ambidextrous" }); return [a.offhand.cap, a.offhand.pool]; })(), [10, 6]);
+check("Second Weapon Lore's cap is taken from the actor", R.resolveRoundClock(clockOf(1), { offhandCap: 7 }).offhand.left, 7);
+
+s = R.resolveRoundClock(clockOf(3, [[4, "main", "Sword"], [2, "main", "Draw dagger"]]), right);
+check("spends run on consecutively from the start", [states(s), s.ticks[s.next].label, s.left], ["llssssssff", "9", 2]);
+check("and the tracker shows the second they next act in", R.getClockInitiative(s), 9);
+
+// --- carry-over, the book's own example (Player's Guide p.168) --------------------------------
+// "a character swings a great sword starting in the 7th second of round 1. It takes him 6 seconds
+// to swing; he elects to carry over. On the 2nd second in round 2, he rolls to hit. He then
+// immediately rolls initiative. He rolls a 3, and adds this to the 2 seconds carry-over time, and
+// thus must wait until the 5th second to begin his next action."
+let c = clockOf(7, [[6, "main", "Great Sword"]]);
+s = R.resolveRoundClock(c, right);
+check("the great sword runs two seconds past the round", [s.done, s.overrun, s.carry], [true, 2, { seconds: 2, action: true }]);
+check("which the tracker counts on as 13 -- what adding seconds to initiative always gave", R.getClockInitiative(s), 13);
+let n = R.getNextRoundClock(R.getCarryForNextRound(s, c), 2);
+check("no initiative for him yet; the action finishes this round so it wants its reaction roll",
+	[n.rolled, n.carry, R.needsCarryRoll(n, right)], [null, { seconds: 2, action: true, roll: null }, true]);
+n = R.setCarryRoll(n, 3);
+s = R.resolveRoundClock(n, right);
+check("rolls a 3: must wait until the 5th second", [s.ticks[s.next].label, R.getClockInitiative(s)], ["5", 5]);
+check("seconds 1-2 finishing the swing, 3-4 lost reacting", states(s), "ccllffffff");
+check("and the off hand loses half the reaction's two", s.offhand.lost, 1);
+check("declining the carry means a fresh roll", R.getCarryForNextRound(R.resolveRoundClock(c, right), { ...c, carryOver: false }), null);
+
+c = clockOf(13);
+s = R.resolveRoundClock(c, right);
+check("an initiative of 13 cannot act this round, and carries the wait with no roll",
+	[s.done, states(s), s.carry], [true, "llllllllll", { seconds: 2, action: false }]);
+n = R.getNextRoundClock(R.getCarryForNextRound(s, c), 2);
+s = R.resolveRoundClock(n, right);
+check("next round they start on the 3rd second, no roll wanted", [R.needsCarryRoll(n, right), s.ticks[s.next].label, R.getClockInitiative(s)], [false, "3", 3]);
+check("an 11 carries nothing but still starts next round at the first second, unrolled",
+	(() => { const e = R.resolveRoundClock(clockOf(11), right); const m = R.resolveRoundClock(R.getNextRoundClock(e.carry, 2), right); return [e.carry, m.ticks[m.next].label]; })(),
+	[{ seconds: 0, action: false }, "1"]);
+check("an action finishing exactly on the tenth second carries nothing: a fresh roll is the same thing",
+	R.resolveRoundClock(clockOf(5, [[6, "main", ""]]), right).carry, null);
+
+// A 25-second casting begun on the 9th second: 2 seconds this round, all of the next two, and
+// 3 into the fourth -- and no roll until the round it finishes in.
+c = clockOf(9, [[25, "main", "Ritual"]]);
+let carries = [];
+for (let round = 2; round <= 4; round++) {
+	s = R.resolveRoundClock(c, right);
+	const carry = R.getCarryForNextRound(s, c);
+	c = R.getNextRoundClock(carry, round);
+	carries.push([carry.seconds, R.needsCarryRoll(c, right)]);
+}
+check("a long action carries round to round, rolling only in the round it ends", carries, [[23, false], [13, false], [3, true]]);
+
+// --- extra seconds on the clock ----------------------------------------------------------------
+s = R.resolveRoundClock(clockOf(6), { ...right, speedSeconds: 3 });
+check("a sped combatant starts at 1a whatever they rolled, as his -10-less-speed initiative does",
+	[s.extra, s.ticks[s.next].label, s.ticks.length], [3, "1a", 13]);
+s = R.resolveRoundClock(clockOf(6, [[3, "main", ""]]), { ...right, speedSeconds: 3 });
+check("three seconds take 1a 1b 2a, leaving them in 2b with ten places to go", [s.ticks[s.next].label, s.left, R.getClockInitiative(s)], ["2b", 10, 2]);
+check("extra seconds do not add to the off hand", s.offhand.cap, 5);
+check("the Master's Manual's -15: five extra seconds, marker 1a to 5b then second 6",
+	(() => { const e = R.resolveRoundClock(clockOf(-15, [[10, "main", ""]]), right); return [e.extra, e.ticks[e.next].label]; })(), [5, "6"]);
+check("a carried combatant rolled nothing, so only an effect's extra seconds count",
+	R.resolveRoundClock(R.getNextRoundClock({ seconds: 2, action: false }, 2), { speedSeconds: 2 }).extra, 2);
+
+// --- order -------------------------------------------------------------------------------------
+const order = [
+	["a 3", clockOf(3), {}],
+	["a -4 (split second)", clockOf(-4), {}],
+	["a 1", clockOf(1), {}],
+	["a 0", clockOf(0), {}],
+	["a -10", clockOf(-10), {}],
+	["sped by 2", clockOf(7), { speedSeconds: 2 }],
+	["a -13 (3 extra)", clockOf(-13), {}],
+	["done, 2 over", clockOf(7, [[6, "main", ""]]), {}],
+	["not rolled", clockOf(null), {}]
+].map(([name, clock, opts]) => [name, R.getClockSortKey(R.resolveRoundClock(clock, opts))])
+ .sort((a, b) => a[1] - b[1]).map(e => e[0]);
+check("the tracker's order: most extra seconds, then the split second lowest first, then by second, then done, then unrolled",
+	order, ["a -13 (3 extra)", "sped by 2", "a -10", "a -4 (split second)", "a 0", "a 1", "a 3", "done, 2 over", "not rolled"]);
+check("a split second shows only until they act", [R.resolveRoundClock(clockOf(-4), {}).splitSecond,
+	R.resolveRoundClock(clockOf(-4, [[2, "main", ""]]), {}).splitSecond], [-4, null]);
+check("and the tracker shows the -4 until then, the 3rd second after", [R.getClockInitiative(R.resolveRoundClock(clockOf(-4), {})),
+	R.getClockInitiative(R.resolveRoundClock(clockOf(-4, [[2, "main", ""]]), {}))], [-4, 3]);
+
+// --- the clock's bookkeeping ----------------------------------------------------------------
+check("no event takes less than one second (p.168)", R.addClockSpend(clockOf(1), 0, "main", "").spent[0].seconds, 1);
+c = clockOf(4, [[3, "main", "Sword"]]);
+const c2 = R.addClockSpend(c, 2, "off", "Parry");
+check("spending returns a new clock and leaves the old one alone", [c.spent.length, c2.spent.length], [1, 2]);
+check("undo takes the last spend back", R.removeLastClockSpend(c2).spent.map(e => e.label), ["Sword"]);
+check("undo on nothing leaves nothing", R.removeLastClockSpend(clockOf(4)).spent, []);
+check("the round is over when everyone started is done",
+	[R.isRoundOver([{ ready: true, done: true }, { ready: false }]), R.isRoundOver([{ ready: true, done: true }, { ready: true, done: false }]),
+	 R.isRoundOver([{ ready: false }])], [true, false, false]);
+check("options off a character and a creature",
+	[R.getClockOptions({ type: "character", system: { combat: { speedSeconds: 2, offhandSecondsCap: 7 }, physical: { handedness: "Left" } } }),
+	 R.getClockOptions({ type: "creature", system: { combat: { offhandHandedness: "Ambidextrous" } } })],
+	[{ speedSeconds: 2, offhandCap: 7, handedness: "Left" }, { speedSeconds: 0, offhandCap: 10, handedness: "Ambidextrous" }]);
+
+// --- the view --------------------------------------------------------------------------------
+c = clockOf(3, [[4, "main", "Long Sword"], [1, "off", "Shield parry"]]);
+s = R.resolveRoundClock(c, { ...right, speedSeconds: 0 });
+let v = V.buildClockView(s, c, { id: "x", name: "Brom", canSpend: true });
+check("ten columns, one cell each", [v.columns.length, v.columns.every(col => col.cells.length == 1)], [10, true]);
+check("status: where they stand and what is left", v.status, "Second 7 · 4 left");
+check("the spent seconds are titled with what they went on", v.columns[3].cells[0].title, "Second 4: Long Sword");
+check("the place they stand is marked", v.columns[6].cells[0].now, true);
+check("off hand: 5, 1 lost, 1 spent, 3 left -- as pips, one per second", [v.offhand.text, v.offhand.pips.map(p => p[0] ?? p.state[0]).join("")],
+	["3 of 5", "lsfff"]);
+check("the log says what was spent", v.log, ["4s Long Sword", "off hand 1s Shield parry"]);
+check("undo is offered once something is spent", v.canUndo, true);
+s = R.resolveRoundClock(clockOf(6), { speedSeconds: 2 });
+v = V.buildClockView(s, clockOf(6), {});
+check("a split second is two cells in one column, the extra one first",
+	[v.columns[0].split, v.columns[0].cells.map(x => x.label), v.columns[0].cells[0].extra, v.columns[2].split], [true, ["1a", "1b"], true, false]);
+c = clockOf(7, [[6, "main", "Great Sword"]]);
+v = V.buildClockView(R.resolveRoundClock(c, right), c, { canSpend: true });
+check("done with a carry: the status says so and offers the choice", [v.status, v.carry.text, v.carry.elected],
+	["Done: 2s of the last action run into next round", "2s", true]);
+v = V.buildClockView(R.resolveRoundClock(R.setCarryRoll(R.getNextRoundClock({ seconds: 2, action: true }, 2), 3), right), null, {});
+check("a carried-in clock says what it carried", v.carriedIn, "Carried 2s, then initiative 3");
+check("a split second is shown", V.buildClockView(R.resolveRoundClock(clockOf(-4), {}), clockOf(-4), {}).split, "-4");
+check("nothing to draw before initiative", [V.buildClockView(R.resolveRoundClock(clockOf(null), {}), clockOf(null), {}).ready], [false]);
+const rv = V.buildRoundView([{ ready: true, done: false, nowLabel: "4" }, { ready: true, done: false, nowLabel: "2b" }, { ready: true, done: true, nowLabel: "done" }], { round: 3 });
+check("the chart marks the second the round has reached: the earliest anyone stands in", [rv.nowText, rv.headers.findIndex(h => h.now)], ["Second 2", 1]);
+check("and says when the round is over", V.buildRoundView([], { round: 3, over: true }).nowText, "Every combatant is past the tenth second");
+
+// --- the combat document, driven through a whole fight ----------------------------------------
+const combat = new ImagineCombat();
+const mk = (id, name, agl, handedness) => new ImagineCombatant({
+	id, name, initiative: null, isOwner: true, hidden: false,
+	actor: { type: "character", system: { attributes: { agl: { value: agl }, int: { value: 10 } },
+		combat: { speedSeconds: 0, offhandSecondsCap: 5 }, physical: { handedness } } }
+}, combat);
+const brom = mk("brom", "Brom", 14, "Right");
+const orgo = mk("orgo", "Orgo", 12, "Right");
+const kel  = mk("kel",  "Kel",  16, "Left");
+combat.list = [brom, orgo, kel];
+
+rollScript.push(7, 3, 13);                         // round 1: Brom 7, Orgo 3, Kel 13
+await combat.rollAll();
+check("rolls start each clock through the combatant's own _preUpdate",
+	[brom.flags["imagine-rpg"].clock.rolled, orgo.flags["imagine-rpg"].clock.rolled, kel.flags["imagine-rpg"].clock.rolled], [7, 3, 13]);
+check("the tracker orders them by second", combat.turns.map(t => t.name), ["Orgo", "Brom", "Kel"]);
+
+await combat.spendSeconds(orgo, 5, { label: "Spear" });
+check("Orgo's spear moves him to the 8th second, behind Brom", [orgo.initiative, combat.turns.map(t => t.name)], [8, ["Brom", "Orgo", "Kel"]]);
+await combat.spendSeconds(brom, 6, { label: "Great Sword" });
+check("Brom's great sword from the 7th runs to 13, past the round", [brom.initiative, D.getCombatantClockState(brom).carry], [13, { seconds: 2, action: true }]);
+await combat.spendSeconds(orgo, 1, { hand: "off", label: "Shield parry" });
+check("an off-hand parry leaves Orgo where he was", [orgo.initiative, D.getCombatantClockState(orgo).offhand.spent], [8, 1]);
+await combat.undoSeconds(orgo);
+check("undo takes the parry back", D.getCombatantClockState(orgo).offhand.spent, 0);
+await combat.spendSeconds(orgo, 3, { label: "Spear" });
+check("Orgo's second thrust from the 8th ends exactly on the 10th", [orgo.initiative, D.getCombatantClockState(orgo).done, D.getCombatantClockState(orgo).carry], [11, true, null]);
+check("with everyone past the tenth second, the round is announced over", notices.some(m => m.includes("round is over")), true);
+
+rollScript.push(3, 6);                               // round 2: Brom's reaction 3, then Orgo's fresh 6
+await combat.nextRound();
+check("round 2: Brom carries the sword and reacts on a 3 -- 5th second, the book's own example",
+	[combat.round, brom.initiative, D.getCombatantClockState(brom).ticks.slice(0, 4).map(t => t.state)],
+	[2, 5, ["carried", "carried", "lost", "lost"]]);
+check("Kel's 13 carries a two-second wait: the 3rd second, no roll", [kel.initiative, kel.flags["imagine-rpg"].clock.carry.roll], [3, null]);
+check("Orgo rolls afresh", [orgo.initiative, orgo.flags["imagine-rpg"].clock.rolled], [6, 6]);
+check("Brom's reaction roll is posted to chat", messages.length == 1 && messages[0].flavor.includes("second 2") && messages[0].flavor.includes("second 5"), true);
+check("round 2's order", combat.turns.map(t => t.name), ["Kel", "Brom", "Orgo"]);
+
+await combat.setCarryOver(orgo, false);
+check("declining a carry is stored on the clock", orgo.flags["imagine-rpg"].clock.carryOver, false);
+
+// The Game Master types an initiative into the tracker over seconds already spent: a new start,
+// not a spend -- the spends go and the typed number is the roll.
+await combat.spendSeconds(orgo, 2, { label: "Spear" });
+check("Orgo has spent two seconds before the Game Master steps in", [orgo.initiative, orgo.flags["imagine-rpg"].clock.spent.length], [8, 1]);
+await orgo.update({ initiative: 4 });
+check("a typed initiative starts the clock again from it", [orgo.flags["imagine-rpg"].clock.spent, orgo.flags["imagine-rpg"].clock.rolled,
+	D.getCombatantClockState(orgo).ticks[D.getCombatantClockState(orgo).next].label], [[], 4, "4"]);
+
+const out = document.getElementById("out");
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+out.innerHTML = `<b class="${failed ? "f" : "p"}">${results.length - failed} of ${results.length} passed</b>\n\n`
+	+ results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</span>`).join("\n");
+document.title = `${failed ? "FAIL" : "PASS"} ${results.length - failed}/${results.length} round clock`;
+</script>

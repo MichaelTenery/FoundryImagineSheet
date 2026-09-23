@@ -1815,3 +1815,29 @@ Two smaller things the port does differently, neither of which changes what can 
 - A list shorter than the number of times the skill is held would loop for ever in your `while`
   (none of your lists is that short, so it cannot happen with your data). The port stops when the
   list runs out.
+
+## 61. The round clock: two readings the port had to make
+
+**Status:** open · **Severity:** questions -- neither changes a normal round
+
+The port now tracks each combatant's seconds through the round as your Mr. Initiative chart does
+(Master's Manual pp.98-100): the seconds lost to a late start, spent and left, the split second,
+the extra seconds, the off hand and carry-over. Two places needed a reading.
+
+1. **A carried action's reaction roll of 0 or less.** Carry-Over (Player's Guide p.168): "A new
+   initiative is rolled at the point when the character finishes the action, and is added to his
+   last second... He rolls a 3, and adds this to the 2 seconds carry-over time, and thus must wait
+   until the 5th second... Negative initiative rolls do not subtract." Read literally, a 0 adds
+   nothing and the next action starts in the same second the carried one finished in. The port
+   treats a 1 as "the very next second", which is what a 1 means at the start of a round, and reads
+   "do not subtract" as nothing lower than that: a 0 or a negative also means the next second. Is
+   that right, or should a 0 really share the finishing second?
+
+2. **Which half of a split second is the extra one.** Your chart splits each of the first seconds
+   into "a" and "b" and adds the extra time "in the second half of each second, represented with a
+   b". Your sheet says "speed seconds occur before the normal second", and has a sped character's
+   initiative set to -10 less the speed seconds so they sort first. The port follows the sheet: the
+   extra half is "a", and a sped combatant acts before everyone else in that second. It only decides
+   who goes first within one second. Also following the sheet, anyone with speed seconds from an
+   effect starts at the first second whatever they rolled ("always wins initiative", as the Speed
+   potion puts it).

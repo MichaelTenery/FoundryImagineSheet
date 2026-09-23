@@ -16,6 +16,7 @@ import { resolveAttack, resolveFumble, resolveOffhandPenalties, combineDamageMul
 import {
 	getCreatureAttackBehaviour, getAreaAttackSize, resolveTouchAttack,
 	getCreatureToHitModifiers, getCreatureDamageMods, getTriggeredEffects, getCreatureAttackSeconds } from "./creature-rules.mjs";
+import { getActionHand } from "./round-rules.mjs";
 
 	// This is the function which rolls a single die and returns the number.
 	async function rollDie(tmpformula) {
@@ -268,6 +269,8 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		result: tmpresult,
 		mods: tmpmods,
 		speed: tmpspeed,
+		// Which clock the attack runs on. Blank hand -- a bite, a breath -- is never the off hand.
+		hand: getActionHand(tmpa.hand, tmpsys.combat.offhandHandedness),
 		fumble: tmpfumble,
 		damage: tmpdamage,
 		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special) },

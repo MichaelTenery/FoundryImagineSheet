@@ -4480,3 +4480,94 @@ already carried it -- but it is now a ruling rather than a reading, recorded at 
 `UPSTREAM-ISSUES.md` item 56.2 so it is not reverted to his +4. The other four martial questions
 (Martial Lore value speeds, stance skill and save bonuses, Martial Lore blind fighting, creature
 martial arts) are still open with the user.
+
+## The round clock: his Mr. Initiative chart, one per combatant (2026-09-22)
+
+**Asked for directly:** "a time tracker for each player. take the init values and modify by seconds
+until we reach the end of that turn." The user chose all of it: a clock in every row of the combat
+tracker AND a window with everyone on one chart, plus carry-over, off-hand seconds and speed seconds.
+
+**It already existed on paper, as his.** The Master's Manual's "Mr. Initiative" (pp.98-100) is a
+photocopiable board for exactly this: a Split Second row (-10 to -1), the ten-second Combat Round,
+an Extra Seconds row with every second cut in two (1a 1b 2a 2b...), an Off-Hand row (five, ten for
+the ambidextrous) and a Carry Over grid up to sixty seconds. His Roll20 sheet has none of it -- it
+rolls initiative into Roll20's tracker and leaves the rest to the table -- so the chart is the design,
+and the rules come from the Player's Guide (p.168 Initiative and Carry-Over, p.178 Timing in the
+Combat Round) and the Master's Manual (p.2, Initiative Adjustment: a point below -10 is an extra
+second, ten at most). The build keeps the event-time round that was already there -- initiative is
+the second a combatant can act in, spending seconds moves them on and the tracker re-sorts -- and
+adds the history behind the number.
+
+**What was decided, and why:**
+
+- **The clock lives in the combatant's flags.** `BaseCombatant`'s update permission lets a player
+  write `initiative`, `flags`, `defeated` and `system` on their own combatant and nothing else
+  (checked in the V13 install's `common/documents/combatant.mjs`), so a player can spend their own
+  seconds without a Game Master's client relaying it. A Combatant data model would need a
+  `documentTypes` entry for no gain. The clock is keyed by round, and ignored once the initiative is
+  cleared, because Foundry's Reset Initiative writes the whole combat at once (`resetAll` ->
+  `Combat.update({combatants})`) and never touches the flags.
+- **The initiative number stays what the tracker sorts and shows.** Before a spend it is the roll
+  (a -4 stays a -4); after, the second they next act in, counting on past 10 (a 13 is the third
+  second of the next round, which is what adding seconds to initiative always gave). The clock is
+  the history: the roll and every spend, main hand and off hand, which is what the chart draws and
+  what undo takes back.
+- **Any initiative written from outside the clock is a new start.** `ImagineCombatant._preUpdate`
+  resets the clock when initiative changes without `{ imagineClock: true }` -- a roll, or the Game
+  Master typing a number into the tracker. Checked in the V13 client backend: `_preUpdate` runs per
+  document before the diff and before `_preUpdateOperation` works out the turn, so the reset flows
+  through a batched `rollInitiative`.
+- **Order** (`getClockSortKey`): a sped combatant's extra half-second sorts half a second before the
+  ordinary second it splits; a roll below 1 not yet acted on orders the first second by its value;
+  the more extra seconds the earlier among the sped (his "-10 minus the # of speed seconds"). Done
+  combatants sort after everyone still acting, by when they come back.
+- **Extra seconds**: the roll's (below -10) plus an effect's, ten in all. The effect's are a new
+  actor field, `combat.speedSeconds` -- his `tmp_speed_seconds`, the Speed Seconds box among his
+  combat modifiers -- entered by hand on the Combat tab or in the window until potions and spells
+  set it. **The sheet beats the chart twice here**: his sheet says speed seconds come BEFORE the
+  normal second where the chart adds them in the second half, so "a" is the extra half; and his
+  sheet has a sped character's initiative set to -10 less the speed seconds, so anyone with speed
+  seconds starts at 1a whatever they rolled. Asked as `UPSTREAM-ISSUES.md` 61.2.
+- **The off hand** is its own pool: `getOffhandSecondsCap` (5, +1 per 20% of Second Weapon Lore, 10
+  ambidextrous), less half the seconds a late start lost (all of them if ambidextrous), never more
+  than the round has left from where the main hand stands. An off-hand spend moves nobody. Spent
+  past the pool is shown in red, not refused -- the port's standing pattern. This closes the
+  question left open on 2026-09-14, when the cap was shown but "not enforced as a round-tracker
+  pool" for want of per-round state. Which pool an attack uses is `getActionHand`, which differs
+  from `isOffhandWeapon` on purpose: an ambidextrous fighter pays no off-hand PENALTY, but a sword in
+  the left hand is still on the left hand's seconds.
+- **Carry-over** is elected by default and declined per combatant (a fresh roll instead). Two kinds:
+  an action still under way carries its remaining seconds and, in the round it finishes, a reaction
+  roll added to its last second; an initiative past 10 carries the wait with no roll. The reaction
+  roll is made **as the new round begins** rather than at the second the action finishes, because
+  nothing about the roll depends on when it is made and it puts the combatant in the right place in
+  the tracker at once; it is posted to chat like any initiative. A roll of 0 or less counts as 1
+  (UPSTREAM 61.1). An action that ends exactly on the tenth second carries nothing -- a fresh roll
+  next round is the same as a reaction roll added to second 10. Long actions carry round to round,
+  as his sixty-second Carry Over grid does, and roll only in the round they end.
+- **The round is announced over, not advanced.** When everyone standing is past their last place a
+  notice says so; the Game Master moves on, since an off hand may still have something to do.
+- **The tracker is extended, not replaced.** `ImagineCombatTracker` (`CONFIG.ui.combat`) adds each
+  clock under its row after Foundry has drawn the tracker and puts a stopwatch in the header, so a
+  Foundry change to the tracker's template does not have to be copied here. The row's bar and the
+  window's rows share one partial, `imagine-clock-bar`. A double click on the clock is stopped at
+  the clock, because two quick +1s would otherwise open the actor's sheet.
+- **Attack cards spend once, on the right hand.** Weapon and creature cards record `hand`; Spend
+  Seconds charges that pool, names the seconds for the weapon, and marks the card spent.
+
+**Verified:** `tools/round-test.html` (87, new) -- the rules against the books' own examples (the
+great sword carried two seconds and a reaction of 3 landing on the 5th second; a 5th-second start
+costing the off hand two; "on second 8 ... only 3 seconds left, not 5"; a speed-3 weapon's three
+swings with one second spare, p.174; the Master's Manual's -15 marker running 1a to 5b then 6), the view,
+and the combat document driven through a stubbed Foundry for a whole fight: rolls through
+`_preUpdate`, spends, undo, the round announced over, a typed initiative restarting a clock, and
+`nextRound` carrying one action (reaction posted) and one late start while a third rolls afresh.
+`tools/round-preview.html` renders the real templates. Every other suite passes unchanged (combat
+503, derivation 507, creature 149, martial 154, and nine more); 67 modules listed, none with a syntax
+error. Foundry API paths were checked against the V13 client source installed on this machine.
+**Not verified:** anything in a running V14 -- the tracker subclass, the buttons, the carry roll's
+chat card, and V14 keeping V13's permissive `_canChangeTurn`.
+
+**Not built:** his chart's Surprise row (seconds gained by surprising, before initiative); Speed
+effects setting `speedSeconds` by themselves (the potions and spells are Layer 4's); any timing for
+casting or lore uses beyond spending their seconds by hand. See `docs/sonnet/2026-09-22-round-clock.md`.

@@ -119,6 +119,22 @@ Content Availability in the settings menu. Switch a sourcebook off.
 Equipment tab → Add equipment. *Expect:* a new item, its sheet opening at once with a weight field
 on it. Set a weight; check encumbrance moves.
 
+**11. The round clock (added 2026-09-22).**
+Put two characters and a creature into a combat, Begin it, and roll initiative for all. Log in as a
+player in a second browser for part of this -- the point is that a player can spend their own seconds.
+*Expect:* a ten-cell bar under every row of the combat tracker, the seconds before each combatant's
+roll hatched, and a stopwatch at the top of the tracker that opens the Mr. Initiative window with the
+same bars lined up by second. Press **+1** and **+…** (try the off hand) as the player: the bar fills,
+the off hand's count drops, a main-hand spend re-sorts the tracker and an off-hand one does not;
+undo takes the last back. Attack with an off-hand weapon and press **Spend** on the card: the off
+hand pays, and the button then reads "spent". Spend one character past second 10 and press Next
+Round: they start the new round where the carry puts them, with an initiative card in chat for the
+reaction, while the others roll afresh. Type a number into a tracker initiative box: that clock
+starts again from it. Set Speed seconds to 2 in the window: that character jumps to the top with 1a
+and 1b in the first column.
+*If it fails:* the tracker subclass (`CONFIG.ui.combat`), the `imagine-clock-bar` partial not yet
+registered when the tracker first draws, or V14 tightening who may change the combat's turn.
+
 ---
 
 ## When something fails

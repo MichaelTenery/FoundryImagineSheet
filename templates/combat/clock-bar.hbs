@@ -1,0 +1,12 @@
+{{!-- One combatant's ten seconds, as his Mr. Initiative chart draws them (Master's Manual pp.98-100):
+      a cell per second, two for a second split by extra seconds ("a" is the extra half). Registered
+      as the partial "imagine-clock-bar" and shared by the combat tracker's rows and the Mr.
+      Initiative window; built by buildClockView in module/round-view.mjs. --}}
+<div class="imagine-clock-bar{{#if done}} done{{/if}}">
+	{{#each columns}}
+	<div class="clock-second{{#if split}} split{{/if}}">
+		{{#each cells}}<span class="clock-cell {{state}}{{#if alt}} alt{{/if}}{{#if now}} now{{/if}}{{#if extra}} extra{{/if}}"
+			data-tooltip="{{title}}" aria-label="{{title}}"></span>{{/each}}
+	</div>
+	{{/each}}
+</div>

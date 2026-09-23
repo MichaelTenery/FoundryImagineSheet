@@ -1,0 +1,98 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG round clock preview</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>
+	body { margin: 0; background: #3a3632; font-family: "Signika", "Segoe UI", sans-serif; color: #d8d0c0; }
+	.stage { display: flex; gap: 24px; align-items: flex-start; justify-content: center; padding: 18px; flex-wrap: wrap; }
+	.caption { text-align: center; font-size: 12px; margin: 6px 0; }
+
+	/* Just enough of Foundry's dark sidebar to show a tracker row as it sits there: its theme
+	   variables and the combatant row's own flex line (foundry2.css, .combat-sidebar .combat-tracker). */
+	.sidebar { width: 300px; background: #0b0a13; border-radius: 5px; padding: 6px; box-shadow: 0 8px 30px rgba(0,0,0,.45);
+		--color-text-primary: #efe6d8; --color-text-subtle: #9f9275; --color-warm-1: #ee9b3a; --color-warm-2: #c9593f;
+		--color-level-info: #59a1f6; --color-level-error: #ce0707; color: var(--color-text-primary); font-size: 14px; }
+	.sidebar .head { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 8px; font-weight: 600; }
+	.sidebar .head .fa-stopwatch { font-style: normal; }
+	.combat-sidebar .combat-tracker { list-style: none; margin: 0; padding: 0; }
+	.combat-sidebar .combat-tracker .combatant { display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 4px; }
+	.combat-sidebar .combat-tracker .combatant.active { background: rgba(255,255,255,.15); outline: 1px solid var(--color-warm-2); }
+	.combat-sidebar .token-image { width: 36px; height: 36px; border-radius: 4px; background: #555; flex: 0 0 36px; }
+	.combat-sidebar .token-name { flex: 1; }
+	.combat-sidebar .token-initiative { width: 34px; text-align: center; background: rgba(255,255,255,.08); border-radius: 3px; }
+	.sidebar button { background: rgba(255,255,255,.08); color: inherit; border: 1px solid rgba(255,255,255,.25); border-radius: 3px; }
+
+	.frame { width: 860px; height: 520px; background: #fdfbf6; border-radius: 5px; box-shadow: 0 8px 30px rgba(0,0,0,.45);
+		overflow: hidden; display: flex; flex-direction: column; }
+	.frame-title { background: #22201d; color: #d8d0c0; padding: 7px 12px; font-size: 13px; }
+	.frame .window-content { padding: 10px 12px; flex: 1; min-height: 0; }
+	pre.result { max-width: 1180px; margin: 12px auto; font-size: 11px; white-space: pre-wrap; }
+</style>
+<div class="stage" id="stage"></div>
+<pre class="result" id="result"></pre>
+<script type="module">
+// Renders the real clock templates -- templates/combat/clock-bar.hbs as the partial the system
+// registers, templates/combat/clock-row.hbs as the combat tracker draws it under a row, and
+// templates/apps/round-clock.hbs as the Mr. Initiative window -- against views built by the real
+// rules and the real view builder, for round 2 of a fight:
+//
+//   Brom     carried his great sword two seconds into the round and reacted on a 3 (the Player's
+//            Guide's own Carry-Over example), then swung again
+//   Kel      rolled 13 last round and waited it out: starts on the 3rd second
+//   Fairy    a Speed potion's three extra seconds: 1a 1b 2a 2b 3a 3b, has spent three
+//   Orgo     rolled 6, spear and a shield parry in the off hand, and one parry too many
+//   Tess     rolled 4, fired, and began a reload that runs two seconds into next round
+//   Goblin   rolled -4: the split second
+//   Ogre     not rolled yet
+//
+// Must be served over HTTP -- see tools/combat-test.html.
+const R = await import("../module/combat/round-rules.mjs");
+const V = await import("../module/round-view.mjs");
+
+Handlebars.registerPartial("imagine-clock-bar", await (await fetch("../templates/combat/clock-bar.hbs")).text());
+const rowTemplate = Handlebars.compile(await (await fetch("../templates/combat/clock-row.hbs")).text());
+const windowTemplate = Handlebars.compile(await (await fetch("../templates/apps/round-clock.hbs")).text());
+
+const spend = (clock, list) => list.reduce((c, [s, hand, label]) => R.addClockSpend(c, s, hand, label), clock);
+const right = { handedness: "Right", offhandCap: 5 };
+const fighters = [
+	{ name: "Brom", opts: right,
+	  clock: spend(R.setCarryRoll(R.getNextRoundClock({ seconds: 2, action: true }, 2), 3), [[6, "main", "Great Sword"]]) },
+	{ name: "Kel", opts: { handedness: "Left", offhandCap: 5 },
+	  clock: R.getNextRoundClock({ seconds: 2, action: false }, 2) },
+	{ name: "Fairy", opts: { ...right, speedSeconds: 3 },
+	  clock: spend(R.newRoundClock(2, 7), [[3, "main", "Dagger"]]) },
+	{ name: "Orgo", opts: right,
+	  clock: spend(R.newRoundClock(2, 6), [[3, "main", "Spear"], [1, "off", "Shield parry"], [1, "off", "Shield parry"], [1, "off", "Shield parry"]]) },
+	{ name: "Tess", opts: right,
+	  clock: spend(R.newRoundClock(2, 4), [[4, "main", "Crossbow"], [5, "main", "Reload"]]) },
+	{ name: "Goblin", opts: right, clock: R.newRoundClock(2, -4) },
+	{ name: "Ogre", opts: right, clock: R.newRoundClock(2, null) }
+];
+for (const f of fighters) { f.state = R.resolveRoundClock(f.clock, f.opts); }
+fighters.sort((a, b) => R.getClockSortKey(a.state) - R.getClockSortKey(b.state));
+
+const views = fighters.map((f, i) => V.buildClockView(f.state, f.clock, {
+	id: f.name.toLowerCase(), name: f.name, img: "", current: i == 0, canSpend: true,
+	speedSeconds: f.opts.speedSeconds ?? 0, canEditSpeed: true
+}));
+
+// The tracker, as Foundry's sidebar draws it, with the clock added under each row.
+const rows = fighters.map((f, i) => `<li class="combatant ${i == 0 ? "active" : ""} ${views[i].ready ? "imagine-clocked" : ""}">
+	<div class="token-image"></div><div class="token-name"><strong>${f.name}</strong></div>
+	<div class="token-initiative">${R.getClockInitiative(f.state) ?? "d20"}</div>
+	${views[i].ready ? rowTemplate(views[i]) : ""}</li>`).join("");
+const round = V.buildRoundView(views, { round: 2, isGM: true, over: R.isRoundOver(fighters.map(f => f.state)) });
+document.getElementById("stage").innerHTML = `
+	<div><div class="caption">Combat tracker (Foundry dark theme)</div>
+		<div class="sidebar"><div class="head"><span>Round 2</span><span class="fa-stopwatch" title="Mr. Initiative">&#9201;</span></div>
+		<ol class="combat-sidebar"><div class="combat-tracker">${rows}</div></ol></div></div>
+	<div><div class="caption">Mr. Initiative window (Imagine paper)</div>
+		<div class="frame imagine round-clock-window"><div class="frame-title">Mr. Initiative</div>
+		<div class="window-content">${windowTemplate(round)}</div></div></div>`;
+
+document.getElementById("result").textContent = fighters.map((f, i) =>
+	`${f.name.padEnd(7)} key ${String(R.getClockSortKey(f.state)).padEnd(6)} init ${String(R.getClockInitiative(f.state)).padEnd(5)} ${views[i].status}`
+	+ (views[i].offhand ? ` | off ${views[i].offhand.text}` : "") + (views[i].carriedIn ? ` | ${views[i].carriedIn}` : "")).join("\n");
+</script>

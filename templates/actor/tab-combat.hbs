@@ -30,11 +30,19 @@
 		<div class="char-box"><label>Weapon Speed</label>
 			<span class="value">{{#if (gt system.combat.weaponSpeedMod 0)}}+{{/if}}{{system.combat.weaponSpeedMod}}</span>
 			<span class="sub">seconds per swing</span></div>
-		{{!-- 5 of the round's 10 seconds by default, more for Second Weapon Lore, unlimited for
-		      Ambidextrous. A cap, not a pool -- nothing here tracks what a round has spent of it. --}}
+		{{!-- 5 of the round's 10 seconds by default, more for Second Weapon Lore, all 10 for
+		      Ambidextrous. The allowance; what a round has spent of it is on the round clock in the
+		      combat tracker and the Mr. Initiative window. --}}
 		<div class="char-box"><label>Off-Hand Seconds</label>
 			<span class="value">{{system.combat.offhandSecondsCap}}</span>
-			<span class="sub">{{#if (eq system.physical.handedness "Ambidextrous")}}both hands, unlimited{{else}}of the round{{/if}}</span></div>
+			<span class="sub">{{#if (eq system.physical.handedness "Ambidextrous")}}both hands, all ten{{else}}of the round{{/if}}</span></div>
+		{{!-- His tmp_speed_seconds: extra seconds every round from a Speed potion, spell, rune or
+		      glyph, entered by hand until those effects are built. Each splits one of the round's
+		      first seconds in two, and a sped combatant acts first (module/combat/round-rules.mjs). --}}
+		<div class="char-box"><label>Speed Seconds</label>
+			<span class="value"><input type="number" class="speed-input" min="0" max="10"
+				name="system.combat.speedSeconds" value="{{system.combat.speedSeconds}}"></span>
+			<span class="sub">extra each round</span></div>
 		<div class="char-box"><label>Shock</label>
 			<span class="value {{#if system.body.inShock}}alarm{{/if}}">{{system.body.totalWounds}} / {{system.body.shock}}</span>
 			<span class="sub">{{#if system.body.inShock}}IN SHOCK{{else}}total wounds{{/if}}</span></div>

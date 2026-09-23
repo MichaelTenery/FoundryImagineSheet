@@ -23,6 +23,11 @@
 		<div class="char-box"><label>Initiative</label>
 			<span class="value">d10 {{#if (gte system.combat.initiativeMod 0)}}+{{/if}}{{system.combat.initiativeMod}}</span>
 			<span class="sub">lower acts first</span></div>
+		{{!-- Extra seconds every round from a Speed effect, as a character's. See tab-combat.hbs. --}}
+		<div class="char-box"><label>Speed Seconds</label>
+			<span class="value"><input type="number" class="speed-input" min="0" max="10"
+				name="system.combat.speedSeconds" value="{{system.combat.speedSeconds}}"></span>
+			<span class="sub">extra each round</span></div>
 		{{!-- Includes the Situation Mods' own defence; "No Defense" takes it away altogether. --}}
 		<div class="char-box"><label>Defence</label>
 			{{#if system.combat.noDefense}}<span class="value alarm">None</span>

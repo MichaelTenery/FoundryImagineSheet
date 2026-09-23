@@ -56,6 +56,13 @@
 	--imagine-area-wounded: #fbf4e6;      /* body-area row tints, in ascending severity */
 	--imagine-area-vitality: #f7e3cf;
 	--imagine-area-effect: #f0d2c8;
+
+	/* @MARKER ROUND CLOCK COLOURS -- the seconds on his Mr. Initiative chart (module/round-view.mjs).
+	   Two shades of spent so one action reads apart from the next, and a slate for an action
+	   still finishing from last round, unlike anything else on the sheets. */
+	--imagine-clock-spent: #8a5a2b;
+	--imagine-clock-spent-alt: #c08a4f;
+	--imagine-clock-carried: #6f7fa3;
 }
 
 .imagine.sheet .window-content {
@@ -931,8 +938,10 @@ input.source-unknown {
 .imagine-chat.martial-card .martial-notes { margin: 4px 0 0; padding-left: 16px; font-size: 10px; }
 
 /* Pain Threshold is an editable stat rather than a derived one: it is the Game Master's dial
-   for how hard a target feels a blow, and it is signed. */
-.combat-stats .pain-input {
+   for how hard a target feels a blow, and it is signed. Speed Seconds is entered the same way,
+   until the potions and spells that grant it are built. */
+.combat-stats .pain-input,
+.combat-stats .speed-input {
 	width: 52px;
 	text-align: center;
 	font-size: 16px;
@@ -1258,6 +1267,9 @@ input.source-unknown {
 	--imagine-area-wounded: rgba(255, 255, 255, 0.05);
 	--imagine-area-vitality: rgba(255, 170, 110, 0.12);
 	--imagine-area-effect: rgba(255, 100, 80, 0.18);
+	--imagine-clock-spent: var(--color-warm-2, #c9593f);
+	--imagine-clock-spent-alt: var(--color-warm-1, #ee9b3a);
+	--imagine-clock-carried: var(--color-level-info, #59a1f6);
 }
 
 /* The form-field rules earlier in this file set the paper colours OUTRIGHT as a backstop, which is
@@ -1452,3 +1464,155 @@ input.source-unknown {
 .imagine.item-picker .learn-by-roll { font-size: 12px; display: flex; align-items: center; gap: 6px; }
 .imagine-chat .imagine-magic-card p, .imagine-magic-card p { margin: 4px 0; }
 .imagine-starting-lore ul { margin: 4px 0 4px 16px; padding: 0; }
+
+
+/* @MARKER ROUND CLOCK ---------------------------------------------------------------------------
+   Each combatant's seconds through the round, as his Mr. Initiative chart draws them: under every
+   row of the combat tracker, and all together in the Mr. Initiative window (module/round-view.mjs,
+   templates/combat/clock-bar.hbs).
+
+   The tracker is Foundry's own sidebar and follows the interface's theme, dark or light, while the
+   window is an Imagine window on paper. So the bar's colours are its own variables, set here for the
+   sidebar from Foundry's theme and the text colour, and set again below for the window from the
+   paper palette. A second split by extra seconds is two narrower cells in the same column, so the
+   ten columns line up down the window whoever is sped. */
+.imagine-clock-bar {
+	--clock-edge: color-mix(in srgb, currentColor 45%, transparent);
+	--clock-lost: color-mix(in srgb, currentColor 16%, transparent);
+	--clock-spent: var(--color-warm-2, #c9593f);
+	--clock-spent-alt: var(--color-warm-1, #ee9b3a);
+	--clock-carried: var(--color-level-info, #59a1f6);
+	--clock-now: var(--color-text-primary, currentColor);
+	display: grid;
+	grid-template-columns: repeat(10, minmax(0, 1fr));
+	gap: 2px;
+	align-items: stretch;
+}
+.imagine-clock-bar .clock-second { display: flex; gap: 1px; min-width: 0; }
+.clock-cell {
+	flex: 1 1 0;
+	min-width: 0;
+	height: 10px;
+	border: 1px solid var(--clock-edge);
+	border-radius: 2px;
+	background: transparent;
+}
+.clock-cell.lost {
+	border-color: transparent;
+	background: repeating-linear-gradient(135deg, var(--clock-lost) 0 2px, transparent 2px 4px);
+}
+.clock-cell.carried { background: var(--clock-carried); border-color: var(--clock-carried); }
+.clock-cell.spent { background: var(--clock-spent); border-color: var(--clock-spent); }
+.clock-cell.spent.alt { background: var(--clock-spent-alt); border-color: var(--clock-spent-alt); }
+.clock-cell.extra { border-style: dashed; }
+.clock-cell.spent.extra, .clock-cell.carried.extra { border-style: solid; }
+.clock-cell.now { outline: 2px solid var(--clock-now); outline-offset: 0; }
+
+/* In the combat tracker, under the row. The row is Foundry's flex line (portrait, name, initiative);
+   letting it wrap puts the clock on a line of its own beneath them. */
+.combat-sidebar .combat-tracker .combatant.imagine-clocked { flex-wrap: wrap; row-gap: 3px; }
+.imagine-clock-row {
+	flex: 1 0 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	font-size: var(--font-size-11, 11px);
+	cursor: default;
+}
+.imagine-clock-row .clock-line { display: flex; gap: 8px; align-items: baseline; }
+.imagine-clock-row .clock-status { flex: 1 1 auto; }
+.imagine-clock-row .clock-off, .imagine-clock-row .clock-carried { color: var(--color-text-subtle, inherit); }
+.imagine-clock-row .clock-off.over { color: var(--color-level-error, #ce0707); }
+.imagine-clock-row .clock-controls { display: flex; gap: 4px; }
+.imagine-clock-row .clock-button {
+	flex: 0 0 auto;
+	width: auto;
+	min-width: 26px;
+	height: 20px;
+	line-height: 18px;
+	padding: 0 6px;
+	font-size: var(--font-size-11, 11px);
+}
+.imagine-clock-row .clock-carry.active { border-color: var(--color-level-info, #59a1f6); }
+
+/* The Mr. Initiative window: a chart, a row per combatant, the ten seconds lined up in columns. */
+.imagine.round-clock-window .window-content {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background: var(--imagine-paper);
+	color: var(--imagine-ink);
+	font-size: 12px;
+}
+.imagine.round-clock-window .round-clock { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.imagine.round-clock-window .imagine-clock-bar,
+.imagine.round-clock-window .round-clock-key {
+	--clock-edge: var(--imagine-rule);
+	--clock-lost: var(--imagine-rule);
+	--clock-spent: var(--imagine-clock-spent);
+	--clock-spent-alt: var(--imagine-clock-spent-alt);
+	--clock-carried: var(--imagine-clock-carried);
+	--clock-now: var(--imagine-ink);
+}
+.imagine.round-clock-window .round-clock-head {
+	display: flex; align-items: center; gap: 12px;
+	padding-bottom: 6px; border-bottom: 2px solid var(--imagine-rule);
+}
+.imagine.round-clock-window .round-number { font-weight: 700; font-size: 14px; }
+.imagine.round-clock-window .round-now { flex: 1 1 auto; color: var(--imagine-muted); }
+.imagine.round-clock-window .round-now.over { color: var(--imagine-alarm); font-weight: 600; }
+.imagine.round-clock-window .round-clock-head button { flex: 0 0 auto; width: auto; }
+.imagine.round-clock-window .round-clock-body { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.imagine.round-clock-window .clock-chart { min-width: 680px; }
+.imagine.round-clock-window .clock-chart-row {
+	display: grid;
+	grid-template-columns: 150px 38px minmax(220px, 1fr) 104px 48px 64px;
+	gap: 2px 8px;
+	align-items: center;
+	padding: 4px;
+	border-bottom: 1px solid var(--imagine-rule-soft);
+}
+.imagine.round-clock-window .clock-chart-row:nth-child(even) { background: var(--imagine-row-alt); }
+.imagine.round-clock-window .clock-chart-row.current { box-shadow: inset 3px 0 0 var(--imagine-accent); }
+.imagine.round-clock-window .clock-chart-row.done .clock-name { color: var(--imagine-muted); }
+.imagine.round-clock-window .clock-chart-head {
+	position: sticky; top: 0; z-index: 1;
+	background: var(--imagine-head);
+	font-weight: 600; font-size: 11px;
+}
+.imagine.round-clock-window .clock-chart-head .clock-second { justify-content: center; }
+.imagine.round-clock-window .clock-chart-head .clock-second.now {
+	background: var(--imagine-accent); color: var(--imagine-on-accent); border-radius: 2px;
+}
+.imagine.round-clock-window .clock-name { display: flex; align-items: center; gap: 6px; min-width: 0; font-weight: 600; }
+.imagine.round-clock-window .clock-name img { width: 24px; height: 24px; flex: 0 0 24px; border: none; border-radius: 3px; object-fit: cover; }
+.imagine.round-clock-window .clock-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.imagine.round-clock-window .clock-split { text-align: center; font-weight: 600; }
+.imagine.round-clock-window .imagine-clock-bar .clock-cell { height: 16px; }
+.imagine.round-clock-window .clock-off { font-size: 11px; white-space: nowrap; }
+.imagine.round-clock-window .clock-off.over { color: var(--imagine-alarm); font-weight: 600; }
+.imagine.round-clock-window .clock-over { color: var(--imagine-alarm); font-weight: 600; }
+.imagine.round-clock-window .pips { display: inline-flex; gap: 2px; vertical-align: middle; }
+.imagine.round-clock-window .pip { width: 6px; height: 10px; border-radius: 1px; border: 1px solid var(--imagine-rule); }
+.imagine.round-clock-window .pip.lost { border-color: transparent; background: var(--imagine-rule-soft); }
+.imagine.round-clock-window .pip.spent { background: var(--imagine-clock-spent); border-color: var(--imagine-clock-spent); }
+.imagine.round-clock-window .pip.expired { border-style: dotted; opacity: 0.5; }
+.imagine.round-clock-window .clock-speed input { width: 40px; text-align: center; }
+.imagine.round-clock-window .clock-button { width: auto; min-width: 26px; line-height: 18px; padding: 0 6px; font-size: 11px; }
+.imagine.round-clock-window .clock-carry.active { border-color: var(--imagine-clock-carried); color: var(--imagine-clock-carried); font-weight: 600; }
+.imagine.round-clock-window .clock-unrolled { color: var(--imagine-muted); font-style: italic; }
+.imagine.round-clock-window .clock-detail {
+	grid-column: 2 / -1;
+	display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px;
+	font-size: 11px;
+}
+.imagine.round-clock-window .clock-status { font-weight: 600; }
+.imagine.round-clock-window .clock-carried, .imagine.round-clock-window .clock-log { color: var(--imagine-muted); }
+.imagine.round-clock-window .clock-controls { display: inline-flex; gap: 4px; margin-left: auto; }
+.imagine.round-clock-window .round-clock-key {
+	display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0;
+	padding-top: 6px; border-top: 1px solid var(--imagine-rule); font-size: 11px; color: var(--imagine-muted);
+}
+.imagine.round-clock-window .round-clock-key span { display: inline-flex; align-items: center; gap: 3px; }
+.imagine.round-clock-window .round-clock-key .clock-cell { display: inline-block; width: 12px; flex: 0 0 12px; height: 10px; }
+.imagine.round-clock-window .round-clock-empty { color: var(--imagine-muted); padding: 12px; }

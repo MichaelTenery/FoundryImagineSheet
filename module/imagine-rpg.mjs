@@ -45,7 +45,9 @@ import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
 import ImagineCharacterGenerator, { registerCharacterGeneratorButton } from "./apps/character-generator.mjs";
-import ImagineCombat from "./combat/combat-document.mjs";
+import ImagineCombat, { ImagineCombatant } from "./combat/combat-document.mjs";
+import ImagineCombatTracker from "./combat/combat-tracker.mjs";
+import ImagineRoundClock, { loadClockTemplates } from "./apps/round-clock.mjs";
 import { rollWeaponAttack, registerAttackCardListeners } from "./combat/attack.mjs";
 import { rollCreatureAttack } from "./combat/creature-attack.mjs";
 import {
@@ -245,6 +247,28 @@ Hooks.once("init", function () {
 	CONFIG.Combat.initiative = { formula: "1d10 + @combat.initiativeMod", decimals: 0 };
 	registerAttackCardListeners();
 
+	// @MARKER ROUND CLOCK
+	// Each combatant's seconds through the round -- his Mr. Initiative chart (Master's Manual
+	// pp.98-100). The combatant keeps its clock and starts it again whenever its initiative is set
+	// from outside it; the tracker draws it under every row; the Mr. Initiative window draws them
+	// all on one chart. See module/combat/round-rules.mjs.
+	CONFIG.Combatant.documentClass = ImagineCombatant;
+	CONFIG.ui.combat = ImagineCombatTracker;
+	loadClockTemplates();
+
+	// A combatant's clock reads Speed seconds and handedness off its actor, so a change to either
+	// re-sorts the tracker and redraws it (and with it the Mr. Initiative window).
+	Hooks.on("updateActor", function (tmpactor, tmpchanges) {
+		var tmpcombat = ui.combat?.viewed;
+		if (!tmpcombat) { return; }
+		var tmpclockchange = ["system.combat.speedSeconds", "system.physical.handedness", "system.identity.handedness"]
+			.some(k => foundry.utils.hasProperty(tmpchanges, k));
+		if (!tmpclockchange) { return; }
+		if (!tmpcombat.combatants.some(c => (c.actor === tmpactor) || (c.actorId == tmpactor.id))) { return; }
+		tmpcombat.setupTurns();
+		ui.combat.render();
+	});
+
 	game.imagine = {
 		importContent: importAllContent,
 		// @MARKER ITEM DIRECTORY
@@ -280,6 +304,9 @@ Hooks.once("init", function () {
 		// The melee and missile situational modifiers window, also a button on the Combat tab of
 		// both sheets.
 		situationMods: (tmpactor) => ImagineSituationalMods.open(tmpactor),
+		// @MARKER ROUND CLOCK
+		// The Mr. Initiative window, also the stopwatch at the top of the Combat tracker.
+		roundClock: () => ImagineRoundClock.open(),
 		// @MARKER CHANGELOG
 		// The What's New window, every release. It also opens by itself once per user after an
 		// update; see module/changelog.mjs.

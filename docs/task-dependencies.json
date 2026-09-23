@@ -39,6 +39,7 @@
     "Situation Mods":                     { "dependsOn": ["Combat module — phase 1", "Creature actor type", "Skills module"], "note": "Martial blind fighting and stance feed it through combat.martialBlind." },
     "Second Weapon Knowledge/Lore held":  { "dependsOn": ["Combat module — phase 2", "Skills module"] },
     "Martial arts":                       { "dependsOn": ["Combat module — phase 2", "Skills module", "Situation Mods"], "note": "Hands blind fighting to the Situation Mods; the weapon attack reads getMartialAttackModifiers." },
+    "Round clock":                        { "dependsOn": ["Combat module — phase 1", "Second Weapon Knowledge/Lore held", "Creature actor type"], "note": "The off-hand pool reads getOffhandSecondsCap; Speed effects that would set speedSeconds are Layer 4's." },
     "Visual attack-chart":                { "dependsOn": ["Combat module — phase 1", "Creature actor type"], "note": "Needs a design pass first: an adjacency model for each body chart." },
     "Equipment module":                   { "dependsOn": ["Attributes module", "Generate src/packs", "Design content/compendium layer"] },
 

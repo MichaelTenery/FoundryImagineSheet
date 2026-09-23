@@ -1,0 +1,27 @@
+{{!-- The round clock under a combatant in the combat tracker: the ten seconds, where they stand, the
+      off hand, and the buttons that spend time. Added to each row by module/combat/combat-tracker.mjs;
+      the Mr. Initiative window shows the same clock for everyone at once. --}}
+<div class="imagine-clock-row{{#if current}} current{{/if}}" data-combatant-id="{{id}}">
+	{{> imagine-clock-bar}}
+	<div class="clock-line">
+		<span class="clock-status" data-tooltip="{{#if log.length}}{{#each log}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}{{else}}Nothing spent yet this round{{/if}}">{{status}}</span>
+		{{#if offhand}}<span class="clock-off{{#if offhand.over}} over{{/if}}" data-tooltip="{{offhand.title}}">
+			<i class="fa-solid fa-hand" inert></i> {{offhand.text}}{{#if offhand.over}}, over by {{offhand.over}}{{/if}}</span>{{/if}}
+	</div>
+	{{#if carriedIn}}<div class="clock-line clock-carried">{{carriedIn}}</div>{{/if}}
+	{{#if canSpend}}
+	<div class="clock-controls">
+		<button type="button" class="clock-button" data-action="imagineUndoSeconds" {{#unless canUndo}}disabled{{/unless}}
+			data-tooltip="Take back the last seconds spent" aria-label="Take back the last seconds spent">
+			<i class="fa-solid fa-rotate-left" inert></i></button>
+		<button type="button" class="clock-button" data-action="imagineSpendSeconds" data-seconds="1"
+			data-tooltip="Spend one second: holding, passing, a quick action">+1</button>
+		<button type="button" class="clock-button" data-action="imagineSpendSeconds" data-seconds="ask"
+			data-tooltip="Spend seconds: how many, which hand, and on what">+&hellip;</button>
+		{{#if carry}}<button type="button" class="clock-button clock-carry{{#if carry.elected}} active{{/if}}"
+			data-action="imagineToggleCarry" aria-pressed="{{#if carry.elected}}true{{else}}false{{/if}}"
+			data-tooltip="{{carry.title}}{{#unless carry.elected}} (declined: a fresh roll next round){{/unless}}">
+			<i class="fa-solid fa-share" inert></i> {{#if carry.elected}}carry{{else}}no carry{{/if}} {{carry.text}}</button>{{/if}}
+	</div>
+	{{/if}}
+</div>

@@ -31,7 +31,7 @@ import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../
 import {
 	getBodyChart, parseBodyChart, getAreaEndurance, getStrongestMaterial,
 	getInitiativeModifier, getNextAttackSkill, getAreaArmor, getAreaShield, resolveEncumbrance,
-	resolveSituationalMods
+	resolveSituationalMods, getOffhandSecondsCap
 } from "../combat/combat-rules.mjs";
 
 const fields = foundry.data.fields;
@@ -238,6 +238,14 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				defenseMisc:    new fields.NumberField({ required: true, integer: true, initial: 0 }),
 				initiativeMisc: new fields.NumberField({ required: true, integer: true, initial: 0 }),
 				skillMisc:      new fields.NumberField({ required: true, integer: true, initial: 0 }),
+
+				// @MARKER SPEED SECONDS
+				// Extra seconds of action every round from a Speed potion, spell, rune or glyph -- his
+				// tmp_speed_seconds, the "Speed Seconds" box among his combat modifiers. Set by hand until
+				// those effects are built. Each splits one of the round's first seconds in two on the
+				// round clock (module/combat/round-rules.mjs); ten at most, with any the initiative
+				// roll itself earned below -10.
+				speedSeconds:   new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 10 }),
 
 				// @MARKER PAIN THRESHOLD
 				// A SIGNED modifier on every point of damage coming in, applied before armour
@@ -525,6 +533,11 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		var tmpabilities = this._getTraitNames("ability").join(",");
 		var tmpisambidextrous = tmpabilities.includes("Ambidextrous") || tmpabilities.includes("Omnidextrous");
 		this.combat.offhandHandedness = tmpisambidextrous ? "Ambidextrous" : (this.identity.handedness || "");
+
+		// How many of the round's seconds its off hand has, as a character's: five, or ten for the
+		// ambidextrous. A creature holds no Second Weapon Lore to add to it. The round clock spends
+		// it (module/combat/round-rules.mjs).
+		this.combat.offhandSecondsCap = getOffhandSecondsCap(this.combat.offhandHandedness, 0);
 
 		// The Lore chart, one step better, for a creature that has the skill for it.
 		var tmpskilltext = this.skills.map(s => String(s.name ?? "")).join(",");

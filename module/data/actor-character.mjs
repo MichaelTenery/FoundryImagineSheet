@@ -298,6 +298,14 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				initiativeMisc: new fields.NumberField({ required: true, integer: true, initial: 0 }),
 				skillMisc:      new fields.NumberField({ required: true, integer: true, initial: 0 }),
 
+				// @MARKER SPEED SECONDS
+				// Extra seconds of action every round from a Speed potion, spell, rune or glyph -- his
+				// tmp_speed_seconds, the "Speed Seconds" box among his combat modifiers. Set by hand until
+				// those effects are built. Each splits one of the round's first seconds in two on the
+				// round clock (module/combat/round-rules.mjs); ten at most, with any the initiative
+				// roll itself earned below -10.
+				speedSeconds:   new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 10 }),
+
 				// The attack chart a GME fights on. A GME earns no chart by title -- his sheet has the
 				// player pick one outright (gme_all_attack_skills_select, Beginner by default) -- so it
 				// is stored. Read only while the character holds a non-classed class.
@@ -1595,8 +1603,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// off the actor with no eligibility test in front of it.
 		this.combat.multiMissileKnowChance = this._getSkillChance("Multiple Missile Knowledge");
 
-		// How many of the round's ten seconds may go to off-hand actions -- a cap, not a pool;
-		// nothing here tracks how much of it a round has already spent. See getOffhandSecondsCap.
+		// How many of the round's ten seconds may go to off-hand actions. This is the allowance; what
+		// a round has spent of it is on the combatant's round clock (module/combat/round-rules.mjs),
+		// which also takes off what a late initiative costs. See getOffhandSecondsCap.
 		this.combat.offhandSecondsCap = getOffhandSecondsCap(
 			this.physical.handedness, this.combat.secondWeaponLoreChance);
 	}

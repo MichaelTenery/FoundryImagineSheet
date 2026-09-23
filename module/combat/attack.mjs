@@ -27,6 +27,7 @@ import {
 } from "./combat-rules.mjs";
 import { ARMOR_BLOCKING } from "../combat-tables.mjs";
 import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } from "./martial-arts.mjs";
+import { getActionHand } from "./round-rules.mjs";
 
 const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Missile" };
 
@@ -375,6 +376,9 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		result: tmpresult,
 		mods: tmpmods,
 		speed: tmpspeed,
+		// Which of the attacker's two clocks the swing runs on: a weapon in the off hand spends the
+		// off hand's own seconds, not the round's (Player's Guide p.178; module/combat/round-rules.mjs).
+		hand: getActionHand(tmpw.hand, tmpsys.physical?.handedness),
 		fumble: tmpfumble,
 		damage: tmpdamage,
 		// What the Situation Mods set, and the words among them that are for the table to act
@@ -596,10 +600,18 @@ export async function applyAttackDamage(tmpmessage) {
 	if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
 }
 
-// This is the function which spends the attack's seconds for the attacker, if they are fighting.
+// This is the function which spends the attack's seconds for the attacker, if they are fighting:
+// on the round clock, against the hand the attack was made with, and named for the weapon so the
+// clock can say what the seconds went on. Once spent, the card says so and the button stops
+// offering itself -- a second click would charge the same swing twice. A slip is taken back from
+// the clock itself (its undo button), not from here.
 export async function spendAttackTime(tmpmessage) {
 	var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
 	if (!tmpattack || !game.combat) { return; }
+	if (tmpattack.spent) {
+		ui.notifications.info("These seconds have already been spent.");
+		return;
+	}
 	var tmpactor = await fromUuid(tmpattack.attackerUuid);
 	var tmpcombatant = findCombatant(tmpactor);
 	if (!tmpcombatant) {
@@ -607,17 +619,24 @@ export async function spendAttackTime(tmpmessage) {
 		return;
 	}
 	if (!tmpcombatant.isOwner) { return; }
-	await game.combat.spendSeconds(tmpcombatant, tmpattack.speed);
+	var tmpresult = await game.combat.spendSeconds(tmpcombatant, tmpattack.speed,
+		{ hand: tmpattack.hand ?? "main", label: tmpattack.weapon ?? "" });
+	if (tmpresult && tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.spent", true); }
 }
 
 // This is the function which wires the chat card's buttons whenever an attack card is shown.
 export function registerAttackCardListeners() {
 	Hooks.on("renderChatMessageHTML", function (tmpmessage, tmphtml) {
-		if (!tmpmessage.getFlag("imagine-rpg", "attack")) { return; }
+		var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
+		if (!tmpattack) { return; }
 		tmphtml.querySelector("[data-imagine-action='applyDamage']")
 			?.addEventListener("click", () => applyAttackDamage(tmpmessage));
-		tmphtml.querySelector("[data-imagine-action='spendTime']")
-			?.addEventListener("click", () => spendAttackTime(tmpmessage));
+		var tmpspend = tmphtml.querySelector("[data-imagine-action='spendTime']");
+		if (tmpspend && tmpattack.spent) {
+			tmpspend.disabled = true;
+			tmpspend.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${parseInt(tmpattack.speed) || 0}s spent`;
+		}
+		tmpspend?.addEventListener("click", () => spendAttackTime(tmpmessage));
 	});
 }
 // @END (CODE)
