@@ -866,6 +866,12 @@ check("an untouched area is sound", hurt.body.areas.find(a => a.name === "Head")
 check("armour damage reduces the armour there (12 - 5)", hurt.body.areas.find(a => a.name === "Upper Torso").armor, 7);
 check("total wounds across the body", hurt.body.totalWounds, 15);
 check("not in shock below Shock", hurt.body.inShock, false);
+// Overall wounds -- a poison's, to overall Endurance -- count in the total and in shock.
+hurt.body.overallWounds = 6;
+hurt.prepareDerivedData();
+check("overall wounds join the area wounds in the total (15 + 6)", hurt.body.totalWounds, 21);
+hurt.body.overallWounds = 0;
+hurt.prepareDerivedData();
 
 // The race's body chart is used, and an explicit body type overrides it.
 const winged = makeCharacter({}, 5, [{ ...makeRace(), system: { ...makeRace().system, bodyType: "Humanoid(Wings)" } }]);

@@ -42,6 +42,18 @@
 		</div>
 	</div>
 
+	{{!-- Read-only: what has been done to this weapon -- quality, condition, customization and any
+	live temporary effect, exactly as getWeaponCustomTags lists them for its Combat tab row.
+	Nothing here is editable -- that stays in the weapon mods window, opened from the actor's
+	Combat tab wand button, so this sheet cannot fall out of step with it. --}}
+	<div class="panel-row">
+		<div class="panel">
+			<h3>Customized</h3>
+			<p class="muted">{{#if customTags.length}}{{#each customTags as |t|}}{{t}}{{#unless
+				@last}}, {{/unless}}{{/each}}{{else}}Nothing done to it{{/if}}</p>
+		</div>
+	</div>
+
 	<h3 class="section-head">Attack modes</h3>
 	<table class="attack-mode-table">
 		<thead><tr><th>Mode</th><th class="col-num">Can be used</th><th class="col-num">Modifier</th></tr></thead>

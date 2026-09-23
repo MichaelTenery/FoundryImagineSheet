@@ -1760,12 +1760,37 @@ MAGIC_SUBSYSTEM_OF = {
 # manual layer here, by the importer (content-importer.mjs) and by the Items sidebar fill.
 KIND_KEYED_PACKS = {"consumables", "lore"}
 
-# The packs his Master Index has not been matched against yet. apply_sources looks a document up
-# by NAME, and in these packs a name is not enough: his rune Balance would take the page of the
-# Balance skill, and his spell Chill and invocation Chill are different entries on different pages.
-# Until an attribution pass that knows the kind is written, these are marked XXX honestly rather
-# than attributed wrongly. docs/sonnet/2026-09-22-magic-lore-tab.md.
-NOT_YET_ATTRIBUTED_PACKS = {"consumables", "lore", "spells", "invocations"}
+# The packs his Master Index has not been matched against AT ALL yet -- apply_sources() is not
+# even called for these, so every one of their documents stays "XXX". A name alone is not enough
+# for any of the four Magic & Lore packs (his rune Balance would take the page of the Balance
+# skill, and his spell Chill and invocation Chill are different entries on different pages), which
+# is why apply_sources() now takes a kind and looks up "kind|Name" for them -- see @MARKER SOURCE
+# ATTRIBUTION and docs/sonnet/2026-09-22-magic-lore-tab.md item 6.
+#
+# spells and invocations came out of this set on 2026-09-23: his Master Index prints a Spell/
+# Level/Source table (sixteen of them, by spell type, plus three "roll a die" tables) and an
+# Invocation/Level/Alignment/Source table (thirteen Devotion chapters), one row per spell or
+# invocation, kind-tagged by extract_sources.py's read_kind_tables(). Every spell and invocation
+# name is looked up against its own table now, kind-safe, so calling apply_sources() on these two
+# is no longer a way to attribute something wrongly -- only to leave it XXX when his index truly
+# does not carry it.
+#
+# lore came out of this set on 2026-09-23 too: attribution is decided per KIND, not per pack, and
+# a pack does not have to wait for its LAST kind before its FIRST one is put to use. Four of lore's
+# eleven kinds (ballad, rune, poem, song) have the same kind of table as spells and invocations and
+# are kind-keyed in itemSources.json; apply_sources(docs, "*") reads each lore document's own
+# "kind" field and looks up "kind|Name" for it, same as spells and invocations do for their one
+# fixed kind. The other seven lore kinds (candlelore, empathymagic, glyph, hymn, ritual,
+# sympathymagic, evoke) print as prose, not one-row-per-line tables ("All Candle Lore Rituals",
+# "Charms (All)", etc.), so itemSources.json has no "kind|Name" rows for them at all -- a document
+# of one of those kinds simply finds no match and is marked XXX by apply_sources() itself, the same
+# way any other unmatched document is, not by being excluded here.
+#
+# consumables stays in this set: none of its four kinds (herb, potion, elixir, charm) has a table
+# to read at all -- no Herb, Elixir or Charm table anywhere in the index, and the one "Potion
+# Costs" table carries no Source column -- so there is nothing yet for apply_sources() to find
+# there, and it is left exactly as it was: XXX throughout.
+NOT_YET_ATTRIBUTED_PACKS = {"consumables"}
 
 
 def magic_row_name(tmpkey, tmprow, where):
@@ -1836,7 +1861,13 @@ def build_lore():
                 "runeType": magic_text(tmprow, "runeType"),
                 "alignment": tmphymns.get(tmpname, "") if tmpkind == "hymn" else "",
                 "memorized": False,
-                "sourcebook": "XXX",
+                # Left blank, not "XXX" -- apply_sources(docs, "*") reads each document's own
+                # "kind" above and fills this from itemSources.json's "kind|Name" rows for the
+                # four kinds his Master Index actually tables (ballad, rune, poem, song), marking
+                # XXX itself for the other seven, which have no such table to read
+                # (docs/sonnet/2026-09-22-magic-lore-tab.md item 6). Hard-coding XXX here would
+                # tell apply_sources this field is already decided and stop it from ever trying.
+                "sourcebook": "",
                 "description": magic_text(tmprow, "description"),
             }))
     return docs
@@ -1849,7 +1880,11 @@ def build_spells():
     docs = []
     for tmpkey, tmprow in payload["entries"].items():
         where = "spellslist/%s" % tmpkey
-        tmpsystem = {"subsystem": "arcane", "memorized": False, "sourcebook": "XXX"}
+        # Left blank, not "XXX" -- apply_sources(docs, "spell") fills this from his Master Index
+        # (kind-keyed: docs/sonnet/2026-09-22-magic-lore-tab.md item 6) and marks XXX itself for
+        # whatever it cannot find. Hard-coding XXX here would tell apply_sources this field is
+        # already decided and stop it from ever trying.
+        tmpsystem = {"subsystem": "arcane", "memorized": False, "sourcebook": ""}
         tmpsystem["level"] = to_number(tmprow.get("level"), where, "level")
         for tmpfield in ("magicName", "save", "memTime", "spellTypes", "fail", "castTime", "range",
                          "area", "duration", "distance", "description"):
@@ -1865,7 +1900,9 @@ def build_invocations():
     docs = []
     for tmpkey, tmprow in payload["entries"].items():
         where = "invocationslist/%s" % tmpkey
-        tmpsystem = {"subsystem": "divine", "memorized": False, "sourcebook": "XXX"}
+        # Left blank, not "XXX" -- same reason as build_spells() above: apply_sources(docs,
+        # "invocation") fills it and marks XXX itself for whatever it cannot find.
+        tmpsystem = {"subsystem": "divine", "memorized": False, "sourcebook": ""}
         tmpsystem["level"] = to_number(tmprow.get("level"), where, "level")
         for tmpfield in ("alignment", "save", "prayerTime", "uses", "invokeTime", "range", "area",
                          "duration", "distance", "description"):
@@ -1980,7 +2017,12 @@ SOURCE_MAP = None
 MANUAL_SOURCE_MAP = None
 
 
-def apply_sources(tmpdocs):
+def apply_sources(tmpdocs, tmpkind=None):
+    """tmpkind, when given, restricts the lookup to one kind's own rows of itemSources.json --
+    "kind|Name" instead of a bare Name -- and never falls back to the bare name if that fails.
+    Used for the packs where a name repeats across kinds (docs/sonnet/2026-09-22-magic-lore-tab.md
+    item 6): pass the pack's own fixed kind ("spell", "invocation"), or "*" to read a KIND_KEYED_
+    PACKS document's own "kind" field (consumables, lore) instead of one fixed for the whole pack."""
     global SOURCE_MAP, MANUAL_SOURCE_MAP
     if SOURCE_MAP is None:
         tmppath = os.path.join(NAMED, "itemSources.json")
@@ -2032,7 +2074,11 @@ def apply_sources(tmpdocs):
         # hand-authored entry is tagged Custom. Neither is overwritten.
         if clean_text(str(tmpsystem.get("sourcebook", ""))) not in ("", "?"):
             continue
-        tmpfound = SOURCE_MAP.get(tmpdoc["name"])
+        if tmpkind:
+            tmprowkind = tmpsystem.get("kind") if tmpkind == "*" else tmpkind
+            tmpfound = SOURCE_MAP.get("%s|%s" % (tmprowkind, tmpdoc["name"])) if tmprowkind else None
+        else:
+            tmpfound = SOURCE_MAP.get(tmpdoc["name"])
         if tmpfound:
             tmpsystem["sourcebook"] = tmpfound["sourcebook"]
             if tmpfound.get("page") and not clean_text(str(tmpsystem.get("page", ""))):
@@ -2106,17 +2152,21 @@ def write_unattributed_report(tmpbuilt):
     for tmppack in sorted(tmprows):
         tmpout.append("| %s | %d | %d |\n" % (tmppack, len(tmprows[tmppack]), tmptotals[tmppack]))
 
-    # The magic and lore packs have not been through attribution at all yet -- see
-    # NOT_YET_ATTRIBUTED_PACKS -- so every one of their documents is here, and listing 2,500 names
-    # would bury the list below, which somebody can actually work through.
+    # consumables has not been through attribution at all yet -- see NOT_YET_ATTRIBUTED_PACKS --
+    # so every one of its documents is here, and it is not worth listing 515 names all marked XXX
+    # for the same reason (no table at all for any of its four kinds). spells, invocations and lore
+    # came out of this set (docs/sonnet/2026-09-22-magic-lore-tab.md item 6; lore on 2026-09-23,
+    # once attribution moved from being decided per PACK to per KIND) and are listed name by name
+    # below like any other pack, XXX and all.
     tmpwaiting = sorted(p for p in tmprows if p in NOT_YET_ATTRIBUTED_PACKS and tmprows[p])
     if tmpwaiting:
         tmpout.append("\n### Not yet attributed at all: %s\n\n" % ", ".join(tmpwaiting))
         tmpout.append("These packs (his Magic/Lore tab, added 2026-09-22) are marked XXX throughout and are not\n"
                       "listed name by name. Attribution looks a document up by NAME, and in these packs a name\n"
-                      "is not enough -- his rune Balance would take the Balance skill's page, and his spell and\n"
-                      "invocation Chill are different entries. They wait for an attribution pass that knows the\n"
-                      "kind: `docs/sonnet/2026-09-22-magic-lore-tab.md`.\n")
+                      "is not enough -- his rune Balance would take the Balance skill's page. None of\n"
+                      "consumables' four kinds (herb, potion, elixir, charm) has a table with a Source column,\n"
+                      "so there is nothing here yet for apply_sources() to find:\n"
+                      "`docs/sonnet/2026-09-22-magic-lore-tab.md` item 6.\n")
     for tmppack in sorted(tmprows):
         if not tmprows[tmppack] or tmppack in NOT_YET_ATTRIBUTED_PACKS:
             continue
@@ -2148,7 +2198,16 @@ def main():
         # Sources first, then the manual layer: a hand-authored entry that names its own
         # sourcebook must still win, and an override exists precisely to overrule what we derived.
         tmpgenerated = tmpbuilder()
-        if tmpname not in NOT_YET_ATTRIBUTED_PACKS:
+        if tmpname == "spells":
+            tmpgenerated = apply_sources(tmpgenerated, "spell")
+        elif tmpname == "invocations":
+            tmpgenerated = apply_sources(tmpgenerated, "invocation")
+        elif tmpname == "lore":
+            # "*" -- read each document's own "kind" field rather than one fixed for the whole
+            # pack. Kinds with no kind-keyed rows in itemSources.json (see NOT_YET_ATTRIBUTED_PACKS
+            # above) simply find no match and come out XXX, the same as any other unmatched name.
+            tmpgenerated = apply_sources(tmpgenerated, "*")
+        elif tmpname not in NOT_YET_ATTRIBUTED_PACKS:
             tmpgenerated = apply_sources(tmpgenerated)
         docs = apply_manual_content(tmpname, tmpgenerated)
         tmpbuilt[tmpname] = docs

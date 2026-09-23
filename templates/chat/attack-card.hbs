@@ -53,6 +53,12 @@
 	<div class="weapon-specials">{{#each weaponSpecials as |s|}}<p>{{s}}</p>{{/each}}</div>
 	{{/if}}
 
+	{{!-- A poison on the weapon: delivered by a hit that reaches the flesh, or from an Envenomed
+	      hilt by a thrust of 10 or more, when the damage is applied (lore-rules.mjs, POISON ON A WEAPON). --}}
+	{{#if coating}}{{#if damage}}
+	<div class="situation-notes">Poisoned: {{coating.name}}{{#if coating.envenomed}} &mdash; {{coating.doses}} dose(s) in the Envenomed hilt; a thrust of 10 or more delivers one{{else}} &mdash; goes in if the blow reaches the flesh{{/if}}</div>
+	{{/if}}{{/if}}
+
 	<footer>
 		<span class="speed">{{speed}} seconds</span>
 		{{#if damage}}{{#unless applied}}

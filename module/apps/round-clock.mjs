@@ -14,6 +14,10 @@
 // what runs into the next round with the button that carries it or declines it. Underneath, where
 // they stand, what they have spent, and the buttons that spend time.
 //
+// Above the chart, the Game Master's Surprise buttons: his chart's Surprise row, the "mini round"
+// before initiative (Master's Manual p.100). "Surprise..." gives chosen combatants 1d4+1 seconds of
+// unanswered action, drawn in their rows in place of the round until "End surprise" begins it.
+//
 // Open it from the stopwatch at the top of the Combat tracker, or from a macro:
 //     game.imagine.roundClock()
 //
@@ -21,9 +25,14 @@
 // the same thing wherever it is pressed.
 //==================================================================================================================
 
-import { getCombatantClock, getCombatantClockState } from "../combat/combat-document.mjs";
-import { resolveRoundClock, getClockOptions, isRoundOver, MAX_EXTRA_SECONDS } from "../combat/round-rules.mjs";
-import { buildClockView, buildRoundView } from "../round-view.mjs";
+import {
+	getCombatantClock, getCombatantClockState, getCombatantSurprise, isCarryOverElected
+} from "../combat/combat-document.mjs";
+import {
+	resolveRoundClock, getClockOptions, isRoundOver, MAX_EXTRA_SECONDS,
+	resolveSurprise, getSurpriseSeconds, SURPRISE_DICE, MAX_SURPRISE_SECONDS
+} from "../combat/round-rules.mjs";
+import { buildClockView, buildRoundView, buildSurpriseView, buildSheetClockView } from "../round-view.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
@@ -47,10 +56,11 @@ export function loadClockTemplates() {
 // This is the function which builds one combatant's clock as the current user sees it: the owner
 // of a combatant (and the Game Master) may spend its time; the owner of its actor may set its
 // Speed seconds.
+//
+// A combatant with a surprise running shows the surprise instead (his chart's Surprise row), with
+// the same buttons: the combat spends and takes back the surprise's seconds while it lasts.
 export function buildCombatantClockView(tmpcombat, tmpcombatant) {
-	var tmpclock = getCombatantClock(tmpcombatant);
-	var tmpstate = resolveRoundClock(tmpclock, getClockOptions(tmpcombatant.actor));
-	return buildClockView(tmpstate, tmpclock, {
+	var tmpinfo = {
 		id: tmpcombatant.id,
 		name: tmpcombatant.name,
 		img: tmpcombatant.img,
@@ -58,8 +68,62 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 		canSpend: tmpcombatant.isOwner,
 		speedSeconds: tmpcombatant.actor?.system?.combat?.speedSeconds ?? 0,
 		canEditSpeed: !!tmpcombatant.actor?.isOwner
-	});
+	};
+	var tmpsurprise = getCombatantSurprise(tmpcombatant);
+	if (tmpsurprise) { return buildSurpriseView(resolveSurprise(tmpsurprise), tmpsurprise, tmpinfo); }
+	var tmpclock = getCombatantClock(tmpcombatant);
+	var tmpstate = resolveRoundClock(tmpclock, getClockOptions(tmpcombatant.actor));
+	return buildClockView(tmpstate, tmpclock, tmpinfo);
 }
+
+
+//==================================================================================================================
+// @MARKER SHEET CLOCK
+//==================================================================================================================
+
+	// The combat whose clocks are on show: whichever the tracker is viewing, else the active one.
+	function getViewedCombat() {
+		return ui.combat?.viewed ?? game.combat ?? null;
+	}
+
+	// This is the function which finds an actor's combatant in a combat. The actor itself first --
+	// a token's own actor is its combatant's -- then by id for a linked actor, the way the attack
+	// cards find theirs (findCombatant in combat/attack.mjs).
+	export function findActorCombatant(tmpactor, tmpcombat) {
+		if (!tmpactor || !tmpcombat) { return null; }
+		for (const tmpcombatant of tmpcombat.combatants) {
+			if (tmpcombatant.actor === tmpactor) { return tmpcombatant; }
+		}
+		if (tmpactor.isToken) { return null; }
+		for (const tmpcombatant of tmpcombat.combatants) {
+			if (tmpcombatant.actor?.id == tmpactor.id) { return tmpcombatant; }
+		}
+		return null;
+	}
+
+	// This is the function which gives what an actor's Combat tab shows of the round clock, beside its
+	// Off-Hand Seconds box (buildSheetClockView): the live figures while the actor is in the combat
+	// on show, the plain allowance otherwise.
+	export function getActorSheetClock(tmpactor) {
+		var tmpcombat = getViewedCombat();
+		var tmpcombatant = findActorCombatant(tmpactor, tmpcombat);
+		var tmpview = tmpcombatant ? buildCombatantClockView(tmpcombat, tmpcombatant) : null;
+		return buildSheetClockView(tmpview, tmpactor?.system?.combat?.offhandSecondsCap);
+	}
+
+	// This is the function which redraws the Combat tab of every open actor sheet that shows the
+	// clock, or showed it last time -- so a sheet catches up when its actor spends, and goes back to
+	// the plain allowance when the actor leaves the combat or the combat ends. The combat tracker
+	// calls it every time it redraws, as it calls ImagineRoundClock.refresh(). A sheet takes part by
+	// setting _imagineClockShown when it prepares its context.
+	export function refreshActorSheetClocks() {
+		var tmpcombat = getViewedCombat();
+		for (const tmpapp of foundry.applications.instances.values()) {
+			if (!tmpapp.rendered || tmpapp._imagineClockShown === undefined) { continue; }
+			var tmpshows = !!findActorCombatant(tmpapp.document, tmpcombat);
+			if (tmpshows || tmpapp._imagineClockShown) { tmpapp.render({ parts: ["combat"] }); }
+		}
+	}
 
 
 //==================================================================================================================
@@ -105,8 +169,92 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 	export async function onClockCarry(tmpcombat, tmptarget) {
 		var tmpcombatant = getClickedCombatant(tmpcombat, tmptarget);
 		if (!tmpcombatant || typeof tmpcombat.setCarryOver != "function") { return; }
-		return await tmpcombat.setCarryOver(tmpcombatant, getCombatantClock(tmpcombatant).carryOver === false);
+		return await tmpcombat.setCarryOver(tmpcombatant, !isCarryOverElected(tmpcombatant));
 	}
+
+	// This is the function which gives chosen combatants surprise seconds, for the Game Master: who
+	// surprised, and how many seconds -- 1d4+1 rolled once for them all (the Master's Manual's
+	// "simplest way", p.93), rolled for each (its Advanced GM note), or a figure the Game Master
+	// sets, five for a Surprise Attack critical success (p.71). The rolls go to chat.
+	export async function onGiveSurprise(tmpcombat) {
+		if (!tmpcombat || typeof tmpcombat.giveSurprise != "function" || !game.user.isGM) { return; }
+		var tmpanswer = await askSurprise(tmpcombat);
+		if (!tmpanswer || !tmpanswer.ids.length) { return; }
+
+		var tmpchosen = tmpanswer.ids.map(id => tmpcombat.combatants.get(id)).filter(c => !!c);
+		var tmpentries = [];
+		var tmprolls = [];
+		var tmpgroup = null;
+		for (const tmpcombatant of tmpchosen) {
+			var tmpseconds = tmpanswer.mode;
+			if (tmpanswer.mode == "group" || tmpanswer.mode == "each") {
+				if (tmpanswer.mode == "each" || !tmpgroup) {
+					var tmproll = new Roll(SURPRISE_DICE);
+					await tmproll.evaluate();
+					tmprolls.push({ roll: tmproll, who: tmpanswer.mode == "each" ? [tmpcombatant] : tmpchosen });
+					if (tmpanswer.mode == "group") { tmpgroup = tmproll; }
+				}
+				tmpseconds = (tmpanswer.mode == "group" ? tmpgroup : tmprolls[tmprolls.length - 1].roll).total;
+			}
+			tmpentries.push({ combatant: tmpcombatant, seconds: getSurpriseSeconds(tmpseconds) });
+		}
+		for (const tmpentry of tmprolls) {
+			await tmpentry.roll.toMessage({
+				speaker: ChatMessage.implementation.getSpeaker({ alias: "Surprise" }),
+				flavor: `${tmpentry.who.map(c => esc(c.name)).join(", ")} gain${tmpentry.who.length == 1 ? "s" : ""} `
+					+ `${tmpentry.roll.total} seconds of unanswered action before initiative is rolled.`
+			});
+		}
+		await tmpcombat.giveSurprise(tmpentries);
+	}
+
+	// This is the function which ends the surprise and begins the round, for the Game Master.
+	export async function onEndSurprise(tmpcombat) {
+		if (!tmpcombat || typeof tmpcombat.endSurprise != "function" || !game.user.isGM) { return; }
+		return await tmpcombat.endSurprise();
+	}
+
+	// This is the function which asks who surprised, and for how many seconds.
+	async function askSurprise(tmpcombat) {
+		var tmprows = tmpcombat.turns.filter(c => !c.isDefeated).map(c => {
+			var tmphas = getCombatantSurprise(c);
+			return `<label class="checkbox"><input type="checkbox" name="surpriser" value="${esc(c.id)}"${tmphas ? " checked" : ""}>
+				${esc(c.name)}${tmphas ? ` (has ${tmphas.seconds}s)` : ""}</label>`;
+		}).join("");
+		var tmpfigures = "";
+		for (var tmps = 1; tmps <= MAX_SURPRISE_SECONDS; tmps++) {
+			tmpfigures = tmpfigures + `<option value="${tmps}">${tmps} second${tmps == 1 ? "" : "s"}</option>`;
+		}
+		var tmpcontent = `<div class="imagine-dialog">
+			<p class="hint">Whoever sights an opponent without being seen may gain surprise: ${SURPRISE_DICE} seconds of
+			unanswered action before initiative is rolled. Once they are used, end the surprise to begin the round.</p>
+			<div class="form-group stacked"><label>Who surprised</label>
+				<div class="form-fields surprise-choices">${tmprows}</div></div>
+			<div class="form-group"><label>Seconds</label>
+				<select name="mode">
+					<option value="group">Roll ${SURPRISE_DICE} once for them all</option>
+					<option value="each">Roll ${SURPRISE_DICE} for each</option>
+					${tmpfigures}
+					<option value="0">None: take their surprise away</option>
+				</select></div>
+		</div>`;
+		return await foundry.applications.api.DialogV2.prompt({
+			window: { title: "Surprise" },
+			content: tmpcontent,
+			rejectClose: false,
+			ok: {
+				label: "Give surprise",
+				callback: (event, button) => {
+					var tmpform = button.form;
+					var tmpmode = tmpform.elements.mode.value;
+					return {
+						ids: [...tmpform.querySelectorAll("input[name='surpriser']:checked")].map(i => i.value),
+						mode: (tmpmode == "group" || tmpmode == "each") ? tmpmode : (parseInt(tmpmode) || 0)
+					};
+				}
+			}
+		});
+	} // END askSurprise
 
 	// This is the function which asks how many seconds to spend, on which hand, and on what. The
 	// hand's own seconds left are shown beside it, since the off hand runs out on its own.
@@ -161,7 +309,9 @@ export default class ImagineRoundClock extends HandlebarsApplicationMixin(Applic
 			imagineSpendSeconds: ImagineRoundClock.#onSpend,
 			imagineUndoSeconds:  ImagineRoundClock.#onUndo,
 			imagineToggleCarry:  ImagineRoundClock.#onCarry,
-			nextRound:           ImagineRoundClock.#onNextRound
+			nextRound:           ImagineRoundClock.#onNextRound,
+			giveSurprise:        ImagineRoundClock.#onGiveSurprise,
+			endSurprise:         ImagineRoundClock.#onEndSurprise
 		}
 	};
 
@@ -218,6 +368,8 @@ export default class ImagineRoundClock extends HandlebarsApplicationMixin(Applic
 		Object.assign(tmpcontext, buildRoundView(tmprows, {
 			round: tmpcombat?.round ?? 0, isGM: game.user.isGM, over: tmpover
 		}));
+		// The Surprise buttons are the Game Master's, whenever there is a combat to surprise in.
+		tmpcontext.canSurprise = !!tmpcombat && game.user.isGM;
 		return tmpcontext;
 	}
 
@@ -235,5 +387,7 @@ export default class ImagineRoundClock extends HandlebarsApplicationMixin(Applic
 	static async #onUndo(event, target) { await onClockUndo(this.combat, target); }
 	static async #onCarry(event, target) { await onClockCarry(this.combat, target); }
 	static async #onNextRound() { await this.combat?.nextRound(); }
+	static async #onGiveSurprise() { await onGiveSurprise(this.combat); }
+	static async #onEndSurprise() { await onEndSurprise(this.combat); }
 }
 // @END (CODE)

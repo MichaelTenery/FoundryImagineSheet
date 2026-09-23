@@ -52,6 +52,13 @@
 //     when the character finishes the action, and is added to his last second" (p.168,
 //     Carry-Over). So is an initiative past the tenth second: the character simply starts that
 //     far into the next round. Carrying over is the player's choice; not carrying rolls afresh.
+//
+//   - SURPRISE comes before all of it. "If the attacker gains surprise, he will get 1d4+1 free
+//     seconds of unanswered action against the surprised opponent. This allows the surpriser time
+//     to begin attacking before Initiative is rolled and the combat round has begun. After he has
+//     used his free seconds he then moves on to roll Initiative with everyone else" (Player's
+//     Guide p.168). His chart gives it a row of its own, "Surprise (pre-combat round)", used as a
+//     "mini round" (Master's Manual p.100, Using Mr. Initiative). See @MARKER SURPRISE below.
 //==================================================================================================================
 
 import { getOffhandSecondsCap } from "./combat-rules.mjs";
@@ -454,6 +461,173 @@ import { getOffhandSecondsCap } from "./combat-rules.mjs";
 		var tmpout = copyClock(tmpclock);
 		if (tmpout.carry) { tmpout.carry.roll = parseInt(tmptotal) || 0; }
 		return tmpout;
+	}
+
+
+//==================================================================================================================
+// @MARKER SURPRISE
+//==================================================================================================================
+//
+// The seconds a surpriser gets before the combat round begins -- his chart's Surprise row, "a mini
+// round to show how many seconds have been gained by the surpriser. Once the seconds have been used,
+// roll initiative and enter using the other sections" (Master's Manual p.100). His Roll20 sheet has
+// no surprise seconds at all -- only the +4 to hit and +6 damage of a surprise attack, among the
+// Situation Mods (sit_surprise_normal) -- so these rules are the books':
+//
+//   - 1d4+1 seconds of unanswered action (Player's Guide p.168 and p.169's Surprise Bonuses;
+//     Master's Manual p.93). So two to five. A Surprise Attack critical success makes it "the full
+//     5 seconds" and a critical failure "equals loss of the surprise time" (Master's Manual p.71),
+//     so five is the most there is, and his chart's row is that long.
+//   - Surprise is spent before initiative. "Anyone who gained surprise, and anyone who was
+//     surprised, waits until after the 1d4+1 seconds has been used up before rolling initiative.
+//     Thus, if any of these beings rolls poorly for initiative, they will not lose those seconds
+//     until after the initial surprise time has been used" (Master's Manual p.93). So round 1's
+//     clock starts after the surprise, and nothing about the surprise touches it -- except:
+//   - An action still under way when the surprise seconds run out is carried into round 1, as any
+//     action still under way at the end of a round is (Player's Guide p.168, Carry-Over): no
+//     initiative until it finishes, then a reaction roll added to its last second. The book does
+//     not say so of surprise in as many words; it is read that way because the surprise is "a mini
+//     round" before the first, and the carry is the only rule the books have for an action cut off
+//     by the end of one. Declining it rolls afresh, as it does at the end of any round.
+//   - Seconds of surprise left unspent when it ends are gone. The book gives them to "begin
+//     attacking before Initiative is rolled", and has everyone roll once "he has used his free
+//     seconds" -- there is nowhere for them to go afterwards.
+//
+// A surprise, as combat-document.mjs stores it on the combatant beside the clock:
+//
+//   {
+//       seconds:   the surprise seconds gained, 1 to 5
+//       spent:     [ { seconds, hand, label } ] every spend during the surprise, in order
+//                    hand  "main" spends the surprise; "off" is recorded, and costs it nothing --
+//                          the off hand acts alongside the main one, as it does in a round
+//       carryOver: whether an action running past the surprise is carried into round 1
+//   }
+
+	// The surprise dice and the most seconds a surprise can give (Master's Manual p.71: a critical
+	// success at Surprise Attack is "the full 5 seconds").
+	export const SURPRISE_DICE = "1d4+1";
+	export const MAX_SURPRISE_SECONDS = 5;
+
+	// This is the function which gives the surprise seconds a roll or a Game Master's figure is
+	// worth: a whole number from 0 (no surprise) to 5.
+	export function getSurpriseSeconds(tmprolled) {
+		var tmpseconds = parseInt(tmprolled) || 0;
+		return Math.min(MAX_SURPRISE_SECONDS, Math.max(0, tmpseconds));
+	}
+
+	// This is the function which starts a surprise of so many seconds. Nothing is spent yet, and an
+	// action that runs past it is carried unless the combatant declines.
+	export function newSurprise(tmpseconds) {
+		return { seconds: getSurpriseSeconds(tmpseconds), spent: [], carryOver: true };
+	}
+
+	// This is the function which copies a surprise deep enough that changing the copy's spends never
+	// reaches the original.
+	export function copySurprise(tmpsurprise) {
+		return {
+			seconds: getSurpriseSeconds(tmpsurprise?.seconds),
+			spent: Array.isArray(tmpsurprise?.spent) ? tmpsurprise.spent.map(s => ({ ...s })) : [],
+			carryOver: tmpsurprise?.carryOver !== false
+		};
+	}
+
+	// This is the function which says whether a combatant has surprise seconds to spend: they have
+	// a surprise of at least one second, and it has not been ended.
+	export function isSurpriseActive(tmpsurprise) {
+		return getSurpriseSeconds(tmpsurprise?.seconds) > 0;
+	}
+
+	// This is the function which spends seconds during the surprise, returning a new surprise. As in
+	// the round, "no event can ever take less than one second" (Player's Guide p.168).
+	export function addSurpriseSpend(tmpsurprise, tmpseconds, tmphand, tmplabel) {
+		var tmpout = copySurprise(tmpsurprise);
+		tmpout.spent.push({
+			seconds: Math.max(1, parseInt(tmpseconds) || 0),
+			hand: tmphand == "off" ? "off" : "main",
+			label: "" + (tmplabel ?? "")
+		});
+		return tmpout;
+	}
+
+	// This is the function which takes back the last spend of the surprise.
+	export function removeLastSurpriseSpend(tmpsurprise) {
+		var tmpout = copySurprise(tmpsurprise);
+		tmpout.spent.pop();
+		return tmpout;
+	}
+
+	// This is the function which works out what a surprise means: the places on his chart's Surprise
+	// row, which are spent, where the surpriser stands, and what runs into round 1.
+	//
+	//   active       false when there is no surprise
+	//   seconds      the surprise's length
+	//   ticks        { second, label, state, now, action, title } for each of its seconds, then one
+	//                  "over" place for every second an action runs past the end (ten places at
+	//                  most drawn, the length of a round) -- state is spent, free or over
+	//   next         the place the surpriser acts at now
+	//   used, left   seconds spent on the main hand, and still to spend
+	//   offSpent     seconds recorded for the off hand, which cost the surprise nothing
+	//   done         nothing left of the surprise; overrun, seconds past its end
+	//   carry        what runs into round 1 ({ seconds, action: true }), or null
+	export function resolveSurprise(tmpsurprise) {
+		var tmplength = getSurpriseSeconds(tmpsurprise?.seconds);
+		var tmpspent = Array.isArray(tmpsurprise?.spent) ? tmpsurprise.spent : [];
+		var tmpstate = {
+			active: tmplength > 0, seconds: tmplength, ticks: [],
+			next: 0, used: 0, left: 0, offSpent: 0, done: false, overrun: 0, carry: null
+		};
+		if (!tmpstate.active) { return tmpstate; }
+
+		for (var tmpsecond = 1; tmpsecond <= tmplength; tmpsecond++) {
+			tmpstate.ticks.push({ second: tmpsecond, label: "S" + tmpsecond, state: "free" });
+		}
+
+		// The main hand moves along the row, as it moves along the round; each place spent carries
+		// which action it went to, so the chart can shade one action apart from the next.
+		var tmpnext = 0;
+		var tmpactions = 0;
+		for (const tmpentry of tmpspent) {
+			var tmpseconds = Math.max(0, parseInt(tmpentry?.seconds) || 0);
+			if (tmpentry?.hand == "off") { tmpstate.offSpent = tmpstate.offSpent + tmpseconds; continue; }
+			for (var tmpk = 0; tmpk < tmpseconds; tmpk++) {
+				var tmpplace = tmpnext + tmpk;
+				if (tmpplace >= ROUND_SECONDS) { continue; }   // past anything the row could draw
+				if (tmpplace >= tmplength) {
+					tmpstate.ticks.push({ second: tmpplace + 1, label: "S" + (tmpplace + 1), state: "over" });
+				}
+				tmpstate.ticks[tmpplace].state = tmpplace < tmplength ? "spent" : "over";
+				tmpstate.ticks[tmpplace].action = tmpactions;
+				tmpstate.ticks[tmpplace].title = "" + (tmpentry.label ?? "");
+			}
+			tmpnext = tmpnext + tmpseconds;
+			tmpactions = tmpactions + 1;
+		}
+
+		tmpstate.next = tmpnext;
+		tmpstate.used = tmpnext;
+		tmpstate.left = Math.max(0, tmplength - tmpnext);
+		tmpstate.done = tmpnext >= tmplength;
+		tmpstate.overrun = Math.max(0, tmpnext - tmplength);
+		if (!tmpstate.done) { tmpstate.ticks[tmpnext].now = true; }
+		if (tmpstate.overrun > 0) { tmpstate.carry = { seconds: tmpstate.overrun, action: true }; }
+		return tmpstate;
+	} // END resolveSurprise
+
+	// This is the function which gives what a surprise carries into round 1: its carry, if there is
+	// one and the combatant has not declined it.
+	export function getSurpriseCarry(tmpstate, tmpsurprise) {
+		if (!tmpstate?.carry) { return null; }
+		if (tmpsurprise?.carryOver === false) { return null; }
+		return { seconds: tmpstate.carry.seconds, action: true };
+	}
+
+	// This is the function which gives the key the tracker sorts a surpriser by while they still
+	// have surprise seconds: ahead of everyone in the round, which has not begun for them, by the
+	// place they stand at on the Surprise row. Null once their surprise is used up, or for anyone
+	// without one -- their round clock orders them then.
+	export function getSurpriseSortKey(tmpstate) {
+		if (!tmpstate?.active || tmpstate.done) { return null; }
+		return -1000 + tmpstate.next;
 	}
 
 

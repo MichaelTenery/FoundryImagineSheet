@@ -219,6 +219,149 @@ def read_master_index(tmppages):
     return tmprows
 
 
+# @MARKER KIND-TAGGED TABLES
+#
+# WHY THIS EXISTS. read_master_index() above answers "what book is NAME in," which is ambiguous
+# for the four Magic & Lore packs -- his rune Balance would take the Balance skill's page, and his
+# spell Chill and invocation Chill are different entries on different pages (docs/sonnet/
+# 2026-09-22-magic-lore-tab.md, item 6). Six of his tables print their OWN kind in the header and
+# a Source column of their own, one row per line same as everywhere else in this file, so those six
+# can be read into a kind-scoped index instead: (kind, name) -> [(page, book), ...], never merged
+# into the name-only tmprows above, so a lookup here can never be satisfied by a different kind's
+# row.
+#
+# FOUND: the sixteen spell-type tables (Alteration, Control, Create, ... Warding, each headed
+# "Spell / Level / Source") plus the three "Roll (or select) / Offensive|Defensive|Utility Spell /
+# Level / Source" tables all print kind "spell"; the thirteen Devotion tables ("Invocation / Level
+# / Alignment / Source") print kind "invocation"; and "All Runes:", "Poems:", "Songs:" and
+# "Ballads:" each head one table of their own kind ("Runes|Poem|Songs|Ballads / Rating / Modifier
+# / Source"). Sixteen spell tables + three roll tables + thirteen invocation tables + four lore
+# tables = 36 header hits, which is exactly what a count against the extracted text turns up.
+#
+# NOT FOUND, despite the plan in the hand-off note assuming herbs and potions would have their own
+# tables the way spells and invocations do: no Herb, Elixir or Charm table anywhere in the index,
+# and the one "Potion Costs" table (page 552 printed) carries Potion and Cost only -- no Source
+# column, so it cannot name a book even where a name happens to match. Also not found: tables for
+# candlelore, empathymagic, glyph, hymn, ritual, sympathymagic or evoke -- those are prose
+# ("All Candle Lore Rituals", "Charms (All)", etc.), not one-row-per-line tables, so this method has
+# nothing to read for them. Those eleven kinds are left XXX rather than guessed at.
+KIND_TABLE_HEADERS = (
+    # kind          the header cells, contiguous and lower-cased      row width  name  book
+    ("spell",       ("spell", "level", "source"),                     3,         0,    2),
+    ("invocation",  ("invocation", "level", "alignment", "source"),   4,         0,    3),
+    ("rune",        ("runes", "rating", "modifier", "source"),        4,         0,    3),
+    ("poem",        ("poem", "rating", "modifier", "source"),         4,         0,    3),
+    ("song",        ("songs", "rating", "modifier", "source"),        4,         0,    3),
+    ("ballad",      ("ballads", "rating", "modifier", "source"),      4,         0,    3),
+)
+
+
+# This is the function which recognises one of the header windows above (or the odd-one-out "Roll
+# (or select) / <Something> Spell / Level / Source" header his three "roll a die" spell tables use)
+# starting at tmpat, and returns (kind, row width, name column, book column, header length) or
+# (None, 0, 0, 0, 0) if nothing starts there.
+def match_kind_header(tmplower, tmpat):
+    if (tmpat + 4 < len(tmplower) and tmplower[tmpat] == "roll" and tmplower[tmpat + 1] == "(or select)"
+            and "spell" in tmplower[tmpat + 2] and tmplower[tmpat + 3] == "level"
+            and tmplower[tmpat + 4] == "source"):
+        return "spell", 4, 1, 3, 5
+    for tmpkind, tmpheader, tmpwidth, tmpnameat, tmpbookat in KIND_TABLE_HEADERS:
+        tmpn = len(tmpheader)
+        if tmplower[tmpat:tmpat + tmpn] == list(tmpheader):
+            return tmpkind, tmpwidth, tmpnameat, tmpbookat, tmpn
+    return None, 0, 0, 0, 0
+
+
+# This is the function which reads the six kind-tagged tables above into a (kind, name)-keyed
+# index, the same shape as read_master_index() but never crossing kinds. A row is trusted only
+# while its own book cell resolves through book_of() -- the first row that does not is the end of
+# that table (its own next header, a "such-and-such:" label, or ordinary prose), and scanning just
+# continues looking for the next header rather than guessing where the table restarts.
+def read_kind_tables(tmppages):
+    tmprows = collections.defaultdict(list)
+    for tmppage, tmptext in tmppages.items():
+        tmplines = [l.strip() for l in tmptext.split("\n")]
+        tmplower = [norm(l) for l in tmplines]
+        tmpfolio = None
+        for tmpline in tmplines[:8]:
+            if re.fullmatch(r"\d{1,3}", tmpline.strip()):
+                tmpfolio = int(tmpline.strip())
+                break
+        tmppagenum = tmpfolio if tmpfolio is not None else tmppage
+
+        tmpat = 0
+        while tmpat < len(tmplines):
+            tmpkind, tmpwidth, tmpnameat, tmpbookat, tmpheaderlen = match_kind_header(tmplower, tmpat)
+            if not tmpkind:
+                tmpat += 1
+                continue
+            tmpat += tmpheaderlen
+            while tmpat + tmpwidth <= len(tmplines):
+                tmprow = tmplines[tmpat:tmpat + tmpwidth]
+                tmpname = norm(tmprow[tmpnameat])
+                tmpbook = book_of(tmprow[tmpbookat])
+                if not tmpbook or not (2 < len(tmpname) < 80):
+                    break
+                tmprows[(tmpkind, tmpname)].append((tmppagenum, tmpbook))
+                tmpat += tmpwidth
+    return tmprows
+
+
+# The four Magic & Lore packs (docs/sonnet/2026-09-22-magic-lore-tab.md, item 6): a bare name is
+# never trusted for these, in itemSources.json as much as in build_documents.py's KIND_KEYED_PACKS
+# and the importer. Kept here, not imported, because this script runs standalone against
+# src/packs/documents/*.json without depending on build_documents.py.
+KIND_KEYED_SOURCE_PACKS = {"consumables", "lore", "spells", "invocations"}
+
+
+# This is the function which says what kind one document of a kind-keyed pack answers to, for the
+# "kind|Name" lookup -- fixed for spells and invocations (the whole pack is that one kind), read
+# off the document's own "kind" field for consumables and lore (his herb/potion/elixir/charm and
+# his eleven lores plus evokes). None means the document cannot be kind-keyed at all (an evoke, say
+# -- see @MARKER KIND-TAGGED TABLES for which kinds have no table read at all), and is left XXX
+# rather than matched some other way.
+def doc_kind(tmppack, tmpdoc):
+    if tmppack == "spells":
+        return "spell"
+    if tmppack == "invocations":
+        return "invocation"
+    if tmppack in ("consumables", "lore"):
+        return tmpdoc.get("system", {}).get("kind") or None
+    return None
+
+
+# This is the function which decides one name's book and page, restricted to its OWN kind's
+# tables -- resolve()'s kind-safe twin. Never falls back to a table of a different kind: no match
+# here means XXX, not a guess from wherever the plain name happens to also appear.
+#
+# CAUGHT BY SPOT-CHECKING, NOT BY --verify: resolve() finds a real book's own PAGE by reading that
+# book's back-of-book index off read_book_indexes() -- one alphabetical list per book, everything
+# in it in one pot. That is fine for a bare name, but wrong here: Player's Guide's own back index
+# gave the invocation Detect Evil page 104 (a skill of the same name) and the invocation Create
+# Food page 243 (not even close to its actual 293), while its OWN "Invocations by Name" table
+# (printed page 289 on) gives 295 and 293 respectively. A kind-keyed lookup asking that pot for a
+# page is exactly the bare-name mistake this whole pass exists to stop making, just moved from the
+# book to the page within it. So resolve_kind() does not call read_book_indexes() at all: the page
+# it returns is only ever tmpmipage, his Master Index's own page for the row, carried up to
+# apply_sources() as an "Imagine Master Index" citation when no Source-column book was found for
+# it either. Reading Player's Guide's own "Spells (A-Z)" and "Invocations by Name (A-P)" tables the
+# way read_book_indexes() reads a back index would recover a real page for these two kinds; nobody
+# has written that yet, so a kind-keyed spell or invocation with a book carries no page rather than
+# a wrong one.
+def resolve_kind(tmpname, tmpkind, tmpkindrows):
+    tmpbook = None
+    tmpmipage = None
+    for tmpvariant in variant_order(tmpname):
+        for tmppage, tmpsource in tmpkindrows.get((tmpkind, tmpvariant), []):
+            if tmpmipage is None:
+                tmpmipage = tmppage
+            if tmpsource and not tmpbook:
+                tmpbook = tmpsource
+        if tmpbook:
+            break
+    return tmpbook, tmpmipage
+
+
 # This is the function which reads the back-of-book index out of the books we do hold, giving a
 # name the PRINTED page it is discussed on. His own skill pages are printed numbers, so these are
 # converted on the way in and everything downstream is in the same units.
@@ -339,9 +482,10 @@ def main():
 
     print("reading his Master Index (%d pages)..." % len(tmppages))
     tmprows = read_master_index(tmppages)
+    tmpkindrows = read_kind_tables(tmppages)
     tmpindexes = read_book_indexes()
-    print("   %d distinct names, %d book indexes for page numbers"
-          % (len(tmprows), len(tmpindexes)))
+    print("   %d distinct names, %d kind-tagged rows, %d book indexes for page numbers"
+          % (len(tmprows), len(tmpkindrows), len(tmpindexes)))
 
     if "--verify" in sys.argv:
         verify(tmprows, tmpindexes)
@@ -355,9 +499,35 @@ def main():
     for tmpfile in sorted(os.listdir(tmppackdir)):
         if not tmpfile.endswith(".json"):
             continue
+        tmppack = tmpfile[:-len(".json")]
         tmpdocs = json.load(open(os.path.join(tmppackdir, tmpfile), encoding="utf8"))
         for tmpdoc in tmpdocs:
             tmpname = tmpdoc["name"]
+
+            # The four Magic & Lore packs: a bare name is never enough (see @MARKER KIND-TAGGED
+            # TABLES), so these are looked up as "kind|Name" against read_kind_tables() above and
+            # never fall through to the name-only resolve() below.
+            if tmppack in KIND_KEYED_SOURCE_PACKS:
+                tmpkind = doc_kind(tmppack, tmpdoc)
+                if not tmpkind:
+                    tmpstat["no kind to key on"] += 1
+                    continue
+                tmpkey = "%s|%s" % (tmpkind, tmpname)
+                if tmpkey in tmpout:
+                    continue
+                tmpkbook, tmpkmi = resolve_kind(tmpname, tmpkind, tmpkindrows)
+                if tmpkbook:
+                    # No page -- see resolve_kind()'s own comment for why a kind-keyed lookup does
+                    # not trust the book's generic back-of-book index for one.
+                    tmpout[tmpkey] = {"sourcebook": tmpkbook}
+                    tmpstat["a book of his (kind-keyed)"] += 1
+                elif tmpkmi is not None:
+                    tmpout[tmpkey] = {"sourcebook": "Imagine Master Index", "page": str(tmpkmi)}
+                    tmpstat["his Master Index (kind-keyed)"] += 1
+                else:
+                    tmpstat["NO SOURCE FOUND (kind-keyed)"] += 1
+                continue
+
             if tmpname in tmpout:
                 continue
             tmpbook, tmppage, tmpmi = resolve(tmpname, tmprows, tmpindexes)
@@ -396,7 +566,12 @@ def main():
                   "Master Index. A page is recorded only where the named book's own index "
                   "confirms it, so a page never belongs to a different book than the sourcebook "
                   "beside it. Names absent here were not found in his index and are marked XXX "
-                  "by build_documents.py. Regenerate with tools/extract/extract_sources.py."),
+                  "by build_documents.py. An entry keyed \"kind|Name\" (spell|, invocation|, "
+                  "rune|, poem|, song| or ballad|) comes from one of the six kind-tagged tables "
+                  "his consumables, lore, spells and invocations packs need -- a bare name is "
+                  "ambiguous across their kinds, so these are never looked up any other way; see "
+                  "KIND_TABLE_HEADERS and docs/sonnet/2026-09-22-magic-lore-tab.md item 6. "
+                  "Regenerate with tools/extract/extract_sources.py."),
         "entries": dict(sorted(tmpout.items())),
     }
     json.dump(tmppayload, open(OUTPATH, "w", encoding="utf8"), indent=1, ensure_ascii=False)

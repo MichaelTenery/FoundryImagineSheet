@@ -32,6 +32,7 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
          learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
 import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
+import { getActorSheetClock } from "../apps/round-clock.mjs";
 import {
 	resolveSkillOutcome, pickBestSkillRoll, canTransferSlot, canSacrificeSlot,
 	SLOT_TRANSFERS, SLOT_SACRIFICE_DICE, SACRIFICEABLE_SLOTS
@@ -188,6 +189,14 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
 		// The martial panel is a partial; see loadMartialTemplates.
 		await loadMartialTemplates();
+
+		// @MARKER ROUND CLOCK
+		// The round clock beside the Off-Hand Seconds box, read-only: "3 of 5 left this round" and
+		// where the main hand stands while the character is in the combat on show, the plain allowance
+		// otherwise. _imagineClockShown is what lets the combat tracker redraw this tab when a clock
+		// changes (refreshActorSheetClocks in module/apps/round-clock.mjs).
+		tmpcontext.roundClock = getActorSheetClock(this.document);
+		this._imagineClockShown = tmpcontext.roundClock.inCombat;
 
 		return tmpcontext;
 	}

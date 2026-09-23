@@ -1617,6 +1617,17 @@ input.source-unknown {
 .imagine.round-clock-window .round-clock-key .clock-cell { display: inline-block; width: 12px; flex: 0 0 12px; height: 10px; }
 .imagine.round-clock-window .round-clock-empty { color: var(--imagine-muted); padding: 12px; }
 
+/* His chart's Surprise row: a surpriser's seconds before round 1, in the same bar. A free surprise
+   second is outlined in the accent, and the seconds an action runs past the surprise -- carried into
+   the round -- are the carried colour, dashed, since they are not spent yet. */
+.imagine-clock-bar.surprise .clock-cell.free { border-color: var(--color-warm-1, #ee9b3a); border-width: 2px; }
+.clock-cell.over { background: transparent; border: 1px dashed var(--clock-carried, #59a1f6); }
+.imagine.round-clock-window .round-clock-key .clock-cell.over { border-color: var(--imagine-clock-carried); }
+.imagine.round-clock-window .clock-chart-row.surprise .clock-split { color: var(--imagine-accent); }
+
+/* The round clock's figures on an actor's Combat tab, beside the off hand's allowance. */
+.imagine .round-clock-box .clock-status { font-style: italic; }
+
 
 /* @MARKER WEAPON MODS ----------------------------------------------------------------------------
    The weapon mods window a weapon row's wand button opens (module/apps/weapon-mods.mjs,

@@ -13,7 +13,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Grants 2-5 objects the power of movement under control of the balladeer. Each object can weigh no more than 200 lb. and moves up to 10' a second."
     }
   },
@@ -31,7 +31,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes 1 non-sapient plant or animal to become sapient. Treat plants as the skill Awaken Plant and animals as the spell Endow Intelligence at 2 Aura per Class Title of the balladeer. This effect has a 1% chance of permanence after the ballad is ended."
     }
   },
@@ -49,7 +49,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Morale (and Control Resistance to Fear) is raised by 5% per Class Title of the balladeer for all friendly listeners."
     }
   },
@@ -67,7 +67,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Control Resistance or follow the requests of the balladeer. Those requests that could cause injury or death allow a further Control Resistance. If any Control Resistance is made, then the effects of the ballad are broken for that listener."
     }
   },
@@ -85,7 +85,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All the dead buried within sight of the balladeer arise as zombies or skeletons depending on their condition. As long as the ballad continues with this power as its focus they will follow the direction of the balladeer. At the end of this effect they fall where they are. There is a 1% chance per zombie and skeleton of the effect remaining permanent. Those that are permanent will be hostile to all life."
     }
   },
@@ -103,7 +103,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "When this power goes into effect the balladeer can see a pale glow around those enemies who hear their song."
     }
   },
@@ -121,7 +121,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners are healed 1d4 points per Class Title of the balladeer in up to one wounded area per Class Title. The areas healed can vary from listener to listener."
     }
   },
@@ -139,7 +139,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Creates an illusion of one type (sight, sound, smell, taste or touch.) Every ten seconds, another illusion type may be added. For purposes of damage or ill effect these illusions are considered to be at 2 Aura per Class Title of the balladeer."
     }
   },
@@ -157,7 +157,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Control Resistance or suffer the insanity of the balladeer's choice for the duration of the ballad."
     }
   },
@@ -175,7 +175,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All enemy listeners take 1d4 damage per Class Title of the balladeer to one area of the balladeer's choice."
     }
   },
@@ -193,7 +193,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Morale is lowered by 5% per Class Title of the balladeer for one hour per Class Title of the balladeer. This applies to all enemy listeners."
     }
   },
@@ -211,7 +211,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "All spells and invocations are nullified (temporarily if they are permanent). While this section of the Ballad contiunes no new spells or invocations can be cast or invoked. This has no effect on magical or divine magical skills, powers, potions, songs, poems, etc."
     }
   },
@@ -229,7 +229,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Requires a roll on the Ballad Chaos Table. Each listener must make a Control Resistance or be required to perform the actions (from the table) until the actions are complete or the until ballad or ection of ballad end. If this section of the ballad continues, those beings who made their Control Resistance must make a new one every 10 second, or suffer the chaos effect."
     }
   },
@@ -283,7 +283,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "All magical animals who hear the ballad are allowed a new Control Resistance to break free of any spell, invocation, poem, song or ballad by which they are currently controlled."
     }
   },
@@ -301,7 +301,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "All magical animals of one named type who hear the song and fail a Control Resistance will come to the balladeer and follow any requests the balladeer wishes for as long as the ballad is played. If a request will cause harm to the animal or magical animal, the creature  gets a new Control Resistance. If the Balladeer attempts to entrance an animal who has been tamed by the skill Tame Animal, then the Ballad Lore practitioner must win a contest of skills with the Tame Animal practitioner to entrance the animal."
     }
   },
@@ -319,7 +319,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "A sense of peace overcomes all animals and magical animals who hear the song, and they will cease all hostile action and will initiate no new hostile actions while the ballad is played. If attacked, animals and magical animals are allowed a new Control Resistance to fight back."
     }
   },
@@ -337,7 +337,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "All magical plants of one named type who hear the song and fail a Control Resistance will follow any requests the balladeer wishes for as long as the ballad is played. If the request will cause harm to the magical plant, the magical plant gets a new Control Resistance."
     }
   },
@@ -355,7 +355,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title is immune to all Banshee Wails and Banshee Howls for the duration of the ballad."
     }
   },
@@ -373,7 +373,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Compulsion for blood is suppressed for 1 being within listening range for the duration of the ballad."
     }
   },
@@ -391,7 +391,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "The skin and muscles of 1 listener of the balladeer's choosing rapidly decomposes, inflicting 2d4 damage per second to 1d4 random body areas for the duration of the ballad. The victim is allowed a Magic Resistance for each second of damage."
     }
   },
@@ -409,7 +409,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title is protected from the fetid bite of any ghoul, including physical, poison and disease effects, for the duration of the ballad."
     }
   },
@@ -427,7 +427,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title gains an illusion of death for the duration of the ballad. Each listener smells, looks, feels, sounds and even tastes like the dead. The listener is allowed a Control Resistance if unwilling or unknowing."
     }
   },
@@ -445,7 +445,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One natural, magical or undead tree or plant of the balladeer's choosing within 5' per Practitioner Title quickly begins to rot, inflicting 1d6 damage per second for the duration of the ballad. The target is allowed a Magic Resistance for each second of damage."
     }
   },
@@ -463,7 +463,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title is protected from Touch effects of undead shades and wraiths (excluding dragons) for the duration of the ballad."
     }
   },
@@ -481,7 +481,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1 volcano within sight to become active and erupt."
     }
   },
@@ -499,7 +499,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes up to 5 cubic feet of snow per Class Title, within sight, to loosen and give way. Anyone caught in the resulting avalanche takes 2d6 crushing damage per 5 cubic feet and has a chance of being completely embedded in snow resulting in the inability to breathe, as well as hypothermia within 40 minutes and 1d4 cold damage to head and limbs per hour."
     }
   },
@@ -517,7 +517,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1 listener per 2 Class Titles to make a Control Resistance or believe all statements spoken by another as fact for the duration of the ballad. Once the ballad ceases, the targeted listener(s) may make an Intelligence save to review the aforementioned statements and decide if it was indeed truth or not. To switch beliefs after the ballad has ended, the targeted listener(s) must make a Will Force save."
     }
   },
@@ -535,7 +535,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes existing plants and ground formations in an area up to 2 cubic feet per Class Title to reform into any shape desired by the balladeer, as long as they are within 10' from a non-magical fire. This ballad does not affect trees taller than 5', stone, or magically created plants and ground formations."
     }
   },
@@ -553,7 +553,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the balladeer and 1 listener per Class Title to see normally through burning flames. All non-magical flames appear transparent in the targets' line of vision for the duration of the ballad. This ballad does not allow lava to be seen through."
     }
   },
@@ -571,7 +571,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes up to 10 cubic feet of ice and slush to melt at a rate of 1 cubic foot per Practitioner Title every 5 minutes. This ballad can affect both magical and non-magical ice within a range of 10' per Practitioner Title. This ballad has no effect on snow or water."
     }
   },
@@ -589,7 +589,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Gives all listeners an extreme sense of happiness and bliss; all sorrow, anger and fear are swept away, and a Will Force save must be made to take any detrimental or offensive action. Those unwilling or unknowing are granted a Control Resistance. This joy lasts an additional 2d6 minutes per Class Title after the ballad has ended."
     }
   },
@@ -607,7 +607,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "The singer can either transfer one specified memory of an event that transpired no more than 5 years ago per Practitioner Title from the target to themselves, or from themselves to the target (who is allowed a Control Resistance). This particular memory exchanges minds for 1d4 minutes per Class Title, and there is a 5% chance per Practitioner title the memory will be permanently transferred. The memory can be as specific as a wedding day, slaying someone with a sword for the first time, or falling off a horse as a child; it can be as vague as living in a particular area for many years, wearing a well-worm suit of armor, or enduring many years of reading by candlelight. The receiver of the memory also gains a vague sense of emotions felt while experiencing the event and details like names and places associated with the memory. This ballad cannot be used to transfer skills, powers, abilities, etc."
     }
   },
@@ -625,7 +625,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "This ballad works while accompanying the telling of a myth or legend with music and refrain. Upon hearing a myth, legend or otherwise bold statement doubted by more than 75% of any given area's population, the practitioner is given a sense of whether the myth or legend is true or false as stated. This does not grant the practitioner extra information of what actually is true; it only defines that which is not."
     }
   },
@@ -643,7 +643,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Creates a lush, pleasant oasis with a radius of 10' per Practitioner Title from only a single drop of water and 1 berry or slice of fruit. After the first 10 minutes of the ballad's performance, the ambient temperature is altered to 78 degrees Fahrenheit. After another 10 minutes, the targeted drop of water expands into a plentiful source of pure water fed by a never-ending underground spring. After the final 10 minutes, the targeted berry grows into a garden of lush, edible plants. Since this is a magical area, it cannot be otherwise magically or divinely affected by affects such as Blessed Ground, Enchant Area, and etc. This oasis exists only for the duration of the ballad: once the practitioner ceases, all magically created effects instantly fade away, leaving only the original drop of water and berry."
     }
   },
@@ -661,7 +661,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes up to 1 cubic foot of non-magical rock per Class Title to loosen (and fall, if applicable) in an area within 10' per Class Title."
     }
   },
@@ -679,7 +679,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants all friendly listeners a +5% bonus per Class Title to the skills Balance, Boat Wright, Cartography, Climb, Danger Knowledge, Direction Knowledge, Ferrier, Heavy Drinking, Navigate, Rope Use, Rowing, Sail and Sing Songs as long as they are on some sort of water vessel."
     }
   },
@@ -697,7 +697,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the balladeer to speak to and understand an object or area of solid stone no larger than 5 cubic feet per Practitioner Title. The balladeer speaks to the stone using the ballad's lyrics, and then pauses (while continuing to play) to listen to the stone's response."
     }
   },
@@ -715,7 +715,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows all listeners to understand each other's speech, no matter what language they are using, for the duration of the ballad."
     }
   },
@@ -733,7 +733,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the balladeer and 1 listener per Class Title to walk on water as if on solid ground for the duration of the ballad. No ripples or other signs of passing are left behind."
     }
   },
@@ -751,7 +751,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Creates up to one dream object per current title of the balladeer. Each item can be no more than 10 lb. per title of the balladeer. There is a 5% chance that the items will be temporarily magical at up to +1 per 3 full titles of the balladeer. This ballad only works on the plane of dreams. One designated item has a 2% chance per title of the balladeer of returning with the dreamer when leaving the dream plane."
     }
   },
@@ -769,7 +769,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Creates a gateway up to 20 feet high and 10 feet wide that can open to one plane connected to this plane per 3 titles of the balladeer. The place the portal is connected to may also be elsewhere on the same plane. Each connecting point is described by the practitioner based on a place they have seen or had described to them (Knowledge save required for each.) The gateway appears in whatever form the practitioner desires, a door, a mirror, an archway, etc. Some form of attunement device has to be present on (or near) the gateway to allow it to be set to the particular point if there is more than one. Also, anyone passing through gateway gains 1 appropriate protection effect for the plane they are travelling to that lasts as long as they stay on that plane. The gateway itself lasts 1 day per title of the balladeer and is permanent if 1 Will Force is expended."
     }
   },
@@ -787,7 +787,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Creates a place of safety that is up to 10 cubic feet or 10 feet in diameter (practitioner's choice.) The place of safety provides the following effects: contains a pocket of breathable (replenishing air), temperature is kept to 72 degrees Fahrenheit, pressure is kept to sea level of earth, there is a replenishing source of water (pool, pond or fountain), the pH balance of all liquids within the area becomes neutral. The area is also surrounded by a thin barrier which keeps out all negative magical effects. A form of desired food appears on one of the surfaces that will feed up to 10 beings per practitioner title and reappears three times per day. There is also a walkable surface created as needed out of whatever normal material desired with a lip at the edge high enough to prevent unintended falls. This place of safety lasts 1 day per title of the balladeer and is permanent if 1 Will Force is expended."
     }
   },
@@ -805,7 +805,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Removes up to one negative effect caused by a supernatural being per title of the balladeer on any number of beings within sight."
     }
   },
@@ -6457,7 +6457,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Cause listeners to roll at +30% to Berserking and fight the opponent(s) named in the poem. Lasts until end of combat or 1d4 hours."
     }
   },
@@ -6475,7 +6475,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Control Resistance or be held bound in place for 1d6 minutes."
     }
   },
@@ -6493,7 +6493,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Control Resistance or be blinded for 1d6 minutes."
     }
   },
@@ -6511,7 +6511,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Control Resistance or follow instructions within the poem. All life threatening or dangerous actions called for allow a new Control Resistance roll."
     }
   },
@@ -6529,7 +6529,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "The most damaged area on each listener is healed 1d4 per Practitioner Title."
     }
   },
@@ -6547,7 +6547,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes an illusion to appear with visual and audio components only. Lasts 10-40 minutes."
     }
   },
@@ -6565,7 +6565,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes all users to make a Control Resistance or listen to skill user for 10-40 minutes. Other actions may be taken by the listeners while they listen."
     }
   },
@@ -6583,7 +6583,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes a -20% to all Control Resistances required to be made from any effect generated from the skill user. Causes a +20% to all affinity or skill rolls against the skill user. Lasts 1d4 hours."
     }
   },
@@ -6601,7 +6601,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Grants 2-5 luck points to each listener to be used (as the spell Luck)."
     }
   },
@@ -6619,7 +6619,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "An area of the practitioner's choice on enemies is damaged by 1d4 per Practitioner Title."
     }
   },
@@ -6637,7 +6637,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All items or beings that are invisible, or hidden by illusion are revealed to the listeners for the duration of the poem for up to 2-7 (1d6+1) minutes."
     }
   },
@@ -6655,7 +6655,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "The skill user grants 2-5 unlucky points against each listener to be used by the practitioner against the listeners (as the spell Unluck)."
     }
   },
@@ -6673,7 +6673,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "All sleeping beings awake instantly and are fully alert. All effects of fatigue are removed from awakened sleepers."
     }
   },
@@ -6691,7 +6691,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "All listeners make a Control Resistance or fall into a deep slumber for 3d6 minutes."
     }
   },
@@ -6709,7 +6709,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes a small fire to begin on normal combustible material pointed to during recitation."
     }
   },
@@ -6727,7 +6727,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Gives the lorist or one person named per Practitioner Title an enhanced ability to jump, spring, leap and move +2' to running jumps, +1' to standing and +1/2' to upward leaps. Movement is increased by +1' per second or +10' per 10 seconds and +1 mile per hour travelled. Lasts 10-60 minutes."
     }
   },
@@ -6745,7 +6745,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "This poem will cause all animals who hear it to go to their nearest known natural source of drinking water. Does not affect magical animals."
     }
   },
@@ -6763,7 +6763,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "All animals who hear the poem are broken free of any spell, invocation, poem, song or ballad by which they are currently controlled. Does not affect magical animals."
     }
   },
@@ -6781,7 +6781,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Creates a sphere of darkness with a radius of 2' per Practitioner Title appears up to 3' per Practitioner Title away from the poet for the duration of the poem. All forms of vision are negated to all within the globe, even the poet. The sphere can be centered on a fixed location, but the globe will not move from the point where it was created."
     }
   },
@@ -6799,7 +6799,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "All shadows within 3' per Practitioner Title may be molded and shaped according to the poet's will for the duration of the poem. Each shadow may be moved from one place to another, enlarged by up to 50%, or condensed into an area 50% of its original size."
     }
   },
@@ -6817,7 +6817,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One lesser undead being (under level 5) per Practitioner Title within 5' per Practitioner Title makes a Control Resistance or is unable to take any offensive actions for the duration of the poem."
     }
   },
@@ -6835,7 +6835,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title is protected from fire-based attacks from undead, receiving a +30% to Magic Resistance (fire) involving undead during the duration of the poem."
     }
   },
@@ -6853,7 +6853,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title is protected from poisons caused by contact with undead, receiving a +30% Poison Resistance involving undead during the duration of the poem. Poisons already in effect are unaffected by this poem."
     }
   },
@@ -6871,7 +6871,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1d4 branches (not weighing more than 10 pounds each per Practitioner Title) on a targeted tree within 10' per Practitioner Title to break off at the trunk and fall."
     }
   },
@@ -6889,7 +6889,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants the Practitioner a general sense of cardinal compass directions."
     }
   },
@@ -6907,7 +6907,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1d4 fingers and toes of 1 listener named in the poem to become instantly frostbitten, causing 1d4 damage per Practitioner Title unless a Magic Resistance is made."
     }
   },
@@ -6925,7 +6925,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1 listener per Practitioner Title to suddenly feel guilty about some random thing they did in the past, unless a Control Resistance is made. For the next 1d4 hours per Practitioner Title after the poem has ended, the affected being must make a Will Force save to perform any actions involving any similarities to the recalled event. For example, if the poem causes a Rogue to feel guilty about three silver pieces they stole when they were young, the Rogue will be hesitant to pickpocket at the marketplace this afternoon."
     }
   },
@@ -6943,7 +6943,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants Enhanced Night Vision to the poet and 1 listener per Practitioner Title for 2d6 minutes."
     }
   },
@@ -6961,7 +6961,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the poet to shape and manipulate the density of 3 cubic feet of dry sand (both magical and non-magical) per Practitioner Title, within a range of 50' per Practitioner Title. The poet can either transform a hard block of sandstone into loose sand, or vice versa, taking any shape desired. This poem has no effect on stone which is not comprised of densely packed sand. Furthermore, any attempt to manipulate mud will not work until the water is completely removed."
     }
   },
@@ -6979,7 +6979,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1 sleeping listener to make a Control Resistance or stand up and rigidly act out their current dream. Each dream ends in 4d4 seconds, and once the dream ends, the target has a 50% chance to either lie back down or to remain standing and begin a new dream. The target will continue to act out each dream for as long as the poem endures, but they receive a new Control Resistance (each at +5% per Practitioner Title) to perform each new dream."
     }
   },
@@ -6997,7 +6997,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the poet to shape or displace 3 cubic feet of both magical and non-magical snow per Practitioner Title, either creating a tall snowdrift, uncovering bare ground, or simply moving it from one place to another within a range of 10' per Practitioner Title. This poem has no effect on water, slush or ice."
     }
   },
@@ -7015,7 +7015,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the poet and 1 listener per Practitioner Title the ability to walk as if weightless on snow, slush, or ice for the duration of the poem. Affected listeners leave behind no tracks. Upon stepping onto any other surface, the listeners' weight acts normally."
     }
   },
@@ -7033,7 +7033,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes the core temperature of the poet and 1 listener per Practitioner Title to rise by .5 degrees Fahrenheit per 2 Practitioner Titles, granting each affected listener the feeling of sitting near a camp fire or standing in hot sunlight. The poet can control the maximum amount of warmth gained, and if not careful, fever will ensue."
     }
   },
@@ -7051,7 +7051,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants the poet a general idea of what the weather will be like in the current area (10 square miles per Practitioner Title) over the next 24 hours per Practitioner Title."
     }
   },
@@ -7069,7 +7069,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes the poet and 1 listener per Practitioner Title to grow webbing between their toes, fingers and paws, resulting in a +10% bonus to the skill Swimming and -1 penalty to Appearance when visible. This poem does not affect hooves or fins."
     }
   },
@@ -7087,7 +7087,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Causes 1 listener per Practitioner Title to make a Control Resistance or fall into a deep slumber after which they make a Magic Resistance or they are sent to the plane of dreams (without their bodies)."
     }
   },
@@ -7105,7 +7105,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Grants the power of flight 3' per Intelligent point and levitate to the reciter and 1 being per Practitioner title. The effect lasts 1d4+1 hours per Practitioner title. Only works on the ethereal plane."
     }
   },
@@ -7123,7 +7123,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Makes a symbol that only the practitioner can see appear above the head of one being per Practitioner title. The symbol indicates to the practitioner what the being's plane of origin is. Non-detection is proof against this effect. This effect lasts 1 minute per practitioner title."
     }
   },
@@ -7141,7 +7141,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Turns an ordinary door into a doorway to the Phase Plane for 1 minute per Practitioner title. Does not work on planes not connected to the Phase Plane. If used on the Phase Plane it creates a doorway to the natural universe."
     }
   },
@@ -7159,7 +7159,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Opens one portal within sight that has been used within one day per Practitioner title. The portal stays open for 10 minutes per Practitioner title."
     }
   },
@@ -7177,7 +7177,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "One supernatural being per practitioner title is afforded the opportunity to return to their plane of origin to their home or other known safe place."
     }
   },
@@ -7195,7 +7195,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Reveals one portal per practitioner title within sight. Above the portal a symbol(s) appears that only the practitioner can see, that reveals where the plane the portal is connected to. This effect lasts 1 minute per practitioner title."
     }
   },
@@ -7213,7 +7213,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Turns an ordinary door into a doorway to the Plane of Shadow for 1 minute per practitioner title. Does not work on planes not connected to the Shadow Plane. If used on the Shadow Plane it creates a doorway to the natural universe."
     }
   },
@@ -8653,7 +8653,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives +1 Agility to the item or individual who possesses the Balance rune."
     }
   },
@@ -8671,7 +8671,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives +2 Agility to the item or individual who possesses the Balance rune(Greater)."
     }
   },
@@ -8689,7 +8689,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives full protection against all normal types of cold. The possessor or surface never takes more than half damage vs. cold, even magical."
     }
   },
@@ -8707,7 +8707,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives immunity to all types of cold, magical or mundane."
     }
   },
@@ -8725,7 +8725,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives full protection against all normal types of heat. The possessor or surface never takes more than half damage vs. heat, even magical."
     }
   },
@@ -8743,7 +8743,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives immunity to all types of heat, magical or mundane."
     }
   },
@@ -8761,7 +8761,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives full protection against all normal types of electricity. The possessor or surface never takes more than half damage vs. electricity, even magical."
     }
   },
@@ -8779,7 +8779,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives immunity to all types of electricity, magical or mundane."
     }
   },
@@ -8797,7 +8797,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives full protection against all normal types of acid. The possessor or surface never takes more than half damage vs. acid, even magical."
     }
   },
@@ -8815,7 +8815,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives immunity to all types of acid, magical or mundane."
     }
   },
@@ -8833,7 +8833,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "If placed on an item(Radiating): Anyone viewing, touching or passing within 1' of the Flame rune will burst into flames like the spell Produce Fire. If placed on a person(Perceived): This method grants the possessor the power Produce Fire just like the spell of the same name. Both powers listed above are once per day. Treat Aura Level as that of the practitioner's Class Title x2."
     }
   },
@@ -8851,7 +8851,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "If placed on an item(Radiating): Anyone viewing, touching or passing within 2' of the Flame(Greater) rune will burst into flames like the spell Produce Fire. If placed on a person(Perceived): This method grants the possessor the power Produce Fire just like the spell of the same name. Both powers listed above are once per day. Treat Aura Level as that of the practitioner's Class Title x4."
     }
   },
@@ -8869,7 +8869,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives +1 Vitality to the item or individual who possesses the Health rune. Also Poison Resistance and Disease Resistance are at an additional +5% (over the increase already for +1 Vitality)."
     }
   },
@@ -8887,7 +8887,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives +2 Vitality to the item or individual who possesses the Health(Greater) rune. Also Poison Resistance and Disease Resistance are at an additional +10% (over the increase already for +2 Vitality)."
     }
   },
@@ -8905,7 +8905,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives one luck point to the item or individual who possesses the Luck rune per day. A luck point gives a +1 or +5% modifier to any one roll."
     }
   },
@@ -8923,7 +8923,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives two luck points to the item or individual who possesses the Luck(Greater) rune per day. A luck point gives a +1 or +5% modifier to any one roll."
     }
   },
@@ -8941,7 +8941,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives +1 Strength to the individual possessing the rune of Might."
     }
   },
@@ -8959,7 +8959,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives +2 Strength to the individual possessing the rune of Might(Greater)."
     }
   },
@@ -9481,7 +9481,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "When inscribed onto a missile weapon, this rune will give +l to hit and +ld6+1 to damage per 5 Class Titles of the inscriber."
     }
   },
@@ -9499,7 +9499,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "When inscribed onto a missile weapon, this rune will give +2 to hit and +2d6+2 to damage per 5 Class Titles of the inscriber."
     }
   },
@@ -9517,7 +9517,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Makes the rune bearer ambidextrous."
     }
   },
@@ -9607,7 +9607,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "For each rating point above 4 (per -5% Modifier) the rune grants one point of hide only in the body area or surface it protects, up to 30 points maximum. Each body area may have one rune inscribed upon it. The rune can also be inscribed upon a piece of armor which covers multiple body areas"
     }
   },
@@ -9625,7 +9625,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "For each rating point above 12 (per -5% Modifier) the rune grants two points of hide only in the body area or surface it protects, up to 30 points maximum. Each body area may have one rune inscribed upon it. The rune can also be inscribed upon a piece of armor which covers multiple body areas"
     }
   },
@@ -9643,7 +9643,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "When inscribed onto a smashing weapon, this rune will give +l to hit and +ld6+1 to damage per 5 Class Titles of the inscriber."
     }
   },
@@ -9661,7 +9661,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "When inscribed onto a smashing weapon, this rune will give +2 to hit and +2d6+2 to damage per 5 Class Titles of the inscriber."
     }
   },
@@ -9679,7 +9679,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "When inscribed upon the surface of a wall, this rune will cause a shimmering door to appear, no larger than 5' wide by 10' tall. The wall cannot be more than 2 inches thick. This doorway can opened or closed by touching the rune and saying an activation word. When closed, the door appears as a normal wall but the rune can be seen. This rune includes the activation condition."
     }
   },
@@ -9697,7 +9697,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "When inscribed upon the surface of a wall, this rune will cause a shimmering door to appear, no larger than 10' wide by 20' tall. The wall cannot be more than 4 inches thick. This doorway can opened or closed by touching the rune and saying an activation word. When closed, the door appears as a normal wall but the rune can be seen. This rune includes the activation condition."
     }
   },
@@ -9715,7 +9715,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes all of one particular type of being who see the rune to make a Control Resistance or suffer a heart attack."
     }
   },
@@ -9733,7 +9733,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes all of two particular types of beings who see the rune to make a Control Resistance or suffer a heart attack."
     }
   },
@@ -9751,7 +9751,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes an apparent +2 to all Personal attributes of the rune bearer. The effects are illusionary."
     }
   },
@@ -9769,7 +9769,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes an apparent +4 to all Personal attributes of the rune bearer. The effects are illusionary."
     }
   },
@@ -9787,7 +9787,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes all of one particular type of being who see the rune to make a Magic Resistance when first viewing it or suffer 4d6 damage in the mid torso from stomach pain."
     }
   },
@@ -9805,7 +9805,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes all of one particular two types of beings who see the rune to make a Magic Resistance when first viewing it or suffer 8d6 damage in the mid torso from stomach pain."
     }
   },
@@ -9823,7 +9823,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes the being who sees the rune to make a Control Resistance or be forced to forget a valuable item and drop it near the rune."
     }
   },
@@ -9841,7 +9841,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Causes the being who sees the rune to make a Control Resistance or be forced to forget two valuable items and drop them near the rune."
     }
   },
@@ -10021,7 +10021,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "Grants the rune bearer one animal ability as per the skill Evoke. A being may only have one Evocation rune inscribed upon the body at a time. It takes 2-7 seconds to activate the ability."
     }
   },
@@ -10039,7 +10039,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "Grants the rune bearer two animal abilities as per the skill Evoke. A being may only have one Evocation(Greater) rune inscribed upon the body at a time. It takes 2-7 seconds to activate each ability, separately."
     }
   },
@@ -10057,7 +10057,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "This rune may only be placed on a being under control or possession by another being or effect. Once the rune is inscribed successfully, control is broken and the being is immune from any further control or possession of any type from that original source."
     }
   },
@@ -10075,7 +10075,7 @@
       "runeType": "Perceived and Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "At the time of creation, the user infuses this rune with a single command. The first time a being comes into range of the rune (1' radius per Practitioner Title) or perceives it, a Control Resistance is made or the command must be obeyed. Undead and living beings with less than 16 Will Force are afforded no Control Resistance. The command cannot force the individual to kill or directly harm herself, or knowingly place herself in jeopardy of death or destruction. The command must be one sentence or less and will be obeyed for 1 minute per Practitioner Title. Thereafter, the affected being is released from the command and becomes immune to further effects from that particular rune."
     }
   },
@@ -10093,7 +10093,7 @@
       "runeType": "Perceived and Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "At the time of creation, the user infuses this rune with up to two commands. The first time a being comes into range of the rune (2' radius per Practitioner Title) or perceives it, a Control Resistance is made or the command must be obeyed. Undead and living beings with less than 16 Will Force are afforded no Control Resistance. The command cannot force the individual to kill or directly harm herself, or knowingly place herself in jeopardy of death or destruction. The command must be one sentence or less and will be obeyed for 2 minute per Practitioner Title. Thereafter, the affected being is released from the command and becomes immune to further effects from that particular rune."
     }
   },
@@ -10111,7 +10111,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "This rune is placed on a living being. When that being is killed, the rune bearer will rise as an appropriate undead, depending on the situation and manner of death (GM discretion) at the next nightfall. The target may resist this with a Will Force save at -5% per Practitioner Title."
     }
   },
@@ -10129,7 +10129,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "The area illuminated by this rune (3' radius per Practitioner Title) is as bright as noon on a sunny day, though no extra heat is generated in the area affected. No shadow or darkness effects, magical or otherwise, operate in the area. Undead are affected as if surrounded in daylight."
     }
   },
@@ -10147,7 +10147,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "The area illuminated by this rune (6' radius per Practitioner Title) is as bright as noon on a sunny day, though no extra heat is generated in the area affected. No shadow or darkness effects, magical or otherwise, operate in the area. Undead are affected as if surrounded in daylight."
     }
   },
@@ -10165,7 +10165,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Allows the practitioner to disguise the life force in some fashion to all beings within a 20' radius. Lesser undead (levels 1-4) cannot sense past the power of the rune, but greater undead (levels 5-8) are allowed a Life Sense skill roll at 1/4 their skill level, and arch undead (levels 9+) are allowed a Life Sense roll at 1/2."
     }
   },
@@ -10183,7 +10183,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Allows the practitioner to disguise the life force in some fashion to all beings within a 40' radius. Lesser undead (levels 1-4) cannot sense past the power of the rune, but greater undead (levels 5-8) are allowed a Life Sense skill roll at 1/4 their skill level, and arch undead (levels 9+) are allowed a Life Sense roll at 1/2."
     }
   },
@@ -10201,7 +10201,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Causes all living beings within 15' to flee in fear. Beings with an 18 Will Force or greater are not affected."
     }
   },
@@ -10219,7 +10219,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Causes all living beings within 30' to flee in fear. Beings with an 18 Will Force or greater are not affected."
     }
   },
@@ -10237,7 +10237,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Removes all current effects of fear and protects only the rune bearer from any future fear effects."
     }
   },
@@ -10255,7 +10255,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Etching or carving this rune into a grave marker protects the body buried there from becoming undead or allowing its Spirit to be detached from its Soul."
     }
   },
@@ -10273,7 +10273,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Allows the protected item or being to ignore all protection effects. This includes spells like Wall of Protection, Reflection, Deflect, runes of Warding, invocations such as Sanctuary, etc. Only one such effect can be ignored per second per Practitioner Title. When there is more than one effect, the lowest Aura Control, Piety Control or Practitioner Title effect is ignored first."
     }
   },
@@ -10291,7 +10291,7 @@
       "runeType": "Perceived and Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Causes any undead or negative life force beings who perceive the rune to make a Control Resistance or be destroyed. Beings of 5 or less average Mental or below 3rd Level are destroyed instantly without save, and those 16th Level or higher are immune to this effect."
     }
   },
@@ -10651,7 +10651,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes all non-magical liquids within 1' per Practitioner Title to heat at a rate of 10 degrees per minute until they reach their own particular boiling point. All boiling substances remain at this temperature until taken out of the rune's range, after which they are affected normally by the surrounding ambient temperature. This rune does not affect living beings."
     }
   },
@@ -10669,7 +10669,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes all non-magical liquids within 2' per Practitioner Title to heat at a rate of 20 degrees per minute until they reach their own particular boiling point. All boiling substances remain at this temperature until taken out of the rune's range, after which they are affected normally by the surrounding ambient temperature. This rune does not affect living beings."
     }
   },
@@ -10687,7 +10687,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "When inscribed on the wall of a subterranean cavern, all adjoining rock within a radius of 3' per Practitioner Title will break into separate pieces no larger than 2 square feet, falling if applicable, when a living being (other than the practitioner) approaches within 1' per Practitioner Title, therefore destroying the rune in the process. The resulting cave-in inflicts 3d6 crushing damage per 10 feet of the rune's original height above the victims, to 3d6 body areas."
     }
   },
@@ -10705,7 +10705,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "When inscribed on the wall of a subterranean cavern, all adjoining rock within a radius of 6' per Practitioner Title will break into separate pieces no larger than 4 square feet, falling if applicable, when a living being (other than the practitioner) approaches within 2' per Practitioner Title, therefore destroying the rune in the process. The resulting cave-in inflicts 6d6 crushing damage per 10 feet of the rune's original height above the victims, to 3d6 body areas."
     }
   },
@@ -10723,7 +10723,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants an individual the magical ability to blend into an environment of cloud and fog, no matter their appearance, as long as the individual remains stationary."
     }
   },
@@ -10741,7 +10741,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants anyone who views the rune an innate sense of direction for the next 10 minutes per Practitioner Title."
     }
   },
@@ -10759,7 +10759,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants anyone who views the rune an innate sense of direction for the next 20 minutes per Practitioner Title."
     }
   },
@@ -10777,7 +10777,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Gives protection from Aura damage to the item or individual who possesses the rune. The target never takes more than one half damage vs. Aura from spells and effects like Aura Blast, etc."
     }
   },
@@ -10795,7 +10795,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Gives full protection from Aura damage to the item or individual who possesses the rune. The target never takes  any damage vs. Aura from spells and effects like Aura Blast, etc."
     }
   },
@@ -10813,7 +10813,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants an individual the magical ability to blend into an environment of fire and lava, no matter their appearance, as long as the individual remains stationary."
     }
   },
@@ -10831,7 +10831,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes all non-magical liquids within 1' per Practitioner Title to cool at a rate of 10 degrees per minute until completely frozen. All frozen substances remain solid until taken out of the rune's range, after which they are affected normally by the surrounding ambient temperature. This rune does not affect living beings."
     }
   },
@@ -10849,7 +10849,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes all non-magical liquids within 2' per Practitioner Title to cool at a rate of 20 degrees per minute until completely frozen. All frozen substances remain solid until taken out of the rune's range, after which they are affected normally by the surrounding ambient temperature. This rune does not affect living beings."
     }
   },
@@ -10867,7 +10867,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 1 day hence. This rune only affects a particular individual once."
     }
   },
@@ -10885,7 +10885,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 1 week hence. This rune only affects a particular individual once."
     }
   },
@@ -10903,7 +10903,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 1 month hence. This rune only affects a particular individual once."
     }
   },
@@ -10921,7 +10921,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 6 months hence. This rune only affects a particular individual once."
     }
   },
@@ -10939,7 +10939,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to year hence. This rune only affects a particular individual once."
     }
   },
@@ -10957,7 +10957,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 5 years hence. This rune only affects a particular individual once."
     }
   },
@@ -10975,7 +10975,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 10 years hence. This rune only affects a particular individual once."
     }
   },
@@ -10993,7 +10993,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 30 years hence. This rune only affects a particular individual once."
     }
   },
@@ -11011,7 +11011,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to gain insight into a particular event in the future if they were to continue the current path of events. Though the practitioner cannot specify the foresight which the affected being will gain, it starts from the moment the target views the rune to 60 years hence. This rune only affects a particular individual once."
     }
   },
@@ -11029,7 +11029,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to make a Control Resistance or feel somewhat giddy, resulting in a -5% per Practitioner Title to Wisdom saves and Wisdom-based skills for the next 1d4 minutes per Practitioner Title."
     }
   },
@@ -11047,7 +11047,7 @@
       "runeType": "Perceived",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who perceives the rune to make a Control Resistance or feel somewhat giddy, resulting in a -10% per Practitioner Title to Wisdom saves and Wisdom-based skills for the next 2d4 minutes per Practitioner Title."
     }
   },
@@ -11065,7 +11065,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "When inscribed on an item, its weight is increased or decreased by 10% per Practitioner Title to a maximum of 200% or a minimum of 1%. When used to lighten a weapon, for every 30% of decreased weight its damage is reduced by 1 die and its weapon speed is reduced by 1 second (no weapon can go below 1 second in this fashion). For every 30% its weight is increased, its damage is increased by 1 die and its weapon speed is increased by 1 second."
     }
   },
@@ -11083,7 +11083,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants an individual the magical ability to blend into an environment of snow or ice, no matter their appearance, as long as the individual remains stationary."
     }
   },
@@ -11101,7 +11101,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Protects an individual against the effects of high ambient temperatures, reducing heat damage by -2 per Practitioner Title and reducing chance of passing out by 2% per Practitioner Title."
     }
   },
@@ -11119,7 +11119,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Protects an individual against the effects of high ambient temperatures, reducing heat damage by -4 per Practitioner Title and reducing chance of passing out by 4% per Practitioner Title."
     }
   },
@@ -11137,7 +11137,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Protects an individual against the effects of low ambient temperatures, reducing cold damage by -2 per Practitioner Title and reducing chance of passing out by 2% per Practitioner Title."
     }
   },
@@ -11155,7 +11155,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Protects an individual against the effects of low ambient temperatures, reducing cold damage by -4 per Practitioner Title and reducing chance of passing out by 4% per Practitioner Title."
     }
   },
@@ -11173,7 +11173,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "When inscribed onto a container, book, or any other object which can be opened and closed, this rune magically locks the object by sealing it shut with Aura, and allows only 1 being per Practitioner Title to open it. The names of these beings and/or the condition(s) on which it may be opened must be spoken at the time of inscribing. Note: The skill Detect Magic reveals a line of Aura (the color of the practitioner's Aura) along the seal of the locked object."
     }
   },
@@ -11227,7 +11227,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes all non-magical frozen liquids within 1' per Practitioner Title to warm at a rate of 10 degrees per minute until completely melted. All melted substances remain in liquid form until taken out of the rune's range, after which they are affected normally by the surrounding ambient temperature. This rune does not affect living beings."
     }
   },
@@ -11245,7 +11245,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes all non-magical frozen liquids within 2' per Practitioner Title to warm at a rate of 20 degrees per minute until completely melted. All melted substances remain in liquid form until taken out of the rune's range, after which they are affected normally by the surrounding ambient temperature. This rune does not affect living beings."
     }
   },
@@ -11263,7 +11263,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who sees the rune to make a Control Resistance or stare at the rune, entranced and unable to look away for 10 seconds per Practitioner Title."
     }
   },
@@ -11281,7 +11281,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes anyone who sees the rune to make a Control Resistance or stare at the rune, entranced and unable to look away for 20 seconds per Practitioner Title."
     }
   },
@@ -11299,7 +11299,7 @@
       "runeType": "Radiating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes a magical song or ballad performed by an individual no more than 5' away per Practitioner Title to double its effects. For instance, a Bard singing the Song of Replenishment would cause her target to lose 2 fatigue levels per 2 Practitioner Titles instead of the normal 1 level of fatigue. This rune effects only 1 song or ballad at a time."
     }
   },
@@ -11659,7 +11659,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Grants the wearer breathless, immunity to cold, and pressure as well as the ability to fly at up to 3 feet per Intelligence rating per second. This effect only operates while on the Ethereal Plane."
     }
   },
@@ -11677,7 +11677,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Allows the wearer to have a 5% chance per practitioner title of entering the dream plane when sleeping."
     }
   },
@@ -11695,7 +11695,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Allows the wearer to have a 10% chance per practitioner title of entering the dream plane when sleeping."
     }
   },
@@ -11713,7 +11713,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Grants protection from mental contact while asleep and blocks entry into the dream plane whether awake or asleep."
     }
   },
@@ -11731,7 +11731,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "For each rating point above 12 (per -5% Modifier) 1 point of Force Armor is gained protecting the entire body up to a maximum of 20 points."
     }
   },
@@ -11749,7 +11749,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "For each rating point above 18 (per -5% Modifier) 2 points of Force Armor is gained protecting the entire body up to a maximum of 40 points."
     }
   },
@@ -11767,7 +11767,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Allows the practitioner or a designated (owner/friend) to locate whatever the rune is placed on if within 10 miles per practitioner title."
     }
   },
@@ -11785,7 +11785,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Allows the practitioner or a designated (owner/friend) to locate whatever the rune is placed on if within 20 miles per practitioner title."
     }
   },
@@ -11839,7 +11839,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Keeps the wearer from entering the Plane of the Lost/Junk. Also grants +10% to the following skills: Distance Knowledge, Direction Knowledge, Depth Knowledge, Navigate and Cartography."
     }
   },
@@ -11857,7 +11857,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Keeps the wearer from entering the Plane of the Lost/Junk. Also grants +20% to the following skills: Distance Knowledge, Direction Knowledge, Depth Knowledge, Navigate and Cartography."
     }
   },
@@ -12199,7 +12199,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "This rune offers full protection against all normal forms of light, including blindness effects for night vision, etc. The possessor or surface never takes more than one-half damage vs. light effects, even magical."
     }
   },
@@ -12217,7 +12217,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives immunity to all types of negative light effects, magical or mundane."
     }
   },
@@ -12235,7 +12235,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "This rune offers full protection to the buffeting damage of wind, water, or any non-solid object. The rune bearer never takes more than one-half damage vs. repulsion, magical wind, and water effects."
     }
   },
@@ -12253,7 +12253,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives immunity to all forms of damage or negative effects from repulsion, magical wind, and water effects, whether magical or mundane."
     }
   },
@@ -12271,7 +12271,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "This rune offers full protection against all normal forms of sound, including deafening effects. The rune bearer never takes more than one-half damage, or deafening duration vs. sound effects, even magical."
     }
   },
@@ -12289,7 +12289,7 @@
       "runeType": "Emanating",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Gives immunity to deafening, or damagin sound effects, whether magical or mundane."
     }
   },
@@ -12451,7 +12451,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Cause listeners to roll at +10% to Berserking per Practitioner Title. At 4th or higher Practitioner Title, the singer can direct the listeners to fight the opponent(s) named in the song."
     }
   },
@@ -12469,7 +12469,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Magic Resistance at -2% per Practitioner Title or be blinded for duration of the song."
     }
   },
@@ -12487,7 +12487,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Control Resistance at -2% per Practitioner Title or follow the commands of the singer thereafter. Life threatening commands allow further resistance rolls."
     }
   },
@@ -12505,7 +12505,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes one listener per Practitioner Title to make a Control Resistance or attack the nearest living being until it is either dead or not moving. Thereafter, a new resistance is allowed or a further target is attacked. The singer is never chosen as a target by those affected."
     }
   },
@@ -12523,7 +12523,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Creates a magical bolt of electricity that flies at one target per 10 seconds. The song can continue and produce a new bolt every 10 seconds thereafter but only one bolt per Practitioner Title can be created per day. The singer must make an Intelligence save to strike a single target in the area desired. Range is up to 10' per Practitioner Title. Anyone struck by the bolt must make a Magic Resistance. Failure indicates 1d8 damage per Practitioner Title in the area struck. Success over 1/2 the Magic Resistance indicates half damage, and success equal to or under 1/2 indicates no damage."
     }
   },
@@ -12541,7 +12541,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Creates a filling meal in front of one listener per Practitioner Title. The meals only last one hour per Practitioner Title after the song ends, thereafter it will fade away if not consumed."
     }
   },
@@ -12559,7 +12559,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes one enemy per Practitioner Title to make a Control Resistance or flee the sound of the song."
     }
   },
@@ -12577,7 +12577,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Creates a magical ball of fire that flies at one target per 10 seconds. The song can continue and produce a new ball every 10 seconds thereafter but only one ball per Practitioner Title can be created per day. The singer must make an Intelligence save to strike a single target in the area desired. Range is up to 10' per Practitioner Title. Anyone struck by the ball must make a Magic Resistance. Failure indicates 1d6 damage per Practitioner Title in the area struck. Success over 1/2 the Magic Resistance indicates half damage, and success equal to or under 1/2 indicates no damage."
     }
   },
@@ -12595,7 +12595,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Allows the singer and one individual per Practitioner Title to fly as the spell Fly for the duration of the song and up to one minute per Practitioner Title after the song is completed."
     }
   },
@@ -12613,7 +12613,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "The area most damaged on each listener is healed 1d4 per Practitioner Title."
     }
   },
@@ -12631,7 +12631,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes an illusion to appear as indicated by the song. At 1st Practitioner Title only taste and olfactory illusions are allowed, at 3rd auditory is added, at 5th visual is added, at 7th tactile sensations are added and at 9th illusion of sense (emotion, feeling) is added."
     }
   },
@@ -12649,7 +12649,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Causes all users to make a Control Resistance at -2% per Practitioner Title or listen to Skill user for 10-40 seconds per Practitioner Title after the song ends. Other actions may be taken by the listeners."
     }
   },
@@ -12667,7 +12667,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Listeners have a -2% per Practitioner Title to Control Resistance against any effect from the practitioner. Lasts for 1d4 hours per Practitioner Title after the song ends. Followers gain +5% to morale rolls per Practitioner Title for the same period."
     }
   },
@@ -12685,7 +12685,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "The skill grants 2-7 luck points (+1/+5% per point) to one listener per Practitioner Title as the spell Luck. This song can only be sung once per day."
     }
   },
@@ -12703,7 +12703,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All enemies of the singer make a Magic Resistance. Failure indicates 1d6 damage per Practitioner Title in the area named in the song. Success over 1/2 Magic Resistance indicates 1/2 damage and success equal to or under 1/2 indicates no damage. Magic Resistance is rerolled every 20 seconds of the song. This song can only be sung once a day per Practitioner Title."
     }
   },
@@ -12721,7 +12721,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "All listeners must make a Control Resistance at -2% per Practitioner Title or be paralyzed for the duration of the song."
     }
   },
@@ -12739,7 +12739,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Defensive adjustment is -1 per Practitioner Title, +5% to all resistances per Practitioner Title to all friendly listeners during the duration of the song."
     }
   },
@@ -12757,7 +12757,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "One spell or power of concealing or illusion per Practitioner Title within the range of the skill user's voice to be immediately dispelled with no resistance. The highest Aura, Title or level power is dispelled first. The dispel only lasts as long as the song is being sung."
     }
   },
@@ -12775,7 +12775,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "One named being per Practitioner Title (true name) will be teleported instantly to the skill user."
     }
   },
@@ -12793,7 +12793,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "description": "Creates a gateway that opens to any place the skill user has been more than once. The gateway can be between dimensions. The portal stays open for one minute per Practitioner Title after the song ends. All present can see the portal as a shimmering oval doorway with a view to the target area."
     }
   },
@@ -12865,7 +12865,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "Creates one 10' x 10' x 10' excavation per minute. Only works on rock and earth. The excavation is shorn up only for the duration of the song and under most conditions will collapse immediately after the end of the song unless the wall are braced."
     }
   },
@@ -12883,7 +12883,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "description": "All listeners of a named type must make a Control Resistance or flee the sound of the song. If the Resitance is made a new roll is required to take hostile action. This is required for each new opponent."
     }
   },
@@ -12901,7 +12901,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "All animals of one named type who hear the song and fail a Control Resistance (most are 0%) will come to the singer and follow any requests they wish for as long as the song is sung.  If a request will cause harm to the animal, the animal gets a new Control Resistance.  If the singer attempts to entrance an animal who has been tamed by the skill Tame Animal, then the Song Lore practitioner must win a contest of skills with the Tame Animal practitioner to entrance the animal."
     }
   },
@@ -12919,7 +12919,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "This song will cause all plants and tree branches to bend and sway out of the path of the singer, creating a walkway through areas of impassible vegetation. The plants will return to their normal position after the singer has passed. This song will take its effect on plants or plant walls created from spells or invocations, but will not affect creatures of type Magical Plant."
     }
   },
@@ -12937,7 +12937,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "description": "A sense of peace overcomes all animals who hear the song, and they will cease all hostile action and will initiate no new hostile actions while the song is being sung. If attacked, animals are allowed a new Control Resistance to fight back. Only animals which have been tamed with the Tame Animal skill are allowed an initial Control Resistance; all animals are allowed one if attacked. Does not affect magical animals."
     }
   },
@@ -12955,7 +12955,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One lesser or greater undead being per Practitioner Title within 5' per Practitioner Title makes a Control Resistance or is unable to take any offensive actions for the duration of the song."
     }
   },
@@ -12973,7 +12973,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "The skin and muscles of 1 listener of the singer's choosing slowly decays, inflicting 1d4 damage per second to 1 random body area for the duration of the song. The victim is allowed a Magic Resistance for each second of damage."
     }
   },
@@ -12991,7 +12991,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "During the duration of the song, 1 being per Practitioner Title of a certain undead type (mentioned in song) is granted +1 to hit, +2 damage per 2 Practitioner Titles, a defensive adjustment of -1 per Practitioner Title, and +5% Resistances per Practitioner Title."
     }
   },
@@ -13009,7 +13009,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One skeleton per Practitioner Title, equal to or lower level than the Practitioner Title, are held in place for the duration of the song. Each skeleton is allowed a Control Resistance. This song affects all skeletons, whether or not they are immune to Hold."
     }
   },
@@ -13027,7 +13027,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "Creates diffuse light with a radius of 1' per Practitioner Title appears around the practitioner for the duration of the song. The light is incapable of blinding, nor does it appear to have a particular source. It illuminates an area 4 times the area affected."
     }
   },
@@ -13045,7 +13045,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One being of the singer's choice within listening range is protected from being converted into either a physical, spiritual or souled undead creature (the practitioner must choose this beforehand), for 1 minute per Practitioner Title. Any spell, power or effect attempting to raise the target as an undead creature has a 5% chance per Practitioner Title to fail, and a -5% per Practitioner Title to the skill roll."
     }
   },
@@ -13063,7 +13063,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title is immune to cold-based touch attacks from undead for the duration of the song."
     }
   },
@@ -13081,7 +13081,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "description": "One listener per Practitioner Title is immune to diseases caused by contact with undead during the duration of the song. Diseases already in effect are unaffected by this song."
     }
   },
@@ -13099,7 +13099,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the singer to lessen the size of water waves within a radius of 25' per Practitioner Title. The size of affected waves decreases by 10% per Practitioner Title. For example, if a 1st Title Bard is standing on an ocean shore whose waves average 5' high, they can change the size of the waves to be only 4.5' high. The singer can affect water within a range of 50' per Practitioner Title."
     }
   },
@@ -13117,7 +13117,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants the singer and 1 listener per Practitioner Title the ability to walk on cloud and fog as if it were a solid surface."
     }
   },
@@ -13135,7 +13135,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the singer to create water waves within a radius of 25' per Practitioner Title. The size of affected waves increases by 10% per Practitioner Title. For example, if a 6th Title Bard is standing on an ocean shore whose waves average 21' high, they can change the size of the waves to be 60% higher, or 1'4“ taller, with a total height of 3'4“. The singer can affect water within a range of 50' per Practitioner Title."
     }
   },
@@ -13153,7 +13153,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Grants the singer and 1 listener per Practitioner Title the ability to walk on extremely hot surfaces (both magical and non-magical), such as burning embers or heated metal, without any adverse effects for the duration of the song. Only the part(s) of the body with which the being uses to walk are affected, and all other fire or heat will affect the targeted listeners as normal."
     }
   },
@@ -13171,7 +13171,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1 listener to recall a single forgotten memory of an event that transpired no more than 4 years ago per Practitioner Title."
     }
   },
@@ -13189,7 +13189,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1 listener per Practitioner Title to suddenly become replenished and energized, losing 1 level of fatigue per 2 Practitioner Titles."
     }
   },
@@ -13207,7 +13207,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes up to 1 listener per Practitioner Title to make a Control Resistance or instantly fall into a deep sleep for the duration of the song. Has no effect on beings with more than 15 Will Force."
     }
   },
@@ -13225,7 +13225,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes up to 10 cubic feet of snow to melt at a rate of 1 cubic foot per Practitioner Title every 5 minutes. This song can affect both magical and non-magical snow within a range of 10' per Practitioner Title. This song has no effect on ice."
     }
   },
@@ -13243,7 +13243,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the singer and 1 listener per Practitioner Title to see normally through falling snow. All snowflakes in the affected targets' line of vision appear transparent for the duration of the song. This song does not allow vision through standing snow, such as a snowdrift."
     }
   },
@@ -13261,7 +13261,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Causes 1 listener to be unable to remove an item from their being for 10 minutes per Practitioner Title. Those unaware or unwilling receive a Magic Resistance. All magical and divine magical items receive a Magic Resistance and artifacts are unaffected."
     }
   },
@@ -13279,7 +13279,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "description": "Allows the singer and 1 listener per Practitioner Title to visualize how a nowruined structure used to look when it was whole, by creating a magical, shimmering outline the color of the singer's aura. This song affects all ruins within a radius of 50' per Practitioner Title."
     }
   },
@@ -13369,7 +13369,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Listeners are placed in a calm, reflective state, possibly gain relief from controlling effects (a new Control Resistance) and for the duration of the song, are granted +5% to informational skills, +15% to Meditate, Body Control and Tranquil Mind (from an upcoming volume.) +10% to Will Force and concentration saves. Any hostile actions taken negate these effects, except for any control that was broken."
     }
   },
@@ -13387,7 +13387,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Repairs one broken item held by the singer by replacing it with one from an alternate dimension. The item is now supernatural and may be subtly or greatly different than the original at the GM's discretion. If the item (or its dimensional replacement) is magical or divine in nature then this effect only has a 5% chance per practitioner title of succeeding."
     }
   },
@@ -13405,7 +13405,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "While on the plane of dreams the singer can sing into existence one normal dream item of no more than 5 lb. per practitioner title. The item will last 1 hour per practitioner title and has a 2% chance per practitioner title of returning with the dreamer to their plane of origin when they awaken (or leave) the dream plane."
     }
   },
@@ -13423,7 +13423,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Grants the singer and 1 listener per practitioner title the ability to walk on any liquid as well as immunity to pressure and one other elemental immunity (cold, heat, electricity, acid, life, death, or aura). If on the Plane of Air, the ability to fly at up to 3 feet per Intelligence rating is granted. These effects only operate on the elemental planes and last 1 hour per practitioner title."
     }
   },
@@ -13441,7 +13441,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Grants one new resistance to any current negative effects caused by a supernatural being for all listeners. If more than one negative effect is in place then one new resistance is granted for each until the total number of negative effects exceeds the singer's practitioner title."
     }
   },
@@ -13459,7 +13459,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "One supernatural being per practitioner title is afforded the opportunity to return to their plane of origin, to their home or other known safe place."
     }
   },
@@ -13477,7 +13477,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "While on the Plane of the Lost/Junk one lost item sung about is returned to the singer, at their feet, at song's end."
     }
   },
@@ -13495,7 +13495,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "A symbol appears above the head of one being per practitioner title. The symbol reveals the plane of origin of the being. The symbol can either be seen only by the practitioner or is revealed to all depending on the singer's desire. Non-detection is proof against this effect. Lasts 1 minute per practitioner title."
     }
   },
@@ -13513,7 +13513,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Grants the singer and 1 listener per practitioner title freedom from hunger, thirst and the need to breathe as well as granting immunity to pressure and fatigue for 1 hour per practitioner title."
     }
   },
@@ -13549,7 +13549,7 @@
       "runeType": "",
       "alignment": "",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "description": "Allows the practitioner to create a gateway to an alternate plane. It will remain open for 1 minute per practitioner title. It is a two-way gateway while open. Also, anyone passing through gateway gains 1 appropriate protection effect for the plane they are traveling to that lasts 1 hour per practitioner title and can be renewed by the practitioner with a 10 second refrain of the original song. Example: Plane of Fire gateway would provide Endure Heat. If the plane traveled to has no plane-wide dangers, no protections are given. If there is more than one dangerous effect the singer chooses one protection."
     }
   },

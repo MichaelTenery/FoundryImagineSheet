@@ -4769,3 +4769,146 @@ Situation Mods pass).
 
 Checked: creature 157 (8 new), martial 179, combat 511, derivation 507, 71 modules parse; the creature
 preview renders the panel. Not verified: anything needing a running Foundry V14.
+
+## Poison damage on overall Endurance, and poisoned weapons (2026-09-23)
+
+The user ruled on the two poison items the weapon mods pass left open: **"Poison damage is applied to
+OVERALL Endurance only"**, adding to the victim's total wounds (and so shock) and to no one body area,
+and a poisoned weapon (a coating) is wanted.
+
+### Poison damage
+
+- **Where it goes.** A new stored `body.overallWounds` on both actor models, counted in the derived
+  `totalWounds` by `_prepareBody` (and `inShock` now reads that total). Area wounds are untouched. It
+  is damage "inside" the victim: no armour, hide, pain threshold or absorption touches it.
+- **When it lands -- a reading.** The Master's Manual: the numbers "apply to overall Endurance during
+  the poison's duration" (Effects of Poisons, p.103), each written per an interval. His
+  `doPoisonAction` (sheet-worker.js:135358) writes the clause and rolls the duration and applies
+  nothing; his sheet has no overall-Endurance figure. Read here as: nothing before the potency's onset,
+  then one interval's damage **at the end of each interval** of the duration, so all of it has landed
+  when the duration ends. `resolvePoisonOnVictim` now rolls and keeps each interval (`damage.rolls`,
+  the same dice in the same order as before, so the total is unchanged).
+- **The button.** Each victim whose poison deals damage gets "Apply to overall Endurance" on the
+  poison card. The dialog offers the intervals the world clock says have landed since the dose was
+  taken (`getPoisonIntervalsDue`), or everything left when the clock has not reached the first; the
+  Game Master may apply any number. Guarded like the attack card's Apply Damage: the message counts
+  what each victim has had applied, a finished victim's button is retired, only someone who can
+  change the victim may apply, and only the author or the GM can write the count.
+
+### A poisoned weapon
+
+**His sheet has none.** No attribute, handler or tag in sheet-worker.js or the sheet HTML puts a poison
+on a weapon; his poison USE spends a dose and rolls only the "on self" tick. So these are the books':
+
+- **A coating is put on from the poison's Use** (the Magic & Lore tab), where his USE spends the dose:
+  "Coat a weapon: <name>" beside targets / self / no one. The weapon mods window shows it and wipes it
+  off (the dose is lost). Stored as `system.coating` { name, poisonType, poisonPotency, form, doses }.
+- **Forms.** Ingestive "must be imbibed or introduced into the bloodstream", Contact "must contact the
+  skin", Gaseous "must be inhaled" (MM p.103; PG p.136). A gas cannot coat a weapon. His MM errata
+  (p.291, Venom) calls a wound-delivered poison "insinuative"; that is not a form on his sheet and the
+  port adds none.
+- **An Envenomed blade -- the book's rule, exactly.** Mysteries of the Planes p.175 (his panel's
+  "Envenomed" customization): the hilt holds up to 5 doses, and "when the weapon thrusts into a target
+  and does 10 or more actual damage, then 1 dose of poison is applied". Cost paid is not recorded, so 5
+  is the cap.
+- **A plain coating -- a reading, no book rule.** One dose, delivered by the first hit that does
+  actual flesh damage (1 or more past armour, hide and absorption) in any mode, and spent. A blow the
+  armour stops entirely leaves it on: neither form reaches skin or blood. The 10-point threshold is
+  the Envenomed mechanism's (and the PG's "stuck" threshold for thrusts), not applied to a smear on an
+  edge. A second dose of the same poison on a coated plain weapon is refused (it adds nothing), and a
+  different poison waits until the first is wiped.
+- **Delivery.** `applyAttackDamage` reads the weapon's coating as it is now (a coating another hit
+  spent is not spent twice), runs `resolveCoatingDelivery` on the flesh damage, and on delivery takes
+  the dose off the weapon and posts a poison card for the target through the same
+  `postPoisonOnVictims` / `resolvePoisonOnVictim` as a poison used from the tab, Apply button included.
+  Spending it needs the right to change the attacker's weapon; without it the card says to have the
+  Game Master apply the hit. The attack card says the weapon is poisoned.
+
+Also in this pass, at the main session's request: `rollWeaponAttack` passes
+`maximize: tmpsitmods.maxDamage` to `resolveWeaponSpecials`.
+
+Tests: lore 138 (21 new), weapon mods 73 (4 new); combat 520, derivation 507, creature 157, martial
+179, round 87 unchanged; 71 modules parse. **Not verified:** anything in a running V14 -- the Apply
+button, the coat option, the delivery card, and the flag writes. `overallWounds` is not yet shown or
+editable on either sheet, so healing it needs a sheet change (see `docs/sonnet/2026-09-23-poison-damage.md`).
+
+## The round clock's Surprise row, and the live clock on the Combat tab (2026-09-23)
+
+**Asked for:** both approved by the user -- his chart's Surprise row, and the note's item 3 (the round
+clock beside the Off-Hand Seconds box).
+
+**Where the rules come from.** His Roll20 sheet has no surprise seconds anywhere: its surprise is the
+situational `sit_surprise_normal` (+4 to hit, +6 damage) and the Surprise Attack roll that sets it
+(sheet-worker.js:17588, 19934-20045). So this is the books': 1d4+1 seconds of unanswered action
+before initiative (Player's Guide p.168; p.169 Surprise Bonuses; Master's Manual p.93, Sequence of
+Combat II-III), and his chart's "Surprise (pre-combat round)" row used as "a mini round" (Master's
+Manual p.100). The errata only corrects the Surprise Base table (Agility 29-30 is 100%), which is the
+roll to gain surprise, not what it gives.
+
+**Readings I had to make, and why:**
+
+- **Five seconds at most.** 1d4+1 is 2-5, and a Surprise Attack critical success makes it "the full 5
+  seconds" (Master's Manual p.71, Critical Success). The Game Master can still set any figure from 1 to
+  5, or roll once for a group (p.93's "simplest way") or once each (its Advanced GM note).
+- **Surprise is a phase before round 1, kept apart from the clock.** It lives in
+  `flags.imagine-rpg.surprise` (`{ seconds, spent, carryOver }`), not in the round-keyed clock, so a
+  roll or a reset of initiative never touches it and the settled clock shape is unchanged. p.93 says
+  surprisers and victims roll initiative only after the surprise, "they will not lose those seconds
+  until after the initial surprise time has been used" -- so round 1's clock simply starts when the
+  surprise ends. The Game Master ends it ("End surprise"); like the round, it is announced used up,
+  never ended automatically. Ending it starts the combat if it had not been started, since "the combat
+  round begins" then. Next Round ends a surprise left running, first.
+- **An action running past the surprise carries into round 1** with the ordinary Carry-Over rule
+  (p.168): no initiative until it finishes, then a reaction roll added to its last second, rolled when
+  the surprise ends and posted as nextRound posts one. The books do not say this of surprise; it is the
+  only rule they have for an action cut off by the end of a period of seconds, and the chart calls the
+  surprise a round. Declinable, like any carry.
+- **Unspent surprise seconds are lost** when it ends. The book gives them "to begin attacking before
+  Initiative is rolled" and has the surpriser roll "after he has used his free seconds"; nothing lets
+  them be kept.
+- **Off-hand spends during surprise are recorded and cost nothing.** The off hand acts alongside the
+  main hand in a round (p.178); the surprise's seconds are the ceiling for both.
+- **Speed seconds do not split surprise seconds.** Extra seconds are a round's (Master's Manual p.100);
+  nothing says a surprise has them.
+- **Not built:** victims are not marked (they only wait, which the surprise already models), and
+  per-victim surprise ("who gains unanswered seconds against who", p.93) is left to the table. A
+  surprise in the middle of a round (p.168) is spent as ordinary seconds on the clock.
+- **While a combatant has surprise, the same buttons act on it.** The tracker row and the window row
+  draw the surprise in the shared bar (one cell per surprise second, under seconds 1-5), and
+  spendSeconds/undoSeconds/setCarryOver go to the surprise -- so an attack card's Spend Seconds does too.
+  A surpriser still spending sorts above the round.
+
+**The Combat tab.** The Off-Hand Seconds box shows the off hand's "3 of 5" and "left this round", and
+the main hand's status line ("Second 7 · 4 left", or where the surprise stands), while the actor is in
+the combat the tracker is viewing; the allowance otherwise. The creature tab had no such box and now has
+one (its `offhandSecondsCap` was already derived). Read-only. The actor's combatant is found by the actor
+itself first (a token's synthetic actor), then by id for a linked actor, as `findCombatant` does. It
+redraws from the tracker's `_onRender`, the way the window does: `refreshActorSheetClocks` re-renders
+the Combat part of every open sheet that shows the clock or showed it last time (so leaving the combat
+clears it). No hooks of its own.
+
+**Verified:** `tools/round-test.html` 123 (36 new: the rules, the views, the sheet box, and an ambush
+through the stubbed combat document -- give, spend, over-run, undo, carry toggle, end, reaction roll 3
+landing on the 5th second as the book's example does). Combat 520, derivation 507, creature 157, martial
+179 unchanged; 71 modules parse. `tools/round-preview.html` renders an ambush in the tracker and window.
+**Not verified:** anything in a running V14 -- the Surprise dialog, `startCombat` from End surprise, the
+sheets redrawing from the tracker, and the flag set to null clearing the surprise.
+
+## Weapon mods: three leftovers from the hand-off note, built (2026-09-23)
+
+**A weapon's own skills modifier reaches the Situation Mods skill rolls.** His
+`setTotalWeaponSkillMod` (sheet-worker.js:98621) totals the chosen weapon's `weaponN_skills_mod`, its
+off-hand penalty and its lore bonus for Critical, Focused Attack, Perfect Shot and the rest. The
+Situation Mods window had the last two; it now adds `getCustomizedWeapon(...).skillsMod` (his Arm
+Blade's +20%, a +3's +10%). No other roll in the port reads a weapon's skills modifier, because his
+only other reader is the weapon parry roll, which the port does not have yet.
+
+**Maximum damage maximizes a weapon's MAGICAL dice too.** His `setMagicDamageDetails` gives the mode
+ability's and Foe Strike's dice their highest under "Max" (91530, 91609) and rolls energy and divine
+dice as usual. `resolveWeaponSpecials` takes `maximize` and does exactly that.
+
+**The rest of his listing changes.** A Gravity rune moves speed, minimum speed and damage dice by one
+per full 30% of weight (neither speed under 1), and its weight reaches encumbrance -- with the rune's
+own direction rather than his arithmetic's, UPSTREAM 66. A Gravity rune's level is signed, as his is.
+Strenghthen Metal/Wood adds +5 weapon strength, +10 for the greater rune; Repair makes the strength
+"[R]" and Invulnerability (ability or rune) "[I]". combat-test +9.

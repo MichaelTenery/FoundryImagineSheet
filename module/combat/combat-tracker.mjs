@@ -5,7 +5,9 @@
 // seconds of the round (lost to a late start, spent, left, and where they stand now), the off
 // hand's seconds, and buttons to spend a second, spend several, take the last spend back, and
 // carry over what runs past the end of the round. A stopwatch at the top opens the Mr. Initiative
-// window, which lines everyone's clock up on one chart.
+// window, which lines everyone's clock up on one chart. A surpriser's row shows their surprise
+// seconds instead, before round 1 (his chart's Surprise row), with the same buttons; the Game
+// Master gives and ends a surprise from the window.
 //
 // Nothing about the tracker's own template is replaced -- the clock is added under each row after
 // Foundry has drawn it -- so a Foundry update to the tracker's layout does not have to be copied
@@ -14,7 +16,8 @@
 //==================================================================================================================
 
 import ImagineRoundClock, {
-	buildCombatantClockView, loadClockTemplates, onClockSpend, onClockUndo, onClockCarry
+	buildCombatantClockView, loadClockTemplates, onClockSpend, onClockUndo, onClockCarry,
+	refreshActorSheetClocks
 } from "../apps/round-clock.mjs";
 
 const CombatTracker = foundry.applications.sidebar.tabs.CombatTracker;
@@ -69,7 +72,9 @@ export default class ImagineCombatTracker extends CombatTracker {
 		}
 		if (tmpparts.includes("header")) { this.#addRoundClockButton(); }
 
+		// The window and the actor sheets' Combat tabs show the same clocks, and redraw with this.
 		ImagineRoundClock.refresh();
+		refreshActorSheetClocks();
 	}
 
 	// This is the function which puts the stopwatch for the Mr. Initiative window into the header's

@@ -40,6 +40,11 @@
 	{{else}}
 	<p class="empty">Nothing temporary on this weapon.</p>
 	{{/if}}
+	{{!-- @MARKER POISON COATING --}}
+	<p>{{#if coating.has}}<span class="race-chip">Poisoned: {{coating.name}}{{#if coating.form}} ({{coating.form}}){{/if}}{{#if coating.envenomed}}, {{coating.doses}} dose(s){{/if}}
+		<button type="button" class="row-button" data-action="wipeCoating" data-tooltip="Wipe it off">&times;</button></span>
+		{{else}}<span class="muted">No poison on it. Coat it from a poison's Use on the Magic &amp; Lore tab.</span>{{/if}}</p>
+	<p class="muted">{{coating.note}}</p>
 	<fieldset class="weapon-mods-group">
 		<legend>Add your own</legend>
 		<label class="row">Name <input type="text" name="temporary.name" placeholder="Oil of Sharpness, a spell's edge..."></label>

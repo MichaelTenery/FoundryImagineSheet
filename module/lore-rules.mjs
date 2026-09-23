@@ -326,7 +326,8 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 	// clause that deals Endurance damage "per" some interval has its damage over the whole duration
 	// rolled as well -- the Master's Manual's "damage numbers apply to overall Endurance during the
 	// poison's duration" (Effects of Poisons, p.103). His handler rolls the duration and leaves the
-	// per-interval damage to the table; rolling it too is a convenience the card labels, not a rule.
+	// per-interval damage to the table; here each interval is rolled and kept, to be applied to
+	// overall Endurance as it lands -- see POISON DAMAGE LANDING.
 	//
 	// DURATIONS FOLLOW HIS ROW AND THE BOOK, NOT HIS USE HANDLER. For types IV, VIII-XII and XX his
 	// doPoisonAction writes "Effects last 1d6=N hour(s)" where his own getPoisonDetails -- the text
@@ -406,10 +407,158 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 			var tmpTimes = Math.max(1, Math.floor(tmpResult.duration.seconds / tmpDamage.everySeconds));
 			var tmpDiceMatch = tmpDamage.dice.match(/^(\d+)d(\d+)$/);
 			var tmpAll = `${parseInt(tmpDiceMatch[1]) * tmpTimes}d${tmpDiceMatch[2]}`;
+			// Each interval rolled on its own and kept, so that it can be applied as it lands (see
+			// POISON DAMAGE LANDING below). The same dice, in the same order, as rolling them all at once.
+			var tmpRolls = [];
+			for (var i = 0; i < tmpTimes; i++) { tmpRolls.push(rollLoreDice(tmpDamage.dice, tmpRoll)); }
 			tmpResult.damage = { dice: tmpDamage.dice, everySeconds: tmpDamage.everySeconds, times: tmpTimes,
-			                     all: tmpAll, total: rollLoreDice(tmpAll, tmpRoll) };
+			                     all: tmpAll, total: tmpRolls.reduce((tmpSum, tmpOne) => tmpSum + tmpOne, 0), rolls: tmpRolls };
 		}
 		return tmpResult;
+	}
+
+	// @MARKER POISON DAMAGE LANDING
+	// When a poison's Endurance damage lands, and on what. The Master's Manual: the damage numbers
+	// "apply to overall Endurance during the poison's duration" (Effects of Poisons, p.103), each
+	// written "per" an interval -- "1d6 per Min" for "1d6 Min". His doPoisonAction writes the clause
+	// and rolls the duration, and applies nothing (sheet-worker.js:135358); there is no overall-
+	// Endurance figure on his sheet to apply it to.
+	//
+	// READ HERE AS: nothing lands before the poison takes effect (the potency's onset); then one
+	// interval's damage at the END of each interval of the duration -- 1d6 a minute for 3 minutes
+	// is three blows, at onset + 1, + 2 and + 3 minutes -- so the whole of it has landed when the
+	// duration ends. Onto OVERALL Endurance by the user's ruling: added to the victim's total wounds
+	// (body.overallWounds, counted in totalWounds and so toward shock), on no body area, and past
+	// no armour, hide, pain threshold or absorption -- it is inside the victim.
+
+	// This is the function which says how many of a poison's intervals have landed, tmpSince seconds
+	// after it was taken, given its rolled onset (seconds). Never more than it has.
+	export function getPoisonIntervalsDue(tmpDamage, tmpOnsetSeconds, tmpSince) {
+		if (!tmpDamage) { return 0; }
+		var tmpInto = (parseFloat(tmpSince) || 0) - (parseFloat(tmpOnsetSeconds) || 0);
+		if (tmpInto < tmpDamage.everySeconds) { return 0; }
+		return Math.min(tmpDamage.times, Math.floor(tmpInto / tmpDamage.everySeconds));
+	}
+
+	// This is the function which works out the damage of the next tmpCount intervals, when
+	// tmpApplied of them have already been applied. Returns { amount, applied, remaining, done } --
+	// applied and remaining as they stand after these.
+	export function getPoisonDamageToApply(tmpDamage, tmpApplied, tmpCount) {
+		var tmpRolls = tmpDamage?.rolls ?? [];
+		var tmpFrom = Math.max(0, Math.min(tmpRolls.length, parseInt(tmpApplied) || 0));
+		var tmpTo = Math.max(tmpFrom, Math.min(tmpRolls.length, tmpFrom + (parseInt(tmpCount) || 0)));
+		var tmpAmount = 0;
+		for (var i = tmpFrom; i < tmpTo; i++) { tmpAmount = tmpAmount + (parseInt(tmpRolls[i]) || 0); }
+		return { amount: tmpAmount, applied: tmpTo, remaining: tmpRolls.length - tmpTo, done: tmpTo >= tmpRolls.length };
+	}
+
+	// This is the function which puts damage onto overall Endurance.
+	//
+	//   tmpInput = { damage, overallWounds, totalWounds, shock, endurance }
+	//     overallWounds   what overall Endurance has already taken (body.overallWounds)
+	//     totalWounds     every wound on the victim before this, areas and overall
+	//     shock           the victim's Shock (0 is none -- an immune creature's)
+	//     endurance       the victim's whole Endurance (characteristics.endurance), for the report
+	//
+	// Returns { overallWounds, totalWounds, inShock, pastEndurance }.
+	export function applyOverallDamage(tmpInput) {
+		var tmpDamage = Math.max(0, parseInt(tmpInput.damage) || 0);
+		var tmpTotal = (parseInt(tmpInput.totalWounds) || 0) + tmpDamage;
+		var tmpShock = parseInt(tmpInput.shock) || 0;
+		var tmpEndurance = parseInt(tmpInput.endurance) || 0;
+		return {
+			overallWounds: (parseInt(tmpInput.overallWounds) || 0) + tmpDamage,
+			totalWounds: tmpTotal,
+			inShock: (tmpShock != 0) && (tmpTotal > tmpShock),
+			pastEndurance: (tmpEndurance > 0) && (tmpTotal > tmpEndurance)
+		};
+	}
+
+	// @MARKER POISON ON A WEAPON
+	// A dose of poison put on a weapon, and when a hit delivers it. His sheet has no poisoned weapon:
+	// his poison USE spends a dose and describes it, and the "on self" tick is the only victim he
+	// rolls for (usePoison, doPoisonAction; sheet-worker.js:135316). So these are the books':
+	//
+	//   THE FORMS. Ingestive "must be imbibed or introduced into the bloodstream", Contact "must
+	//   contact the skin", Gaseous "must be inhaled" (Master's Manual p.103, Poison Forms; Player's
+	//   Guide p.136). A blade can carry the first two into a wound; a gas cannot be put on one.
+	//   His own errata for the creatures' Venom (Master's Manual p.291) calls a poison delivered
+	//   by a wound "insinuative" -- a fourth word for the second of these, not a form on his sheet.
+	//
+	//   AN ENVENOMED BLADE (Mysteries of the Planes p.175, his Customize panel's "Envenomed"): a
+	//   hollow blade and a hilt that "holds 1 dose of poison per 10% additional weapon cost (up to 5
+	//   doses). When the weapon thrusts into a target and does 10 or more actual damage, then 1 dose
+	//   of poison is applied to the target." Taken exactly: a thrust, 10 or more through armour and
+	//   hide, one dose each time, up to 5 held. What was paid for is not recorded, so 5 is the cap.
+	//
+	//   A PLAIN COATING, which no book writes a rule for. READ HERE AS one dose, spent by the first
+	//   hit that does actual flesh damage (1 or more through armour, hide and absorption) in any
+	//   attack mode: that is the hit that reaches the skin or the blood, which both forms need. A
+	//   blow the armour stops entirely reaches neither, and leaves the coating on. The 10-point
+	//   threshold is the Envenomed blade's, a mechanism that squirts from the tip, and is the book's
+	//   "stuck" threshold for a thrust (Player's Guide, Getting a Weapon Stuck) -- not applied to a
+	//   smear on an edge. One dose coats once; a second dose on a coated weapon is refused rather
+	//   than stacked, and a different poison is refused until the first is wiped off.
+
+	// How many doses an Envenomed hilt holds (his "up to 5"), and the actual damage a thrust must do.
+	export const ENVENOMED_DOSES = 5;
+	export const ENVENOMED_THRESHOLD = 10;
+
+	// This is the function which says whether the weapon is Envenomed -- his panel's customization.
+	export function isEnvenomed(tmpSystem) {
+		return (tmpSystem?.custom?.customizations ?? []).includes("Envenomed");
+	}
+
+	// This is the function which says whether a dose of this poison can go onto this weapon, and
+	// what the weapon's coating is afterwards.
+	//
+	//   tmpPoison = { name, poisonType, poisonPotency, form }
+	//   tmpSystem   the weapon's system
+	//
+	// Returns { ok, reason, coating } -- coating the weapon's system.coating once the dose is on.
+	export function coatWeapon(tmpPoison, tmpSystem) {
+		var tmpForm = "" + (tmpPoison?.form ?? "");
+		if (tmpForm == "Gaseous") {
+			return { ok: false, reason: "A gaseous poison must be inhaled; it cannot be put on a weapon.", coating: null };
+		}
+		var tmpHave = tmpSystem?.coating ?? {};
+		var tmpDoses = parseInt(tmpHave.doses) || 0;
+		var tmpSame = tmpDoses > 0 && tmpHave.name == tmpPoison.name;
+		if (tmpDoses > 0 && !tmpSame) {
+			return { ok: false, reason: `It is already coated with ${tmpHave.name}. Wipe that off first (weapon mods).`, coating: null };
+		}
+		var tmpMost = isEnvenomed(tmpSystem) ? ENVENOMED_DOSES : 1;
+		if (tmpDoses >= tmpMost) {
+			return { ok: false, reason: tmpMost == 1 ? `It is already coated with ${tmpHave.name}; a second dose adds nothing.`
+				: `Its hilt already holds ${tmpMost} doses, the most an Envenomed blade can.`, coating: null };
+		}
+		return { ok: true, reason: "", coating: { name: tmpPoison.name, poisonType: tmpPoison.poisonType ?? "",
+			poisonPotency: tmpPoison.poisonPotency ?? "", form: tmpForm, doses: tmpDoses + 1 } };
+	}
+
+	// This is the function which says whether a hit delivers the weapon's poison.
+	//
+	//   tmpInput = { coating, envenomed, mode, fleshDamage }
+	//     mode          the attack's mode (thrust, cut, smash, missile)
+	//     fleshDamage   what got through armour, hide and absorption onto the area
+	//
+	// Returns { delivers, remaining, reason } -- remaining the doses left on the weapon.
+	export function resolveCoatingDelivery(tmpInput) {
+		var tmpDoses = parseInt(tmpInput.coating?.doses) || 0;
+		var tmpFlesh = parseInt(tmpInput.fleshDamage) || 0;
+		if (tmpDoses <= 0) { return { delivers: false, remaining: 0, reason: "not poisoned" }; }
+		if (tmpInput.envenomed) {
+			if (tmpInput.mode != "thrust") {
+				return { delivers: false, remaining: tmpDoses, reason: "an Envenomed blade delivers only on a thrust" };
+			}
+			if (tmpFlesh < ENVENOMED_THRESHOLD) {
+				return { delivers: false, remaining: tmpDoses,
+				         reason: `an Envenomed blade needs ${ENVENOMED_THRESHOLD} or more actual damage (${tmpFlesh} got through)` };
+			}
+			return { delivers: true, remaining: tmpDoses - 1, reason: "" };
+		}
+		if (tmpFlesh < 1) { return { delivers: false, remaining: tmpDoses, reason: "nothing got through to the flesh; the coating stays on" }; }
+		return { delivers: true, remaining: tmpDoses - 1, reason: "" };
 	}
 
 	// This is the function which writes what resolvePoisonOnVictim worked out as the lines of a chat
@@ -427,8 +576,8 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 		}
 		if (tmpResult.damage) {
 			tmpLines.push(`Endurance damage over the whole of it: ${tmpResult.damage.times} x ${tmpResult.damage.dice}`
-				+ ` (${tmpResult.damage.all}) = ${tmpResult.damage.total} (rolled here for convenience; `
-				+ `applies to overall Endurance).`);
+				+ ` (${tmpResult.damage.all}) = ${tmpResult.damage.total}, to overall Endurance, one interval's`
+				+ ` as each ends.`);
 		}
 		return tmpLines.filter(tmpLine => tmpLine);
 	}

@@ -332,16 +332,62 @@ let tmpvictim = L.resolvePoisonOnVictim({ type: "IX", potency: "L", resistance: 
 check("type IX failed: onset 1d4 minutes, lasting 1d6 MINUTES (his row and the book, not his handler's hours)",
 	[tmpvictim.onset.text, tmpvictim.duration.text], ["1d4=2 minutes", "1d6=3 minutes"]);
 check("...1d6 a minute for 3 minutes is 3d6 over the whole of it", tmpvictim.damage,
-	{ dice: "1d6", everySeconds: 60, times: 3, all: "3d6", total: 6 });
+	{ dice: "1d6", everySeconds: 60, times: 3, all: "3d6", total: 6, rolls: [1, 2, 3] });
 check("...as the card writes it", L.describePoisonOnVictim(tmpvictim), ["Failed: 1d6 Base Endurance damage per 1 minute.",
 	"Takes effect in 1d4=2 minutes.", "Lasts 1d6=3 minutes.",
-	"Endurance damage over the whole of it: 3 x 1d6 (3d6) = 6 (rolled here for convenience; applies to overall Endurance)."]);
+	"Endurance damage over the whole of it: 3 x 1d6 (3d6) = 6, to overall Endurance, one interval's as each ends."]);
 tmpvictim = L.resolvePoisonOnVictim({ type: "XIII", potency: "M", resistance: { resisted: false } }, dice(1, 2, ...Array(12).fill(1)));
 check("type XIII failed: 1d4 every 10 seconds for 2 minutes is 12d4", [tmpvictim.damage.times, tmpvictim.damage.all, tmpvictim.damage.total], [12, "12d4", 12]);
 check("type XIX failed: death, at once", L.describePoisonOnVictim(L.resolvePoisonOnVictim({ type: "XIX", potency: "L", resistance: { resisted: false } }, dice(2))),
 	["Failed: death.", "Takes effect in 1d4=2 minutes.", "Death is immediate."]);
 check("type XX failed: death within its minutes", L.describePoisonOnVictim(L.resolvePoisonOnVictim({ type: "XX", potency: "L", resistance: { resisted: false } }, dice(1, 4)))[2],
 	"Death comes within 1d6=4 minutes.");
+
+// --- poison damage landing, and overall Endurance (lore-rules.mjs, POISON DAMAGE LANDING) ------------
+var tmpdmg = { dice: "1d6", everySeconds: 60, times: 3, rolls: [4, 1, 6] };
+check("nothing lands before the onset, or before the first interval ends",
+	[L.getPoisonIntervalsDue(tmpdmg, 120, 0), L.getPoisonIntervalsDue(tmpdmg, 120, 179)], [0, 0]);
+check("...one at onset + 1 minute, two at + 2, never more than it has",
+	[L.getPoisonIntervalsDue(tmpdmg, 120, 180), L.getPoisonIntervalsDue(tmpdmg, 120, 300), L.getPoisonIntervalsDue(tmpdmg, 120, 99999)], [1, 3, 3]);
+check("no damage, no intervals", L.getPoisonIntervalsDue(null, 0, 500), 0);
+check("the first two intervals: 4 + 1", L.getPoisonDamageToApply(tmpdmg, 0, 2), { amount: 5, applied: 2, remaining: 1, done: false });
+check("...then the last, and it is done", L.getPoisonDamageToApply(tmpdmg, 2, 5), { amount: 6, applied: 3, remaining: 0, done: true });
+check("...and once done nothing more comes off it", L.getPoisonDamageToApply(tmpdmg, 3, 1), { amount: 0, applied: 3, remaining: 0, done: true });
+check("the rolls kept sum to the total", L.resolvePoisonOnVictim({ type: "XIII", potency: "M", resistance: { resisted: false } },
+	dice(1, 2, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4)).damage.rolls, [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]);
+check("overall Endurance: onto the total, not an area; shock when past it",
+	L.applyOverallDamage({ damage: 7, overallWounds: 3, totalWounds: 40, shock: 45, endurance: 60 }),
+	{ overallWounds: 10, totalWounds: 47, inShock: true, pastEndurance: false });
+check("...no shock for a Shock of 0 (immune); past the whole Endurance said",
+	L.applyOverallDamage({ damage: 5, overallWounds: 0, totalWounds: 20, shock: 0, endurance: 22 }),
+	{ overallWounds: 5, totalWounds: 25, inShock: false, pastEndurance: true });
+check("...a negative figure puts nothing on", L.applyOverallDamage({ damage: -4, overallWounds: 2, totalWounds: 2, shock: 30 }).overallWounds, 2);
+
+// --- poison on a weapon (lore-rules.mjs, POISON ON A WEAPON) ------------------------------------------
+var tmpivc = { name: "Type: IV, Potency: C", poisonType: "IV", poisonPotency: "C", form: "Contact" };
+var tmpsword = { custom: { customizations: [] }, coating: { name: "", doses: 0 } };
+var tmpenv = { custom: { customizations: ["Envenomed"] }, coating: { name: "", doses: 0 } };
+check("a gas cannot be put on a weapon", L.coatWeapon({ ...tmpivc, form: "Gaseous" }, tmpsword).ok, false);
+check("a contact poison coats a plain sword with one dose", L.coatWeapon(tmpivc, tmpsword).coating,
+	{ name: "Type: IV, Potency: C", poisonType: "IV", poisonPotency: "C", form: "Contact", doses: 1 });
+check("...a second dose on a coated sword adds nothing", L.coatWeapon(tmpivc, { ...tmpsword, coating: { name: tmpivc.name, doses: 1 } }).ok, false);
+check("...a different poison waits for the first to be wiped off",
+	L.coatWeapon({ ...tmpivc, name: "Type: IX, Potency: L" }, { ...tmpsword, coating: { name: tmpivc.name, doses: 1 } }).ok, false);
+check("an Envenomed hilt takes a dose at a time, up to 5",
+	[L.isEnvenomed(tmpenv), L.coatWeapon(tmpivc, { ...tmpenv, coating: { name: tmpivc.name, doses: 4 } }).coating.doses,
+	 L.coatWeapon(tmpivc, { ...tmpenv, coating: { name: tmpivc.name, doses: 5 } }).ok], [true, 5, false]);
+var tmpcoat1 = { name: tmpivc.name, doses: 1 };
+check("a coating goes in with any hit that reaches the flesh, and is spent",
+	L.resolveCoatingDelivery({ coating: tmpcoat1, envenomed: false, mode: "cut", fleshDamage: 1 }), { delivers: true, remaining: 0, reason: "" });
+check("...a blow the armour stops leaves it on",
+	L.resolveCoatingDelivery({ coating: tmpcoat1, envenomed: false, mode: "thrust", fleshDamage: 0 }).delivers, false);
+check("...an uncoated weapon delivers nothing", L.resolveCoatingDelivery({ coating: { doses: 0 }, fleshDamage: 30 }).reason, "not poisoned");
+var tmpcoat3 = { name: tmpivc.name, doses: 3 };
+check("Envenomed: a thrust of 10 or more delivers one of its doses (Mysteries of the Planes p.175)",
+	L.resolveCoatingDelivery({ coating: tmpcoat3, envenomed: true, mode: "thrust", fleshDamage: 10 }), { delivers: true, remaining: 2, reason: "" });
+check("...9 through is not enough, and a cut never delivers",
+	[L.resolveCoatingDelivery({ coating: tmpcoat3, envenomed: true, mode: "thrust", fleshDamage: 9 }).delivers,
+	 L.resolveCoatingDelivery({ coating: tmpcoat3, envenomed: true, mode: "cut", fleshDamage: 25 }).delivers], [false, false]);
 
 const failed = results.filter(r => r.startsWith("FAIL")).length;
 document.getElementById("out").textContent =

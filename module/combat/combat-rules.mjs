@@ -13,6 +13,7 @@
 // the bug is recorded in docs/UPSTREAM-ISSUES.md for him to confirm.
 //==================================================================================================================
 
+import { getGravityRune } from "../weapon-custom-rules.mjs";
 import {
 	ATTACK_CHARTS, ATTACK_SKILL_ORDER, BODY_CHARTS,
 	ARMOR_BLOCKING, ARMOR_DAMAGE_DIVIDERS, ARMOR_MATERIAL_RANK,
@@ -2417,9 +2418,12 @@ export const MODE_DAMAGE_TYPES = {
 			var tmpmagicbonus = parseInt(tmpsys.magicBonus) || 0;
 			var tmpqualitymulti = (tmpmagicbonus == 0) ? getQualityWeightMultiplier(tmpsys.quality) : 1;
 
+			// A Gravity rune adds or takes off weight -- his getWeaponWeightListingChanges, with the
+			// rune's own words for which way (getGravityRune in weapon-custom-rules.mjs).
 			var tmpweight = (parseFloat(tmpsys.weight) || 0)
 			              * getMagicWeightMultiplier(tmpsys.magicBonus)
 			              * tmpqualitymulti
+			              * getGravityRune(tmpsys).weightMulti
 			              * (tmpsys.quantity ?? 1);
 			if (tmpitem.type == "weapon") { tmpweapons = tmpweapons + tmpweight; }
 			else                          { tmpscaled  = tmpscaled  + tmpweight; }

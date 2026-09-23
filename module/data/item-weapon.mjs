@@ -186,6 +186,21 @@ export default class ImagineWeaponData extends foundry.abstract.TypeDataModel {
 				lasts:  new fields.StringField({ required: true, initial: "" })
 			}), { initial: [] }),
 
+			// @MARKER POISON COATING
+			// A poison put on the weapon -- a dose spent from the Magic & Lore tab's poison USE ("Coat
+			// a weapon"). His sheet has no such thing; the rules are the books' and are in
+			// lore-rules.mjs (POISON ON A WEAPON): a plain coating is one dose, delivered by the first
+			// hit that does actual flesh damage; an Envenomed blade's hilt holds up to 5 doses, one
+			// delivered by each thrust that does 10 or more (Mysteries of the Planes p.175). doses 0 is
+			// no coating. poisonType and poisonPotency are the poison's, as a poison item carries them.
+			coating: new fields.SchemaField({
+				name:          new fields.StringField({ required: true, initial: "" }),
+				poisonType:    new fields.StringField({ required: true, initial: "" }),
+				poisonPotency: new fields.StringField({ required: true, initial: "" }),
+				form:          new fields.StringField({ required: true, initial: "" }),
+				doses:         new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
+			}),
+
 			// Second Weapon Knowledge and Lore are NOT stored here. His per-weapon flags
 			// (weaponN_2weapknow / weaponN_2weaplore) were only ever set from the character's own
 			// lists of weapon names, so the lists live on the character and the flags are worked

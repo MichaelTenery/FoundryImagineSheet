@@ -5,6 +5,13 @@
 	<header class="round-clock-head">
 		<span class="round-number">{{#if round}}Round {{round}}{{else}}Not started{{/if}}</span>
 		<span class="round-now{{#if over}} over{{/if}}">{{nowText}}</span>
+		{{!-- His chart's Surprise row: seconds gained by surprising, spent before initiative is rolled. --}}
+		{{#if canSurprise}}
+		<button type="button" data-action="giveSurprise" data-tooltip="Give chosen combatants 1d4+1 seconds of unanswered action before initiative is rolled">
+			<i class="fa-solid fa-user-ninja" inert></i> Surprise&hellip;</button>
+		{{#if surprise}}<button type="button" data-action="endSurprise" data-tooltip="End the surprise: an action still under way carries into the round, and unspent surprise seconds are gone">
+			<i class="fa-solid fa-flag-checkered" inert></i> End surprise</button>{{/if}}
+		{{/if}}
 		{{#if isGM}}{{#if round}}
 		<button type="button" data-action="nextRound"><i class="fa-solid fa-forward-step" inert></i> Next round</button>
 		{{/if}}{{/if}}
@@ -25,9 +32,9 @@
 			</div>
 
 			{{#each rows}}
-			<div class="clock-chart-row{{#if current}} current{{/if}}{{#if done}} done{{/if}}" data-combatant-id="{{id}}">
+			<div class="clock-chart-row{{#if current}} current{{/if}}{{#if done}} done{{/if}}{{#if surprise}} surprise{{/if}}" data-combatant-id="{{id}}">
 				<span class="clock-name">{{#if img}}<img src="{{img}}" alt="">{{/if}}<span>{{name}}</span></span>
-				<span class="clock-split">{{split}}</span>
+				<span class="clock-split">{{#if surprise}}<i class="fa-solid fa-user-ninja" data-tooltip="Surprise: seconds before initiative is rolled" inert></i>{{else}}{{split}}{{/if}}</span>
 				{{#if ready}}{{> imagine-clock-bar}}{{else}}<span class="clock-unrolled">{{status}}</span>{{/if}}
 				<span class="clock-off{{#if offhand.over}} over{{/if}}">{{#if offhand}}<span class="pips" data-tooltip="{{offhand.title}}">{{#each offhand.pips}}<i class="pip {{state}}"></i>{{/each}}</span>
 					{{offhand.text}}{{/if}}</span>
@@ -62,6 +69,7 @@
 		<span><i class="clock-cell spent"></i><i class="clock-cell spent alt"></i> spent</span>
 		<span><i class="clock-cell free now"></i> acts now</span>
 		<span><i class="clock-cell free extra"></i> extra second</span>
+		{{#if surprise}}<span><i class="clock-cell over"></i> surprise action running into the round</span>{{/if}}
 	</p>
 	{{else}}
 	<p class="round-clock-empty">No combat is running. Start one from the Combat tracker, and the chart fills in as

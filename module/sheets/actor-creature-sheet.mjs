@@ -24,6 +24,7 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
          learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
 import { parseMartialList, getStanceSkillBonus } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
+import { getActorSheetClock } from "../apps/round-clock.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -141,6 +142,12 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		// The martial arts panel, the same partial and view the character's Combat tab uses.
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
 		await loadMartialTemplates();
+
+		// @MARKER ROUND CLOCK
+		// The round clock on the Combat tab, as the character sheet shows it: live in the combat on
+		// show, the off hand's plain allowance otherwise. See the character sheet's note.
+		tmpcontext.roundClock = getActorSheetClock(this.document);
+		this._imagineClockShown = tmpcontext.roundClock.inCombat;
 
 		return tmpcontext;
 	}

@@ -5,7 +5,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "None",
       "save": "Magic",
@@ -25,7 +25,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Non-Evil",
       "save": "Magic",
@@ -45,7 +45,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Non-Good",
       "save": "Magic",
@@ -65,7 +65,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Neutral",
       "save": "Control",
@@ -85,7 +85,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Neutral",
       "save": "None",
@@ -105,7 +105,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Non-Evil",
       "save": "Magic",
@@ -125,7 +125,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Non-Evil",
       "save": "Magic",
@@ -145,7 +145,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Non-Good",
       "save": "Magic",
@@ -165,7 +165,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "Non-Good",
       "save": "Magic",
@@ -185,7 +185,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "None",
       "save": "Magic",
@@ -205,7 +205,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "alignment": "None",
       "save": "Magic",
@@ -225,7 +225,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "Neutral",
       "save": "None",
@@ -245,7 +245,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "None",
       "save": "None",
@@ -265,7 +265,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "None",
       "save": "None",
@@ -285,7 +285,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "Evil",
       "save": "Magic",
@@ -305,7 +305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "None",
       "save": "Magic",
@@ -325,7 +325,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "Good",
       "save": "Magic",
@@ -345,7 +345,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "None",
       "save": "Magic",
@@ -365,7 +365,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "Neutral",
       "save": "Magic",
@@ -385,7 +385,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "None",
       "save": "None",
@@ -405,7 +405,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "None",
       "save": "Magic",
@@ -425,7 +425,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "alignment": "None",
       "save": "Magic",
@@ -445,7 +445,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "Neutral",
       "save": "Control",
@@ -465,7 +465,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "None",
       "save": "None",
@@ -485,7 +485,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "Good",
       "save": "None",
@@ -505,7 +505,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "Evil",
       "save": "None",
@@ -525,7 +525,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "Neutral",
       "save": "Control",
@@ -545,7 +545,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "None",
       "save": "Magic",
@@ -565,7 +565,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "None",
       "save": "Magic",
@@ -585,7 +585,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "None",
       "save": "None",
@@ -605,7 +605,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "alignment": "None",
       "save": "None",
@@ -625,7 +625,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "Neutral",
       "save": "Control",
@@ -645,7 +645,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "None",
       "save": "None",
@@ -665,7 +665,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "Neutral",
       "save": "Magic",
@@ -685,7 +685,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "Evil",
       "save": "Magic",
@@ -705,7 +705,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "Good",
       "save": "Magic",
@@ -725,7 +725,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "None",
       "save": "Control",
@@ -745,7 +745,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "Neutral",
       "save": "None",
@@ -765,7 +765,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "None",
       "save": "None",
@@ -785,7 +785,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "alignment": "None",
       "save": "None",
@@ -805,7 +805,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "alignment": "Evil",
       "save": "Magic",
@@ -825,7 +825,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "alignment": "Neutral",
       "save": "Control",
@@ -845,7 +845,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "alignment": "None",
       "save": "None",
@@ -865,7 +865,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -905,7 +905,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -925,7 +925,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "alignment": "Good",
       "save": "Control",
@@ -965,7 +965,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -985,7 +985,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "alignment": "None",
       "save": "Control",
@@ -1005,7 +1005,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "alignment": "Neutral",
       "save": "None",
@@ -1045,7 +1045,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "alignment": "None",
       "save": "None",
@@ -1065,7 +1065,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "alignment": "None",
       "save": "Magic",
@@ -1085,7 +1085,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "alignment": "None",
       "save": "Control",
@@ -1145,7 +1145,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "alignment": "Evil",
       "save": "Magic",
@@ -1165,7 +1165,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "alignment": "Neutral",
       "save": "Magic",
@@ -1205,7 +1205,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "alignment": "Good",
       "save": "None",
@@ -1225,7 +1225,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "alignment": "Non-Evil",
       "save": "Control",
@@ -1245,7 +1245,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "alignment": "Evil",
       "save": "None",
@@ -1305,7 +1305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "alignment": "Non-Good",
       "save": "Control",
@@ -1325,7 +1325,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "alignment": "Non-Neutral",
       "save": "None",
@@ -1345,7 +1345,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "None",
       "save": "Control",
@@ -1365,7 +1365,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "Evil",
       "save": "Magic",
@@ -1385,7 +1385,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "None",
       "save": "Control",
@@ -1405,7 +1405,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "Non-Good",
       "save": "Control",
@@ -1425,7 +1425,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "Non-Evil",
       "save": "Control",
@@ -1445,7 +1445,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "Non-Evil",
       "save": "Control",
@@ -1465,7 +1465,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "None",
       "save": "None",
@@ -1505,7 +1505,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "alignment": "Neutral",
       "save": "None",
@@ -1525,7 +1525,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "alignment": "None",
       "save": "Control",
@@ -1565,7 +1565,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "alignment": "None",
       "save": "Control",
@@ -1585,7 +1585,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "alignment": "Evil",
       "save": "Control",
@@ -1605,7 +1605,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "alignment": "Non-Neutral",
       "save": "Magic",
@@ -1625,7 +1625,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "alignment": "Non-Good",
       "save": "Control",
@@ -1645,7 +1645,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "alignment": "None",
       "save": "None",
@@ -1665,7 +1665,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "alignment": "None",
       "save": "Magic",
@@ -1725,7 +1725,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "Evil",
       "save": "Magic",
@@ -1745,7 +1745,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "Good",
       "save": "Varies",
@@ -1765,7 +1765,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -1785,7 +1785,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "None",
       "save": "Control",
@@ -1805,7 +1805,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "None",
       "save": "None",
@@ -1825,7 +1825,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "Good",
       "save": "Magic",
@@ -1845,7 +1845,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "Evil",
       "save": "Varies",
@@ -1865,7 +1865,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "None",
       "save": "None",
@@ -1885,7 +1885,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "alignment": "None",
       "save": "None",
@@ -1945,7 +1945,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "alignment": "Non-Good",
       "save": "Control",
@@ -1965,7 +1965,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "alignment": "Evil",
       "save": "None",
@@ -1985,7 +1985,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "alignment": "Evil",
       "save": "None",
@@ -2005,7 +2005,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "alignment": "Non-Evil",
       "save": "Control",
@@ -2185,7 +2185,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "alignment": "None",
       "save": "Control",
@@ -2305,7 +2305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "alignment": "None",
       "save": "None",
@@ -2385,7 +2385,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "alignment": "None",
       "save": "Control",
@@ -2405,7 +2405,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "alignment": "Non-Good",
       "save": "Control",
@@ -3725,7 +3725,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 2,
       "alignment": "None",
       "save": "None",
@@ -3745,7 +3745,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 3,
       "alignment": "None",
       "save": "Magic",
@@ -3765,7 +3765,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 4,
       "alignment": "None",
       "save": "Magic",
@@ -3785,7 +3785,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -3805,7 +3805,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 6,
       "alignment": "Non-Evil",
       "save": "Magic",
@@ -3825,7 +3825,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 7,
       "alignment": "None",
       "save": "Magic",
@@ -3845,7 +3845,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 8,
       "alignment": "Non-Neutral",
       "save": "None",
@@ -3865,7 +3865,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 9,
       "alignment": "Non-Evil",
       "save": "Magic",
@@ -3885,7 +3885,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -4045,7 +4045,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 1,
       "alignment": "Neutral",
       "save": "Magic",
@@ -4065,7 +4065,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 2,
       "alignment": "Neutral",
       "save": "Magic",
@@ -4085,7 +4085,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 3,
       "alignment": "Neutral",
       "save": "Magic",
@@ -4105,7 +4105,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 3,
       "alignment": "Neutral",
       "save": "Magic",
@@ -4125,7 +4125,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 3,
       "alignment": "Neutral",
       "save": "Magic",
@@ -4145,7 +4145,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 3,
       "alignment": "Neutral",
       "save": "Control",
@@ -4165,7 +4165,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 4,
       "alignment": "None",
       "save": "Magic",
@@ -4185,7 +4185,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 4,
       "alignment": "Neutral",
       "save": "Control",
@@ -4205,7 +4205,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 4,
       "alignment": "Neutral",
       "save": "Magic",
@@ -4225,7 +4225,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -4245,7 +4245,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -4265,7 +4265,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 6,
       "alignment": "Neutral",
       "save": "Control",
@@ -4285,7 +4285,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 6,
       "alignment": "Neutral",
       "save": "Control",
@@ -4305,7 +4305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 6,
       "alignment": "Neutral",
       "save": "Control",
@@ -4325,7 +4325,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 7,
       "alignment": "Neutral",
       "save": "Control",
@@ -4385,7 +4385,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 8,
       "alignment": "Neutral",
       "save": "Magic",
@@ -4405,7 +4405,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 8,
       "alignment": "None",
       "save": "Magic",
@@ -4465,7 +4465,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 9,
       "alignment": "Neutral",
       "save": "Control",
@@ -4525,7 +4525,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 10,
       "alignment": "Neutral",
       "save": "Control",
@@ -4545,7 +4545,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 10,
       "alignment": "None",
       "save": "Control",
@@ -4565,7 +4565,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 10,
       "alignment": "None",
       "save": "None",
@@ -4665,7 +4665,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 11,
       "alignment": "Neutral",
       "save": "Control",
@@ -4705,7 +4705,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 12,
       "alignment": "None",
       "save": "Control",
@@ -4825,7 +4825,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 2,
       "alignment": "None",
       "save": "None",
@@ -4845,7 +4845,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 3,
       "alignment": "None",
       "save": "None",
@@ -4865,7 +4865,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 3,
       "alignment": "Evil",
       "save": "Magic",
@@ -4885,7 +4885,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 4,
       "alignment": "None",
       "save": "Magic",
@@ -4905,7 +4905,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -4925,7 +4925,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -4945,7 +4945,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 5,
       "alignment": "None",
       "save": "Magic",
@@ -4965,7 +4965,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 6,
       "alignment": "Evil",
       "save": "Magic",
@@ -4985,7 +4985,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 7,
       "alignment": "None",
       "save": "Magic",
@@ -5005,7 +5005,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 7,
       "alignment": "Evil",
       "save": "Magic",
@@ -5025,7 +5025,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 8,
       "alignment": "None",
       "save": "None",
@@ -5045,7 +5045,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 8,
       "alignment": "None",
       "save": "Control",
@@ -5085,7 +5085,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 8,
       "alignment": "Evil",
       "save": "Magic",
@@ -5105,7 +5105,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 8,
       "alignment": "Good",
       "save": "Magic",
@@ -5125,7 +5125,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 9,
       "alignment": "Non-Good",
       "save": "None",
@@ -5145,7 +5145,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 9,
       "alignment": "None",
       "save": "Magic",
@@ -5165,7 +5165,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 9,
       "alignment": "Evil",
       "save": "Disease",
@@ -5185,7 +5185,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 9,
       "alignment": "Evil",
       "save": "None",
@@ -5205,7 +5205,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -5225,7 +5225,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -5245,7 +5245,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 10,
       "alignment": "Evil",
       "save": "Magic",
@@ -5265,7 +5265,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 10,
       "alignment": "Good",
       "save": "None",
@@ -5285,7 +5285,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -5305,7 +5305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -5425,7 +5425,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 13,
       "alignment": "None",
       "save": "Magic",
@@ -5445,7 +5445,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 13,
       "alignment": "None",
       "save": "Magic",
@@ -6045,7 +6045,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 1,
       "alignment": "None",
       "save": "Magic",
@@ -6065,7 +6065,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 1,
       "alignment": "None",
       "save": "Magic",
@@ -6085,7 +6085,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 2,
       "alignment": "Neutral",
       "save": "None",
@@ -6105,7 +6105,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 3,
       "alignment": "None",
       "save": "Magic",
@@ -6125,7 +6125,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 4,
       "alignment": "None",
       "save": "Magic",
@@ -6145,7 +6145,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "alignment": "Non-Neutral",
       "save": "None",
@@ -6165,7 +6165,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "alignment": "Neutral",
       "save": "None",
@@ -6185,7 +6185,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "alignment": "Non-Neutral",
       "save": "None",
@@ -6205,7 +6205,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "alignment": "None",
       "save": "None",
@@ -6225,7 +6225,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "alignment": "None",
       "save": "None",
@@ -6245,7 +6245,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 6,
       "alignment": "None",
       "save": "Magic",
@@ -6265,7 +6265,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 6,
       "alignment": "None",
       "save": "Magic",
@@ -6285,7 +6285,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 7,
       "alignment": "None",
       "save": "Magic",
@@ -6305,7 +6305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 8,
       "alignment": "None",
       "save": "Magic",
@@ -6325,7 +6325,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 8,
       "alignment": "Neutral",
       "save": "Magic",
@@ -6345,7 +6345,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 8,
       "alignment": "None",
       "save": "Magic",
@@ -6365,7 +6365,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 8,
       "alignment": "None",
       "save": "None",
@@ -6425,7 +6425,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -6465,7 +6465,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -6505,7 +6505,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 10,
       "alignment": "Neutral",
       "save": "Magic",
@@ -6585,7 +6585,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 12,
       "alignment": "Neutral",
       "save": "None",
@@ -6605,7 +6605,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 12,
       "alignment": "None",
       "save": "None",
@@ -6905,7 +6905,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 2,
       "alignment": "Non-Evil",
       "save": "None",
@@ -6925,7 +6925,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 2,
       "alignment": "None",
       "save": "None",
@@ -6945,7 +6945,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 3,
       "alignment": "None",
       "save": "None",
@@ -6965,7 +6965,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 3,
       "alignment": "None",
       "save": "None",
@@ -6985,7 +6985,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 4,
       "alignment": "None",
       "save": "None",
@@ -7005,7 +7005,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 4,
       "alignment": "Neutral",
       "save": "Control",
@@ -7025,7 +7025,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "alignment": "Good",
       "save": "None",
@@ -7045,7 +7045,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "alignment": "Evil",
       "save": "None",
@@ -7105,7 +7105,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "alignment": "None",
       "save": "None",
@@ -7125,7 +7125,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "alignment": "Evil",
       "save": "Magic",
@@ -7145,7 +7145,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "alignment": "None",
       "save": "None",
@@ -7185,7 +7185,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "alignment": "None",
       "save": "None",
@@ -7205,7 +7205,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "alignment": "None",
       "save": "None",
@@ -7245,7 +7245,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 7,
       "alignment": "Evil",
       "save": "Magic",
@@ -7265,7 +7265,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 7,
       "alignment": "Good",
       "save": "None",
@@ -7285,7 +7285,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 7,
       "alignment": "Evil",
       "save": "Magic",
@@ -7305,7 +7305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "alignment": "None",
       "save": "Control",
@@ -7405,7 +7405,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "alignment": "None",
       "save": "None",
@@ -7425,7 +7425,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "alignment": "None",
       "save": "None",
@@ -7465,7 +7465,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 9,
       "alignment": "None",
       "save": "None",
@@ -7505,7 +7505,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "alignment": "Good",
       "save": "None",
@@ -7525,7 +7525,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "alignment": "None",
       "save": "None",
@@ -7565,7 +7565,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "alignment": "None",
       "save": "None",
@@ -7585,7 +7585,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "alignment": "None",
       "save": "Magic",
@@ -7625,7 +7625,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 12,
       "alignment": "None",
       "save": "None",
@@ -7805,7 +7805,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 3,
       "alignment": "Good",
       "save": "None",
@@ -7825,7 +7825,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 3,
       "alignment": "Evil",
       "save": "None",
@@ -7845,7 +7845,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 4,
       "alignment": "None",
       "save": "None",
@@ -7885,7 +7885,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 6,
       "alignment": "None",
       "save": "None",
@@ -7905,7 +7905,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 6,
       "alignment": "Good",
       "save": "None",
@@ -7925,7 +7925,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 6,
       "alignment": "Good",
       "save": "Magic",
@@ -7945,7 +7945,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 6,
       "alignment": "Evil",
       "save": "Varies",
@@ -7965,7 +7965,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 6,
       "alignment": "Evil",
       "save": "None",
@@ -8025,7 +8025,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 8,
       "alignment": "None",
       "save": "None",
@@ -8045,7 +8045,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 8,
       "alignment": "None",
       "save": "Control",
@@ -8065,7 +8065,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 8,
       "alignment": "Good",
       "save": "None",
@@ -8085,7 +8085,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 8,
       "alignment": "Evil",
       "save": "None",
@@ -8105,7 +8105,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 9,
       "alignment": "Good",
       "save": "None",
@@ -8125,7 +8125,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 9,
       "alignment": "Evil",
       "save": "None",
@@ -8185,7 +8185,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 10,
       "alignment": "Good",
       "save": "None",
@@ -8225,7 +8225,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 10,
       "alignment": "Evil",
       "save": "None",
@@ -8265,7 +8265,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 12,
       "alignment": "Good",
       "save": "None",
@@ -8305,7 +8305,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 12,
       "alignment": "Good",
       "save": "None",
@@ -8325,7 +8325,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 12,
       "alignment": "Evil",
       "save": "None",
@@ -8345,7 +8345,7 @@
     "system": {
       "subsystem": "divine",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 12,
       "alignment": "Evil",
       "save": "None",

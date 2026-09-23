@@ -61,9 +61,11 @@ globalThis.Combatant = class {
 		const changes = expand(data);
 		if ((await this._preUpdate(changes, options, game.user)) === false) { return; }
 		if ("initiative" in changes) { this.initiative = changes.initiative; }
-		if (changes.flags?.["imagine-rpg"]?.clock !== undefined) {
-			this.flags["imagine-rpg"] ??= {};
-			this.flags["imagine-rpg"].clock = JSON.parse(JSON.stringify(changes.flags["imagine-rpg"].clock));
+		for (const key of ["clock", "surprise"]) {
+			if (changes.flags?.["imagine-rpg"]?.[key] !== undefined) {
+				this.flags["imagine-rpg"] ??= {};
+				this.flags["imagine-rpg"][key] = JSON.parse(JSON.stringify(changes.flags["imagine-rpg"][key]));
+			}
 		}
 		return this;
 	}
@@ -80,6 +82,8 @@ globalThis.Combat = class {
 	}
 	get turns() { return [...this.list].sort(this._sortCombatants); }
 	canUserModify() { return true; }
+	get started() { return this.round > 0; }
+	async startCombat() { this.round = 1; this.turn = 0; return this; }
 	async update(data) { Object.assign(this, data); }
 	async resetAll() { for (const c of this.list) { c.initiative = null; } }   // flags untouched, as Foundry's
 	async nextRound() { this.round = this.round + 1; return this; }
@@ -336,6 +340,115 @@ check("Orgo has spent two seconds before the Game Master steps in", [orgo.initia
 await orgo.update({ initiative: 4 });
 check("a typed initiative starts the clock again from it", [orgo.flags["imagine-rpg"].clock.spent, orgo.flags["imagine-rpg"].clock.rolled,
 	D.getCombatantClockState(orgo).ticks[D.getCombatantClockState(orgo).next].label], [[], 4, "4"]);
+
+// --- surprise: his chart's Surprise row (Player's Guide p.168-169, Master's Manual pp.71, 93, 100) ---
+check("1d4+1 is two to five; five is the most (a Surprise Attack critical is 'the full 5 seconds')",
+	[R.getSurpriseSeconds(2), R.getSurpriseSeconds(5), R.getSurpriseSeconds(7), R.getSurpriseSeconds(-2), R.getSurpriseSeconds("3")], [2, 5, 5, 0, 3]);
+check("the dice and the cap", [R.SURPRISE_DICE, R.MAX_SURPRISE_SECONDS], ["1d4+1", 5]);
+check("a surprise of 0 is none", [R.isSurpriseActive(R.newSurprise(0)), R.isSurpriseActive(R.newSurprise(3)), R.isSurpriseActive(null)], [false, true, false]);
+const surpriseOf = (seconds, spends = []) => {
+	let x = R.newSurprise(seconds);
+	for (const [sec, hand, label] of spends) { x = R.addSurpriseSpend(x, sec, hand, label); }
+	return x;
+};
+const sstates = (st) => st.ticks.map(t => t.state[0]).join("");   // s(pent) f(ree) o(ver)
+let sp = R.resolveSurprise(surpriseOf(4));
+check("four surprise seconds: S1 to S4, all free, standing on S1",
+	[sp.active, sp.ticks.map(t => t.label), sstates(sp), sp.ticks[0].now, sp.left, sp.done], [true, ["S1", "S2", "S3", "S4"], "ffff", true, 4, false]);
+sp = R.resolveSurprise(surpriseOf(4, [[1, "main", "Dagger"]]));
+check("a one-second stab moves the surpriser to S2 with three left", [sstates(sp), sp.next, sp.left, sp.ticks[1].now], ["sfff", 1, 3, true]);
+check("no event takes less than one second, in surprise too", R.addSurpriseSpend(R.newSurprise(3), 0, "main", "").spent[0].seconds, 1);
+sp = R.resolveSurprise(surpriseOf(4, [[2, "main", "Draw"], [3, "main", "Sword"]]));
+check("an action running past the surprise: done, one over, carried into round 1",
+	[sp.done, sp.overrun, sstates(sp), sp.ticks.map(t => t.action), sp.carry], [true, 1, "sssso", [0, 0, 1, 1, 1], { seconds: 1, action: true }]);
+check("an off-hand spend in surprise is recorded and costs it nothing",
+	(() => { const x = R.resolveSurprise(surpriseOf(3, [[1, "off", "Parry"]])); return [x.offSpent, x.left, x.next]; })(), [1, 3, 0]);
+check("using the surprise exactly carries nothing: roll initiative for round 1",
+	(() => { const x = R.resolveSurprise(surpriseOf(3, [[3, "main", ""]])); return [x.done, x.carry]; })(), [true, null]);
+let spx = surpriseOf(4, [[2, "main", ""], [3, "main", ""]]);
+check("declining the carry means a fresh roll in round 1",
+	[R.getSurpriseCarry(R.resolveSurprise(spx), spx), R.getSurpriseCarry(R.resolveSurprise(spx), { ...spx, carryOver: false })],
+	[{ seconds: 1, action: true }, null]);
+check("undo takes the last surprise spend back", R.removeLastSurpriseSpend(surpriseOf(4, [[1, "main", "A"], [2, "main", "B"]])).spent.map(e => e.label), ["A"]);
+check("a surpriser still spending sorts ahead of the round, by place; done or none, the round orders them",
+	[R.getSurpriseSortKey(R.resolveSurprise(surpriseOf(4))), R.getSurpriseSortKey(R.resolveSurprise(surpriseOf(4, [[2, "main", ""]]))),
+	 R.getSurpriseSortKey(R.resolveSurprise(surpriseOf(2, [[2, "main", ""]]))), R.getSurpriseSortKey(R.resolveSurprise(null))],
+	[-1000, -998, null, null]);
+// A great sword (6 seconds) begun in a 4-second surprise runs 2 seconds into round 1, then the book's
+// own carry-over: a reaction roll of 3 added to its last second puts him on the 5th second.
+spx = surpriseOf(4, [[6, "main", "Great Sword"]]);
+n = R.getNextRoundClock(R.getSurpriseCarry(R.resolveSurprise(spx), spx), 1);
+check("a surprise carry wants its reaction roll in round 1", R.needsCarryRoll(n, right), true);
+s = R.resolveRoundClock(R.setCarryRoll(n, 3), right);
+check("and with a 3 acts on the 5th second: seconds 1-2 finishing the swing, 3-4 reacting",
+	[states(s), s.ticks[s.next].label, R.getClockInitiative(s)], ["ccllffffff", "5", 5]);
+
+// the view
+spx = surpriseOf(4, [[1, "main", "Dagger"]]);
+v = V.buildSurpriseView(R.resolveSurprise(spx), spx, { id: "a", name: "Asha", canSpend: true });
+check("a surprise is drawn as a clock row: four columns under seconds 1-4",
+	[v.surprise, v.ready, v.columns.length, v.columns.map(c => c.cells[0].label), v.offhand], [true, true, 4, ["S1", "S2", "S3", "S4"], null]);
+check("its status and title", [v.status, v.columns[0].cells[0].title], ["Surprise second 2 of 4 · 3 left", "Surprise second 1: Dagger"]);
+check("undo is offered once something is spent; the log says what", [v.canUndo, v.log], [true, ["1s Dagger"]]);
+spx = surpriseOf(4, [[6, "main", "Great Sword"]]);
+v = V.buildSurpriseView(R.resolveSurprise(spx), spx, { canSpend: true });
+check("done with an action running over: the status says so and offers the carry",
+	[v.done, v.status, v.carry.text, v.carry.elected, v.columns.length, v.columns[5].cells[0].state],
+	[true, "Surprise used: 2s of the last action run into round 1", "2s", true, 6, "over"]);
+check("used exactly: roll initiative", V.buildSurpriseView(R.resolveSurprise(surpriseOf(2, [[2, "main", ""]])), null, {}).status, "Surprise used: roll initiative for round 1");
+const rvs = V.buildRoundView([{ ready: true, surprise: true, done: false, nowLabel: "S1" }, { ready: true, done: false, nowLabel: "3" }], { round: 0 });
+check("the window says a surprise is on, and marks the round's second without it", [rvs.surprise, rvs.nowText.startsWith("Surprise"), rvs.headers.findIndex(h => h.now)], [true, true, 2]);
+
+// the Combat tab's box
+check("out of combat the box is the plain allowance", V.buildSheetClockView(null, 7), { inCombat: false, offhand: "7", offhandSub: "", status: "", over: false });
+c = clockOf(3, [[4, "main", "Long Sword"], [1, "off", "Shield parry"]]);
+check("in combat: the off hand's '3 of 5 left this round' and the main hand's status line",
+	V.buildSheetClockView(V.buildClockView(R.resolveRoundClock(c, right), c, {}), 5),
+	{ inCombat: true, offhand: "3 of 5", offhandSub: "left this round", status: "Second 7 · 4 left", over: false });
+c = clockOf(5, [[4, "off", ""]]);
+check("an off hand spent past its pool says so", (() => { const b = V.buildSheetClockView(V.buildClockView(R.resolveRoundClock(c, right), c, {}), 5); return [b.over, b.offhandSub]; })(),
+	[true, "off hand over by 1"]);
+check("not rolled yet: the allowance, and says so", (() => { const b = V.buildSheetClockView(V.buildClockView(R.resolveRoundClock(clockOf(null), right), clockOf(null), {}), 5); return [b.inCombat, b.offhand, b.status]; })(),
+	[true, "5", "Initiative not rolled"]);
+check("in surprise: the allowance, and where the surprise stands",
+	(() => { const x = surpriseOf(3); const b = V.buildSheetClockView(V.buildSurpriseView(R.resolveSurprise(x), x, {}), 5); return [b.offhand, b.status]; })(),
+	["5", "Surprise second 1 of 3 · 3 left"]);
+
+// the combat document: an ambush before round 1
+const ambush = new ImagineCombat();
+ambush.round = 0;
+const asha = mk("asha", "Asha", 15, "Right");
+const bren = mk("bren", "Bren", 11, "Right");
+const guard = mk("guard", "Guard", 18, "Right");
+[asha, bren, guard].forEach(x => { x.parent = ambush; });
+ambush.list = [asha, bren, guard];
+await guard.update({ initiative: 2 });                  // the guard rolls; he was not in on the surprise
+await ambush.giveSurprise([{ combatant: asha, seconds: 4 }, { combatant: bren, seconds: 2 }, { combatant: guard, seconds: 0 }]);
+check("surprise given to the two ambushers, none to the guard",
+	[asha.flags["imagine-rpg"].surprise, bren.flags["imagine-rpg"].surprise.seconds, guard.flags["imagine-rpg"].surprise, D.hasActiveSurprise(ambush)],
+	[{ seconds: 4, spent: [], carryOver: true }, 2, null, true]);
+check("the surprisers go first, ahead of the guard's 2", ambush.turns.map(t => t.name), ["Asha", "Bren", "Guard"]);
+notices.length = 0;
+await ambush.spendSeconds(asha, 6, { label: "Great Sword" });
+check("a spend during surprise is the surprise's: no initiative, and the overrun is said",
+	[asha.initiative, D.getCombatantSurpriseState(asha).carry, notices.some(m => m.includes("runs into round 1"))], [null, { seconds: 2, action: true }, true]);
+await ambush.spendSeconds(bren, 1, { label: "Crossbow" });
+await ambush.undoSeconds(bren);
+check("undo during surprise takes back the surprise spend", D.getCombatantSurprise(bren).spent, []);
+await ambush.spendSeconds(bren, 2, { label: "Crossbow" });
+check("once every surpriser is done, the Game Master is told to end it", notices.some(m => m.includes("End the surprise")), true);
+await ambush.setCarryOver(asha, false);
+check("declining the carry is stored on the surprise", [D.getCombatantSurprise(asha).carryOver, D.isCarryOverElected(asha)], [false, false]);
+await ambush.setCarryOver(asha, true);
+rollScript.push(3);                                      // Asha's reaction roll when the sword lands
+await ambush.endSurprise();
+check("ending the surprise begins round 1, with Asha's sword carried: reaction 3, the 5th second",
+	[ambush.round, asha.initiative, asha.flags["imagine-rpg"].clock.carry, asha.flags["imagine-rpg"].surprise],
+	[1, 5, { seconds: 2, action: true, roll: 3 }, null]);
+check("Bren's surprise is simply over; he rolls initiative with everyone else", [bren.flags["imagine-rpg"].surprise, bren.initiative], [null, null]);
+check("the guard's roll stands", guard.initiative, 2);
+check("Asha's reaction is posted, naming the surprise", messages[messages.length - 1].flavor.includes("the action begun in surprise"), true);
+check("and no surprise is left running", D.hasActiveSurprise(ambush), false);
 
 const out = document.getElementById("out");
 const failed = results.filter(r => r.startsWith("FAIL")).length;

@@ -75,7 +75,7 @@ function makeCreature(options = {}) {
 			bodyType: options.bodyType ?? "Humanoid",
 			bodyChart: options.bodyChart ?? "",
 			hide: options.hide ?? 0,
-			wounds: options.wounds ?? {}, armorDamage: {}
+			wounds: options.wounds ?? {}, armorDamage: {}, overallWounds: options.overallWounds ?? 0
 		},
 		movement: { modes: options.movement ?? [], jumpStand: 0, jumpUp: 0 },
 		physical: { heightFeet: 0, heightInches: 0, weight: options.weight ?? 0 },
@@ -521,6 +521,9 @@ check("blind, with Martial Lore 50%: the book's +4 against -8, and +2 damage",
 const immoveableBeast = makeCreature({ agility: 12, skills: martialSkills,
 	martial: { discipline: "Defensive", activeMoves: "Immoveable Stance" } });
 check("Immoveable Stance takes a creature's defence away too", immoveableBeast.combat.noDefense, true);
+// Overall wounds (a poison's) count in a creature's total as in a character's.
+check("overall wounds reach a creature's total wounds",
+	makeCreature({ agility: 12, overallWounds: 7 }).body.totalWounds - makeCreature({ agility: 12 }).body.totalWounds, 7);
 
 const noMods = C.getCreatureToHitModifiers({ mods: "melee", attacker: {} });
 check("a creature with no modifiers has an empty list", noMods.list, []);

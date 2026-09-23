@@ -206,6 +206,25 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 		return `${tmpDamage.dice}d${tmpDamage.sides}${tmpDamage.mod > 0 ? "+" + tmpDamage.mod : (tmpDamage.mod < 0 ? tmpDamage.mod : "")}`;
 	}
 
+	// This is the function which reads a Gravity rune: the weight it adds or takes off, as his rune
+	// tag writes it (level x10 percent, from -99 to +200), what that multiplies the weight by, and the
+	// speed/dice steps -- one per full 30% (his tempthirtylevel).
+	//
+	// THE MULTIPLIER IS THE RUNE'S OWN WORDS, NOT HIS ARITHMETIC. His getGravityRuneWeightMod runs the
+	// tag's "+30%" through convertPercentNumToMulti, which reads a positive figure as a percentage OF
+	// the weight (the "200 = double" convention of his weight box) -- so a +30% Gravity rune makes a
+	// weapon 0.3 of its weight, lighter, where the rune says "its weight is increased". The prose is
+	// taken as meant: +30% is x1.3, -50% is x0.5 (which his arithmetic also gives). UPSTREAM item 66.
+	//
+	// Returns { percent, weightMulti, steps } -- all neutral (0, 1, 0) with no Gravity rune.
+	export function getGravityRune(tmpSystem) {
+		var tmpRune = (tmpSystem?.custom?.runes ?? []).find(tmpR => tmpR.name == "Gravity");
+		var tmpLevel = parseInt(tmpRune?.level) || 0;
+		if (!tmpLevel) { return { percent: 0, weightMulti: 1, steps: 0 }; }
+		var tmpPercent = Math.max(-99, Math.min(200, tmpLevel * 10));
+		return { percent: tmpPercent, weightMulti: 1 + (tmpPercent / 100), steps: Math.trunc(tmpPercent / 30) };
+	}
+
 	// This is the function which gives the weapon as his combat sheet would carry it: a copy of its
 	// system data with damage, damageAlt, speed, minSpeed, reloadSpeed, reloadMinSpeed, length,
 	// skillsMod, structuralStrength and the attack modes changed, plus
@@ -220,7 +239,10 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 		var tmpOut = { ...tmpSystem, listingToHit: 0, listingChanges: [], listingApplied: true };
 		var tmpTags = new Set(getWeaponListingTags(tmpSystem));
 		var tmpPlus = MAGIC_PLUS_LISTING["" + (parseInt(tmpSystem.magicBonus) || 0)] ?? [];
-		if (!tmpTags.size && !tmpPlus.length) { return tmpOut; }
+		var tmpCustom = tmpSystem.custom ?? {};
+		// Runes change the listing too (see @MARKER RUNES AND SELF-REPAIR below), so a weapon with only
+		// a rune on it is not left as it was.
+		if (!tmpTags.size && !tmpPlus.length && !(tmpCustom.runes ?? []).length) { return tmpOut; }
 
 		var tmpDamage = readDamage(tmpSystem.damage);
 		var tmpAlt = readDamage(tmpSystem.damageAlt);
@@ -302,6 +324,43 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 		}
 		tmpOut.listingToHit = tmpFigures.toHit;
 
+		// @MARKER RUNES AND SELF-REPAIR ON THE LISTING
+		// What his listing functions read out of a rune's tag, and the self-repairing abilities
+		// (getWeaponMinSpeedListingChanges, getWeaponDamageListingChanges, getWeaponSTRListingChanges,
+		// getWeaponSpeedListingChanges, sheet-worker.js:89978-90295):
+		//   Gravity   one second of speed and minimum speed, and one damage die, per full 30% of weight
+		//             it adds or takes off -- neither speed under 1, the starting speed never under the
+		//             minimum. Its weight is read where the weight is, in resolveEncumbrance.
+		//   Strenghthen Metal/Wood  +5 weapon strength (the rune), +10 (the greater rune, level 2)
+		//   Repair, Invulnerability  the strength becomes "[R]" / "[I]" -- it mends itself, or cannot
+		//             break -- whatever it was
+		var tmpGravity = getGravityRune(tmpSystem);
+		if (tmpGravity.steps) {
+			var tmpBeforeSpeed = tmpOut.speed, tmpBeforeMin = tmpOut.minSpeed, tmpBeforeDamage = tmpOut.damage;
+			tmpOut.minSpeed = Math.max(1, (parseInt(tmpOut.minSpeed) || 0) + tmpGravity.steps);
+			tmpOut.speed = Math.max(1, (parseInt(tmpOut.speed) || 0) + tmpGravity.steps, tmpOut.minSpeed);
+			var tmpGravDamage = readDamage(tmpOut.damage);
+			if (tmpGravDamage) { tmpGravDamage.dice = tmpGravDamage.dice + tmpGravity.steps; tmpOut.damage = writeDamage(tmpGravDamage); }
+			tmpNote("speed", tmpBeforeSpeed, tmpOut.speed);
+			tmpNote("minSpeed", tmpBeforeMin, tmpOut.minSpeed);
+			tmpNote("damage", tmpBeforeDamage, tmpOut.damage);
+		}
+		var tmpRuneNames = (tmpCustom.runes ?? []).map(tmpR => tmpR.name);
+		var tmpAbilities = tmpCustom.magicAbilities ?? [];
+		var tmpBeforeStrength = tmpOut.structuralStrength;
+		if (tmpAbilities.includes("Repair")) {
+			tmpOut.structuralStrength = "[R]";
+		} else if (tmpAbilities.includes("Invulnerability") || tmpRuneNames.includes("Invulnerability")) {
+			tmpOut.structuralStrength = "[I]";
+		} else {
+			var tmpStrengthen = (tmpCustom.runes ?? []).find(tmpR => tmpR.name == "Strenghthen Metal" || tmpR.name == "Strenghthen Wood");
+			if (tmpStrengthen) {
+				var tmpAdd = (parseInt(tmpStrengthen.level) >= 2) ? 10 : 5;
+				tmpOut.structuralStrength = Math.trunc((parseFloat(tmpOut.structuralStrength) || 0) + tmpAdd);
+			}
+		}
+		tmpNote("structuralStrength", tmpBeforeStrength, tmpOut.structuralStrength);
+
 		// Dulling turns the edge and the point into a blunt head: no thrust, no cut, and a smash if it had
 		// none (setEquippedWeaponInCombatSheet's "special dulling rules (changes weapon type)").
 		if (tmpTags.has("Dulling")) {
@@ -380,8 +439,14 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 	//     foeStrike     { extra, doubles } or null -- a separate "against its foe type" figure
 	//     lines         [ text ] -- each one written the way his card writes it
 	// }
+	//
+	// tmpInput.maximize is the attack's maximum damage (a Focused Attack, a Perfect Shot, an immobile
+	// target). His setMagicDamageDetails gives the MAGICAL dice their highest under it -- the mode
+	// ability's and Foe Strike's, getMaxValueFromDiceString at sheet-worker.js:91530 and 91609 -- and
+	// rolls the energy and divine dice as usual, so only those two take it here.
 	export function resolveWeaponSpecials(tmpInput, tmpRoll) {
 		var tmpSystem = tmpInput.system ?? {};
+		var tmpMagicRoll = tmpInput.maximize ? (tmpSides => tmpSides) : tmpRoll;
 		var tmpCustom = tmpSystem.custom ?? {};
 		var tmpAura5 = Math.floor((parseInt(tmpCustom.baseAura) || 0) / 5);
 		var tmpBasePiety = parseInt(tmpCustom.basePiety) || 0;
@@ -396,7 +461,7 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 		var tmpModeAbility = (tmpCustom.magicAbilities ?? []).find(tmpA => ABILITY_MODES[tmpA] == tmpInput.mode);
 		if (tmpModeAbility) {
 			var tmpDice = `${tmpAura5}d6+${tmpMagicDamageMod}`;
-			tmpOut.extraDamage = rollCustomDice(tmpDice, tmpRoll);
+			tmpOut.extraDamage = rollCustomDice(tmpDice, tmpMagicRoll);
 			tmpOut.lines.push(`${tmpModeAbility} (+${tmpDice}) = ${tmpOut.extraDamage} more damage.`);
 			if (tmpNatural >= tmpNatRequired) {
 				tmpOut.doubles = true;
@@ -409,7 +474,7 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 		// Master to take if the target is that kind.
 		if ((tmpCustom.magicAbilities ?? []).includes("Foe Strike")) {
 			var tmpFoeDice = `${tmpAura5}d6+${tmpMagicDamageMod}`;
-			var tmpFoeExtra = rollCustomDice(tmpFoeDice, tmpRoll);
+			var tmpFoeExtra = rollCustomDice(tmpFoeDice, tmpMagicRoll);
 			tmpOut.foeStrike = { extra: tmpFoeExtra, doubles: tmpNatural >= tmpNatRequired };
 			tmpOut.lines.push(`Foe Strike, against its foe type only: +${tmpFoeDice} = ${tmpFoeExtra} more damage`
 				+ (tmpOut.foeStrike.doubles ? `, and the natural ${tmpNatural} doubles it.` : "."));
@@ -592,7 +657,8 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 		var tmpRune = tmpText(tmpChoices.rune);
 		if (tmpRune) {
 			var tmpLevel = parseInt(tmpChoices.runeLevel) || 0;
-			if (tmpLevel < 1) {
+			// A Gravity rune's level is signed -- his takes weight off below zero -- every other rune's is 1 or more.
+			if ((tmpRune == "Gravity") ? (tmpLevel == 0) : (tmpLevel < 1)) {
 				tmpIssues.push(`A rune needs a level; ${tmpRune} was not added.`);
 			} else {
 				tmpCustom.runes = tmpCustom.runes.filter(tmpR => tmpR.name != tmpRune);

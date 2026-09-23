@@ -107,6 +107,31 @@
 	<div class="window-content" id="classInquisitorBless"></div>
 </div>
 
+<div class="frame imagine sheet item consumable">
+	<div class="frame-title">Consumable, poison &mdash; item sheet (preview): built from his poison tables, the fullest consumable</div>
+	<div class="window-content" id="consumable"></div>
+</div>
+
+<div class="frame imagine sheet item lore">
+	<div class="frame-title">Lore, candle ritual &mdash; item sheet (preview): a real candlelore entry, which has a component</div>
+	<div class="window-content" id="loreCandle"></div>
+</div>
+
+<div class="frame imagine sheet item lore">
+	<div class="frame-title">Lore, potion recipe &mdash; item sheet (preview): the recipe panel, built from a real potion</div>
+	<div class="window-content" id="lorePotionRecipe"></div>
+</div>
+
+<div class="frame imagine sheet item spell">
+	<div class="frame-title">Spell &mdash; item sheet (preview): a real spell document</div>
+	<div class="window-content" id="spell"></div>
+</div>
+
+<div class="frame imagine sheet item invocation">
+	<div class="frame-title">Invocation &mdash; item sheet (preview): a real invocation document</div>
+	<div class="window-content" id="invocation"></div>
+</div>
+
 <script type="module">
 // Standalone preview of the three item sheets. Foundry is not present, so its globals are
 // stubbed; the context each sheet builds in _prepareContext is reproduced here by hand, and the
@@ -126,6 +151,9 @@ globalThis.foundry = {
 globalThis.game = { imagine: { getAvailabilityRules: () => null } };
 
 const T = await import("../module/creature-tables.mjs");
+const LR = await import("../module/lore-rules.mjs");
+const LT = await import("../module/lore-tables.mjs");
+const WC = await import("../module/weapon-custom-rules.mjs");
 
 Handlebars.registerHelper("eq", (a, b) => a === b);
 Handlebars.registerHelper("gt", (a, b) => a > b);
@@ -376,7 +404,71 @@ const weaponCtx = { item: sword, system: weaponSystem, config: {
 	modes: [{ key: "missile", label: "Missile" }, { key: "thrust", label: "Thrust" },
 	        { key: "cut", label: "Cut" }, { key: "smash", label: "Smash" }]
 		.map(m => ({ ...m, available: !!weaponSystem[m.key]?.available,
-		             mod: parseInt(weaponSystem[m.key]?.mod) || 0 })) } };
+		             mod: parseInt(weaponSystem[m.key]?.mod) || 0 })) },
+	// Mirrors the "Customized" line ImagineWeaponSheet._prepareContext adds -- see
+	// module/sheets/item-sheet.mjs @MARKER EQUIPMENT, WEAPON AND SKILL SHEETS.
+	customTags: WC.getWeaponCustomTags(weaponSystem, 0) };
+
+// --- the four magic/lore item sheets, item 5 of the 2026-09-22 magic-lore-tab hand-off ---------
+// Mirrors buildConsumableContext/buildLoreContext in tools/window-test.html, which mirror
+// ImagineConsumableSheet/ImagineLoreSheet._prepareContext -- see module/sheets/item-sheet.mjs
+// @MARKER MAGIC AND LORE SHEETS.
+function buildConsumableCtx(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	return { item, system: sys,
+		config: {
+			kinds: LR.CONSUMABLE_KINDS.map(k => ({ value: k, label: LR.MAGIC_KINDS[k].label, selected: k == sys.kind })),
+			forms: LR.POISON_FORMS.map(f => ({ value: f, selected: f == sys.form })),
+			poisonTypes: Object.keys(LT.POISON_TYPES).map(t => ({ value: t, selected: t == sys.poisonType })),
+			poisonPotencies: Object.keys(LT.POISON_POTENCIES).map(p => ({ value: p, selected: p == sys.poisonPotency }))
+		},
+		isHerb: sys.kind == "herb", isCharm: sys.kind == "charm", isPoison: sys.kind == "poison",
+		hasValue: ["herb", "potion", "elixir"].includes(sys.kind) };
+}
+function buildLoreCtx(source) {
+	const item = { name: source.name, img: "", system: structuredClone(source.system) };
+	const sys = item.system;
+	const def = LR.MAGIC_KINDS[sys.kind] ?? {};
+	return { item, system: sys,
+		config: {
+			kinds: LR.LORE_KINDS.map(k => ({ value: k, label: LR.MAGIC_KINDS[k].label, selected: k == sys.kind })),
+			forms: LR.POISON_FORMS.map(f => ({ value: f, selected: f == sys.form }))
+		},
+		learnSkill: def.learn || "", useSkill: def.use || "",
+		isRecipe: sys.kind == "potionrecipe" || sys.kind == "poisonrecipe", isPoisonRecipe: sys.kind == "poisonrecipe",
+		isRune: sys.kind == "rune", isHymn: sys.kind == "hymn",
+		hasComponent: ["candlelore", "empathymagic", "sympathymagic"].includes(sys.kind), isEvoke: sys.kind == "evoke" };
+}
+
+// A poison built from his tables (no poison ships in a pack -- it is built, not listed), the
+// fullest consumable: kind, form, type, potency and a description all in one.
+const poisonDoc = LR.makePoisonSystem("XXIV", "B", "Gaseous", false);
+poisonDoc.system.doses = 3;
+const consumableCtx = buildConsumableCtx(poisonDoc);
+
+// A candle ritual, which has a component (hasComponent above), and a potion recipe, which shows
+// the recipe panel (isRecipe) -- built from a real potion with makePotionRecipe, the same as
+// addPotionRecipeByName on his sheet, since no potion recipe ships in a pack either.
+const loadDocs = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`)).json());
+const [consumableDocs, loreDocs2] = await Promise.all(["consumables", "lore"].map(loadDocs));
+const candleRitual = loreDocs2.find(d => d.system.kind === "candlelore");
+if (!candleRitual) { throw new Error("missing a candlelore entry in the extracted content"); }
+const loreCandleCtx = buildLoreCtx(candleRitual);
+
+const somePotion = consumableDocs.find(d => d.system.kind === "potion");
+if (!somePotion) { throw new Error("missing a potion in the extracted content"); }
+const potionRecipeDoc = { name: `${somePotion.name} Recipe`, system: LR.makePotionRecipe(somePotion.system) };
+const lorePotionRecipeCtx = buildLoreCtx(potionRecipeDoc);
+
+// --- a spell and an invocation, taken straight from the extracted content -----------------------
+const [spellDocs, invocationDocs] = await Promise.all(["spells", "invocations"].map(loadDocs));
+function buildPlainCtx(source) {
+	return { item: { name: source.name, img: "", system: structuredClone(source.system) },
+	         system: structuredClone(source.system) };
+}
+const spellCtx = buildPlainCtx(spellDocs[0]);
+const invocationCtx = buildPlainCtx(invocationDocs[0]);
 
 const herb = pick(skillDocs, "Herb Lore");
 const skillCtx = { item: herb, system: Object.assign({ category: "class", startingBonus: 0,
@@ -403,7 +495,12 @@ for (const [id, ctx, body] of [
 	["raceFamorian", raceFamorianCtx, "item-race"],
 	["raceFormless", raceFormlessCtx, "item-race"],
 	["classMage", classMageCtx, "item-class"],
-	["classInquisitorBless", classInquisitorBlessCtx, "item-class"]
+	["classInquisitorBless", classInquisitorBlessCtx, "item-class"],
+	["consumable", consumableCtx, "item-consumable"],
+	["loreCandle", loreCandleCtx, "item-lore"],
+	["lorePotionRecipe", lorePotionRecipeCtx, "item-lore"],
+	["spell", spellCtx, "item-spell"],
+	["invocation", invocationCtx, "item-invocation"]
 ]) {
 	const header = await render("../templates/item/item-header.hbs", ctx);
 	const rest = await render(`../templates/item/${body}.hbs`, ctx);

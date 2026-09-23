@@ -148,6 +148,67 @@ system:
   combat:     mods: { melee, missile, damage, defense, initiative, skill: { misc } }
 ```
 
+### Combat additions from the round clock and Situation Mods work (2026-09-22)
+
+Character and creature carry the same shapes, so one panel serves both — see
+`module/data/actor-character.mjs` and `actor-creature.mjs`.
+
+```
+combat.speedSeconds   number, 0-10   # his tmp_speed_seconds: extra seconds of action every round
+                                     # from a Speed potion/spell/rune/glyph, set by hand until those
+                                     # effects are built. Read by getClockOptions (below).
+combat.offhandSecondsCap   number, DERIVED   # how many of the round's seconds the off hand has;
+                                             # a creature's is getOffhandSecondsCap(offhandHandedness, 0)
+                                             # -- it holds no Second Weapon Lore to add to it.
+
+combat.secondWeaponKnowList   string   # character only. Comma-simplified weapon names this
+combat.secondWeaponLoreList   string   # character fights with in the off hand under Second Weapon
+                                       # Knowledge/Lore -- his second_know_list / second_lore_list.
+                                       # Only a weapon named here takes the discipline's benefit
+                                       # (getSecondWeaponFlags, combat-rules.mjs).
+
+combat.situation   { kind: "" | "melee" | "missile", selected: [string], weaponId: string }
+                  # both types. What the Situation Mods window has ticked; outlives any one attack
+                  # because it also governs the character's own defence while others attack them.
+                  # weaponId is which weapon's skills modifier a Critical/Perfect Shot roll uses.
+  # DERIVED: combat.situational (resolveSituationalMods total), combat.noDefense (the situational,
+  # martial or stance specials say "No Defense" -- read by whoever attacks this character)
+
+martial   SchemaField, both types (module/combat/martial-arts.mjs derives from it):
+  discipline         string, one of MARTIAL_DISCIPLINE_NAMES or ""
+  learnedAttacks/Blocks/Holds/Moves/Throws   string, comma-separated, beyond the discipline's own list
+  loreValues         string   # the twelve Martial Lore values learned
+  stances, masteredStances   string
+  activeStance, activeMoves, activeLoreValues   string   # what is currently IN PLAY
+  intoxication       number   # VIT saves failed for intoxication -- the Drunken stance's tiers
+  resistingHold      bool     # whether a hold/movement effect is being resisted now (Calm in the storm)
+```
+
+**Derived per-skill `stanceBonus` / `blindBonus`.** A held martial stance's bonuses
+(`_applyStanceBonuses`) and Martial Lore's blind-fighting bonus (`_prepareSituation`) are added into
+each skill item's `totalChance` and also kept separately as `system.stanceBonus` /
+`system.blindBonus` on that skill item, reset every derivation. Two places subtract them back out
+because they represent what the character can do RIGHT NOW, not what they trained: the Arch Mortal
+qualification check (`identity.archMortal`, actor-character.mjs ~line 1111) and the starting-lore
+roll (`module/starting-lore.mjs`), both of which want a skill's trained chance regardless of the
+stance the character happens to be in when the button is pressed.
+
+### The combatant's round clock
+
+Not a Combatant data model field — a flag, so no `documentTypes` entry is needed and a player may
+write it on their own combatant. `flags.imagine-rpg.clock`, keyed by round:
+
+```
+{ round, rolled, carry: { seconds, action, roll } | null, spent: [{ seconds, hand, label }], carryOver }
+```
+
+Built and read by `module/combat/round-rules.mjs` (the rules), `combat/combat-document.mjs` (the
+combat and combatant that keep it), `combat/combat-tracker.mjs` (the tracker rows) and
+`apps/round-clock.mjs` (the Mr. Initiative window). `getClockOptions(actor)` is what reads
+`combat.speedSeconds`, `combat.offhandSecondsCap` and handedness off an actor to feed the clock; a
+creature's handedness for this purpose is `combat.offhandHandedness`, a character's is
+`physical.handedness`.
+
 ### Body areas are dynamic and race-owned
 The JS builds the body from the race (`buildCharacterBody(race)`) into a repeating section, supports authoring **custom body areas** (`new_bodyarea_name/_type/_end`), and `body_transform_selection` swaps `body_type` wholesale — the fish-tail transform being a worked example.
 
@@ -327,6 +388,88 @@ rather than silently fixed: `UPSTREAM-ISSUES.md` item 48.
 card needs — `chance`, `half`, `roll`, `modifier`, `resisted` (bool), `byHalf` (bool), `outcome`,
 `reason` — and `describeResistanceRoll` turns that into the one line the chat card shows, shared by
 the character and creature sheets so they say it the same way.
+
+## 4d. Weapon Item schema — condition, customization and temporary effects (2026-09-22)
+
+The whole schema is in `module/data/item-weapon.mjs`. Added alongside the weapon mods window
+(`module/apps/weapon-mods.mjs`): **none of this changes the weapon's stored `damage` or `speed`** —
+`getCustomizedWeapon` (`module/weapon-custom-rules.mjs`) works the effective figures out at use, and
+stores nothing back.
+
+```
+weapon Item system:
+  condition   string   # his wear: "" is Undamaged, else "Restored" | "Repaired" | "Worn" |
+                       # "Lightly Damaged" | "Damaged" | "Heavily Damaged"
+  custom:              # his Customize Items panel (customizeItem, sheet-worker.js:78903), which
+                       # used to write a bracketed tag into the item's NAME -- kept as fields
+                       # instead so the weapon keeps its own name and still matches the lore lists
+    prefix, suffix        string   # shown beside the name, never written into it
+    blessed                bool    # his "Blessed" magical choice, permanent once made
+    baseAura, basePiety     number  # what the magical/divine abilities are worked from: +1 per 5
+    magicAbilities[]         string
+    divineAbilities[]        string
+    runes[]                  { name, level }
+    energyType               string
+    energyDice               number
+    customizations[]         string   # physical work: Serrated, Silvering, Envenomed, ...
+    magicalEffects[]         string   # a spell imbued
+    divineEffects[]          string   # an invocation imbued
+  tempEffects[]   { id, name, kind, toHit, damage, notes, until, lasts }
+                 # something done to the weapon for a while -- Bless (a day) or a Game Master's
+                 # own. until is the world-time it ends at, 0 meaning "until removed"; an attack
+                 # ignores one whose time has passed.
+```
+
+The magical plus itself stays `magicBonus`, above `custom`; `condition` and `custom` were added
+beside it. **Removed:** the per-weapon `secondWeaponKnowledge`/`secondWeaponLore` booleans. They
+were only ever set from the character's own lists of weapon names, so those lists now live on the
+character (`combat.secondWeaponKnowList`/`secondWeaponLoreList`, §3) and the per-weapon flags are
+derived from them by `getSecondWeaponFlags` in `combat-rules.mjs`.
+
+## 4e. Four magic/lore item types (2026-09-22)
+
+Added for the Magic & Lore tab. All four are text-heavy — every column of his source dictionary is
+kept as he wrote it ("5 sec./AUR", "2`/AUR"); working formulas like these out is the deferred magic
+phase's job (CLAUDE.md, Layer 4). For now each type can be known, memorized (or hold doses), and
+read. Schemas are in `module/data/item-{consumable,lore,spell,invocation}.mjs`.
+
+```
+consumable Item system:   # a herb, potion, elixir, charm or poison, held as doses
+  kind         "herb" | "potion" | "elixir" | "charm" | "poison"
+  subsystem    string     # which magic switch this answers to; stored, since a compendium INDEX
+                          # (what the item picker filters) carries stored fields only
+  doses        number     # a charm has none stored here -- it is an object, just carried
+  herbType, value, potency, duration, willCost, form   string   # only the kind's own columns are used
+  poisonType, poisonPotency, startTime   string   # a poison is BUILT from type + potency
+                                                  # (getPoisonDetails), never shipped in a compendium
+  sourcebook, page, description
+
+lore Item system:   # a ballad, candle/empathy/sympathy ritual, glyph, hymn, poem, poison recipe,
+                    # potion recipe, ritual, rune, song or evoke a character KNOWS
+  kind         one of LORE_KINDS (module/lore-rules.mjs)
+  subsystem    string
+  rating       number    # difficulty AND memorization cost (recalcMemorizationPoints sums it)
+  modifier     number    # added to the use roll, after the situational modifier
+  startTime, duration, component, runeType, alignment   string
+  value, form, poisonType, poisonPotency   string   # potion/poison recipe columns
+  batchDoses   number     # a recipe's doses per brew
+  memorized    bool       # his *_mem_check; unmemorized cannot be used
+  sourcebook, page, description
+  # NAMES ARE NOT UNIQUE ACROSS KINDS ("Break Love" is both a candle ritual and a ritual) --
+  # everything that looks an entry up does so by kind AND name, never name alone.
+
+spell Item system:        # one row of his spellslist, 550 of them
+  subsystem    always "arcane"
+  level, magicName, save, memTime, spellTypes, fail, castTime, range, area, duration, distance   # his columns, as text
+  memorized    bool
+  sourcebook, page, description
+
+invocation Item system:   # one row of his invocationslist, 460 of them
+  subsystem    always "divine"
+  level, alignment, save, prayerTime, uses, invokeTime, range, area, duration, distance   # his columns, as text
+  memorized    bool
+  sourcebook, page, description
+```
 
 ## 5. Content extraction pipeline
 

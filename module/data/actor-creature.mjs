@@ -184,7 +184,10 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				bodyChart: new fields.StringField({ required: true, initial: "", label: "Body Chart" }),
 				hide:      new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, label: "Hide" }),
 				wounds:      new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
-				armorDamage: new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 }))
+				armorDamage: new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
+				// Damage to OVERALL Endurance, on no one area -- a poison's (Master's Manual p.103). It
+				// counts in totalWounds and so toward shock, as the character's does.
+				overallWounds: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
 				// DERIVED: areas, shock, totalWounds, inShock. See _prepareBody.
 			}),
 
@@ -727,8 +730,9 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 
 		this.body.type = this.body.bodyType;
 		this.body.areas = tmpareas;
-		this.body.totalWounds = tmptotal;
-		this.body.inShock = (this.body.shock != 0) && (tmptotal > this.body.shock);
+		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
+		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
+		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
 	}
 
 	// This is the function which totals what the creature is carrying and how encumbered it is.

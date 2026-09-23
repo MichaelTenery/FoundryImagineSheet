@@ -1,8 +1,10 @@
 {{!-- One combatant's ten seconds, as his Mr. Initiative chart draws them (Master's Manual pp.98-100):
       a cell per second, two for a second split by extra seconds ("a" is the extra half). Registered
       as the partial "imagine-clock-bar" and shared by the combat tracker's rows and the Mr.
-      Initiative window; built by buildClockView in module/round-view.mjs. --}}
-<div class="imagine-clock-bar{{#if done}} done{{/if}}">
+      Initiative window; built by buildClockView in module/round-view.mjs. A surpriser's seconds
+      before round 1 (his chart's Surprise row) are drawn in it too, as "surprise", by
+      buildSurpriseView: one cell per surprise second, under the round's first seconds. --}}
+<div class="imagine-clock-bar{{#if done}} done{{/if}}{{#if surprise}} surprise{{/if}}">
 	{{#each columns}}
 	<div class="clock-second{{#if split}} split{{/if}}">
 		{{#each cells}}<span class="clock-cell {{state}}{{#if alt}} alt{{/if}}{{#if now}} now{{/if}}{{#if extra}} extra{{/if}}"

@@ -31,11 +31,19 @@
 			<span class="value">{{#if (gt system.combat.weaponSpeedMod 0)}}+{{/if}}{{system.combat.weaponSpeedMod}}</span>
 			<span class="sub">seconds per swing</span></div>
 		{{!-- 5 of the round's 10 seconds by default, more for Second Weapon Lore, all 10 for
-		      Ambidextrous. The allowance; what a round has spent of it is on the round clock in the
-		      combat tracker and the Mr. Initiative window. --}}
-		<div class="char-box"><label>Off-Hand Seconds</label>
+		      Ambidextrous. Out of combat, the allowance. In the combat on show, the round clock's
+		      figures, read-only (roundClock, buildSheetClockView in module/round-view.mjs): what the
+		      off hand has left of it, and where the main hand stands. The buttons that spend time are
+		      in the combat tracker and the Mr. Initiative window. --}}
+		<div class="char-box round-clock-box"><label>Off-Hand Seconds</label>
+			{{#if roundClock.inCombat}}
+			<span class="value{{#if roundClock.over}} alarm{{/if}}">{{roundClock.offhand}}</span>
+			<span class="sub">{{roundClock.offhandSub}}</span>
+			<span class="sub clock-status">{{roundClock.status}}</span>
+			{{else}}
 			<span class="value">{{system.combat.offhandSecondsCap}}</span>
-			<span class="sub">{{#if (eq system.physical.handedness "Ambidextrous")}}both hands, all ten{{else}}of the round{{/if}}</span></div>
+			<span class="sub">{{#if (eq system.physical.handedness "Ambidextrous")}}both hands, all ten{{else}}of the round{{/if}}</span>
+			{{/if}}</div>
 		{{!-- His tmp_speed_seconds: extra seconds every round from a Speed potion, spell, rune or
 		      glyph, entered by hand until those effects are built. Each splits one of the round's
 		      first seconds in two, and a sped combatant acts first (module/combat/round-rules.mjs). --}}
@@ -46,6 +54,12 @@
 		<div class="char-box"><label>Shock</label>
 			<span class="value {{#if system.body.inShock}}alarm{{/if}}">{{system.body.totalWounds}} / {{system.body.shock}}</span>
 			<span class="sub">{{#if system.body.inShock}}IN SHOCK{{else}}total wounds{{/if}}</span></div>
+		{{!-- Wounds to overall Endurance rather than to one area -- a poison's, applied from its card.
+		      Counted in the total above; editable so they can be healed. --}}
+		<div class="char-box"><label>Overall Wounds</label>
+			<span class="value"><input type="number" class="pain-input" min="0"
+				name="system.body.overallWounds" value="{{system.body.overallWounds}}"></span>
+			<span class="sub">poison and the like</span></div>
 		{{!-- A SIGNED modifier on incoming damage, applied before armour sees the blow. His own
 		      note reads "reduces or adds to all incoming damage (-/+)", so a negative number is
 		      a tougher target. --}}

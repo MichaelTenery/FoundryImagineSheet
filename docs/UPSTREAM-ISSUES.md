@@ -1895,3 +1895,14 @@ In `customizeItem`, the two branches for customizing every item of a stack of mo
 Reading an undeclared name throws, so when that stack is the first weapon in the list the whole
 customize stops there. The `else` half of the same lines has the `+`. The port does not share the
 code; noted for your sheet.
+
+## 66. A positive Gravity rune makes a weapon lighter
+
+**Status:** open · **Severity:** moderate — the rune does the opposite of what it says below +100%
+
+Your rune tag writes a Gravity rune of level N as "+N×10% weight" (sheet-worker.js:14630), and your
+rune dictionary says "its weight is increased or decreased". But `getGravityRuneWeightMod` (90404)
+runs "+30%" through `convertPercentNumToMulti` (26140), which reads a positive figure as a percentage
+OF the weight -- so +30% makes a weapon 0.3 of its weight. Only from +100% up does it get heavier.
+Negative levels come out right (-50% is half). The port takes the rune's words: +30% is x1.3. If the
+"200 = double" reading was meant for runes too, say so and it comes back.

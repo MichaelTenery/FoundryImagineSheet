@@ -4,7 +4,7 @@
   "author": "W. Michael Tenery III",
   "tool": "tools/extract/extract_sources.py"
  },
- "_note": "Which book each piece of content comes from, out of the Source column of HIS Master Index. A page is recorded only where the named book's own index confirms it, so a page never belongs to a different book than the sourcebook beside it. Names absent here were not found in his index and are marked XXX by build_documents.py. Regenerate with tools/extract/extract_sources.py.",
+ "_note": "Which book each piece of content comes from, out of the Source column of HIS Master Index. A page is recorded only where the named book's own index confirms it, so a page never belongs to a different book than the sourcebook beside it. Names absent here were not found in his index and are marked XXX by build_documents.py. An entry keyed \"kind|Name\" (spell|, invocation|, rune|, poem|, song| or ballad|) comes from one of the six kind-tagged tables his consumables, lore, spells and invocations packs need -- a bare name is ambiguous across their kinds, so these are never looked up any other way; see KIND_TABLE_HEADERS and docs/sonnet/2026-09-22-magic-lore-tab.md item 6. Regenerate with tools/extract/extract_sources.py.",
  "entries": {
   "Abacus": {
    "sourcebook": "Imagine Master Index",
@@ -10454,6 +10454,783 @@
    "sourcebook": "Imagine Master Index",
    "page": "412"
   },
+  "ballad|Animate": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Avalanche": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Awaken": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Awaken Volcano": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Banshee Resolve": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "ballad|Belief": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Bind Magic": {
+   "sourcebook": "Master's Manual"
+  },
+  "ballad|Blood of the Vampire": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "ballad|Bravery": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Chaos": {
+   "sourcebook": "Master's Manual"
+  },
+  "ballad|Control": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Deadwalk": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Decomposition": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "ballad|Dreamweave": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "ballad|Find Enemy": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Firescreen": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Firesight": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Gateway": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "ballad|Ghoul's Bite": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "ballad|Greater Animal Entrancement": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "ballad|Greater Soothing": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "ballad|Greater Tranquility": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "ballad|Healing": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Icemelt": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Illusion": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Insanity": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Joy": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Mask of Death": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "ballad|Memory": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Mythbreaker": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Oasis": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Pain": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Place of Safety": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "ballad|Plant Entrancement": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "ballad|Remove Supernatural Influence": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "ballad|Rockfall": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Rotting Wood": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "ballad|Seafaring": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Shadow's Touch": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "ballad|Sorrow": {
+   "sourcebook": "Player's Guide"
+  },
+  "ballad|Stonespeak": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Translation": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "ballad|Waterwalk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Absolve Control": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Affinity": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Aggression": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Ailment": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Airwall": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Anguish": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Animal Possession": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Animal Speak": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Animate Bone": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Animate Flesh": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Aversion": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Balk": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Blessed Drink": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Blessed Ground": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Blessed Light": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Blinding Strike": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Blindness": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Bravery": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Break Limb": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Breath of the Turtle": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Breeze": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Brittle Bone": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Calm": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Carry Voice": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Cause Fatigue": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Center": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Chill": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Choking Grasp": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Clean": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Clumsy": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Coexist with Undead": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Comprehension": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Contaminate Water": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Control Air Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Control Animal": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Control Death Elemental": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Control Earth Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Control Fire Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Control Humanoid": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Control Life Elemental": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Control Magical Animal": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Control Magical Humanoid": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Control Magical Plant": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Control Plant": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Control Slime": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Control Undead": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Control Water Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Corrode Metal": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Corrupted Drink": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Corruptible Form": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Crack Leather": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Create Food": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Create Water": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Cure": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Cure Blindness": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Cursed Ground": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Cursed Light": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Dance": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Darkness": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Deafen": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Deflect": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Detect Corpse": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Detect Enemy": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Detect Evil": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Detect Good": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Detect Influence": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Detect Temperature": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Diffuse Soma": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Discern Disease": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Discern Poison": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Discern Wounds": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Disguise Life Force": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Disharmony": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Divine Might": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Divine Weapon": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Dizzy": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Earthskin": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Eclipse": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Enhanced Metabolism": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Enmity": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Entwine": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Eyes of the Dire Wolf": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Eyes of the Eagle": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Fear": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Float": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Fortitude": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Freedom": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Frenzy": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Friendship": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Guard Body": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Guard Personal": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Guided Strike": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Halt Decay": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Halt Spirit": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Hands of Binding Light": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Hands of Blinding Light": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Hands of Defending Light": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Hands of Light": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Harm": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Heal": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|High Pain Threshold": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Hold": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Hold Animal": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Hold Magical Animal": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Hold Magical Humanoid": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Hold Magical Plant": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Hold Plant": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Hydrate": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Incorruptible Form": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Infuse Soma": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Inhibit Smell": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Inner Fire": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Insomnia": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Last Thought": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Levitate": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Light": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Light of Heroism": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Light of Life": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Light of Protection": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Light of Sanctity": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Living Death": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Malaise": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Material Warrior Defender": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Mind Touch": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Mobility": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Morgue": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Mummify": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Night Vision": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Nightmare": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Nourish": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Panic": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Parch": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Plant Move": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Plant Possession": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Plant Speak": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Presence": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Preservation": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Protection from Animals": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Protection from Magical Plants": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Protection from Plants": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Protection from Slime": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Protection from Undead": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Purify Food": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Purify Water": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Putrefy Food": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Raiment": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Read": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Refocus": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Remove Fatigue": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Restore Bone": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Restore Form": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Restore Leather": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Restore Metal": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Restore Sanity": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Restore Wood": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Ripen Scent": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Rockskin": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Sanctuary": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Self-Control": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Shadow Adherence": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Shadow Might": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Shadow Sight": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Shadow Wings": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Shadow of Death": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Shadow of Doom": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Shadow of Enmity": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Shadow of Weakness": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Share Deformity": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Share Pain": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Share Suffering": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Shared Sacrifice": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Shroud Scent": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Shroud of Acid": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Shroud of Chaos": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Shroud of Electricity": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Shroud of Flame": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Shroud of Ice": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Sign": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Siphon Soma": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Smother Flame": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Spasm": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Spirit Porter": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Spirit Shackles": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Spirit of the Bloodhound": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Spiritual Armor": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Spiritual Fist": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Spiritual Messenger": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Spiritual Rowers": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Spiritual Shield": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Spiritual Warrior": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Spiritual Writ": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Staunch Blood": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Stench of Decay": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Sustenance": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Swarm Shape": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Tarnish": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Tendrils of Darkness": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Tendrils of Grasping Darkness": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Tendrils of Offending Darkness": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Tendrils of Suffocating Darkness": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "invocation|Thunderous Voice": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Tongue of the Serpent": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "invocation|Tongues": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Torment": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Transfer Soma": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "invocation|Unpresence": {
+   "sourcebook": "Master's Manual"
+  },
+  "invocation|Vitalize": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Waken": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Wall of Darkness": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Wall of Light": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "invocation|Warm": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Warp Wood": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Waterwalk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "invocation|Wind Voice": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Wither Food": {
+   "sourcebook": "Player's Guide"
+  },
+  "invocation|Woodskin": {
+   "sourcebook": "Legends of the Unknown"
+  },
   "mind(greater)": {
    "sourcebook": "Imagine Master Index",
    "page": "425"
@@ -10485,6 +11262,1737 @@
   "physical(special)": {
    "sourcebook": "Imagine Master Index",
    "page": "1"
+  },
+  "poem|Anger": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Awaken": {
+   "sourcebook": "Master's Manual"
+  },
+  "poem|Binding": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Blindness": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Boughbreak": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Compass": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Control": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Darkness": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "poem|Dreaming Slumber": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Drowsiness": {
+   "sourcebook": "Master's Manual"
+  },
+  "poem|Enrichment": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Fire": {
+   "sourcebook": "Master's Manual"
+  },
+  "poem|Frostbite": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Guilt": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Healing": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Illusion": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Listening": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Love": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Luck": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Night Vision": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Origin": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Pain": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Phase Door": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Return": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Reuse Portal": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Reveal Portal": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Revealing": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Shadow": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "poem|Shadow Door": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "poem|Shifting Sands": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Sleepwalk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Snowdrift": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Snowwalk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Soothe Undead": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "poem|Soothing": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "poem|Springing": {
+   "sourcebook": "Master's Manual"
+  },
+  "poem|Undead Fire Protection": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "poem|Undead Poison Protection": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "poem|Unlucky": {
+   "sourcebook": "Player's Guide"
+  },
+  "poem|Warmth": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Water Finding": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "poem|Weather": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "poem|Webfoot": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Absolve Control": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Accuracy": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Accuracy(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Aethermark": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Ambidexterity": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Armor": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Armor(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Balance": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Balance(Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Binding": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Binding(Greater)": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Boiling": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Boiling(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Cloudblend": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Collapse": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Collapse(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Corruption": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Day": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Day(Greater)": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Direction": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Direction(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Disguise Life Force": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Disguise Life Force(Greater)": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Disruption": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Disruption(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Doorway": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Doorway(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Dreammark": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Dreammark(Greater)": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Dreamward": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Endure(Acid)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Acid,Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Aura)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Endure(Aura,Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Endure(Fire)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Fire,Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Ice)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Ice,Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Light)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Light,Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Lightning)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Lightning,Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Repulsion)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Repulsion,Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Sound)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Endure(Sound,Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Evocation": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "rune|Evocation(Greater)": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "rune|Fear": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Fear(Greater)": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Fearless": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Fireblend": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Flame": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Flame(Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Force Armor": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Force Armor(Greater)": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Foresight(10 Years)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(30 Years)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(5 Years)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(6 Months)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(60 Years)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(Day)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(Month)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(Week)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Foresight(Year)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Freezing": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Freezing(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Giddiness": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Giddiness(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Gravestone": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Gravity": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Health": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Health(Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Iceblend": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Ignore Protection": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Inner Chill": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Inner Chill(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Inner Warmth": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Inner Warmth(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Life": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "rune|Locating": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Locating(Greater)": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Locking": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Lostward": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Lostward(Greater)": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "rune|Luck": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Luck(Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Mark of Death": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Mark of Death(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Mark of Distinction": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Mark of Distinction(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Mark of Pain": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Mark of Pain(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Mark of Ruin": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Mark of Ruin(Greater)": {
+   "sourcebook": "Master's Manual"
+  },
+  "rune|Melting": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Melting(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Mesmerization": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Mesmerization(Greater)": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "rune|Might": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Might(Greater)": {
+   "sourcebook": "Player's Guide"
+  },
+  "rune|Music": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Anger": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Animal Entrancement": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "song|Blindness": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Burrowing": {
+   "sourcebook": "Master's Manual"
+  },
+  "song|Calm Mind": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Calm Undead": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "song|Calm Waves": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Cloudwalk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Control": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Crashing Waves": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Death Warrior": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "song|Decay": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "song|Dimensional Repair": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Discord": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Dream Item": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Electricity": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Elemental Transit": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Fear": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Feasting": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Fire": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Firewalk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Flying": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Frozen Bones": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "song|Healing": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Illumination": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "song|Illusion": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Incorruption": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "song|Listening": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Love": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Luck": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Pain": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Paralysis": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Planar Traveling": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Protection": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Remembrance": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Replenishment": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Resist Supernatural Influence": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Return": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Return of the Lost": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Reveal Origin": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Revealing": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Slumber": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Snowmelt": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Snowsight": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Spirit Grip": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Summon": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Sustaining": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "song|Terror": {
+   "sourcebook": "Master's Manual"
+  },
+  "song|Timeless Ruins": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "song|Tranquility": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "song|Traveling": {
+   "sourcebook": "Player's Guide"
+  },
+  "song|Tree Parting": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "song|Undead Chill Protection": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "song|Undead Disease Protection": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Absorb Acid": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Absorb Chaos": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Absorb Cold": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Absorb Dissonance": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Absorb Divinity": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Absorb Electricity": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Absorb Heat": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Absorb Repulsion": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Adhere": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Alarm": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Alter Reality": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Animal Speak": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Animate Bone": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Animate Flesh": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Animate Object": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Ash Form": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Aura of Deterioration": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Aura of Dissonance": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Aura of Electricity": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Aura of Fire": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Aura of Ice": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Aura of Life": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Aura of Repulsion": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Bane": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Banish": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Bind": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Bind Familiar": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Bind Supernatural Familiar": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Blind": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Blink": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Blink Token": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Brilliance": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Cache": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Call": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Call Animal": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Call Army": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Call Familiar": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Call Supernatural Familiar": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Cataclysm": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Catch": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Change Gender": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Chaos Touch": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Chill": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Circle of Acid": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Circle of Cold": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Circle of Deterioration": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Circle of Electricity": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Circle of Fire": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Clean": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Climb": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Color": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word(Death)": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word(Fear)": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word(Kill)": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word(Pain)": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word(Sleep)": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word(Surrender)": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Command Word(Truth)": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Commandeer": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Conceal Magic": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Confuse": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Air Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Animal": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Aura Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Death Elemental": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Control Earth Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Fire Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Humanoid": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Life Elemental": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Control Magical": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Control Magical Animal": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Control Magical Humanoid": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Control Slime": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Control Undead": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Control Water Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Corrupt": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Creation": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Crystal Form": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Darkness": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Deafen": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Deep Walk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Depilate": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Detect Enemy": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Detect Illusion": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Detect Invisibility": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Detect Temperature": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Detect Traps": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Dig": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Dimension": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Discern Control": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Discourage": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Dismiss Familiar": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Dismiss Supernatural Familiar": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Distortion": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Distract": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Draw Water": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Duplicate Mind": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Duplicate Self": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Eavesdrop": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Elemental Death Form": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Elemental Life Form": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Enchant Area": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Endow Intelligence": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Endure Aura": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Endure Cold": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Endure Death": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Endure Deterioration": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Endure Dissonance": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Endure Electricity": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Endure Heat": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Endure Life": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Endure Light": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Endure Poison": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Endure Pressure": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Endure Repulsion": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Enhance Hearing": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Enhance Mystical": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Enhance Perception": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Enhance Personal": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Enhance Smell": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Enhance Taste": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Enhance Touch": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Entrancement": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Entwine": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Evaporate": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|External Focus": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Fade": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Far Slumber": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Fast Freeze": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Finger of Acid": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Finger of Cold": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Finger of Death": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Finger of Deterioration": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Finger of Dissonance": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Finger of Electricity": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Finger of Fire": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Finger of Life": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Fist of Magic": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Flicker": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Float": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Fly": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Fog Form": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Force Limb": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Force Shield": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Fortify": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Freewalk": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Freshen": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Frost Fire": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Fulcrum": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Fumble": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Geas": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Genesis": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Ghoul Touch": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Glamour": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Grave Mapping": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Hide": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Hold": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Hold Animal": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Hold Magical Animal": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Hold Magical Plant": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Hold Plant": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Hypertrichosis": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Ice Form": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Ignite": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Illusion of Control": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Illusion of Feeling": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Illusion of Memory": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Illusion of Sensing": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Illusion of Sight": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Illusion of Smell": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Illusion of Sound": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Illusion of Taste": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Imbue Magical Aura": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Incinerate": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Inflict Insanity": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Interchange": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Interdimensional Message": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Invulnerability": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Item Pocket": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Jump": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Kinetic Barrier": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Lava Form": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Leaves of Fellowship": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Leaves of Marking": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Lesser Force Weapon": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Levitate": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Lighten Load": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Locate": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Magic Ear": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Magic Eye": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Magic Nose": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Magic Skin": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Magic Tongue": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Magic Voice": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Manipulate Light": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Manipulate Shadow": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Mask Aura": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mask Heat": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Mask Life": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Mask Odor": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Mass Persuasion": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Mass Summon": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Mend": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Merge": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Message": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mimic Mind": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Mind Beast": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mind Change": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mind Monster": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mind Set": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mind Swap": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mind Trap": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mind Wipe": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mirror Maze": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mirror Wall": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Misdirection": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mold": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Morale": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Move": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mute": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Mystical Mapping": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Night Vision": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Non-Detection": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Paralyzation": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Path Find": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Persuasion": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Phase": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Phase Adhere": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Phase Weapon": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Phylactery": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Plane Shift": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Plant Control": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Plant Growth": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Plant Move": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Plant Speak": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Pocket Dimension": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Pocket Universe": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Portrait Portal": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Portrait Summons": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Predict Weather": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Produce Any": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Produce Clothing": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Produce Earth": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Produce Fire": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Produce Fog": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Produce Food": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Produce Light": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Produce Scent": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Produce Smoke": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Produce Sound": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Produce Taste": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Produce Texture": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Produce Water": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Propel": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Protection": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Protection from Animals": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Protection from Humanoid": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Protection from Magical Plant": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Protection from Slime": {
+   "sourcebook": "Aspects of the Wild"
+  },
+  "spell|Protection from Supernatural": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Protection from Undead": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Quick Dry": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Raise Greater Undead": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Raise Greater Undead Spirit": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Raise Undead Spirit": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Read": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Read Aura": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Rebirth": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Rebound": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Recall Buoy": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Reduce Fatigue": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Reflection": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Reincarnate": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Reinforce Control": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Relocation": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Repulsion": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Reveal Aura": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Rock Form": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Runes": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Sand Swim": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Scenic Portal": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Scrying": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Seal": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Sense Land": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Shade Touch": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Shadow Adhere": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Shadow Attack": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Shadow Shift": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Shadow Weapon": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Shadowless": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Shifting Pocket": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Shock": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Simulacrum": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Slovenliness": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Slumber": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Snow Form": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Soak": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Spell Turning": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Sphere of Power": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Sphere of Protection": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Stasis": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Stasis Shield": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Static Charge": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Static Shield": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Steal Mystical": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Steal Personal": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Storm of Acid": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Arrows": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Bolts": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Cold": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Daggers": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Deterioration": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Dissonance": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Storm of Dust": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Electricity": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Fire": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Life": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Storm of Paralysis": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Storm of Repulsion": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Storm of Spears": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Summon": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Summon Air Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Summon Aura Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Summon Death Elemental": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Summon Earth Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Summon Fire Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Summon Life Elemental": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Summon Water Elemental": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Symbiosis": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Tarnish": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Telepathy": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Teleport": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Teleport Buoy": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Throw": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Time Displacement": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Time Shift": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Time Sight": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Tokens of Marking": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Touch of Pain": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Transformation Pocket": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Transport": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Tree Message": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Tree Mind Touch": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Tree Sight": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Tree Sound": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Tree Summon": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Tree Walk": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Trip": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|True Duplicate": {
+   "sourcebook": "Legends of the Unknown"
+  },
+  "spell|Tumblers": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Undying Lands": {
+   "sourcebook": "Conquest of the Eternal"
+  },
+  "spell|Universal Armageddon": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Universal Genesis": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Unlimited Wish": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Unphase": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Vampiric Touch": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Vanish": {
+   "sourcebook": "Master's Manual"
+  },
+  "spell|Wall of Darkness": {
+   "sourcebook": "Epitaph of the Fallen"
+  },
+  "spell|Wall of Dissonance": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Wall of Electricity": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wall of Fire": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wall of Ice": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wall of Power": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wall of Protection": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wall of Repulsion": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Warding": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Warm": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Water Message": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Water Sight": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Water Sound": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Water Summon": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Water Walk": {
+   "sourcebook": "Mysteries of the Planes"
+  },
+  "spell|Web of Entanglement": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wish": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Withering": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wizard Rune": {
+   "sourcebook": "Player's Guide"
+  },
+  "spell|Wraith Touch": {
+   "sourcebook": "Epitaph of the Fallen"
   }
  }
 }

@@ -11,6 +11,7 @@ import { WEAPON_CONDITIONS, ITEM_QUALITIES, WEAPON_CUSTOMIZATIONS, MAGIC_PLUS_CH
          WEAPON_RUNES, ENERGY_TYPES, DIVINE_WEAPON_ABILITIES } from "./weapon-custom-tables.mjs";
 import { checkWeaponCustomization, getWeaponCustomTags, getBlessingModifier, isTemporaryActive,
          TEMPORARY_SPANS, getWeaponDisplayName } from "./weapon-custom-rules.mjs";
+import { isEnvenomed, ENVENOMED_DOSES, ENVENOMED_THRESHOLD } from "./lore-rules.mjs";
 
 	// This is the function which says how long is left, in the largest unit that reads well.
 	export function formatSpan(tmpseconds) {
@@ -57,6 +58,20 @@ import { checkWeaponCustomization, getWeaponCustomTags, getBlessingModifier, isT
 		});
 		tmpview.hasExpired = tmpview.temporary.some(tmpeffect => !tmpeffect.active);
 		tmpview.spans = TEMPORARY_SPANS;
+
+		// @MARKER POISON COATING
+		// A poison on the weapon, put there from the Magic & Lore tab's poison USE and wiped off here.
+		// How it is delivered is lore-rules.mjs's (POISON ON A WEAPON).
+		var tmpcoat = tmpsystem.coating ?? {};
+		var tmpenvenomed = isEnvenomed(tmpsystem);
+		tmpview.coating = {
+			has: (parseInt(tmpcoat.doses) || 0) > 0,
+			name: tmpcoat.name ?? "", form: tmpcoat.form ?? "", doses: parseInt(tmpcoat.doses) || 0,
+			envenomed: tmpenvenomed,
+			note: tmpenvenomed
+				? `Envenomed: the hilt holds up to ${ENVENOMED_DOSES} doses, and a thrust that does ${ENVENOMED_THRESHOLD} or more actual damage delivers one.`
+				: "One dose coats it; the first hit that does actual damage delivers it and the coating is spent."
+		};
 
 		// @MARKER FOR GOOD
 		// What is on it, as chips that can be taken off.

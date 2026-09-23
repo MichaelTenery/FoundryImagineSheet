@@ -78,9 +78,23 @@ a new name, always of slight build:
 Every pack has a hand-authored file in `src/packs/manual/`:
 
 ```
-abilities.json  armor.json  classes.json  disabilities.json  equipment.json
-immunities.json  races.json  skills.json  weapons.json
+abilities.json  armor.json  classes.json  consumables.json  disabilities.json  equipment.json
+immunities.json  invocations.json  lore.json  races.json  skills.json  spells.json  weapons.json
 ```
+
+**Consumables and lore need a `kind` too.** Names repeat between kinds in these two packs — a
+"Healing" is a ballad, a song AND a poem — so an entry (new or `_override`) must give `"kind"`
+whenever its name is shared with another kind; an override with no kind is refused in that case
+(`KIND_KEYED_PACKS` in `tools/extract/build_documents.py`). The kinds:
+
+- **consumables**: `herb`, `potion`, `elixir`, `charm` (poisons are not a manual kind — they are
+  built from a type and a potency, never shipped as content; see `docs/DATA-MODEL.md` §4e)
+- **lore**: `ballad`, `candlelore`, `empathymagic`, `glyph`, `hymn`, `poem`, `poisonrecipe`,
+  `potionrecipe`, `ritual`, `rune`, `song`, `sympathymagic`, `evoke`
+
+A new entry in either pack also needs `"subsystem"` — which magic switch it answers to. The value
+for each kind is in `MAGIC_KINDS` (`module/lore-rules.mjs`) or `MAGIC_SUBSYSTEM_OF`
+(`tools/extract/build_documents.py`).
 
 Each has the same shape, and each carries a worked `_example` to copy from:
 

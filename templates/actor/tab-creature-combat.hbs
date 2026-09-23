@@ -28,6 +28,18 @@
 			<span class="value"><input type="number" class="speed-input" min="0" max="10"
 				name="system.combat.speedSeconds" value="{{system.combat.speedSeconds}}"></span>
 			<span class="sub">extra each round</span></div>
+		{{!-- The off hand's seconds, and in the combat on show the round clock's figures, read-only,
+		      as on a character's Combat tab (see tab-combat.hbs). combat.offhandSecondsCap is derived:
+		      ten for an Ambidextrous creature, five otherwise. --}}
+		<div class="char-box round-clock-box"><label>Off-Hand Seconds</label>
+			{{#if roundClock.inCombat}}
+			<span class="value{{#if roundClock.over}} alarm{{/if}}">{{roundClock.offhand}}</span>
+			<span class="sub">{{roundClock.offhandSub}}</span>
+			<span class="sub clock-status">{{roundClock.status}}</span>
+			{{else}}
+			<span class="value">{{system.combat.offhandSecondsCap}}</span>
+			<span class="sub">of the round</span>
+			{{/if}}</div>
 		{{!-- Includes the Situation Mods' own defence; "No Defense" takes it away altogether. --}}
 		<div class="char-box"><label>Defence</label>
 			{{#if system.combat.noDefense}}<span class="value alarm">None</span>
@@ -37,6 +49,12 @@
 		<div class="char-box"><label>Shock</label>
 			<span class="value {{#if system.body.inShock}}alarm{{/if}}">{{system.body.totalWounds}} / {{#if system.characteristics.shock.immune}}Imm{{else}}{{system.body.shock}}{{/if}}</span>
 			<span class="sub">{{#if system.body.inShock}}IN SHOCK{{else}}total wounds{{/if}}</span></div>
+		{{!-- Wounds to overall Endurance rather than to one area -- a poison's, applied from its card.
+		      Counted in the total above; editable so they can be healed. --}}
+		<div class="char-box"><label>Overall Wounds</label>
+			<span class="value"><input type="number" class="pain-input" min="0"
+				name="system.body.overallWounds" value="{{system.body.overallWounds}}"></span>
+			<span class="sub">poison and the like</span></div>
 		{{!-- A SIGNED modifier on incoming damage, applied before armour sees the blow. His own
 		      note reads "reduces or adds to all incoming damage (-/+)", so a negative number is
 		      a tougher target. --}}

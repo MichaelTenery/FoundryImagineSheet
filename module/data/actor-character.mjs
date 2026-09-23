@@ -190,7 +190,11 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				bodyType:    new fields.StringField({ required: true, initial: "" }),  // "" = the race's
 				wounds:      new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
 				armorDamage: new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
-				hide:        new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
+				hide:        new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				// Damage to OVERALL Endurance, which lands on no one area -- a poison's, by the
+				// user's ruling (Master's Manual p.103: "apply to overall Endurance"). It counts in
+				// totalWounds, and so toward shock.
+				overallWounds: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
 				// DERIVED: areas (each with its Endurance, wounds, armour and state), shock,
 				// totalWounds, inShock. See _prepareBody.
 			}),
@@ -910,8 +914,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 
 		this.body.type = tmpbodytype;
 		this.body.areas = tmpareas;
-		this.body.totalWounds = tmptotal;
-		this.body.inShock = (this.body.shock != 0) && (tmptotal > this.body.shock);
+		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
+		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
+		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
 	}
 
 	// This is the function which totals carried weight and works out how encumbered the

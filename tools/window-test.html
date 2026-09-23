@@ -294,7 +294,10 @@ function buildWeaponContext(source) {
 		modes: [
 			{ key: "missile", label: "Missile" }, { key: "thrust", label: "Thrust" },
 			{ key: "cut", label: "Cut" }, { key: "smash", label: "Smash" }
-		].map(mode => ({ ...mode, available: !!sys[mode.key]?.available, mod: parseInt(sys[mode.key]?.mod) || 0 })) } };
+		].map(mode => ({ ...mode, available: !!sys[mode.key]?.available, mod: parseInt(sys[mode.key]?.mod) || 0 })) },
+		// Mirrors the "Customized" line ImagineWeaponSheet._prepareContext adds -- see
+		// module/sheets/item-sheet.mjs @MARKER EQUIPMENT, WEAPON AND SKILL SHEETS.
+		customTags: WC.getWeaponCustomTags(sys, 0) };
 }
 
 // Mirror ImagineConsumableSheet and ImagineLoreSheet._prepareContext -- see module/sheets/item-sheet.mjs
@@ -302,6 +305,7 @@ function buildWeaponContext(source) {
 // his poison tables rather than picked (no poison ships in a pack -- they are built, not listed).
 const LR = await import("../module/lore-rules.mjs");
 const LT = await import("../module/lore-tables.mjs");
+const WC = await import("../module/weapon-custom-rules.mjs");
 function buildConsumableContext(source) {
 	const item = { name: source.name, img: "", system: structuredClone(source.system) };
 	const sys = item.system;

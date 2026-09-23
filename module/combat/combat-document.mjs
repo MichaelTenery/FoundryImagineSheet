@@ -28,12 +28,22 @@
 // under way, or an initiative that lay past the tenth second (Player's Guide p.168, Carry-Over).
 // They start the new round where the carry puts them, with no roll; an action that finishes in
 // the new round rolls for the reaction then, and adds it to its last second.
+//
+// @MARKER SURPRISE
+// Before round 1 there may be a SURPRISE: seconds of unanswered action a surpriser spends before
+// initiative is rolled (Player's Guide p.168; his chart's Surprise row). It is kept beside the clock
+// in the combatant's flags, as flags.imagine-rpg.surprise, and while a combatant has one, every spend
+// and undo of theirs is the surprise's rather than the round's. The Game Master gives it
+// (giveSurprise, from the Mr. Initiative window) and ends it (endSurprise), which begins round 1:
+// an action still under way is carried into it, and anything unspent is gone.
 //==================================================================================================================
 
 import {
 	resolveRoundClock, getClockOptions, getClockSortKey, getClockInitiative, isRoundOver,
 	newRoundClock, copyClock, addClockSpend, removeLastClockSpend,
-	getCarryForNextRound, getNextRoundClock, needsCarryRoll, setCarryRoll
+	getCarryForNextRound, getNextRoundClock, needsCarryRoll, setCarryRoll,
+	newSurprise, copySurprise, isSurpriseActive, addSurpriseSpend, removeLastSurpriseSpend,
+	resolveSurprise, getSurpriseCarry, getSurpriseSortKey
 } from "./round-rules.mjs";
 
 // This is the function which reads a combatant's clock for the round in play. A clock stored for
@@ -54,6 +64,33 @@ export function getCombatantClockState(tmpcombatant) {
 	return resolveRoundClock(getCombatantClock(tmpcombatant), getClockOptions(tmpcombatant?.actor));
 }
 
+// This is the function which reads a combatant's surprise, or null if they have none running.
+// Unlike the clock it is not keyed by round: it belongs to the time before round 1, and lasts until
+// the Game Master ends it.
+export function getCombatantSurprise(tmpcombatant) {
+	var tmpstored = tmpcombatant?.flags?.["imagine-rpg"]?.surprise;
+	return isSurpriseActive(tmpstored) ? copySurprise(tmpstored) : null;
+}
+
+// This is the function which works out what a combatant's surprise means, or null without one.
+export function getCombatantSurpriseState(tmpcombatant) {
+	var tmpsurprise = getCombatantSurprise(tmpcombatant);
+	return tmpsurprise ? resolveSurprise(tmpsurprise) : null;
+}
+
+// This is the function which says whether any combatant in a combat still has a surprise running.
+export function hasActiveSurprise(tmpcombat) {
+	return !!tmpcombat?.combatants?.some(c => !!getCombatantSurprise(c));
+}
+
+// This is the function which says whether a combatant is carrying over what runs past the end of
+// the time they are in: the surprise while they have one, else the round.
+export function isCarryOverElected(tmpcombatant) {
+	var tmpsurprise = getCombatantSurprise(tmpcombatant);
+	if (tmpsurprise) { return tmpsurprise.carryOver !== false; }
+	return getCombatantClock(tmpcombatant).carryOver !== false;
+}
+
 export default class ImagineCombat extends Combat {
 
 	// This is the function which orders the tracker: earliest second first, a sped combatant's
@@ -62,8 +99,9 @@ export default class ImagineCombat extends Combat {
 	// the higher Intelligence (Player's Guide, Initiative). Anyone who has not rolled goes to the
 	// bottom. Foundry calls this unbound, so it reads the round off each combatant, not off `this`.
 	_sortCombatants(tmpa, tmpb) {
-		var tmpia = getClockSortKey(getCombatantClockState(tmpa));
-		var tmpib = getClockSortKey(getCombatantClockState(tmpb));
+		// A surpriser with surprise seconds still to spend goes ahead of everyone (getSurpriseSortKey).
+		var tmpia = getSurpriseSortKey(getCombatantSurpriseState(tmpa)) ?? getClockSortKey(getCombatantClockState(tmpa));
+		var tmpib = getSurpriseSortKey(getCombatantSurpriseState(tmpb)) ?? getClockSortKey(getCombatantClockState(tmpb));
 		if (tmpia != tmpib) { return tmpia - tmpib; }
 
 		var tmpagla = tmpa.actor?.system?.attributes?.agl?.value ?? 0;
@@ -87,6 +125,8 @@ export default class ImagineCombat extends Combat {
 	// the round ends that way), and an off hand spent past what it had is shown in red on the
 	// clock; either is said, because the Game Master may know better -- a held action, a ruling.
 	async spendSeconds(tmpcombatant, tmpseconds, tmpoptions = {}) {
+		// During a surprise the seconds are the surprise's (@MARKER SURPRISE below).
+		if (getCombatantSurprise(tmpcombatant)) { return await this.spendSurpriseSeconds(tmpcombatant, tmpseconds, tmpoptions); }
 		var tmpactoroptions = getClockOptions(tmpcombatant.actor);
 		var tmpclock = getCombatantClock(tmpcombatant);
 		var tmpbefore = resolveRoundClock(tmpclock, tmpactoroptions);
@@ -116,6 +156,16 @@ export default class ImagineCombat extends Combat {
 
 	// This is the function which takes back the last seconds a combatant spent.
 	async undoSeconds(tmpcombatant) {
+		var tmpsurprise = getCombatantSurprise(tmpcombatant);
+		if (tmpsurprise) {
+			if (!tmpsurprise.spent.length) {
+				ui.notifications.info(`${tmpcombatant.name} has spent nothing of the surprise to take back.`);
+				return null;
+			}
+			var tmpaftersurprise = removeLastSurpriseSpend(tmpsurprise);
+			await this.#writeSurprise(tmpcombatant, tmpaftersurprise);
+			return resolveSurprise(tmpaftersurprise);
+		}
 		var tmpclock = getCombatantClock(tmpcombatant);
 		if (!tmpclock.spent.length) {
 			ui.notifications.info(`${tmpcombatant.name} has spent nothing this round to take back.`);
@@ -131,6 +181,12 @@ export default class ImagineCombat extends Combat {
 	// end of this round. On by default, since an action under way is usually meant to finish;
 	// turned off, the combatant rolls a fresh initiative next round instead.
 	async setCarryOver(tmpcombatant, tmpelected) {
+		var tmpsurprise = getCombatantSurprise(tmpcombatant);
+		if (tmpsurprise) {
+			tmpsurprise.carryOver = !!tmpelected;
+			await this.#writeSurprise(tmpcombatant, tmpsurprise);
+			return;
+		}
 		var tmpclock = getCombatantClock(tmpcombatant);
 		tmpclock.carryOver = !!tmpelected;
 		await tmpcombatant.update({ "flags.imagine-rpg.clock": tmpclock }, { imagineClock: true });
@@ -157,9 +213,112 @@ export default class ImagineCombat extends Combat {
 		}
 	}
 
+	// @MARKER SURPRISE
+	// The Surprise row of his chart: seconds a surpriser spends before round 1. See the notes at the
+	// head of this file and @MARKER SURPRISE in round-rules.mjs.
+
+	// This is the function which gives surprise seconds to the combatants chosen, replacing any
+	// surprise they had. A figure of 0 takes a combatant's surprise away. The Game Master rolls the
+	// 1d4+1 (or rules on a figure) before this is called, from the Mr. Initiative window.
+	//
+	//   tmpentries = [ { combatant, seconds } ]
+	async giveSurprise(tmpentries) {
+		var tmpupdates = [];
+		for (const tmpentry of (tmpentries ?? [])) {
+			var tmpcombatant = tmpentry?.combatant;
+			if (!tmpcombatant) { continue; }
+			var tmpsurprise = newSurprise(tmpentry.seconds);
+			tmpupdates.push({
+				_id: tmpcombatant.id,
+				"flags.imagine-rpg.surprise": isSurpriseActive(tmpsurprise) ? tmpsurprise : null
+			});
+		}
+		if (!tmpupdates.length) { return; }
+		await this.updateEmbeddedDocuments("Combatant", tmpupdates, { imagineClock: true, turnEvents: false });
+		if (this.canUserModify(game.user, "update", { turn: 0 })) { await this.update({ turn: 0 }); }
+	}
+
+	// This is the function which spends a surpriser's seconds. Like a spend in the round, nothing is
+	// refused: an action that runs past the surprise is carried into round 1 when it ends (unless
+	// declined), and that is said. An off-hand spend is recorded and costs the surprise nothing.
+	async spendSurpriseSeconds(tmpcombatant, tmpseconds, tmpoptions = {}) {
+		var tmpsurprise = getCombatantSurprise(tmpcombatant);
+		if (!tmpsurprise) { return null; }
+		var tmpbefore = resolveSurprise(tmpsurprise);
+		var tmphand = tmpoptions.hand == "off" ? "off" : "main";
+		var tmpaftersurprise = addSurpriseSpend(tmpsurprise, tmpseconds, tmphand, tmpoptions.label);
+		var tmpafter = resolveSurprise(tmpaftersurprise);
+
+		if (tmphand == "main" && tmpafter.overrun > tmpbefore.overrun) {
+			ui.notifications.info(`${tmpcombatant.name} had ${tmpbefore.left} second${tmpbefore.left == 1 ? "" : "s"} `
+				+ `of surprise left; the rest of this action runs into round 1.`);
+		}
+
+		await this.#writeSurprise(tmpcombatant, tmpaftersurprise);
+		if (!tmpbefore.done && tmpafter.done) { this.#announceSurpriseUsed(); }
+		return tmpafter;
+	}
+
+	// This is the function which ends the surprise and begins round 1. Each surpriser's surprise is
+	// cleared; one whose action runs past it carries that action into the round -- no initiative
+	// until it finishes, then a reaction roll added to its last second, rolled now and posted, as
+	// nextRound does for a carry. Everyone else rolls initiative as usual. The combat is started if
+	// it had not been, since the combat round begins when the surprise is over.
+	async endSurprise() {
+		var tmpsurprisers = this.combatants.filter(c => !!getCombatantSurprise(c));
+		if (!tmpsurprisers.length) { return null; }
+		if (!this.started) { await this.startCombat(); }
+
+		var tmpupdates = [];
+		var tmpmessages = [];
+		for (const tmpcombatant of tmpsurprisers) {
+			var tmpsurprise = getCombatantSurprise(tmpcombatant);
+			var tmpcarry = getSurpriseCarry(resolveSurprise(tmpsurprise), tmpsurprise);
+			var tmpupdate = { _id: tmpcombatant.id, "flags.imagine-rpg.surprise": null };
+			if (tmpcarry) {
+				var tmpoptions = getClockOptions(tmpcombatant.actor);
+				var tmpnewclock = getNextRoundClock(tmpcarry, this.round);
+				if (needsCarryRoll(tmpnewclock, tmpoptions)) {
+					var tmproll = tmpcombatant.getInitiativeRoll();
+					await tmproll.evaluate();
+					tmpnewclock = setCarryRoll(tmpnewclock, tmproll.total);
+					tmpmessages.push(await this.#carryRollMessage(tmpcombatant, tmproll,
+						resolveRoundClock(tmpnewclock, tmpoptions), "the action begun in surprise"));
+				}
+				tmpupdate.initiative = getClockInitiative(resolveRoundClock(tmpnewclock, tmpoptions));
+				tmpupdate["flags.imagine-rpg.clock"] = tmpnewclock;
+			}
+			tmpupdates.push(tmpupdate);
+		}
+		await this.updateEmbeddedDocuments("Combatant", tmpupdates, { imagineClock: true, turnEvents: false });
+		if (tmpmessages.length) { await ChatMessage.implementation.create(tmpmessages); }
+		if (this.canUserModify(game.user, "update", { turn: 0 })) { await this.update({ turn: 0 }); }
+		ui.notifications.info(`The surprise is over. Round ${this.round} begins: roll initiative.`);
+		return tmpupdates.length;
+	} // END endSurprise
+
+	// This is the function which writes a surprise, and puts the tracker's turn back on whoever is
+	// free soonest -- a surpriser still spending, else the round's order.
+	async #writeSurprise(tmpcombatant, tmpsurprise) {
+		await tmpcombatant.update({ "flags.imagine-rpg.surprise": tmpsurprise }, { imagineClock: true });
+		if (this.canUserModify(game.user, "update", { turn: 0 })) { await this.update({ turn: 0 }); }
+	}
+
+	// This is the function which says so when every surpriser has used their surprise seconds. The
+	// Game Master ends the surprise, as a round is ended, since someone may yet have something to do.
+	#announceSurpriseUsed() {
+		var tmpstates = this.combatants.map(c => getCombatantSurpriseState(c)).filter(s => !!s);
+		if (tmpstates.length && tmpstates.every(s => s.done)) {
+			ui.notifications.info("Every surpriser has used their surprise seconds. End the surprise to begin the round.");
+		}
+	}
+
 	// This is the function which starts a new round: carry-over first, then fresh initiative for
-	// everyone else.
+	// everyone else. A surprise still running is ended first, so what it carries is in the round
+	// that is ending.
 	async nextRound() {
+		if (hasActiveSurprise(this)) { await this.endSurprise(); }
+
 		// CARRY-OVER is read off the round that is ending, before its initiative is cleared.
 		var tmpcarries = [];
 		for (const tmpcombatant of this.combatants) {
@@ -207,7 +366,7 @@ export default class ImagineCombat extends Combat {
 
 	// This is the function which writes up a carried action's reaction roll for chat, as a private
 	// roll for a hidden combatant the way Foundry's own initiative rolls are.
-	async #carryRollMessage(tmpcombatant, tmproll, tmpstate) {
+	async #carryRollMessage(tmpcombatant, tmproll, tmpstate, tmpwhat = "last round's action") {
 		var tmpcarry = tmpstate.carriedIn;
 		var tmpfinish = tmpstate.ticks[Math.max(0, tmpcarry.seconds - 1)]?.label ?? tmpcarry.seconds;
 		var tmpnext = tmpstate.done ? "next round" : `second ${tmpstate.ticks[tmpstate.next].label}`;
@@ -217,7 +376,7 @@ export default class ImagineCombat extends Combat {
 			speaker: ChatMessage.implementation.getSpeaker({
 				actor: tmpcombatant.actor, token: tmpcombatant.token, alias: tmpcombatant.name
 			}),
-			flavor: `${tmpname} finishes last round's action in second ${tmpfinish} and rolls initiative: `
+			flavor: `${tmpname} finishes ${tmpwhat} in second ${tmpfinish} and rolls initiative: `
 				+ `the next action starts in ${tmpnext}.`
 		}, { rollMode: tmprollmode, create: false });
 	}

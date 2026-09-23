@@ -5,7 +5,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Ath-Carmor",
       "save": "Magic",
@@ -26,7 +26,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Misten",
       "save": "Magic",
@@ -47,7 +47,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Panamar",
       "save": "Magic",
@@ -68,7 +68,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Femfla-Rorl",
       "save": "Magic",
@@ -89,7 +89,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Pim",
       "save": "Magic",
@@ -110,7 +110,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Fretay Yorl",
       "save": "Control",
@@ -131,7 +131,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Ravna Dupic",
       "save": "Magic",
@@ -152,7 +152,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Ravna Rorl",
       "save": "Magic",
@@ -173,7 +173,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Xantal Reypa",
       "save": "Magic",
@@ -194,7 +194,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Rimple",
       "save": "Magic",
@@ -215,7 +215,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Yorl Sipar",
       "save": "Magic",
@@ -236,7 +236,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Mi-Enlan",
       "save": "None",
@@ -257,7 +257,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Mi-Flas",
       "save": "None",
@@ -278,7 +278,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Mi-Enlor",
       "save": "None",
@@ -299,7 +299,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Tethaan",
       "save": "Magic",
@@ -320,7 +320,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Pethall",
       "save": "Magic",
@@ -341,7 +341,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 1,
       "magicName": "Ath-Hetay",
       "save": "Magic",
@@ -362,7 +362,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Sipar Rojor",
       "save": "Magic",
@@ -383,7 +383,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Parup",
       "save": "Magic",
@@ -404,7 +404,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Grem",
       "save": "Magic",
@@ -425,7 +425,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Therovra",
       "save": "Magic",
@@ -446,7 +446,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Lethart",
       "save": "Magic",
@@ -467,7 +467,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Sorel",
       "save": "Magic",
@@ -488,7 +488,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Zelfar",
       "save": "Illusion",
@@ -509,7 +509,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Fretay Rojor",
       "save": "Control",
@@ -530,7 +530,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Rorl Ravna",
       "save": "Illusion",
@@ -551,7 +551,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Nembor",
       "save": "None",
@@ -572,7 +572,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Ravna Rinken",
       "save": "Magic",
@@ -593,7 +593,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Esken",
       "save": "Magic",
@@ -614,7 +614,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Invise Cumle",
       "save": "None",
@@ -635,7 +635,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Mi-Eregal",
       "save": "Magic",
@@ -656,7 +656,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Fi",
       "save": "None",
@@ -677,7 +677,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Fi-Aria",
       "save": "Magic",
@@ -698,7 +698,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 2,
       "magicName": "Statar",
       "save": "Magic",
@@ -719,7 +719,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Grelip",
       "save": "Magic",
@@ -740,7 +740,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Grov",
       "save": "Magic",
@@ -761,7 +761,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Femfla Rinken",
       "save": "Magic",
@@ -782,7 +782,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Porler Mila",
       "save": "Magic",
@@ -803,7 +803,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Chilar",
       "save": "Magic",
@@ -824,7 +824,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Inxta Reypa",
       "save": "Magic",
@@ -845,7 +845,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Flayola",
       "save": "None",
@@ -866,7 +866,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Ravna Vislim",
       "save": "None",
@@ -887,7 +887,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Flam Invise",
       "save": "Magic",
@@ -908,7 +908,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Rarp Yorl",
       "save": "None",
@@ -929,7 +929,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Mi-Sentia",
       "save": "None",
@@ -950,7 +950,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Mi-Nama",
       "save": "Magic",
@@ -971,7 +971,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 3,
       "magicName": "Mi-Merlor",
       "save": "Magic",
@@ -992,7 +992,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Trelm",
       "save": "None",
@@ -1013,7 +1013,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Invise Paltan",
       "save": "None",
@@ -1034,7 +1034,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Femfla Reftay",
       "save": "None",
@@ -1055,7 +1055,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Lindar",
       "save": "STR save",
@@ -1076,7 +1076,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Exrom Carmor",
       "save": "Magic",
@@ -1097,7 +1097,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Porles Ravna",
       "save": "Magic",
@@ -1118,7 +1118,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Fretay",
       "save": "Control",
@@ -1139,7 +1139,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Exrom Nama",
       "save": "Magic",
@@ -1160,7 +1160,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Rinken Ravna",
       "save": "Illusion",
@@ -1181,7 +1181,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Ravna Invise",
       "save": "Magic",
@@ -1202,7 +1202,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Ravna Sipar",
       "save": "Magic",
@@ -1223,7 +1223,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Mi-Diraka",
       "save": "None",
@@ -1244,7 +1244,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Yorl Rimple",
       "save": "Magic",
@@ -1265,7 +1265,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Exrom Ihl",
       "save": "Magic",
@@ -1286,7 +1286,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 4,
       "magicName": "Shilda",
       "save": "Magic",
@@ -1307,7 +1307,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Rogul Rojor",
       "save": "None",
@@ -1328,7 +1328,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Rarp Rojor",
       "save": "None",
@@ -1349,7 +1349,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Borlnak",
       "save": "Control",
@@ -1370,7 +1370,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Sanden",
       "save": "None",
@@ -1391,7 +1391,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Pilsorn Isthee",
       "save": "None",
@@ -1412,7 +1412,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Ki",
       "save": "None",
@@ -1433,7 +1433,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Yorl Blent",
       "save": "Magic",
@@ -1454,7 +1454,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Letarn",
       "save": "Magic",
@@ -1475,7 +1475,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Marmolf Delintha",
       "save": "Magic",
@@ -1496,7 +1496,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Invise-Aria",
       "save": "Magic",
@@ -1517,7 +1517,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Siltan",
       "save": "None",
@@ -1538,7 +1538,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Kregal",
       "save": "Control",
@@ -1559,7 +1559,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 5,
       "magicName": "Yistel",
       "save": "Magic",
@@ -1580,7 +1580,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Rarp Elissar",
       "save": "Control",
@@ -1601,7 +1601,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Lilth",
       "save": "None",
@@ -1622,7 +1622,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Invise Ravna",
       "save": "Magic",
@@ -1643,7 +1643,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Flanta Carmor",
       "save": "Magic",
@@ -1664,7 +1664,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Ravna",
       "save": "Illusion",
@@ -1685,7 +1685,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Semph Ravna",
       "save": "Illusion",
@@ -1706,7 +1706,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Anthey Skrun",
       "save": "Control",
@@ -1727,7 +1727,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "lnvise Yantel",
       "save": "None",
@@ -1769,7 +1769,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Yan-Lar",
       "save": "None",
@@ -1790,7 +1790,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Mant",
       "save": "None",
@@ -1832,7 +1832,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Par Mengalla",
       "save": "Magic",
@@ -1853,7 +1853,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Kenth-Lar",
       "save": "None",
@@ -1874,7 +1874,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Sommorn",
       "save": "None",
@@ -1916,7 +1916,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 6,
       "magicName": "Lindar Eth Chinthay",
       "save": "Magic",
@@ -1958,7 +1958,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Exacty",
       "save": "Magic",
@@ -1979,7 +1979,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Ath-Tersy",
       "save": "Control",
@@ -2063,7 +2063,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Invise Etar",
       "save": "None",
@@ -2084,7 +2084,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Mermorn",
       "save": "None",
@@ -2105,7 +2105,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Femfla Vislim",
       "save": "None",
@@ -2126,7 +2126,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Invise Zelfray",
       "save": "None",
@@ -2147,7 +2147,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Kar-Kregal",
       "save": "Control",
@@ -2168,7 +2168,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Porler Jerl",
       "save": "None",
@@ -2189,7 +2189,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Simpe",
       "save": "None",
@@ -2210,7 +2210,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Frar Kamom",
       "save": "None",
@@ -2231,7 +2231,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 7,
       "magicName": "Intorn",
       "save": "Control",
@@ -2336,7 +2336,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Rarp Wynsar",
       "save": "Control",
@@ -2357,7 +2357,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Rarp Jedar",
       "save": "Control",
@@ -2378,7 +2378,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Invise Mageron",
       "save": "Control",
@@ -2399,7 +2399,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Lalem Carmor",
       "save": "Magic",
@@ -2420,7 +2420,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Flanta Nama",
       "save": "Magic",
@@ -2441,7 +2441,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Yilmo Ravna",
       "save": "Illusion",
@@ -2462,7 +2462,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Ki-Skrun",
       "save": "Illusion",
@@ -2504,7 +2504,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Sthorl",
       "save": "None",
@@ -2525,7 +2525,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Elia Letarn",
       "save": "Control",
@@ -2567,7 +2567,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Carmor Mengalla",
       "save": "Magic",
@@ -2588,7 +2588,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 8,
       "magicName": "Si-Himlo",
       "save": "Magic",
@@ -2630,7 +2630,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Hian",
       "save": "Control",
@@ -2651,7 +2651,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Rarp Efell",
       "save": "Control",
@@ -2672,7 +2672,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Lalem Ixilan",
       "save": "Magic",
@@ -2714,7 +2714,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Kelay Menmalla",
       "save": "None",
@@ -2777,7 +2777,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Spork Mengalla",
       "save": "Magic",
@@ -2798,7 +2798,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Carmor Fes",
       "save": "Magic",
@@ -2819,7 +2819,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Reflay",
       "save": "Control",
@@ -2840,7 +2840,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 9,
       "magicName": "Tilf Ti-Yilethay",
       "save": "None",
@@ -2861,7 +2861,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Rarp Garsar",
       "save": "Control",
@@ -2903,7 +2903,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Kirbex Rimppelion",
       "save": "None",
@@ -2924,7 +2924,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Lalem Nama",
       "save": "None",
@@ -2966,7 +2966,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Flanta Statar",
       "save": "Magic",
@@ -2987,7 +2987,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Refray Ravna",
       "save": "Illusion",
@@ -3029,7 +3029,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Pilsorn Isthay",
       "save": "None",
@@ -3050,7 +3050,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Pilsorn Yemix",
       "save": "Magic",
@@ -3071,7 +3071,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Tendel Fes",
       "save": "None",
@@ -3092,7 +3092,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Yilmo Yentil",
       "save": "Magic",
@@ -3155,7 +3155,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Ath-Letarn",
       "save": "None",
@@ -3176,7 +3176,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Rimppelion",
       "save": "Magic",
@@ -3218,7 +3218,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Nama Mengalla",
       "save": "Magic",
@@ -3281,7 +3281,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 10,
       "magicName": "Nama Fes",
       "save": "Magic",
@@ -3323,7 +3323,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Rarp Nomale",
       "save": "None",
@@ -3344,7 +3344,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Estharl",
       "save": "Control",
@@ -3449,7 +3449,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Grenda Aria",
       "save": "Magic",
@@ -3470,7 +3470,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Zemorfal",
       "save": "Control",
@@ -3512,7 +3512,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Raypa-Invise",
       "save": "None",
@@ -3533,7 +3533,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Gwtaa",
       "save": "Magic",
@@ -3554,7 +3554,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Spirk Mengalla",
       "save": "None",
@@ -3596,7 +3596,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Detay Kelay",
       "save": "Magic",
@@ -3638,7 +3638,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 11,
       "magicName": "Letarn Fes",
       "save": "None",
@@ -3659,7 +3659,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Zelfar Ravna",
       "save": "None",
@@ -3680,7 +3680,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Rarp Narnasar",
       "save": "Control",
@@ -3743,7 +3743,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Lalem Statar",
       "save": "None",
@@ -3764,7 +3764,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Lent",
       "save": "Control",
@@ -3806,7 +3806,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Flanta Teldar",
       "save": "Magic",
@@ -3848,7 +3848,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Invise Ravna",
       "save": "Illusion",
@@ -3869,7 +3869,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Resom Tendle",
       "save": "None",
@@ -3911,7 +3911,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Letarn Mintay",
       "save": "None",
@@ -3932,7 +3932,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Statar Mengalla",
       "save": "Magic",
@@ -3953,7 +3953,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Hian Elissar",
       "save": "None",
@@ -4016,7 +4016,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 12,
       "magicName": "Statar Fes",
       "save": "Magic",
@@ -4037,7 +4037,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Mki-Benah",
       "save": "None",
@@ -4058,7 +4058,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Mki-Wenah",
       "save": "None",
@@ -4079,7 +4079,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Velnopan",
       "save": "Magic",
@@ -4121,7 +4121,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Pendor",
       "save": "None",
@@ -4142,7 +4142,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Jilalor",
       "save": "None",
@@ -4163,7 +4163,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Kelay",
       "save": "Magic",
@@ -4205,7 +4205,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Yenform",
       "save": "Magic",
@@ -4226,7 +4226,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Zelfrel Reftay",
       "save": "Magic",
@@ -4247,7 +4247,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 13,
       "magicName": "Romar",
       "save": "None",
@@ -4310,7 +4310,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4331,7 +4331,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4352,7 +4352,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4373,7 +4373,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4394,7 +4394,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4415,7 +4415,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4436,7 +4436,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4457,7 +4457,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Raypa",
       "save": "Control",
@@ -4478,7 +4478,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Rarp Airasar",
       "save": "Control",
@@ -4499,7 +4499,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "J'ani",
       "save": "Control",
@@ -4541,7 +4541,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Flanta Elanch",
       "save": "Magic",
@@ -4583,7 +4583,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Carmor Nama",
       "save": "Magic",
@@ -4646,7 +4646,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Ki-Skrun",
       "save": "None",
@@ -4667,7 +4667,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Skrun Forlen",
       "save": "Special",
@@ -4688,7 +4688,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 14,
       "magicName": "Ki-Wynsar",
       "save": "None",
@@ -4793,7 +4793,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Femfla Ibleck",
       "save": "None",
@@ -4814,7 +4814,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Gria Hian",
       "save": "Control",
@@ -4835,7 +4835,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Skrun Dar",
       "save": "Control",
@@ -4877,7 +4877,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Skrun Etar",
       "save": "Magic",
@@ -4898,7 +4898,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Gki-Yenah",
       "save": "None",
@@ -4919,7 +4919,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Messonada Fretay",
       "save": "Magic",
@@ -4940,7 +4940,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Thark Mengalla",
       "save": "None",
@@ -4961,7 +4961,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Rogul",
       "save": "Magic",
@@ -4982,7 +4982,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Invise Messonada",
       "save": "None",
@@ -5003,7 +5003,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 15,
       "magicName": "Porler Fes",
       "save": "None",
@@ -5192,7 +5192,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 16,
       "magicName": "Porler Mintay",
       "save": "None",
@@ -5213,7 +5213,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 16,
       "magicName": "Elanch Mengalla",
       "save": "Magic",
@@ -5234,7 +5234,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 16,
       "magicName": "Zemorfal Mengalla",
       "save": "Control",
@@ -5255,7 +5255,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 16,
       "magicName": "Hian-Garsar",
       "save": "None",
@@ -5318,7 +5318,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 17,
       "magicName": "Ki-Yenform",
       "save": "None",
@@ -5360,7 +5360,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 17,
       "magicName": "Wenflorn",
       "save": "None",
@@ -5381,7 +5381,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 17,
       "magicName": "Entermola Tindol",
       "save": "None",
@@ -5444,7 +5444,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 17,
       "magicName": "Farthay Nama",
       "save": "Magic",
@@ -5486,7 +5486,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 17,
       "magicName": "Yenform Rengorn",
       "save": "Magic",
@@ -5507,7 +5507,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 17,
       "magicName": "Gki-Kinah",
       "save": "None",
@@ -5549,7 +5549,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 17,
       "magicName": "Mengalla Spatar",
       "save": "None",
@@ -5612,7 +5612,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 18,
       "magicName": "Draggot",
       "save": "Magic",
@@ -5633,7 +5633,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 18,
       "magicName": "Fermol",
       "save": "Magic",
@@ -5696,7 +5696,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 18,
       "magicName": "Mi-Skrun",
       "save": "None",
@@ -5717,7 +5717,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 18,
       "magicName": "Femfla Illstha",
       "save": "None",
@@ -5780,7 +5780,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 18,
       "magicName": "Teldar Mengalla",
       "save": "Magic",
@@ -5801,7 +5801,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 18,
       "magicName": "Ki-Namasar",
       "save": "None",
@@ -5843,7 +5843,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 19,
       "magicName": "Grindan Ath-Yenform",
       "save": "None",
@@ -5885,7 +5885,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 19,
       "magicName": "Gki-Kiyenah",
       "save": "None",
@@ -5906,7 +5906,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 19,
       "magicName": "Ment Krobol",
       "save": "None",
@@ -5927,7 +5927,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 19,
       "magicName": "Ment Kentle Krobol",
       "save": "None",
@@ -5948,7 +5948,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 19,
       "magicName": "Tighala Rimppelion",
       "save": "None",
@@ -5969,7 +5969,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 19,
       "magicName": "Tighala Ath-Nemont",
       "save": "Magic",
@@ -5990,7 +5990,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 20,
       "magicName": "Aljia",
       "save": "Control",
@@ -6011,7 +6011,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 20,
       "magicName": "Milkarn",
       "save": "None",
@@ -6074,7 +6074,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 20,
       "magicName": "Hian-Ariasar",
       "save": "None",
@@ -6095,7 +6095,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Player's Guide",
       "level": 20,
       "magicName": "Majard",
       "save": "Varies",
@@ -6137,7 +6137,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 6,
       "magicName": "Serea Cannor",
       "save": "Magic",
@@ -6158,7 +6158,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 8,
       "magicName": "Serea Nama",
       "save": "Magic",
@@ -6179,7 +6179,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 8,
       "magicName": "Qomar Eiok",
       "save": "None",
@@ -6221,7 +6221,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 10,
       "magicName": "Serea Statar",
       "save": "Magic",
@@ -6242,7 +6242,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 10,
       "magicName": "Romar Eiok",
       "save": "None",
@@ -6284,7 +6284,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 14,
       "magicName": "Serea Elanch",
       "save": "Magic",
@@ -6305,7 +6305,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 16,
       "magicName": "Serea Teldar",
       "save": "Control",
@@ -6368,7 +6368,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 19,
       "magicName": "Enterjola",
       "save": "None",
@@ -6410,7 +6410,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 20,
       "magicName": "lnvise Grenda Mere",
       "save": "None",
@@ -6452,7 +6452,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 21,
       "magicName": "Messonada Yenform",
       "save": "None",
@@ -6599,7 +6599,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 24,
       "magicName": "Aeris",
       "save": "None",
@@ -6620,7 +6620,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 24,
       "magicName": "Gris lbleck",
       "save": "Magic",
@@ -6641,7 +6641,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 25,
       "magicName": "Sarva Rogul",
       "save": "Magic",
@@ -6725,7 +6725,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 26,
       "magicName": "Sarva Hian",
       "save": "Control",
@@ -6746,7 +6746,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 26,
       "magicName": "Sarva Yenform",
       "save": "None",
@@ -6830,7 +6830,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 27,
       "magicName": "Gris lllstha",
       "save": "Magic",
@@ -6914,7 +6914,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 28,
       "magicName": "Ki-Messonada",
       "save": "None",
@@ -6935,7 +6935,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 29,
       "magicName": "Ethrean",
       "save": "None",
@@ -6956,7 +6956,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 30,
       "magicName": "Xthrean",
       "save": "None",
@@ -6977,7 +6977,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 100,
       "magicName": "Oljah Majard",
       "save": "None",
@@ -6998,7 +6998,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 1000,
       "magicName": "Oljah Ethrean",
       "save": "None",
@@ -7019,7 +7019,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Master's Manual",
       "level": 1000,
       "magicName": "Oljah Xthrean",
       "save": "None",
@@ -7040,7 +7040,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 3,
       "magicName": "Grenda Frint",
       "save": "None",
@@ -7061,7 +7061,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 4,
       "magicName": "Grenda Nama",
       "save": "None",
@@ -7103,7 +7103,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 6,
       "magicName": "Fermol Ravna-Rojor",
       "save": "None",
@@ -7124,7 +7124,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 6,
       "magicName": "Fretay Ravna Yorl",
       "save": "Control",
@@ -7145,7 +7145,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 6,
       "magicName": "Letarn-Rojor",
       "save": "Control",
@@ -7166,7 +7166,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 7,
       "magicName": "Rogul Ravna-Rojor",
       "save": "None",
@@ -7187,7 +7187,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 7,
       "magicName": "Fretay Ravna-Rojor",
       "save": "None",
@@ -7208,7 +7208,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 7,
       "magicName": "Letarn-grata",
       "save": "Control",
@@ -7229,7 +7229,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 8,
       "magicName": "Letarn Ravna-Yorl",
       "save": "Control",
@@ -7250,7 +7250,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 9,
       "magicName": "Rarp Grata",
       "save": "Control",
@@ -7271,7 +7271,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 9,
       "magicName": "Letarn Jedar",
       "save": "Control",
@@ -7292,7 +7292,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 10,
       "magicName": "Exacty Ravna-Rojor",
       "save": "None",
@@ -7376,7 +7376,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 11,
       "magicName": "Rarp Ravna Rojor",
       "save": "Control",
@@ -7418,7 +7418,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Aspects of the Wild",
       "level": 12,
       "magicName": "Rarp Ravna Jedor",
       "save": "Control",
@@ -7439,7 +7439,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 5,
       "magicName": "Druk Thap",
       "save": "Magic",
@@ -7460,7 +7460,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 5,
       "magicName": "Druk-vi",
       "save": "Magic",
@@ -7481,7 +7481,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 7,
       "magicName": "Druk Thap",
       "save": "Magic",
@@ -7523,7 +7523,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 8,
       "magicName": "Lilth Fes",
       "save": "None",
@@ -7565,7 +7565,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 9,
       "magicName": "Ikan Thap",
       "save": "Magic",
@@ -7586,7 +7586,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 9,
       "magicName": "Rarp Flas",
       "save": "None",
@@ -7607,7 +7607,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 9,
       "magicName": "Rarp Beliak",
       "save": "None",
@@ -7628,7 +7628,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 10,
       "magicName": "Rarp-Vise",
       "save": "Magic",
@@ -7649,7 +7649,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 11,
       "magicName": "Raksa Thap",
       "save": "Magic",
@@ -7691,7 +7691,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 12,
       "magicName": "Diraka Hoona",
       "save": "None",
@@ -7712,7 +7712,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 13,
       "magicName": "Rarp Orag-Ki",
       "save": "Control",
@@ -7733,7 +7733,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 13,
       "magicName": "Rarp Orag-Ki",
       "save": "Control",
@@ -7754,7 +7754,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 14,
       "magicName": "Rarp Rauna",
       "save": "Illusion",
@@ -7775,7 +7775,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 15,
       "magicName": "Orag Rarp",
       "save": "Magic",
@@ -7796,7 +7796,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 17,
       "magicName": "Rarp Romar",
       "save": "Magic",
@@ -7817,7 +7817,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 17,
       "magicName": "Orak Sethay",
       "save": "Magic",
@@ -7838,7 +7838,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 19,
       "magicName": "Ki-Orag Ontem",
       "save": "None",
@@ -7859,7 +7859,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 19,
       "magicName": "Ki-Medralla Ontem",
       "save": "None",
@@ -7880,7 +7880,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 19,
       "magicName": "Ki-Orag Rogul",
       "save": "None",
@@ -7901,7 +7901,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 19,
       "magicName": "Ki-Midralla Rogul",
       "save": "None",
@@ -7943,7 +7943,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 23,
       "magicName": "Orag-Midralla Dema",
       "save": "None",
@@ -7964,7 +7964,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 25,
       "magicName": "Flanta Orag",
       "save": "Magic",
@@ -7985,7 +7985,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 25,
       "magicName": "Flanta Mindralla",
       "save": "Magic",
@@ -8027,7 +8027,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Epitaph of the Fallen",
       "level": 30,
       "magicName": "Mindralla Megalla",
       "save": "Magic",
@@ -8048,7 +8048,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 1,
       "magicName": "Invise Winden",
       "save": "Magic",
@@ -8069,7 +8069,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 1,
       "magicName": "Drali Reypa",
       "save": "Magic",
@@ -8090,7 +8090,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 2,
       "magicName": "Esaa Enlor",
       "save": "Magic",
@@ -8111,7 +8111,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 2,
       "magicName": "Statar Reftay",
       "save": "Magic",
@@ -8132,7 +8132,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 3,
       "magicName": "Drali Semph",
       "save": "None",
@@ -8153,7 +8153,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 4,
       "magicName": "Sar-Leth",
       "save": "Magic",
@@ -8174,7 +8174,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 4,
       "magicName": "Statar Mila",
       "save": "Magic",
@@ -8195,7 +8195,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "magicName": "Ef-Enlor",
       "save": "Magic",
@@ -8216,7 +8216,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "magicName": "Invise Geavar",
       "save": "None",
@@ -8237,7 +8237,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 5,
       "magicName": "Drali Yilmo",
       "save": "None",
@@ -8258,7 +8258,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 6,
       "magicName": "Idram-Ant",
       "save": "None",
@@ -8279,7 +8279,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 7,
       "magicName": "Idram-Frelate",
       "save": "None",
@@ -8300,7 +8300,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 7,
       "magicName": "Ovelt-Ant",
       "save": "None",
@@ -8342,7 +8342,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 8,
       "magicName": "Drali Hian",
       "save": "None",
@@ -8363,7 +8363,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 9,
       "magicName": "Wi Porler Menmalla",
       "save": "None",
@@ -8426,7 +8426,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 9,
       "magicName": "Drali Skrun Ken",
       "save": "None",
@@ -8447,7 +8447,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 10,
       "magicName": "Carmor Aria",
       "save": "None",
@@ -8489,7 +8489,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 11,
       "magicName": "Ovelt-Ki-Yenform",
       "save": "None",
@@ -8573,7 +8573,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 12,
       "magicName": "Nama Aria",
       "save": "None",
@@ -8615,7 +8615,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 12,
       "magicName": "Rimple Eth-Drali",
       "save": "None",
@@ -8636,7 +8636,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 13,
       "magicName": "Rimple Eth-Garsar",
       "save": "None",
@@ -8678,7 +8678,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 14,
       "magicName": "Statar Aria",
       "save": "None",
@@ -8699,7 +8699,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 14,
       "magicName": "Rowlav Fomp Ontem",
       "save": "None",
@@ -8741,7 +8741,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 15,
       "magicName": "Ki-Romar Yenform",
       "save": "Magic",
@@ -8804,7 +8804,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 16,
       "magicName": "Enlan Fomp Ontem",
       "save": "None",
@@ -8825,7 +8825,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 17,
       "magicName": "Ki-Rowlav Fomp Ontem",
       "save": "None",
@@ -8846,7 +8846,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 18,
       "magicName": "Lalem Aria",
       "save": "None",
@@ -8867,7 +8867,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 18,
       "magicName": "Lrim Fomp Ontem",
       "save": "None",
@@ -8888,7 +8888,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 19,
       "magicName": "Par Fomp Ontem",
       "save": "None",
@@ -8909,7 +8909,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 19,
       "magicName": "Yimp-Kirbex",
       "save": "None",
@@ -8951,7 +8951,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 20,
       "magicName": "Netorc Fomp Ontem",
       "save": "None",
@@ -8972,7 +8972,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 20,
       "magicName": "Lalem Orag",
       "save": "None",
@@ -8993,7 +8993,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 20,
       "magicName": "Lalem Mindralla",
       "save": "None",
@@ -9014,7 +9014,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Legends of the Unknown",
       "level": 21,
       "magicName": "Lrim-Nama Fomp Ontem",
       "save": "None",
@@ -9056,7 +9056,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 1,
       "magicName": "Mi-Frint",
       "save": "Magic",
@@ -9077,7 +9077,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 1,
       "magicName": "Mi-Rorl",
       "save": "Magic",
@@ -9098,7 +9098,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 1,
       "magicName": "Enlor Reypa",
       "save": "None",
@@ -9119,7 +9119,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 2,
       "magicName": "Lalem Flas",
       "save": "None",
@@ -9140,7 +9140,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 2,
       "magicName": "Mi-Semph",
       "save": "None",
@@ -9161,7 +9161,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 2,
       "magicName": "Mi-Reftay",
       "save": "None",
@@ -9182,7 +9182,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 3,
       "magicName": "Enlor Semph",
       "save": "None",
@@ -9203,7 +9203,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 4,
       "magicName": "Flanta Vantan",
       "save": "Magic",
@@ -9224,7 +9224,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "magicName": "Areia",
       "save": "Magic",
@@ -9245,7 +9245,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "magicName": "Gretelia",
       "save": "Magic",
@@ -9266,7 +9266,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "magicName": "Mi-ravna Aria",
       "save": "None",
@@ -9287,7 +9287,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "magicName": "Mi-Grem",
       "save": "None",
@@ -9308,7 +9308,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 5,
       "magicName": "Enlor Yilmo",
       "save": "None",
@@ -9329,7 +9329,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "magicName": "Lalem Vantan",
       "save": "None",
@@ -9350,7 +9350,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "magicName": "Marmolf Gard",
       "save": "None",
@@ -9371,7 +9371,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "magicName": "Kelay Grelip",
       "save": "Magic",
@@ -9392,7 +9392,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "magicName": "Lilth Grelip",
       "save": "Magic",
@@ -9413,7 +9413,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "magicName": "Vantan Mengalla",
       "save": "Magic",
@@ -9434,7 +9434,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 6,
       "magicName": "Vantan Fes",
       "save": "Magic",
@@ -9455,7 +9455,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 7,
       "magicName": "Fermol Ravna-Ath",
       "save": "None",
@@ -9476,7 +9476,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 7,
       "magicName": "Ki-Ath-Yenforn",
       "save": "None",
@@ -9497,7 +9497,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Ultha Vantan",
       "save": "None",
@@ -9518,7 +9518,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Vantan Aria",
       "save": "None",
@@ -9539,7 +9539,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Rogul Ravna-Ath",
       "save": "None",
@@ -9560,7 +9560,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Lalem Gorthen",
       "save": "None",
@@ -9581,7 +9581,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Lilth Mageron",
       "save": "None",
@@ -9602,7 +9602,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Letar Alder",
       "save": "None",
@@ -9623,7 +9623,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Letar Alder",
       "save": "None",
@@ -9644,7 +9644,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Skrun Rimppelion",
       "save": "None",
@@ -9665,7 +9665,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 8,
       "magicName": "Enlor Rogul",
       "save": "None",
@@ -9686,7 +9686,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 9,
       "magicName": "Exacty Ravna-Ath",
       "save": "None",
@@ -9707,7 +9707,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 9,
       "magicName": "Lilth Menmalla",
       "save": "None",
@@ -9749,7 +9749,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "magicName": "Ultha Carmor",
       "save": "None",
@@ -9770,7 +9770,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "magicName": "Ki-Haresha",
       "save": "None",
@@ -9833,7 +9833,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "magicName": "Raypa-Semph",
       "save": "None",
@@ -9875,7 +9875,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "magicName": "Forsolm Menmalla",
       "save": "None",
@@ -9896,7 +9896,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "magicName": "Mali Yan-Lar",
       "save": "None",
@@ -9917,7 +9917,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 10,
       "magicName": "Mali Messonada",
       "save": "None",
@@ -9959,7 +9959,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 11,
       "magicName": "Rea Yenform",
       "save": "None",
@@ -9980,7 +9980,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 12,
       "magicName": "Ultha Nama",
       "save": "None",
@@ -10001,7 +10001,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 12,
       "magicName": "Rean Reftay",
       "save": "None",
@@ -10022,7 +10022,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 12,
       "magicName": "Ki-Skrun Rimppelion",
       "save": "None",
@@ -10043,7 +10043,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 12,
       "magicName": "Ream Yenform",
       "save": "None",
@@ -10064,7 +10064,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 12,
       "magicName": "Enlor Romar",
       "save": "None",
@@ -10106,7 +10106,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 13,
       "magicName": "Lalem Yan-Lar",
       "save": "None",
@@ -10127,7 +10127,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 13,
       "magicName": "Ream Rogul",
       "save": "Magic",
@@ -10148,7 +10148,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 13,
       "magicName": "Lilth Ath-Yenforn",
       "save": "Magic",
@@ -10169,7 +10169,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 13,
       "magicName": "Kia-Ath-Yenforn",
       "save": "None",
@@ -10190,7 +10190,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 13,
       "magicName": "Yan-Lar Mengalla",
       "save": "Magic",
@@ -10211,7 +10211,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 13,
       "magicName": "Yan-Lar Fes",
       "save": "Magic",
@@ -10232,7 +10232,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 14,
       "magicName": "Ultha Yan-Lar",
       "save": "None",
@@ -10274,7 +10274,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 14,
       "magicName": "Yemix Ravna",
       "save": "Illusion",
@@ -10295,7 +10295,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 15,
       "magicName": "Yan-Lar Aria",
       "save": "Magic",
@@ -10316,7 +10316,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 15,
       "magicName": "Kia-Gard-Yenforn",
       "save": "None",
@@ -10337,7 +10337,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 15,
       "magicName": "Mi-Mi",
       "save": "None",
@@ -10379,7 +10379,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 16,
       "magicName": "Ultha Statar",
       "save": "None",
@@ -10421,7 +10421,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 18,
       "magicName": "Ultha Elanch",
       "save": "None",
@@ -10463,7 +10463,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 18,
       "magicName": "Lalem Teldar",
       "save": "None",
@@ -10484,7 +10484,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 18,
       "magicName": "Ravna Skrun",
       "save": "Varies",
@@ -10568,7 +10568,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 20,
       "magicName": "Ultha Aria",
       "save": "None",
@@ -10589,7 +10589,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 20,
       "magicName": "Ultha Aria",
       "save": "None",
@@ -10673,7 +10673,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 25,
       "magicName": "Mindralla Aria",
       "save": "None",
@@ -10736,7 +10736,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Mysteries of the Planes",
       "level": 4,
       "magicName": "Mindralla Mageron",
       "save": "None",
@@ -10904,7 +10904,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 15,
       "magicName": "Rarp Ravna",
       "save": "Control",
@@ -10967,7 +10967,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 15,
       "magicName": "Menmalla Rimppelion",
       "save": "None",
@@ -11072,7 +11072,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 20,
       "magicName": "Ultha lxgee",
       "save": "None",
@@ -11198,7 +11198,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 29,
       "magicName": "Drag Grindan Ath-Yenfonn",
       "save": "None",
@@ -11429,7 +11429,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 100,
       "magicName": "Sarva Skrun Forlen",
       "save": "None",
@@ -11450,7 +11450,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 100,
       "magicName": "Drag Ki-Grindan Ath-Yenfonn",
       "save": "None",
@@ -11513,7 +11513,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 100,
       "magicName": "Messonada Intorn Graver",
       "save": "None",
@@ -11534,7 +11534,7 @@
     "system": {
       "subsystem": "arcane",
       "memorized": false,
-      "sourcebook": "XXX",
+      "sourcebook": "Conquest of the Eternal",
       "level": 500,
       "magicName": "Ki-Jeh",
       "save": "Nope",

@@ -149,15 +149,109 @@ export function buildClockView(tmpstate, tmpclock, tmpinfo = {}) {
 	return tmpview;
 } // END buildClockView
 
+// @MARKER SURPRISE VIEW
+// A surpriser's seconds before round 1, his chart's Surprise row, drawn in the same bar and the same
+// row as a round clock so the tracker and the window need nothing new to show it. The places are the
+// first columns of the bar -- surprise second 1 under second 1 -- so the bar still lines up; an
+// action running past the surprise shows its extra seconds as "over", the ones carried into round 1.
+//
+//                     tooltip
+const SURPRISE_STATE_TITLES = {
+	spent:             "spent",
+	free:              "free",
+	over:              "runs into round 1"
+};
+
+// This is the function which builds one surpriser's surprise for display, in buildClockView's
+// shape (with surprise: true), from resolveSurprise's state and the surprise as stored.
+export function buildSurpriseView(tmpstate, tmpsurprise, tmpinfo = {}) {
+	var tmpview = buildClockView(null, null, tmpinfo);
+	tmpview.surprise = true;
+	tmpview.ready = !!tmpstate?.active;
+	tmpview.done = !!tmpstate?.done;
+	tmpview.canUndo = !!tmpinfo.canSpend && (tmpsurprise?.spent?.length ?? 0) > 0;
+	tmpview.status = "";
+	if (!tmpstate?.active) { return tmpview; }
+
+	for (const tmptick of tmpstate.ticks) {
+		var tmpwhat = SURPRISE_STATE_TITLES[tmptick.state] ?? tmptick.state;
+		if (tmptick.state != "free" && tmptick.title) { tmpwhat = tmptick.title + (tmptick.state == "over" ? ", into round 1" : ""); }
+		tmpview.columns.push({ second: tmptick.second, split: false, cells: [{
+			label: tmptick.label,
+			state: tmptick.state,
+			now: !!tmptick.now,
+			extra: false,
+			alt: tmptick.state == "spent" && (tmptick.action % 2) == 1,
+			title: `Surprise second ${tmptick.second}: ${tmpwhat}${tmptick.now ? " -- acts now" : ""}`
+		}] });
+	}
+
+	if (tmpstate.done) {
+		tmpview.nowLabel = "done";
+		tmpview.status = tmpstate.carry
+			? `Surprise used: ${tmpstate.carry.seconds}s of the last action run into round 1`
+			: "Surprise used: roll initiative for round 1";
+	} else {
+		tmpview.nowLabel = tmpstate.ticks[tmpstate.next].label;
+		tmpview.status = `Surprise second ${tmpstate.next + 1} of ${tmpstate.seconds} · ${tmpstate.left} left`;
+	}
+
+	if (tmpstate.carry) {
+		tmpview.carry = {
+			seconds: tmpstate.carry.seconds,
+			action: true,
+			elected: tmpsurprise?.carryOver !== false,
+			text: `${tmpstate.carry.seconds}s`,
+			title: "Carry the action into round 1: no initiative until it finishes, then roll and add it"
+		};
+	}
+
+	for (const tmpentry of (tmpsurprise?.spent ?? [])) {
+		tmpview.log.push(`${tmpentry.hand == "off" ? "off hand " : ""}${tmpentry.seconds}s`
+			+ (tmpentry.label ? ` ${tmpentry.label}` : ""));
+	}
+	return tmpview;
+} // END buildSurpriseView
+
+
+// @MARKER SHEET CLOCK
+// What the Combat tab shows of the round clock, beside its Off-Hand Seconds box: read-only, the
+// buttons stay in the tracker and the window.
+//
+//   tmpview    what buildClockView or buildSurpriseView built for the actor's combatant, or null
+//              when the actor is not in the combat on show
+//   tmpcap     the off hand's seconds, as the box shows them out of combat
+//
+// and it returns { inCombat, offhand, offhandSub, status, over }: the off hand's "3 of 5" and
+// "left this round" when a round clock is running, the plain allowance otherwise, and the main
+// hand's status line ("Second 7 · 4 left", or where the surprise stands).
+export function buildSheetClockView(tmpview, tmpcap) {
+	var tmpallowance = "" + (parseInt(tmpcap) || 0);
+	var tmpout = { inCombat: false, offhand: tmpallowance, offhandSub: "", status: "", over: false };
+	if (!tmpview) { return tmpout; }
+	tmpout.inCombat = true;
+	tmpout.status = tmpview.status ?? "";
+	if (tmpview.surprise) {
+		tmpout.offhandSub = "surprise: the off hand acts alongside";
+	} else if (tmpview.ready && tmpview.offhand) {
+		tmpout.offhand = tmpview.offhand.text;
+		tmpout.offhandSub = "left this round";
+		tmpout.over = !!tmpview.offhand.over;
+		if (tmpout.over) { tmpout.offhandSub = tmpview.offhand.overText; }
+	}
+	return tmpout;
+}
+
 // This is the function which builds the Mr. Initiative window: every combatant's clock on one
 // chart, in turn order, with the second the round has reached marked along the top.
 //
-//   tmprows   [ view from buildClockView ] in turn order
+//   tmprows   [ view from buildClockView or buildSurpriseView ] in turn order
 //   tmpinfo   { round, isGM, over }
 export function buildRoundView(tmprows, tmpinfo = {}) {
 	var tmpnow = null;
+	var tmpsurprise = (tmprows ?? []).some(r => r.surprise);
 	for (const tmprow of tmprows ?? []) {
-		if (!tmprow.ready || tmprow.done) { continue; }
+		if (!tmprow.ready || tmprow.done || tmprow.surprise) { continue; }
 		var tmpsecond = parseInt(tmprow.nowLabel) || 0;
 		if (tmpnow === null || tmpsecond < tmpnow) { tmpnow = tmpsecond; }
 	}
@@ -172,7 +266,9 @@ export function buildRoundView(tmprows, tmpinfo = {}) {
 		rows: tmprows ?? [],
 		headers: tmpheaders,
 		over: tmpover,
-		nowText: !tmpinfo.round ? "Combat has not begun"
+		surprise: tmpsurprise,
+		nowText: tmpsurprise ? "Surprise: the surprisers act before initiative is rolled"
+			: !tmpinfo.round ? "Combat has not begun"
 			: tmpover ? "Every combatant is past the tenth second"
 			: tmpnow === null ? "Waiting on initiative"
 			: `Second ${tmpnow}`

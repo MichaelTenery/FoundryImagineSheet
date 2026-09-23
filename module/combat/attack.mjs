@@ -29,6 +29,8 @@ import { ARMOR_BLOCKING } from "../combat-tables.mjs";
 import { getWeaponAttackExtras, resolveWeaponSpecials, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
 import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } from "./martial-arts.mjs";
 import { getActionHand } from "./round-rules.mjs";
+import { resolveCoatingDelivery, isEnvenomed } from "../lore-rules.mjs";
+import { postPoisonOnVictims, registerPoisonCardListeners } from "../magic-actions.mjs";
 
 const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Missile" };
 
@@ -350,7 +352,7 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// attack's kind adds its dice and may double the blow on a high natural roll; Foe Strike,
 		// energy, Bane and the divine abilities are written out for the table. See resolveWeaponSpecials.
 		var tmpspecials = resolveWeaponSpecials({ system: tmpw, mode: tmpmode, natural: tmpd20.total,
-			baseDice: getWeaponDamageDice(tmpw, tmpmode) },
+			baseDice: getWeaponDamageDice(tmpw, tmpmode), maximize: tmpsitmods.maxDamage },
 			(tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1);
 
 		// Multipliers. The Situation Mods' own is already his additive total (two x2s are x3);
@@ -421,6 +423,12 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// energy, Bane, the divine abilities), and the name as his panel would print it.
 		weaponSpecials: tmpdamage ? tmpspecials.lines : [],
 		weaponDisplay: getWeaponDisplayName(tmpweapon.name, tmpw),
+		// The weapon itself, so a hit can find its poison coating when the damage is applied, and the
+		// coating as it stood when the blow was struck, for the card (lore-rules.mjs, POISON ON A WEAPON).
+		weaponId: tmpweapon.id,
+		coating: (parseInt(tmpweapon.system.coating?.doses) || 0) > 0
+			? { name: tmpweapon.system.coating.name, doses: tmpweapon.system.coating.doses, envenomed: isEnvenomed(tmpweapon.system) }
+			: null,
 		// Once set, the Apply Damage button stops offering itself, so a hit cannot be applied twice.
 		applied: false
 	};
@@ -612,6 +620,28 @@ export async function applyAttackDamage(tmpmessage) {
 	if (tmpmagical.damage != tmpfelt) {
 		tmpnotes.push(`Magical protection takes ${tmpfelt - tmpmagical.damage} before armour.`);
 	}
+
+	// @MARKER POISONED WEAPON
+	// A coated weapon's poison goes in with a hit that reaches the flesh -- or, from an Envenomed
+	// blade, a thrust of 10 or more (resolveCoatingDelivery). It is read off the weapon as it is now,
+	// so a coating another hit already spent is not spent twice. Spending it needs the right to
+	// change the attacker's weapon, as applying the damage needs the right to change the target.
+	var tmpdelivery = null;
+	var tmpcoatedweapon = null;
+	if (tmpattack.coating && tmpattack.weaponId) {
+		var tmpattacker = await fromUuid(tmpattack.attackerUuid);
+		tmpcoatedweapon = tmpattacker?.items?.get(tmpattack.weaponId) ?? null;
+		if (tmpcoatedweapon) {
+			tmpdelivery = resolveCoatingDelivery({ coating: tmpcoatedweapon.system.coating, envenomed: isEnvenomed(tmpcoatedweapon.system),
+				mode: tmpattack.mode, fleshDamage: tmpabsorbed.damage });
+			if (tmpdelivery.delivers && !tmpcoatedweapon.isOwner) {
+				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} would go in, but you cannot change that weapon. Ask the Game Master to apply this hit.`);
+				tmpdelivery = null;
+			} else if (!tmpdelivery.delivers && tmpdelivery.reason != "not poisoned") {
+				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} is not delivered: ${esc(tmpdelivery.reason)}.`);
+			}
+		}
+	}
 	if (tmpfelt != tmpraw) {
 		tmpnotes.push(`Pain threshold ${tmpthreshold > 0 ? "+" : ""}${tmpthreshold}`
 			+ `${tmpsys.combat.highPainThreshold ? " and a high pain threshold" : ""}`
@@ -633,6 +663,22 @@ export async function applyAttackDamage(tmpmessage) {
 	// damage the mark cannot be written, and the button stays live -- so the Game Master should
 	// be the one applying damage from other people's attacks.
 	if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
+
+	// The poison delivered: the target rolls their Poison Resistance on its own card, as a poison used
+	// from the tab does, and a dose comes off the weapon -- the coating gone with its last one.
+	if (tmpdelivery?.delivers) {
+		var tmpcoat = tmpcoatedweapon.system.coating;
+		await tmpcoatedweapon.update({ "system.coating": tmpdelivery.remaining > 0 ? { ...tmpcoat, doses: tmpdelivery.remaining }
+			: { name: "", poisonType: "", poisonPotency: "", form: "", doses: 0 } });
+		await postPoisonOnVictims({
+			speaker: tmpcoatedweapon.parent,
+			flavor: `The poison on <strong>${esc(tmpcoatedweapon.name)}</strong> goes in: <strong>${esc(tmpcoat.name)}</strong>`
+				+ (tmpcoat.form ? ` (${esc(tmpcoat.form)})` : ""),
+			poison: { poisonType: tmpcoat.poisonType, poisonPotency: tmpcoat.poisonPotency },
+			victims: [tmptargetactor], modifier: 0,
+			footer: tmpdelivery.remaining > 0 ? `${tmpdelivery.remaining} dose(s) left in the hilt.` : "The coating is spent."
+		});
+	}
 }
 
 // This is the function which spends the attack's seconds for the attacker, if they are fighting:
@@ -661,6 +707,8 @@ export async function spendAttackTime(tmpmessage) {
 
 // This is the function which wires the chat card's buttons whenever an attack card is shown.
 export function registerAttackCardListeners() {
+	// A poisoned weapon's hit posts a poison card, whose Apply buttons are wired here too.
+	registerPoisonCardListeners();
 	Hooks.on("renderChatMessageHTML", function (tmpmessage, tmphtml) {
 		var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
 		if (!tmpattack) { return; }

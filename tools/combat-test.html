@@ -926,6 +926,31 @@ check("\"Full Defensive Mod\" keeps a defence lost to blindness...",
 check("...but not one lost to a critically failed Critical as well",
 	sitMelee(["selfBlind", "criticalFail"], { fullDefense: true }).noDefense, true);
 
+// --- runes and self-repair on the weapon listing (his getWeapon*ListingChanges, 89978-90295) --------
+const WC = await import("../module/weapon-custom-rules.mjs");
+const runed = (runes, abilities, extra = {}) => WC.getCustomizedWeapon({ speed: 4, minSpeed: 2, damage: "2d6",
+	structuralStrength: 20, weight: 10, custom: { runes, magicAbilities: abilities ?? [] }, ...extra });
+check("Gravity +30%: one step, x1.3 weight (the rune's own words, not his 0.3)",
+	WC.getGravityRune({ custom: { runes: [{ name: "Gravity", level: 3 }] } }), { percent: 30, weightMulti: 1.3, steps: 1 });
+check("Gravity -50%: half weight, one step down",
+	WC.getGravityRune({ custom: { runes: [{ name: "Gravity", level: -5 }] } }), { percent: -50, weightMulti: 0.5, steps: -1 });
+check("Gravity is held to +200%", WC.getGravityRune({ custom: { runes: [{ name: "Gravity", level: 25 }] } }).percent, 200);
+check("Gravity +60% on a 2d6 speed 4/2 weapon: two seconds and two dice more",
+	(w => [w.speed, w.minSpeed, w.damage])(runed([{ name: "Gravity", level: 6 }])), [6, 4, "4d6"]);
+check("Gravity -60%: never under 1 second, dice down to 1 die... and flat past none",
+	(w => [w.speed, w.minSpeed, w.damage])(runed([{ name: "Gravity", level: -6 }])), [2, 1, "1"]);
+check("Strenghthen Metal: +5 strength; the greater rune +10",
+	[runed([{ name: "Strenghthen Metal", level: 1 }]).structuralStrength, runed([{ name: "Strenghthen Wood", level: 2 }]).structuralStrength], [25, 30]);
+check("Repair mends itself: [R]; Invulnerability cannot break: [I]",
+	[runed([], ["Repair"]).structuralStrength, runed([{ name: "Invulnerability", level: 1 }]).structuralStrength], ["[R]", "[I]"]);
+const gravityCarry = (lvl) => R.resolveEncumbrance([{ type: "weapon", system: { weight: 10, quantity: 1, location: "carried",
+	custom: { runes: lvl ? [{ name: "Gravity", level: lvl }] : [] } } }], 5, 180, 70).carried;
+check("a Gravity rune's weight reaches what is carried", [gravityCarry(0), gravityCarry(5), gravityCarry(-5)], [10, 15, 5]);
+const maxSpecials = WC.resolveWeaponSpecials({ system: { custom: { baseAura: 10, magicAbilities: ["Sharpness"] } },
+	mode: "cut", natural: 5, baseDice: "2d6", maximize: true }, () => 1);
+check("maximum damage gives a mode ability's magical dice their highest (his setMagicDamageDetails)",
+	maxSpecials.extraDamage, 2 * 6 + 4);
+
 // It reaches the to-hit sum for MISSILE as well as melee -- his offHandPenalty is in both
 // totalmods branches (sheet-worker.js:64804 missile, 64806 melee) despite the table's name.
 check("the off-hand penalty reaches a missile attack",

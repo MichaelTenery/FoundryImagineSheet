@@ -55,7 +55,11 @@ settled. Do not reopen it.**
 - **Done looks like:** each field named once, with where it is read (`getClockOptions` in
   `round-rules.mjs`).
 
-## 3. Show the round clock on the Combat tab
+## 3. Show the round clock on the Combat tab -- DONE 2026-09-23
+
+**Done** at the user's request (see `DECISIONS.md` 2026-09-23): `buildSheetClockView` in
+`round-view.mjs`, `getActorSheetClock`/`refreshActorSheetClocks` in `apps/round-clock.mjs`, the box on
+both Combat tabs (the creature tab gained an Off-Hand Seconds box). The original entry follows.
 
 - **What:** the Combat tab's Off-Hand Seconds box shows the allowance only. When the actor is in the
   viewed combat, add the clock's "left" figure beside it ("3 of 5 left this round") and the main
@@ -72,8 +76,7 @@ settled. Do not reopen it.**
 
 ## Not for this note (needs a judgement call, not a pattern)
 
-- His chart's **Surprise** row: seconds gained by surprising, spent before initiative is rolled
-  (Player's Guide surprise: 1d4+1 seconds of unanswered action). A mini-round before round 1; needs a
-  design pass with the user.
+- ~~His chart's **Surprise** row~~ -- built 2026-09-23 with the user's approval; see `DECISIONS.md`
+  2026-09-23 and `docs/sonnet/2026-09-23-surprise.md`.
 - **Speed potions, spells, runes and glyphs setting `speedSeconds`** by themselves, and clearing it
   when they lapse: Layer 4 (magic effects), not this.

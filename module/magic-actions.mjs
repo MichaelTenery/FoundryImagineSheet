@@ -7,8 +7,10 @@
 //
 // His buttons, and what each became:
 //     USE on a consumable        useConsumable       a dose spent; the last one removes the row
-//     USE on a poison            usePoison           on the targets, on self or on no one; each
-//                                                    victim rolls their own Poison Resistance
+//     USE on a poison            usePoison           on the targets, on self, on a weapon (a
+//                                                    coating) or on no one; each victim rolls
+//                                                    their own Poison Resistance, and its damage
+//                                                    goes on from the card (applyPoisonDamage)
 //     USE / MOD on a lore row    useLore             the use skill against chance + modifier
 //     USE / MOD on a recipe      brewRecipe          the lore against its chance; a batch of doses
 //     the memorized tick         toggleMemorized
@@ -26,7 +28,8 @@
 
 import { MAGIC_KINDS, getItemKind, getSkillStanding, resolveLoreUse, resolveBrew, isLoreSuccess,
          useConsumableDose, makePoisonSystem, POISON_FORMS, resolvePoisonOnVictim,
-         describePoisonOnVictim } from "./lore-rules.mjs";
+         describePoisonOnVictim, getPoisonIntervalsDue, getPoisonDamageToApply, applyOverallDamage,
+         coatWeapon, isEnvenomed, ENVENOMED_THRESHOLD } from "./lore-rules.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "./resistance-rules.mjs";
 import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 
@@ -115,30 +118,31 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 	// (sheet-worker.js:135316, 135358). His row has an "on self" tick that rolls the user's own Poison
 	// Resistance; everyone else was the table's to roll. Here the victim can be the tokens the user has
 	// targeted as well, each rolling their own Poison Resistance (with its immunity), or no one at all
-	// -- a dose spent to coat something, bait a trap, or hand over.
+	// -- a dose spent to bait a trap or hand over -- or a weapon the user carries, coated with it
+	// (lore-rules.mjs, POISON ON A WEAPON; the hit that delivers it is applyAttackDamage's).
 	//
 	// His row's Poison Resistance modifier becomes the modifier asked for here. What follows from the
 	// roll is resolvePoisonOnVictim (lore-rules.mjs): the success or failure clause, the onset and
-	// duration rolled, and any Endurance damage over the duration rolled for convenience.
+	// duration rolled, and any Endurance damage over the duration rolled interval by interval, to be
+	// applied from the card as it lands (applyPoisonDamage below).
 	export async function usePoison(tmpactor, tmpitem) {
 		var tmpresult = useConsumableDose("poison", tmpitem.system.doses);
 		if (!tmpresult.used) {
 			ui.notifications.warn(`${tmpactor.name} has no doses left of ${tmpitem.name}. Nothing done.`);
 			return;
 		}
-		// A poison made by hand may carry only its name, "Type: IV, Potency: C".
-		var tmpnamed = tmpitem.name.match(/Type:\s*([IVX]+),\s*Potency:\s*([A-Q])/i) ?? [];
-		var tmptype = tmpitem.system.poisonType || tmpnamed[1] || "";
-		var tmppotency = tmpitem.system.poisonPotency || tmpnamed[2] || "";
+		var tmppoison = readPoison(tmpitem);
 
 		var tmptargets = Array.from(game.user.targets ?? []).map(tmptoken => tmptoken.actor).filter(tmpa => tmpa);
 		var tmptargetnames = tmptargets.map(tmpa => escapeText(tmpa.name)).join(", ");
+		var tmpweapons = tmpactor.items.filter(tmpi => tmpi.type == "weapon");
 		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
 			window: { title: `Use ${tmpitem.name}` },
 			content: `<div class="form-group"><label>Who takes it</label><select name="who">
 					${tmptargets.length ? `<option value="targets">Targeted: ${tmptargetnames}</option>` : ""}
 					<option value="self">${escapeText(tmpactor.name)} (on self)</option>
-					<option value="none">No one &mdash; just take a dose (a coating, a trap, a gift)</option>
+					${tmpweapons.map(tmpw => `<option value="coat:${tmpw.id}">Coat a weapon: ${escapeText(tmpw.name)}</option>`).join("")}
+					<option value="none">No one &mdash; just take a dose (a trap, a gift)</option>
 				</select></div>
 				<div class="form-group"><label>Poison Resistance modifier</label>
 				<input type="number" name="modifier" value="0"></div>
@@ -149,11 +153,55 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		});
 		if (!tmpanswer) { return; }
 
+		// A weapon coated: refused (and no dose spent) when the rules say it cannot take it.
+		if (tmpanswer.who.startsWith("coat:")) {
+			var tmpweapon = tmpactor.items.get(tmpanswer.who.slice(5));
+			if (!tmpweapon) { return; }
+			var tmpcoat = coatWeapon({ name: tmpitem.name, ...tmppoison, form: tmpitem.system.form }, tmpweapon.system);
+			if (!tmpcoat.ok) { ui.notifications.warn(`${tmpweapon.name}: ${tmpcoat.reason}`); return; }
+			await tmpweapon.update({ "system.coating": tmpcoat.coating });
+			await ChatMessage.create({
+				speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+				flavor: `Coats <strong>${escapeText(tmpweapon.name)}</strong> with poison <strong>${escapeText(tmpitem.name)}</strong>`
+					+ (tmpitem.system.form ? ` (${escapeText(tmpitem.system.form)})` : ""),
+				content: `<div class="imagine-magic-card"><p>${isEnvenomed(tmpweapon.system)
+						? `Its Envenomed hilt now holds ${tmpcoat.coating.doses} dose(s); a thrust that does ${ENVENOMED_THRESHOLD} or more actual damage delivers one.`
+						: "The next hit that does actual damage delivers it, and the coating is spent."}</p>`
+					+ `<p class="muted">Remaining doses: ${tmpresult.remaining}.</p></div>`
+			});
+			if (tmpresult.remove) { await tmpitem.delete(); } else { await tmpitem.update({ "system.doses": tmpresult.remaining }); }
+			return;
+		}
+
 		var tmpvictims = tmpanswer.who == "targets" ? tmptargets : (tmpanswer.who == "self" ? [tmpactor] : []);
+		await postPoisonOnVictims({
+			speaker: tmpactor,
+			flavor: `Uses poison <strong>${escapeText(tmpitem.name)}</strong>${tmpitem.system.form ? ` (${escapeText(tmpitem.system.form)})` : ""}`,
+			poison: tmppoison, victims: tmpvictims, modifier: tmpanswer.modifier,
+			empty: `A dose taken, on no one yet. ${escapeText(tmpitem.system.description)}`,
+			footer: `Remaining doses: ${tmpresult.remaining}.`
+		});
+		if (tmpresult.remove) { await tmpitem.delete(); } else { await tmpitem.update({ "system.doses": tmpresult.remaining }); }
+	}
+
+	// This is the function which reads a poison's type and potency off an item. A poison made by
+	// hand may carry only its name, "Type: IV, Potency: C".
+	export function readPoison(tmpitem) {
+		var tmpnamed = ("" + (tmpitem?.name ?? "")).match(/Type:\s*([IVX]+),\s*Potency:\s*([A-Q])/i) ?? [];
+		return { poisonType: tmpitem?.system?.poisonType || tmpnamed[1] || "", poisonPotency: tmpitem?.system?.poisonPotency || tmpnamed[2] || "" };
+	}
+
+	// This is the function which rolls each victim's Poison Resistance, works out what the poison does
+	// to them, and posts the card -- for a poison used from the tab and for one a weapon delivers.
+	// A victim whose poison deals Endurance damage gets an Apply button on the card (applyPoisonDamage).
+	//
+	//   tmpinput = { speaker, flavor, poison: { poisonType, poisonPotency }, victims, modifier, empty, footer, lead }
+	export async function postPoisonOnVictims(tmpinput) {
 		var tmpdie = (tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1;
-		var tmpsections = [];
+		var tmpsections = tmpinput.lead ? [tmpinput.lead] : [];
 		var tmprolls = [];
-		for (const tmpvictim of tmpvictims) {
+		var tmpflagged = [];
+		for (const tmpvictim of tmpinput.victims ?? []) {
 			var tmpresist = tmpvictim.system?.resistances?.poison;
 			if (!tmpresist) {
 				tmpsections.push(`<p><strong>${escapeText(tmpvictim.name)}</strong>: has no Poison Resistance to roll; the Game Master decides.</p>`);
@@ -161,23 +209,116 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 			}
 			var tmproll = await new Roll("1d100").evaluate();
 			tmprolls.push(tmproll);
-			var tmpresistance = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpanswer.modifier);
-			var tmpeffect = resolvePoisonOnVictim({ type: tmptype, potency: tmppotency, resistance: tmpresistance }, tmpdie);
+			var tmpresistance = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpinput.modifier ?? 0);
+			var tmpeffect = resolvePoisonOnVictim({ type: tmpinput.poison.poisonType, potency: tmpinput.poison.poisonPotency,
+				resistance: tmpresistance }, tmpdie);
+			var tmpbutton = "";
+			if (tmpeffect.damage) {
+				tmpbutton = `<p><button type="button" data-imagine-action="applyPoison" data-index="${tmpflagged.length}">`
+					+ `<i class="fa-solid fa-skull-crossbones"></i> Apply to overall Endurance</button></p>`;
+				tmpflagged.push({ uuid: tmpvictim.uuid, name: tmpvictim.name, damage: tmpeffect.damage,
+					onsetSeconds: tmpeffect.onset?.seconds ?? 0, applied: 0 });
+			}
 			tmpsections.push(`<p><strong>${escapeText(tmpvictim.name)}</strong> &mdash; ${describeResistanceRoll("Poison", tmpresistance)}</p>`
-				+ describePoisonOnVictim(tmpeffect).map(tmpline => `<p>${escapeText(tmpline)}</p>`).join(""));
+				+ describePoisonOnVictim(tmpeffect).map(tmpline => `<p>${escapeText(tmpline)}</p>`).join("") + tmpbutton);
 		}
-		if (!tmpvictims.length) {
-			tmpsections.push(`<p class="muted">A dose taken, on no one yet. ${escapeText(tmpitem.system.description)}</p>`);
+		if (!(tmpinput.victims ?? []).length && tmpinput.empty) {
+			tmpsections.push(`<p class="muted">${tmpinput.empty}</p>`);
 		}
-
-		await ChatMessage.create({
-			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
-			flavor: `Uses poison <strong>${escapeText(tmpitem.name)}</strong>${tmpitem.system.form ? ` (${escapeText(tmpitem.system.form)})` : ""}`,
+		return await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: tmpinput.speaker }),
+			flavor: tmpinput.flavor,
 			content: `<div class="imagine-magic-card">${tmpsections.join("")}`
-			       + `<p class="muted">Remaining doses: ${tmpresult.remaining}.</p></div>`,
-			rolls: tmprolls
+			       + (tmpinput.footer ? `<p class="muted">${tmpinput.footer}</p>` : "") + `</div>`,
+			rolls: tmprolls,
+			// usedAt is the world time the poison was taken, which the Apply button reads the
+			// intervals landed from; applied, per victim, is how many have been put on.
+			flags: tmpflagged.length ? { "imagine-rpg": { poison: { usedAt: game.time?.worldTime ?? 0, victims: tmpflagged } } } : {}
 		});
-		if (tmpresult.remove) { await tmpitem.delete(); } else { await tmpitem.update({ "system.doses": tmpresult.remaining }); }
+	}
+
+	// @MARKER POISON DAMAGE
+	// This is the function behind a poison card's Apply button: the Endurance damage of the intervals
+	// that have landed goes onto the victim's OVERALL Endurance -- body.overallWounds, counted in total
+	// wounds and so toward shock -- by the user's ruling (lore-rules.mjs, POISON DAMAGE LANDING). The
+	// dialog offers what the world clock says has landed since the poison was taken, or all that is
+	// left when the clock has not moved past the first; the Game Master may put on any number.
+	//
+	// Guarded as the attack card's Apply Damage is: a victim's intervals are counted on the message,
+	// so none is put on twice, and only someone who may change the victim may apply it.
+	export async function applyPoisonDamage(tmpmessage, tmpindex) {
+		var tmppoison = tmpmessage.getFlag("imagine-rpg", "poison");
+		var tmpentry = tmppoison?.victims?.[tmpindex];
+		if (!tmpentry) { return; }
+		var tmpleft = getPoisonDamageToApply(tmpentry.damage, tmpentry.applied, 0);
+		if (tmpleft.done) {
+			ui.notifications.warn(`All of that poison's damage has already been applied to ${tmpentry.name}.`);
+			return;
+		}
+		var tmpvictim = await fromUuid(tmpentry.uuid);
+		if (!tmpvictim) { ui.notifications.warn(`${tmpentry.name} is no longer there.`); return; }
+		if (!tmpvictim.isOwner) {
+			ui.notifications.warn(`You do not have permission to change ${tmpvictim.name}. Ask the Game Master to apply it.`);
+			return;
+		}
+		var tmpdue = getPoisonIntervalsDue(tmpentry.damage, tmpentry.onsetSeconds, (game.time?.worldTime ?? 0) - (tmppoison.usedAt ?? 0));
+		var tmpoffer = tmpdue > tmpentry.applied ? tmpdue - tmpentry.applied : tmpleft.remaining;
+		var tmpcount = await foundry.applications.api.DialogV2.prompt({
+			window: { title: `Poison damage to ${tmpvictim.name}` },
+			content: `<p>${tmpentry.damage.dice} every ${tmpentry.damage.everySeconds} seconds, ${tmpentry.damage.times} time(s) in all;
+					${tmpentry.applied} applied, ${tmpleft.remaining} to come. By the world clock ${tmpdue} have landed.</p>
+				<div class="form-group"><label>Intervals to apply now</label>
+				<input type="number" name="count" value="${tmpoffer}" min="1" max="${tmpleft.remaining}"></div>`,
+			rejectClose: false,
+			ok: { label: "Apply", callback: (tmpe, tmpb) => parseInt(tmpb.form.elements.count.value) || 0 }
+		});
+		if (!tmpcount || tmpcount < 1) { return; }
+
+		// Read the flag again: someone else may have applied some while the dialog was open.
+		tmppoison = tmpmessage.getFlag("imagine-rpg", "poison");
+		tmpentry = tmppoison.victims[tmpindex];
+		var tmpnow = getPoisonDamageToApply(tmpentry.damage, tmpentry.applied, tmpcount);
+		if (tmpnow.amount <= 0 && tmpnow.applied == tmpentry.applied) { return; }
+		var tmpsys = tmpvictim.system;
+		var tmpafter = applyOverallDamage({ damage: tmpnow.amount, overallWounds: tmpsys.body?.overallWounds,
+			totalWounds: tmpsys.body?.totalWounds, shock: tmpsys.body?.shock, endurance: tmpsys.characteristics?.endurance?.value });
+		await tmpvictim.update({ "system.body.overallWounds": tmpafter.overallWounds });
+
+		var tmpnotes = [];
+		if (tmpafter.inShock) { tmpnotes.push(`<strong>${escapeText(tmpvictim.name)} is in shock.</strong>`); }
+		if (tmpafter.pastEndurance) { tmpnotes.push(`<strong>Total wounds are past ${escapeText(tmpvictim.name)}'s whole Endurance.</strong>`); }
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: tmpvictim }),
+			content: `<div class="imagine-chat damage-result"><p><strong>${escapeText(tmpvictim.name)}</strong> takes
+				${tmpnow.amount} poison damage to overall Endurance (${tmpnow.applied - tmpentry.applied} interval(s); ${tmpnow.remaining} to come).
+				Total wounds: ${tmpafter.totalWounds}${tmpsys.body?.shock ? ` / shock ${tmpsys.body.shock}` : ""}.</p>
+				${tmpnotes.map(tmpn => `<p>${tmpn}</p>`).join("")}</div>`
+		});
+		// Only the message's author or the Game Master may mark it, as with an attack's damage. If
+		// someone else applied it the count cannot be written, so the Game Master should apply it.
+		if (tmpmessage.isOwner) {
+			var tmpvictims = foundry.utils.deepClone(tmppoison.victims);
+			tmpvictims[tmpindex].applied = tmpnow.applied;
+			await tmpmessage.setFlag("imagine-rpg", "poison.victims", tmpvictims);
+		}
+	}
+
+	// This is the function which wires a poison card's Apply buttons whenever one is shown, and
+	// retires a button once all of its victim's damage is on.
+	export function registerPoisonCardListeners() {
+		Hooks.on("renderChatMessageHTML", function (tmpmessage, tmphtml) {
+			var tmppoison = tmpmessage.getFlag("imagine-rpg", "poison");
+			if (!tmppoison) { return; }
+			for (const tmpbutton of tmphtml.querySelectorAll("[data-imagine-action='applyPoison']")) {
+				var tmpentry = tmppoison.victims?.[parseInt(tmpbutton.dataset.index)];
+				if (tmpentry && getPoisonDamageToApply(tmpentry.damage, tmpentry.applied, 0).done) {
+					tmpbutton.disabled = true;
+					tmpbutton.textContent = "Applied";
+					continue;
+				}
+				tmpbutton.addEventListener("click", () => applyPoisonDamage(tmpmessage, parseInt(tmpbutton.dataset.index)));
+			}
+		});
 	}
 
 	// This is the function which adds one dose to a consumable already carried -- bought, found or

@@ -24,6 +24,7 @@ import { toggleSituationalOption, getSituationalRollResult, getSituationalOption
          getLoreModifiers, resolveOffhandPenalties, getSecondWeaponFlags } from "../combat/combat-rules.mjs";
 import { resolveSkillOutcome } from "../skills-rules.mjs";
 import { getStanceSkillBonus } from "../combat/martial-arts.mjs";
+import { getCustomizedWeapon } from "../weapon-custom-rules.mjs";
 import { buildSituationalView } from "../situational-view.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 
@@ -118,7 +119,9 @@ export default class ImagineSituationalMods extends HandlebarsApplicationMixin(A
 		var tmpout = [];
 		for (const tmpitem of tmpactor.items) {
 			if (tmpitem.type != "weapon") { continue; }
-			var tmpw = tmpitem.system;
+			// The weapon as his combat sheet carries it: its customization, quality and plus change its
+			// modes and its own skills modifier (his weaponN_skills_mod), and nothing is stored.
+			var tmpw = getCustomizedWeapon(tmpitem.system);
 			if (tmpw.location != "equipped" && tmpw.location != "carried") { continue; }
 			var tmpmode = ["thrust", "cut", "smash", "missile"].find(m => tmpw[m]?.available) ?? "thrust";
 			var tmplore = getLoreModifiers({
@@ -135,7 +138,10 @@ export default class ImagineSituationalMods extends HandlebarsApplicationMixin(A
 			});
 			var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond }, tmpactor.system.attributes.agl.rating,
 				tmpactor.system.physical?.handedness, tmpcombat.secondWeaponKnowChance);
-			tmpout.push({ id: tmpitem.id, name: tmpitem.name, skillsMod: tmplore.skills + tmpoffhand.skill });
+			// His sit_weapon_skills_melee/_missile: the weapon's own skills modifier, the off hand's
+			// penalty and the lore's bonus, added (setTotalWeaponSkillMod, sheet-worker.js:98621).
+			tmpout.push({ id: tmpitem.id, name: tmpitem.name,
+			              skillsMod: (parseInt(tmpw.skillsMod) || 0) + tmplore.skills + tmpoffhand.skill });
 		}
 		return tmpout;
 	}

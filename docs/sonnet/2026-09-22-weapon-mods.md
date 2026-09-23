@@ -84,15 +84,18 @@ When the user asks, it goes in the same release as the Magic & Lore tab and the 
 
 ## Not for Sonnet -- these need a judgement first
 
-- **Poison damage is not applied.** It is to "overall Endurance"; Apply Damage works by body area.
-  Which area (or all) is a rules call to put to the user.
-- **The weapon's skills modifier is worked out but nothing reads it.** `getCustomizedWeapon` gives the
+- ~~**Poison damage is not applied.** It is to "overall Endurance"; Apply Damage works by body area.
+  Which area (or all) is a rules call to put to the user.~~ **Done 2026-09-23:** the user ruled overall
+  Endurance only; `body.overallWounds`, the poison card's Apply button. See DECISIONS 2026-09-23.
+- ~~DONE 2026-09-23 by the main session (see DECISIONS)~~ **The weapon's skills modifier is worked out but nothing reads it.** `getCustomizedWeapon` gives the
   effective `skillsMod` (his +20% for an Arm Blade, +10% for a +3 ...), but no skill roll in the port
   adds a weapon's `skillsMod` yet (Situation Mods reads lore and off hand only). Where his weapon skill
   modifier applies needs reading in his code first.
-- **Maximum damage and the specials.** A Focused Attack maximizes the damage roll, rune dice included,
+- ~~DONE 2026-09-23 by the main session (see DECISIONS)~~ **Maximum damage and the specials.** A Focused Attack maximizes the damage roll, rune dice included,
   but not a mode ability's extra dice (`resolveWeaponSpecials`). Whether his maximize reaches
   `setMagicDamageDetails` is unchecked.
-- **Left out of the listing changes:** Repair / Invulnerability ("[R]"/"[I]" strength), the Gravity rune
+- ~~DONE 2026-09-23 by the main session (see DECISIONS)~~ **Left out of the listing changes:** Repair / Invulnerability ("[R]"/"[I]" strength), the Gravity rune
   (speed, minimum, damage dice and weight, text-parsed) and Strenghthen Metal/Wood (+5/+10 strength).
-- **A poisoned weapon (a coating)** -- the user's option 3 -- was offered and not asked for.
+- ~~**A poisoned weapon (a coating)** -- the user's option 3 -- was offered and not asked for.~~ **Done
+  2026-09-23** at the user's request: `system.coating`, coated from a poison's Use, delivered in
+  `applyAttackDamage`. See DECISIONS 2026-09-23.

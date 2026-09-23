@@ -29,6 +29,7 @@
 			<button data-t="skills">Skills</button>
 			<button data-t="combat">Combat</button>
 			<button data-t="equipment">Equipment</button>
+			<button data-t="magic">Magic &amp; Lore</button>
 			<button data-t="description">Description</button>
 		</div>
 		<div id="tabs"></div>
@@ -76,6 +77,8 @@ const R = await import("../module/combat/combat-rules.mjs");
 const S = await import("../module/skills-rules.mjs");
 const C = await import("../module/class-rules.mjs");
 const SV = await import("../module/situational-view.mjs");
+const W = await import("../module/weapon-custom-rules.mjs");
+const { buildMagicPanel } = await import("../module/magic-view.mjs");
 
 Handlebars.registerHelper("eq", (a, b) => a === b);
 Handlebars.registerHelper("gt", (a, b) => a > b);
@@ -103,7 +106,18 @@ classItem.getTitleName = function (t) { const i = parseInt(t) - 1; const a = thi
                                         return (i < 0 || i >= a.length) ? "" : a[i]; };
 
 const sword = byName(weapons, "Bastard Sword");
-Object.assign(sword.system, { location: "equipped", quantity: 1, hand: "right" });
+Object.assign(sword.system, { location: "equipped", quantity: 1, hand: "right",
+	// A quality, a condition, a customization and a temporary Blessed -- so the Combat tab row
+	// actually shows tags, a changed damage/speed and the wand button's tooltip, rather than
+	// only the plain case every other weapon here already covers.
+	quality: "Master", condition: "Worn",
+	// custom.blessed is his PERMANENT Blessed (one-or-the-other with a magic +N) -- what this row
+	// needs is his TEMPORARY Bless, which lives in tempEffects, so it is left false here.
+	custom: { prefix: "", suffix: "", blessed: false, baseAura: 0, basePiety: 0,
+	          magicAbilities: [], divineAbilities: [], runes: [], energyType: "", energyDice: 0,
+	          customizations: ["Serrated"], magicalEffects: [], divineEffects: [] },
+	tempEffects: [{ id: "blessed1", name: "Blessed", kind: "custom", toHit: 1, damage: 1,
+	                notes: "", until: 0, lasts: "a day" }] });
 sword.id = "w1";
 const dagger = byName(weapons, "Dagger");
 // Held in the off hand, so the derived off-hand marker and its penalty are actually exercised
@@ -269,10 +283,14 @@ const loreFor = (w) => loreForCombat(w, character.combat);
 
 const weaponRows = [sword, dagger, garrote].map(w => {
 	// Mirrors ImagineCharacterSheet.#buildWeaponRows, which is private and cannot be called from
-	// here. Anything added to the row there has to be added here too or it renders blank -- and
-	// this one had already drifted: the real sheet adds the weapon's own lore speed modifier
-	// into getWeaponSpeed, and this duplicate was missing it entirely. Fixed to match.
-	const lore = loreFor(w);
+	// here. Anything added to the row there has to be added here too or it renders blank. Every
+	// weapon is run through getCustomizedWeapon first, exactly as the real sheet does, so quality,
+	// condition, customizations and live temporary effects all land in the figures below rather
+	// than only on the stored, unmodified system data.
+	const tmpw = W.getCustomizedWeapon(w.system);
+	const modes = ["thrust", "cut", "smash", "missile"].filter(m => tmpw[m]?.available)
+		.map(m => ({ mode: m, mod: tmpw[m].mod }));
+	const lore = loreForCombat({ system: tmpw, name: w.name }, character.combat);
 	// The off-hand tier, from the character's Second Weapon lists, exactly as the sheet works it.
 	const second = R.getSecondWeaponFlags({
 		weaponName: w.name,
@@ -281,19 +299,24 @@ const weaponRows = [sword, dagger, garrote].map(w => {
 		secondWeaponKnowList: character.combat.secondWeaponKnowNames,
 		secondWeaponLoreList: character.combat.secondWeaponLoreNames
 	});
-	const off = R.resolveOffhandPenalties({ ...w.system, ...second }, character.attributes.agl.rating,
+	const off = R.resolveOffhandPenalties({ ...tmpw, ...second }, character.attributes.agl.rating,
 		character.physical?.handedness, character.combat.secondWeaponKnowChance);
 	const offTip = !off.offhand ? "" : off.tier === "lore" ? "Off hand, Second Weapon Lore: no penalty"
 		: `${off.tier === "knowledge" ? "Off hand, Second Weapon Knowledge" : "Off hand"}: attack ${off.melee}, damage ${off.damage}, skills ${off.skill}%`;
 	return {
-		id: w.id, name: w.name, damage: w.system.damage,
-		speed: w.system.speedSpecial ? "Special"
-			: R.getWeaponSpeed(w.system.speed, w.system.minSpeed, character.combat.weaponSpeedMod + lore.speed),
-		reload: w.system.reloadSpeed || "",
-		modes: ["thrust", "cut", "smash", "missile"].filter(m => w.system[m]?.available).map(m => ({ mode: m, mod: w.system[m].mod })),
-		lore, equipped: w.system.location === "equipped",
-		hand: w.system.hand || "right",
-		offhand: off.offhand, offhandTier: off.tier, offhandTip: offTip
+		id: w.id, name: w.name, damage: tmpw.damage,
+		speed: tmpw.speedSpecial ? "Special"
+			: R.getWeaponSpeed(tmpw.speed, tmpw.minSpeed, character.combat.weaponSpeedMod + lore.speed),
+		reload: tmpw.reloadSpeed || "",
+		modes,
+		lore, equipped: tmpw.location === "equipped",
+		hand: tmpw.hand || "right",
+		offhand: off.offhand, offhandTier: off.tier, offhandTip: offTip,
+		// What has been done to it -- his Customize panel's tags -- and its name as his panel
+		// prints it, prefix and suffix and all. world time 0, as this preview has no clock.
+		customTags: W.getWeaponCustomTags(tmpw, 0),
+		displayName: W.getWeaponDisplayName(w.name, tmpw),
+		listingTip: tmpw.listingChanges?.length ? "Changed by what has been done to it: " + tmpw.listingChanges.join("; ") : ""
 	};
 });
 
@@ -305,6 +328,10 @@ const ctx = {
 	gear: [sword, dagger, garrote, padding, chain, shield, tent],
 	weapons: weaponRows,
 	lore: buildLorePanel(character.combat),
+	// The Magic & Lore tab, the sixth one -- built by the real buildMagicPanel, the same function
+	// the sheet itself calls. This Warrior holds no lore at all, so this exercises the tab's empty
+	// state; tools/magic-preview.html is where a full tab, with content, is previewed.
+	magic: buildMagicPanel({ items: allItems, system: character }, game.imagine.getAvailabilityRules(), true),
 	// Mirrors the sheet's own line, built by the same function.
 	situationLine: SV.describeSituationalTotals(character.combat.situational),
 	handednessChoices: [
@@ -346,7 +373,7 @@ async function render(path, context) {
 }
 document.getElementById("header").innerHTML = await render("../templates/actor/header.hbs", ctx);
 const tabs = document.getElementById("tabs");
-for (const name of ["attributes", "skills", "combat", "equipment", "description"]) {
+for (const name of ["attributes", "skills", "combat", "equipment", "magic", "description"]) {
 	const div = document.createElement("div");
 	div.innerHTML = await render(`../templates/actor/tab-${name}.hbs`, ctx);
 	tabs.appendChild(div);

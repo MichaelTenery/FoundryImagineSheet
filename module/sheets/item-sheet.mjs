@@ -31,6 +31,7 @@ import {
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { MAGIC_KINDS, CONSUMABLE_KINDS, LORE_KINDS, POISON_FORMS } from "../lore-rules.mjs";
 import { POISON_TYPES, POISON_POTENCIES } from "../lore-tables.mjs";
+import { getWeaponCustomTags } from "../weapon-custom-rules.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -268,6 +269,11 @@ export class ImagineWeaponSheet extends ImagineItemSheet {
 				mod: parseInt(tmpsystem[tmpmode.key]?.mod) || 0
 			}))
 		};
+		// Read-only: what has been done to this weapon since it left this sheet. Editing any of it
+		// stays in the weapon mods window (apps/weapon-mods.mjs), opened from the actor -- this line
+		// only shows the tags his Customize panel would print, so a customized weapon's own sheet
+		// does not look untouched.
+		tmpcontext.customTags = getWeaponCustomTags(tmpsystem, game.time?.worldTime ?? 0);
 		return tmpcontext;
 	}
 }

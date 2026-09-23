@@ -46,6 +46,8 @@
 //   Goblin   rolled -4: the split second
 //   Ogre     not rolled yet
 //
+// and, below, the time before round 1 of an ambush: two surprisers on his chart's Surprise row.
+//
 // Must be served over HTTP -- see tools/combat-test.html.
 const R = await import("../module/combat/round-rules.mjs");
 const V = await import("../module/round-view.mjs");
@@ -91,6 +93,36 @@ document.getElementById("stage").innerHTML = `
 	<div><div class="caption">Mr. Initiative window (Imagine paper)</div>
 		<div class="frame imagine round-clock-window"><div class="frame-title">Mr. Initiative</div>
 		<div class="window-content">${windowTemplate(round)}</div></div></div>`;
+
+// BEFORE ROUND 1: an ambush, his chart's Surprise row. Asha has four surprise seconds and has
+// stabbed once; Bren had two and swung a great sword, which runs four seconds into round 1; the
+// guard was not in on it and has rolled a 2.
+const surprisers = [
+	{ name: "Asha", surprise: [[4], [[1, "main", "Dagger"]]] },
+	{ name: "Bren", surprise: [[2], [[6, "main", "Great Sword"]]] }
+].map(f => {
+	let x = R.newSurprise(f.surprise[0][0]);
+	for (const [sec, hand, label] of f.surprise[1]) { x = R.addSurpriseSpend(x, sec, hand, label); }
+	return { name: f.name, surprise: x, state: R.resolveSurprise(x) };
+});
+const guardClock = R.newRoundClock(0, 2);
+const ambushViews = [
+	...surprisers.map((f, i) => V.buildSurpriseView(f.state, f.surprise, {
+		id: f.name.toLowerCase(), name: f.name, img: "", current: i == 0, canSpend: true })),
+	V.buildClockView(R.resolveRoundClock(guardClock, right), guardClock, { id: "guard", name: "Guard", img: "", canSpend: true })
+];
+const ambushRows = ambushViews.map((v, i) => `<li class="combatant ${i == 0 ? "active" : ""} imagine-clocked">
+	<div class="token-image"></div><div class="token-name"><strong>${v.name}</strong></div>
+	<div class="token-initiative">${v.surprise ? "" : 2}</div>${rowTemplate(v)}</li>`).join("");
+const ambush = V.buildRoundView(ambushViews, { round: 0, isGM: true, over: false });
+ambush.canSurprise = true;
+document.getElementById("stage").insertAdjacentHTML("beforeend", `
+	<div><div class="caption">Before round 1: the surprise (tracker)</div>
+		<div class="sidebar"><div class="head"><span>Not started</span><span class="fa-stopwatch">&#9201;</span></div>
+		<ol class="combat-sidebar"><div class="combat-tracker">${ambushRows}</div></ol></div></div>
+	<div><div class="caption">Before round 1: the surprise (Mr. Initiative)</div>
+		<div class="frame imagine round-clock-window" style="height:330px"><div class="frame-title">Mr. Initiative</div>
+		<div class="window-content">${windowTemplate(ambush)}</div></div></div>`);
 
 document.getElementById("result").textContent = fighters.map((f, i) =>
 	`${f.name.padEnd(7)} key ${String(R.getClockSortKey(f.state)).padEnd(6)} init ${String(R.getClockInitiative(f.state)).padEnd(5)} ${views[i].status}`

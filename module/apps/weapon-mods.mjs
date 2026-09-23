@@ -6,7 +6,8 @@
 //
 //     FOR NOW     temporary effects -- Bless (Player's Guide, Holy Weapon: a day), or the Game
 //                 Master's own with a to-hit, a damage and how long it lasts. Each one ends by the
-//                 world's clock or is taken off here.
+//                 world's clock or is taken off here. And a poison coating, shown and wiped off
+//                 here; it is put on from the Magic & Lore tab's poison Use, where the dose is.
 //     FOR GOOD    his Equipment tab's CUSTOMIZE ITEMS panel, the weapon half: condition, quality,
 //                 prefix and suffix, the magical plus (or Blessed), base Aura and Piety Control,
 //                 magical and divine abilities, runes, energy, physical customizations, any spell or
@@ -37,6 +38,7 @@ export default class ImagineWeaponMods extends HandlebarsApplicationMixin(Applic
 			addTemporary:    ImagineWeaponMods.#onAddTemporary,
 			removeTemporary: ImagineWeaponMods.#onRemoveTemporary,
 			clearExpired:    ImagineWeaponMods.#onClearExpired,
+			wipeCoating:     ImagineWeaponMods.#onWipeCoating,
 			customize:       ImagineWeaponMods.#onCustomize,
 			removeCustom:    ImagineWeaponMods.#onRemoveCustom
 		}
@@ -113,6 +115,13 @@ export default class ImagineWeaponMods extends HandlebarsApplicationMixin(Applic
 		event.preventDefault();
 		var tmpeffects = (this.#weapon.system.tempEffects ?? []).filter(tmpe => isTemporaryActive(tmpe, game.time.worldTime));
 		await this.#weapon.update({ "system.tempEffects": tmpeffects });
+		this.render();
+	}
+
+	// This is the function which wipes a poison coating off -- the doses in it are lost, not returned.
+	static async #onWipeCoating(event, target) {
+		event.preventDefault();
+		await this.#weapon.update({ "system.coating": { name: "", poisonType: "", poisonPotency: "", form: "", doses: 0 } });
 		this.render();
 	}
 

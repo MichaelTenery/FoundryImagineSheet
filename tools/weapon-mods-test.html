@@ -181,6 +181,7 @@ Handlebars.registerHelper("lt", (a, b) => a < b);
 const custom = R.applyWeaponCustomization(sword, { baseAura: 10, magicAbility: "Sharpness", rune: "Piercing", runeLevel: 2,
 	energyType: "Flame", energyDice: 2, customization: "Serrated", suffix: "of the North" }).system;
 custom.tempEffects = [blessing, R.makeTemporaryEffect({ name: "Oil", toHit: 1, seconds: 60, lasts: "1 minute" }, 0)];
+custom.coating = { name: "Type: IV, Potency: C", poisonType: "IV", poisonPotency: "C", form: "Contact", doses: 1 };
 const view = V.buildWeaponModsView({ name: "Calanar", system: { identity: { alignment: "Good (Active)" } } },
 	{ id: "w1", name: sword.name, system: { ...custom, quantity: 2 } }, 2000);
 check("the view: display name, the blessing for this wielder, the temporary list with one ended",
@@ -195,6 +196,15 @@ const windowSource = await (await fetch("../templates/apps/weapon-mods.hbs", { c
 document.getElementById("window").innerHTML = Handlebars.compile(windowSource)(view);
 check("the window template renders: both halves, and the copy count for a stack of two",
 	["For now", "his Customize panel", "how many of the 2"].map(t => document.getElementById("window").textContent.includes(t)), [true, true, true]);
+check("the view: the poison coating, one dose on a plain blade",
+	[view.coating.has, view.coating.name, view.coating.envenomed, view.coating.note.startsWith("One dose coats it")],
+	[true, "Type: IV, Potency: C", false, true]);
+check("...an Envenomed blade's hilt, and no coating on it yet",
+	[V.buildWeaponModsView(null, { id: "w2", name: "Dagger", system: { custom: { customizations: ["Envenomed"] } } }, 0).coating]
+		.map(c => [c.has, c.envenomed, c.note.includes("up to 5 doses")]), [[false, true, true]]);
+check("the window shows the coating with its wipe-off button",
+	[document.getElementById("window").textContent.includes("Poisoned: Type: IV, Potency: C (Contact)"),
+	 !!document.querySelector("#window [data-action='wipeCoating']")], [true, true]);
 
 const cardSource = await (await fetch("../templates/chat/attack-card.hbs", { cache: "no-store" })).text();
 document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({
@@ -203,10 +213,12 @@ document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({
 	mods: { list: [{ label: "Magic", value: 2 }, { label: "Blessed", value: 1 }] },
 	damage: { total: 38, type: "Cutting", dice: "1d8", magic: 2, runeDice: "2d6+2", custom: 1, special: 9, specialDoubles: true,
 	          rolled: 19, multiplier: 2, shots: 1 },
+	coating: { name: "Type: IV, Potency: C", doses: 1, envenomed: false },
 	weaponSpecials: ["Energy: the target makes a Magic Resistance or takes 7 (2d6) magical Flame damage."], speed: 5 });
 check("the attack card shows the rune, the weapon's own damage, the magical extra and the specials",
 	["Long Sword of the North", "+2d6+2 rune", "+1 weapon", "+9 magical", "doubled by the natural roll", "magical Flame damage"]
 		.map(t => document.getElementById("card").textContent.includes(t)), [true, true, true, true, true, true]);
+check("...and the poison on the blade", document.getElementById("card").textContent.includes("Poisoned: Type: IV, Potency: C"), true);
 
 const failed = results.filter(r => r.startsWith("FAIL")).length;
 document.getElementById("out").textContent =
