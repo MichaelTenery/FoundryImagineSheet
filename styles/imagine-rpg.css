@@ -892,6 +892,44 @@ input.source-unknown {
 .lore-lists label { flex: 1 1 220px; font-size: 11px; }
 .lore-lists input { width: 100%; }
 
+/* @MARKER MARTIAL ARTS
+   The martial arts panel on the Combat tab. Closed, it is one heading line; open, it lays its
+   rows out like the weapon table beside it, so the two read as one kind of thing. A move made or
+   a Martial Lore value made is shown the way a weapon's chosen hand is -- the accent colour. */
+.martial-arts .martial-head { display: flex; align-items: baseline; gap: 8px; }
+.imagine.sheet .martial-arts .martial-toggle {
+	width: auto; flex: 0 0 auto; padding: 0 4px; border: none; background: transparent;
+	font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer;
+}
+.martial-arts .martial-head .muted { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.martial-arts .martial-body { padding: 2px 0 6px 10px; border-left: 2px solid var(--imagine-rule-soft); }
+.martial-arts .martial-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 4px 0; font-size: 12px; }
+.martial-arts .martial-row button { width: auto; flex: 0 0 auto; font-size: 11px; line-height: 20px; padding: 0 6px; }
+.martial-arts .martial-row select { width: auto; margin-left: 4px; height: 22px; font-size: 12px; }
+.martial-arts .martial-sub {
+	margin: 8px 0 2px; font-size: 11px; font-weight: 600; color: var(--imagine-accent);
+	display: flex; align-items: baseline; gap: 8px; border: none;
+}
+.martial-arts .martial-sub .muted { font-weight: 400; font-size: 10px; }
+.martial-arts .martial-sub .martial-clear { width: auto; margin-left: auto; font-size: 10px; line-height: 16px; padding: 0 6px; }
+.martial-arts .martial-note { font-size: 11px; margin: 2px 0 4px; color: var(--imagine-muted); }
+.martial-arts .martial-note.alarm { color: var(--imagine-alarm); }
+.martial-arts .martial-effects { margin: 4px 0; padding-left: 18px; font-size: 11px; }
+.martial-arts .martial-moves { display: flex; flex-wrap: wrap; gap: 6px; }
+.martial-arts .martial-chip { display: inline-flex; border: 1px solid var(--imagine-rule); border-radius: 3px; }
+.imagine.sheet .martial-arts .martial-chip button {
+	width: auto; border: none; background: transparent; font-size: 11px; line-height: 20px; padding: 0 6px;
+}
+.martial-arts .martial-chip button + button { border-left: 1px solid var(--imagine-rule); }
+.martial-arts .martial-chip.on { border-color: var(--imagine-accent); }
+.martial-arts .martial-chip.on .martial-chip-name { background: var(--imagine-accent); color: var(--imagine-on-accent); }
+.martial-arts .martial-table .martial-special { font-size: 10px; color: var(--imagine-muted); }
+.martial-arts .martial-table button { width: auto; font-size: 11px; line-height: 18px; padding: 0 6px; }
+.martial-arts .martial-table tr.martial-made .col-name { font-weight: 600; }
+.martial-arts .martial-lists .lore-lists label { flex-basis: 180px; }
+.imagine-chat.martial-card .skill-line { font-size: 11px; margin-bottom: 2px; }
+.imagine-chat.martial-card .martial-notes { margin: 4px 0 0; padding-left: 16px; font-size: 10px; }
+
 /* Pain Threshold is an editable stat rather than a derived one: it is the Game Master's dial
    for how hard a target feels a blow, and it is signed. */
 .combat-stats .pain-input {

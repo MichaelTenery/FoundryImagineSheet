@@ -199,6 +199,167 @@
 	<p class="empty">No weapons ready. Equip or carry one from the Equipment tab.</p>
 	{{/if}}
 
+	{{!-- @MARKER MARTIAL ARTS
+	      Martial Knowledge and Martial Lore, as one panel that opens from its heading. Closed it
+	      is one line: the discipline, the stance held and the moves made. Open, it is the
+	      discipline and stance to choose, the moves to make, and every subskill to roll.
+
+	      The stance and discipline are ordinary form fields, so choosing one saves it and the
+	      character re-derives: defence, initiative and weapon speed all follow the stance at once.
+	      A move is MADE by its skill roll (the die beside it) and stays made until cleared -- his
+	      move success box and SET button in one -- or is ticked by hand with the Game Master's
+	      say-so. Everything here only feeds what attacks read; see module/combat/martial-arts.mjs. --}}
+	{{#if martial.show}}
+	<div class="martial-arts">
+		<h3 class="section-head martial-head">
+			<button type="button" class="martial-toggle" data-action="toggleMartialPanel"
+				data-tooltip="{{#if martial.open}}Close{{else}}Open{{/if}} martial arts">
+				<i class="fa-solid fa-caret-{{#if martial.open}}down{{else}}right{{/if}}"></i> Martial Arts</button>
+			<span class="muted">{{martial.summary}}</span>
+		</h3>
+
+		{{#if martial.open}}
+		<div class="martial-body">
+			<div class="martial-row">
+				<span class="martial-stat">Martial Knowledge <strong>{{martial.knowChance}}%</strong></span>
+				{{#if martial.hasLore}}<span class="martial-stat">Martial Lore <strong>{{martial.loreChance}}%</strong></span>{{/if}}
+				<label class="martial-stat">Discipline
+					<select name="system.martial.discipline">
+						{{#each martial.disciplineChoices as |d|}}<option value="{{d.value}}" {{#if d.selected}}selected{{/if}}>{{d.label}}</option>{{/each}}
+					</select></label>
+				<span class="martial-stat muted">From prone: {{martial.standFromProne}}</span>
+			</div>
+			{{#unless martial.hasKnowledge}}
+			<p class="hint">Martial Knowledge is not held (or its title is not reached yet), so nothing here applies.</p>
+			{{/unless}}
+			{{#if martial.needsDiscipline}}
+			<p class="hint">Choose a discipline: it decides which attacks, blocks, holds, moves and throws are known.
+				Custom knows only what is written in the lists below.</p>
+			{{/if}}
+
+			{{!-- One stance at a time, entered in 3 seconds without a roll. A stance must be learned
+			      (a Martial Knowledge roll) before it can be held, and mastered (Martial Lore) to use
+			      its stronger form. --}}
+			<div class="martial-row">
+				<label class="martial-stat">Stance
+					<select name="system.martial.activeStance">
+						{{#each martial.stanceChoices as |s|}}<option value="{{s.value}}" {{#if s.selected}}selected{{/if}}>{{s.label}}</option>{{/each}}
+					</select></label>
+				<button type="button" data-action="learnMartialStance" data-tooltip="A Martial Knowledge roll">Learn a stance</button>
+				{{#if martial.hasLore}}<button type="button" data-action="masterMartialStance" data-tooltip="A Martial Lore roll">Master a stance</button>{{/if}}
+			</div>
+			{{#if martial.stanceText}}<p class="martial-note">{{martial.stanceText}}</p>{{/if}}
+
+			{{!-- What is in play, all of it, so the player can see what the next attack will read. --}}
+			{{#if martial.effects.length}}
+			<ul class="martial-effects">{{#each martial.effects as |e|}}<li>{{e}}</li>{{/each}}</ul>
+			{{/if}}
+			{{#if martial.illegal}}<p class="martial-note alarm">{{martial.illegal}}</p>{{/if}}
+
+			{{#if martial.moves.length}}
+			<h4 class="martial-sub">Moves <span class="muted">made moves add to the attacks after them</span>
+				<button type="button" class="martial-clear" data-action="clearMartialMoves"
+					data-tooltip="Clear every move and Martial Lore value made">Clear</button></h4>
+			<div class="martial-moves">
+				{{#each martial.moves as |m|}}
+				<span class="martial-chip {{#if m.made}}on{{/if}}" data-tooltip="{{m.special}}">
+					<button type="button" class="martial-chip-name" data-action="toggleMartialMove" data-name="{{m.name}}"
+						data-tooltip="{{#if m.made}}Made -- click to clear{{else}}Mark as made (Game Master's say-so){{/if}}">{{m.name}}</button>
+					<button type="button" data-action="rollMartialMove" data-name="{{m.name}}"
+						data-tooltip="Roll {{m.chance}}% (shift-click for a modifier)"><i class="fa-solid fa-dice-d20"></i> {{m.chance}}%</button>
+				</span>
+				{{/each}}
+			</div>
+			{{/if}}
+
+			{{#if martial.attacks.length}}
+			<h4 class="martial-sub">Attacks <span class="muted">skill roll and roll to hit together; a failed skill roll still lands for half</span></h4>
+			<table class="weapon-table martial-table">
+				<thead><tr><th class="col-name">Attack</th><th class="col-num">Skill</th><th class="col-num">Speed</th>
+					<th class="col-num">Damage</th><th>Notes</th><th></th></tr></thead>
+				<tbody>
+					{{#each martial.attacks as |a|}}
+					<tr>
+						<td class="col-name">{{a.name}}</td>
+						<td class="col-num">{{a.chance}}%</td>
+						<td class="col-num">{{a.speed}}</td>
+						<td class="col-num">{{a.damage}} <span class="muted">{{a.damageType}}</span></td>
+						<td class="martial-special">{{a.special}}</td>
+						<td><button type="button" data-action="rollMartialAttack" data-name="{{a.name}}">
+							<i class="fa-solid fa-dice-d20"></i> Attack</button></td>
+					</tr>
+					{{/each}}
+				</tbody>
+			</table>
+			{{/if}}
+
+			{{#each martial.subskills as |f|}}
+			<h4 class="martial-sub">{{f.label}} <span class="muted">{{f.hint}}</span></h4>
+			<table class="weapon-table martial-table">
+				<tbody>
+					{{#each f.rows as |r|}}
+					<tr>
+						<td class="col-name">{{r.name}}</td>
+						<td class="col-num">{{r.chance}}%</td>
+						<td class="col-num">{{r.speedText}}s</td>
+						<td class="martial-special">{{#if r.damage}}{{r.damage}} &middot; {{/if}}{{r.special}}</td>
+						<td><button type="button" data-action="rollMartialSubskill" data-family="{{f.family}}" data-name="{{r.name}}"
+							data-tooltip="Shift-click for a modifier"><i class="fa-solid fa-dice-d20"></i> Roll</button></td>
+					</tr>
+					{{/each}}
+				</tbody>
+			</table>
+			{{/each}}
+
+			{{#if martial.hasLore}}
+			<h4 class="martial-sub">Martial Lore <span class="muted">rolled against Martial Lore; a made value stays in play until cleared</span></h4>
+			{{#if martial.lore.length}}
+			<table class="weapon-table martial-table">
+				<tbody>
+					{{#each martial.lore as |l|}}
+					<tr class="{{#if l.made}}martial-made{{/if}}">
+						<td class="col-name">{{l.name}} <span class="muted">{{l.type}}</span></td>
+						<td class="col-num">{{l.chance}}%</td>
+						<td class="martial-special">{{l.special}}</td>
+						<td class="col-hand"><span class="hand-pick"><button type="button" class="{{#if l.made}}on{{/if}}"
+							data-action="toggleMartialLoreValue" data-name="{{l.name}}"
+							data-tooltip="{{#if l.made}}Made -- click to clear{{else}}Mark as made{{/if}}">made</button></span></td>
+						<td><button type="button" data-action="rollMartialLoreValue" data-name="{{l.name}}"
+							data-tooltip="Shift-click for a modifier"><i class="fa-solid fa-dice-d20"></i> Roll</button></td>
+					</tr>
+					{{/each}}
+				</tbody>
+			</table>
+			{{/if}}
+			<div class="martial-row">
+				<button type="button" data-action="learnMartialLoreValue">Learn a Martial Lore value</button>
+				<button type="button" data-action="learnMartialSubskill"
+					data-tooltip="A subskill outside the discipline, seen from another martial artist">Learn a subskill with Martial Lore</button>
+			</div>
+			{{/if}}
+
+			{{!-- His lists, as he keeps them: comma-separated names. A Custom discipline's picks live
+			      here, and so does anything learned beyond the discipline; the Game Master can put a
+			      slip right by hand. --}}
+			<h4 class="martial-sub">Lists <span class="muted">comma-separated, as his sheet keeps them</span></h4>
+			<div class="martial-lists">
+				<div class="lore-lists">
+					<label>Attacks beyond the discipline<input type="text" name="system.martial.learnedAttacks" value="{{system.martial.learnedAttacks}}" placeholder="Rake, Finger Punch"></label>
+					<label>Blocks<input type="text" name="system.martial.learnedBlocks" value="{{system.martial.learnedBlocks}}" placeholder="Body Block"></label>
+					<label>Holds<input type="text" name="system.martial.learnedHolds" value="{{system.martial.learnedHolds}}" placeholder="Torso"></label>
+					<label>Moves<input type="text" name="system.martial.learnedMoves" value="{{system.martial.learnedMoves}}" placeholder="Tension"></label>
+					<label>Throws<input type="text" name="system.martial.learnedThrows" value="{{system.martial.learnedThrows}}" placeholder="Spin Throw"></label>
+					<label>Stances learned<input type="text" name="system.martial.stances" value="{{system.martial.stances}}" placeholder="Flow as water"></label>
+					<label>Stances mastered<input type="text" name="system.martial.masteredStances" value="{{system.martial.masteredStances}}"></label>
+					<label>Martial Lore values<input type="text" name="system.martial.loreValues" value="{{system.martial.loreValues}}" placeholder="Flip, Slam"></label>
+				</div>
+				{{#if martial.unknown}}<p class="martial-note alarm">Not in his tables, so ignored: {{martial.unknown}}</p>{{/if}}
+			</div>
+		</div>
+		{{/if}}
+	</div>
+	{{/if}}
+
 	{{!-- Handedness decides which side of the body a shield covers: a shield is held in the off
 	      hand, so a right-hander is shielded down the left. Anything but "Left" reads as
 	      right-handed, which is what his equipShield does. --}}

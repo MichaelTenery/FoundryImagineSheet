@@ -1,0 +1,167 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG martial arts preview</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>
+	body { margin: 0; background: #3a3632; font-family: "Signika", "Segoe UI", sans-serif; }
+	.frame { max-width: 860px; margin: 18px auto; background: #fdfbf6; border-radius: 5px;
+	         box-shadow: 0 8px 30px rgba(0,0,0,.45); overflow: hidden; }
+	.frame-title { background: #22201d; color: #d8d0c0; padding: 7px 12px; font-size: 13px; }
+	.window-content { padding: 12px 14px; }
+	.tab { display: none; }
+	.tab.active { display: block; }
+	.chat { max-width: 300px; margin: 18px auto; background: #f0ece2; border: 1px solid #b9b0a0;
+	        border-radius: 4px; padding: 8px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.35); }
+	.chat-title { color: #d8d0c0; text-align: center; font-size: 12px; margin-top: 18px; }
+	#checks { max-width: 860px; margin: 8px auto; color: #d8d0c0; font: 12px monospace; white-space: pre-wrap; }
+</style>
+
+<div id="checks">running...</div>
+<div class="chat-title">The Combat tab of a real Martial Artist at title 6, panel OPEN: Balanced, holding a
+	mastered Strike as wind, Jump made, Flip made -- the class, race and both skills are the real documents</div>
+<div class="frame imagine sheet actor character"><div class="frame-title">Combat tab (martial arts open)</div>
+	<div class="window-content" id="open"></div></div>
+<div class="chat-title">The same panel CLOSED: one line</div>
+<div class="frame imagine sheet actor character"><div class="frame-title">Combat tab (martial arts closed)</div>
+	<div class="window-content" id="closed"></div></div>
+<div class="chat-title">Her Martial Punch, the skill roll failed and the hit landing for half</div>
+<div class="chat" id="card"></div>
+
+<script type="module">
+// Renders the real tab-combat.hbs and martial-card.hbs against a character the real data model has
+// derived, through the same view function the sheet calls (module/martial-view.mjs) -- there is no
+// copy of any sheet builder here to drift. Foundry is stubbed; every number is the system's own.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/martial-preview.html
+globalThis.foundry = {
+	abstract: { TypeDataModel: class {
+		constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
+const V = await import("../module/martial-view.mjs");
+const M = await import("../module/combat/martial-arts.mjs");
+const R = await import("../module/combat/combat-rules.mjs");
+
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+Handlebars.registerHelper("lt", (a, b) => a < b);
+Handlebars.registerHelper("gte", (a, b) => a >= b);
+
+const checks = [];
+const check = (label, actual, expected) => {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	checks.push(`${ok ? "PASS" : "FAIL"}  ${label}${ok ? "" : `  -- expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`}`);
+};
+
+// --- real content ---------------------------------------------------------------------------
+const load = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`)).json());
+const byName = (docs, n) => { const d = docs.find(x => x.name === n); if (!d) throw new Error("missing " + n); return structuredClone(d); };
+const [races, classes, skillDocs] = await Promise.all(["races", "classes", "skills"].map(load));
+
+const raceItem = byName(races, "Human(Civilized:Village)");
+const classItem = byName(classes, "Martial Artist");
+classItem.getTitleName = function (t) { const i = parseInt(t) - 1; const a = this.system.advancement.titles;
+                                        return (i < 0 || i >= a.length) ? "" : a[i]; };
+// Martial Knowledge at title 1 and Martial Lore at 5 in the class's own progression, so at title 6
+// she holds both. Starting bonuses are stubbed: they are rolled per character.
+const mk = byName(skillDocs, "Martial Knowledge");
+Object.assign(mk.system, { startingBonus: 40, abilityBonus: 0, misc: 0, isCommon: false, acquiredAtTitle: 1 });
+mk.id = "mk";
+const ml = byName(skillDocs, "Martial Lore");
+Object.assign(ml.system, { startingBonus: 35, abilityBonus: 0, misc: 0, isCommon: false, acquiredAtTitle: 5 });
+ml.id = "ml";
+
+const ratings = { str: 16, agl: 18, vit: 15, int: 12, wis: 14, knw: 13, app: 12, chm: 11, soc: 10, aur: 9, pty: 10, wil: 14 };
+const attributes = {};
+for (const k of Object.keys(ratings)) attributes[k] = { rating: ratings[k], permMod: 0, tempMod: 0 };
+const characteristic = () => ({ titleBonus: 0, raceMod: 0, permMod: 0, tempMod: 0 });
+const resistance = () => ({ misc: 0, immune: false });
+const character = new ImagineCharacterData({
+	identity: { title: 6 },
+	attributes,
+	characteristics: { endurance: characteristic(), perception: characteristic(),
+	                   affinity: characteristic(), fortune: characteristic() },
+	resistances: { magic: resistance(), illusion: resistance(), control: resistance(),
+	               poison: resistance(), disease: resistance() },
+	body: { bodyType: "", wounds: {}, armorDamage: {}, hide: 0 },
+	physical: { weight: 150, handedness: "", famorian: {} },
+	languages: [],
+	skillSlotMoves: { racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0,
+	                  racialSacrificed: 0, socialSacrificed: 0 },
+	combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
+	          weaponLoreList: "", missileLoreList: "", projectileLoreList: "",
+	          painThreshold: 0, damageAbsorb: 0 },
+	movement: { walk: {}, jog: {}, run: {}, special: {}, specialName: "", travelHours: 0, restHours: 0,
+	            jumpStand: 0, jumpUp: 0 },
+	martial: { discipline: "Balanced", learnedAttacks: "", learnedBlocks: "", learnedHolds: "Torso",
+	           learnedMoves: "", learnedThrows: "", loreValues: "Flip,Wall Jump",
+	           stances: "Strike as wind,Flow as water", masteredStances: "Strike as wind",
+	           activeStance: "Strike as wind", activeMoves: "Jump", activeLoreValues: "Flip" }
+});
+character.parent = { items: [raceItem, classItem, mk, ml], name: "Mei Tan" };
+character.prepareBaseData();
+character.prepareDerivedData();
+
+// --- what should be on screen, checked against the rules before it is drawn -----------------
+const m = character.martial;
+check("Martial Knowledge and Martial Lore are both held at title 6", [m.hasKnowledge, m.hasLore], [true, true]);
+check("Martial Knowledge's chance is the real skill's: (STR 16 + AGL 18)/2 = 17, rating 16, +5 base, +40",
+	m.knowChance, 45);
+check("a Martial Punch is +30 on that", m.rows.attacks.find(r => r.name == "Martial Punch").chance, 75);
+check("the Torso hold learned with Martial Lore is on the list beside Balanced's three",
+	m.rows.holds.map(r => r.name), ["Half Neck", "Arm", "Leg", "Torso"]);
+check("the mastered stance is held", [m.state.stance.name, m.state.stance.mastered], ["Strike as wind", true]);
+const panel = V.buildMartialPanel(character, true);
+check("the panel shows, open", [panel.show, panel.open], [true, true]);
+check("the stance dropdown offers the two learned, the mastered one marked",
+	panel.stanceChoices.map(c => c.label), ["No stance", "Strike as wind (mastered)", "Flow as water"]);
+check("the summary line", panel.summary, "Balanced · Strike as wind (mastered) · Jump · Flip");
+check("Jump is shown made", panel.moves.find(r => r.name == "Jump").made, true);
+
+// --- the tab itself -----------------------------------------------------------------------------
+async function render(path, context) {
+	const src = await (await fetch(path)).text();
+	return Handlebars.compile(src)(context);
+}
+const ctx = (open) => ({ system: character, tab: { active: true }, weapons: [], lore: { show: false },
+	martial: V.buildMartialPanel(character, open) });
+document.getElementById("open").innerHTML = await render("../templates/actor/tab-combat.hbs", ctx(true));
+document.getElementById("closed").innerHTML = await render("../templates/actor/tab-combat.hbs", ctx(false));
+check("the open render has an Attack button per attack",
+	document.querySelectorAll('#open [data-action="rollMartialAttack"]').length, 5);
+check("the closed render has no martial body", document.querySelectorAll("#closed .martial-body").length, 0);
+check("the stance select is a form field on system.martial.activeStance",
+	!!document.querySelector('#open select[name="system.martial.activeStance"]'), true);
+
+// --- a martial attack card, from the real rules with the dice fixed --------------------------
+// A Martial Punch: the skill roll FAILS (rolled 88 against 75) and the d20 is a natural 17.
+const mods = M.getMartialAttackModifiers(m.state, { mode: "smash", martialAttack: true });
+const list = [];
+if (character.combat.meleeAttack) list.push({ label: "STR", value: character.combat.meleeAttack });
+list.push(...mods.list);
+const total = list.reduce((s, x) => s + x.value, 0);
+const result = R.resolveAttack({ natural: 17, mods: total, skill: character.combat.attackSkill });
+const dice = M.addMartialDice("2d4", mods.damage.extraDice);
+const damage = M.resolveMartialAttackDamage({ rolled: 6, dice, strength: M.getMartialStrengthDamage(
+	character.combat.meleeDamage, mods.damage.strength, false), flat: mods.damage.flat, perDie: mods.damage.perDie,
+	multipliers: [mods.damage.multiplier], skillMade: false });
+check("the punch takes Jump's extra die: 3d4", dice, "3d4");
+check("the failed skill roll halves it", damage.halved, true);
+document.getElementById("card").innerHTML = await render("../templates/chat/martial-card.hbs", {
+	actorName: "Mei Tan", attackName: "Martial Punch", targetName: "Training Dummy",
+	skill: { chance: 75, roll: 88, outcome: "Failed", made: false },
+	result, mods: { list, total }, aim: "Upper Torso", fumble: null,
+	damage: { dice, rolled: 6, str: M.getMartialStrengthDamage(character.combat.meleeDamage, "", false),
+	          flat: mods.damage.flat, perDie: damage.perDie, multiplier: damage.multiplier, halved: damage.halved,
+	          total: damage.total, type: "Smashing" },
+	doubled: false, special: mods.special.slice(0, 2), speed: 3, inCombat: true, applied: false });
+
+document.getElementById("checks").textContent = checks.join("\n")
+	+ `\n\n${checks.filter(c => c.startsWith("PASS")).length} passed, ${checks.filter(c => c.startsWith("FAIL")).length} failed`;
+</script>

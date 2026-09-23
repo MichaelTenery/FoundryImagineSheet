@@ -21,6 +21,11 @@ import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import ImagineItemPicker from "../apps/item-picker.mjs";
+import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
+         learnMartialStance, masterMartialStance, learnMartialSubskill,
+         learnMartialLoreValue } from "../combat/martial-attack.mjs";
+import { parseMartialList } from "../combat/martial-arts.mjs";
+import { buildMartialPanel } from "../martial-view.mjs";
 import {
 	resolveSkillOutcome, pickBestSkillRoll, canTransferSlot, canSacrificeSlot,
 	SLOT_TRANSFERS, SLOT_SACRIFICE_DICE, SACRIFICEABLE_SLOTS
@@ -83,7 +88,20 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			deleteItem: ImagineCharacterSheet.#onDeleteItem,
 				removeAllArms: ImagineCharacterSheet.#onRemoveAllArms,
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
-				rollHandedness: ImagineCharacterSheet.#onRollHandedness
+				rollHandedness: ImagineCharacterSheet.#onRollHandedness,
+			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class.
+			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
+			rollMartialAttack: ImagineCharacterSheet.#onRollMartialAttack,
+			rollMartialSubskill: ImagineCharacterSheet.#onRollMartialSubskill,
+			rollMartialMove: ImagineCharacterSheet.#onRollMartialMove,
+			toggleMartialMove: ImagineCharacterSheet.#onToggleMartialMove,
+			rollMartialLoreValue: ImagineCharacterSheet.#onRollMartialLoreValue,
+			toggleMartialLoreValue: ImagineCharacterSheet.#onToggleMartialLoreValue,
+			clearMartialMoves: ImagineCharacterSheet.#onClearMartialMoves,
+			learnMartialStance: ImagineCharacterSheet.#onLearnMartialStance,
+			masterMartialStance: ImagineCharacterSheet.#onMasterMartialStance,
+			learnMartialSubskill: ImagineCharacterSheet.#onLearnMartialSubskill,
+			learnMartialLoreValue: ImagineCharacterSheet.#onLearnMartialLoreValue
 		}
 	};
 
@@ -143,6 +161,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.languages = ImagineCharacterSheet.#buildLanguageRows(this.document.system);
 		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
+		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
 
 		return tmpcontext;
 	}
@@ -890,5 +909,73 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			flavor: `Gave up a ${tmpcategory} skill slot &mdash; ${tmpskill.name} gains the bonus`
 		});
 	}
+
+	//==============================================================================================
+	// @MARKER MARTIAL ARTS
+	//==============================================================================================
+	// The Combat tab's martial arts panel: one heading that opens into the discipline, the stance,
+	// the moves and every subskill. What it shows is laid out by module/martial-view.mjs (so the
+	// preview renders the same thing), from what _prepareMartialArts derived; the rolls are in
+	// module/combat/martial-attack.mjs, the rules in module/combat/martial-arts.mjs. The handlers are
+	// kept together here so the panel's behaviour is one block to read.
+
+	// This is the function which opens or closes the panel. Held on the sheet itself rather than
+	// the actor -- it is how this window is laid out, not a fact about the character -- so it
+	// survives the re-render every roll and every choice causes.
+	static async #onToggleMartialPanel(event, target) {
+		event.preventDefault();
+		this._martialOpen = !this._martialOpen;
+		this.render({ parts: ["combat"] });
+	}
+
+	// This is the function which makes a martial attack.
+	static async #onRollMartialAttack(event, target) {
+		await rollMartialAttack(this.document, target.dataset.name);
+	}
+
+	// This is the function which rolls a block, a hold or a throw.
+	static async #onRollMartialSubskill(event, target) {
+		await rollMartialSubskill(this.document, target.dataset.family, target.dataset.name, event);
+	}
+
+	// This is the function which rolls a move; made, it goes into play.
+	static async #onRollMartialMove(event, target) {
+		await rollMartialMove(this.document, target.dataset.name, event);
+	}
+
+	// This is the function which rolls a Martial Lore value; made, it goes into play.
+	static async #onRollMartialLoreValue(event, target) {
+		await rollMartialLoreValue(this.document, target.dataset.name, event);
+	}
+
+	// This is the function which marks a move made or clears it by hand. His sheet's success box
+	// could be ticked directly too; it is the Game Master's way of saying "that happened".
+	static async #onToggleMartialMove(event, target) {
+		var tmplist = parseMartialList(this.document.system.martial?.activeMoves);
+		var tmpname = target.dataset.name;
+		tmplist = tmplist.includes(tmpname) ? tmplist.filter(n => n != tmpname) : [...tmplist, tmpname];
+		await this.document.update({ "system.martial.activeMoves": tmplist.join(",") });
+	}
+
+	// This is the function which marks a Martial Lore value made or clears it by hand.
+	static async #onToggleMartialLoreValue(event, target) {
+		var tmplist = parseMartialList(this.document.system.martial?.activeLoreValues);
+		var tmpname = target.dataset.name;
+		tmplist = tmplist.includes(tmpname) ? tmplist.filter(n => n != tmpname) : [...tmplist, tmpname];
+		await this.document.update({ "system.martial.activeLoreValues": tmplist.join(",") });
+	}
+
+	// This is the function which clears every move and Martial Lore value made -- his CLEAR buttons
+	// beside SET (handleMartialModifierClear and handleMartialLoreModifierClear). The stance is
+	// left alone; it is changed from its own dropdown.
+	static async #onClearMartialMoves(event, target) {
+		await this.document.update({ "system.martial.activeMoves": "", "system.martial.activeLoreValues": "" });
+	}
+
+	// These are the functions which learn something new, each one roll.
+	static async #onLearnMartialStance(event, target) { await learnMartialStance(this.document); }
+	static async #onMasterMartialStance(event, target) { await masterMartialStance(this.document); }
+	static async #onLearnMartialSubskill(event, target) { await learnMartialSubskill(this.document); }
+	static async #onLearnMartialLoreValue(event, target) { await learnMartialLoreValue(this.document); }
 }
 // @END (CODE)
