@@ -1,0 +1,34 @@
+name: Deploy Progress Tracker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/PROGRESS.md'
+      - 'docs/task-dependencies.json'
+      - 'tools/progress.html'
+      - '.github/workflows/deploy-progress.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Deploy to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'tools/'
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -85,7 +85,7 @@
 
 <main>
 	<h1>Imagine RPG &mdash; progress</h1>
-	<p class="sub" id="sub">Reading docs/PROGRESS.md ...</p>
+	<p class="sub" id="sub">Reading docs/PROGRESS.md ... (auto-updates from git)</p>
 
 	<div class="stats" id="stats"></div>
 	<div class="bar" id="bar" title="Share of tasks by status"></div>
@@ -388,9 +388,25 @@ async function load(manual) {
 	const warnings = [];
 	try {
 		const stamp = "?t=" + Date.now();
+		// Detect if running on GitHub Pages
+		const isGitHubPages = window.location.hostname.includes('github.io');
+
+		let progressUrl, depsUrl;
+		if (isGitHubPages) {
+			// On GitHub Pages, fetch from raw GitHub URLs
+			const repo = document.currentScript?.dataset.repo || 'samwyz/imagine-to-foundry';
+			const branch = document.currentScript?.dataset.branch || 'main';
+			progressUrl = `https://raw.githubusercontent.com/${repo}/${branch}/docs/PROGRESS.md${stamp}`;
+			depsUrl = `https://raw.githubusercontent.com/${repo}/${branch}/docs/task-dependencies.json${stamp}`;
+		} else {
+			// Local development
+			progressUrl = `../docs/PROGRESS.md${stamp}`;
+			depsUrl = `../docs/task-dependencies.json${stamp}`;
+		}
+
 		const [boardText, depText] = await Promise.all([
-			fetch("../docs/PROGRESS.md" + stamp).then(r => { if (!r.ok) { throw new Error("PROGRESS.md: " + r.status); } return r.text(); }),
-			fetch("../docs/task-dependencies.json" + stamp).then(r => { if (!r.ok) { throw new Error("task-dependencies.json: " + r.status); } return r.text(); })
+			fetch(progressUrl).then(r => { if (!r.ok) { throw new Error("PROGRESS.md: " + r.status); } return r.text(); }),
+			fetch(depsUrl).then(r => { if (!r.ok) { throw new Error("task-dependencies.json: " + r.status); } return r.text(); })
 		]);
 		const key = boardText + "|@@@|" + depText;
 		if (key === lastKey && manual !== true) { setLive("Checked " + clock() + " - no change", false); return; }
@@ -417,8 +433,7 @@ async function load(manual) {
 		// A failed refresh must not wipe a page that is already showing something useful.
 		if (lastKey !== null) { setLive("Could not refresh at " + clock() + " (" + err.message + ")", true); return; }
 		$("sub").textContent = "Could not read the board.";
-		$("list").innerHTML = `<div class="warn">${esc(err.message)}<br>This page has to be served over HTTP, not opened as a file. From the project folder run
-			<code>python -m http.server 8777 --bind 127.0.0.1</code> and open <code>http://127.0.0.1:8777/tools/progress.html</code>.</div>`;
+		$("list").innerHTML = `<div class="warn">${esc(err.message)}<br>Options: (1) On GitHub Pages: ensure docs/PROGRESS.md is committed and pushed. (2) Local: run <code>python -m http.server 8777 --bind 127.0.0.1</code> from the project folder and open <code>http://127.0.0.1:8777/tools/progress.html</code>.</div>`;
 	}
 }
 
