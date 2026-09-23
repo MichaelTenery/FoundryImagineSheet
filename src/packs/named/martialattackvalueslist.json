@@ -1,0 +1,120 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "martialattackvalueslist",
+    "lines": [
+      100675,
+      100687
+    ]
+  },
+  "_fields": [
+    "name",
+    "rating",
+    "skillMod",
+    "speed",
+    "minSpeed",
+    "damage",
+    "special"
+  ],
+  "entries": {
+    "Martial Punch": {
+      "name": "Martial Punch",
+      "rating": "10",
+      "skillMod": "30",
+      "speed": "3",
+      "minSpeed": "2",
+      "damage": "2d4",
+      "special": "None"
+    },
+    "Martial Kick": {
+      "name": "Martial Kick",
+      "rating": "12",
+      "skillMod": "20",
+      "speed": "4",
+      "minSpeed": "2",
+      "damage": "2d6",
+      "special": "None"
+    },
+    "Elbow Smash": {
+      "name": "Elbow Smash",
+      "rating": "11",
+      "skillMod": "25",
+      "speed": "3",
+      "minSpeed": "2",
+      "damage": "2d4+2",
+      "special": "None"
+    },
+    "Knee Smash": {
+      "name": "Knee Smash",
+      "rating": "13",
+      "skillMod": "15",
+      "speed": "4",
+      "minSpeed": "2",
+      "damage": "2d6+2",
+      "special": "None"
+    },
+    "Head Butt": {
+      "name": "Head Butt",
+      "rating": "12",
+      "skillMod": "20 ",
+      "speed": "3",
+      "minSpeed": "2",
+      "damage": "1d6+2",
+      "special": "None"
+    },
+    "Heel Strike": {
+      "name": "Heel Strike",
+      "rating": "14",
+      "skillMod": "10",
+      "speed": "3",
+      "minSpeed": "2",
+      "damage": "2d4+4",
+      "special": "None"
+    },
+    "Rake": {
+      "name": "Rake",
+      "rating": "15",
+      "skillMod": "5",
+      "speed": "3",
+      "minSpeed": "2",
+      "damage": "3d4+1",
+      "special": "vs. 6 armor or less,Attacker takes 1d4 dam vs. metal armor."
+    },
+    "Finger Punch": {
+      "name": "Finger Punch",
+      "rating": "15",
+      "skillMod": "5",
+      "speed": "2",
+      "minSpeed": "1",
+      "damage": "1d4+2",
+      "special": "vs. 6 armor or less,Attacker takes 1d4 dam vs. metal armor."
+    },
+    "Counter Punch": {
+      "name": "Counter Punch",
+      "rating": "12",
+      "skillMod": "20",
+      "speed": "3",
+      "minSpeed": "2",
+      "damage": "3d4+3",
+      "special": "vs. a melee attack."
+    },
+    "Counter Kick": {
+      "name": "Counter Kick",
+      "rating": "14",
+      "skillMod": "10",
+      "speed": "4",
+      "minSpeed": "2",
+      "damage": "3d6+3",
+      "special": "vs. a melee attack."
+    },
+    "Scissor Strike": {
+      "name": "Scissor Strike",
+      "rating": "15",
+      "skillMod": "5",
+      "speed": "3",
+      "minSpeed": "2",
+      "damage": "2d4",
+      "special": "vs. attack from fist/weapon under 1'). 2 attacks: 1 to arm, 1 to forearm. If hits/skill successful x2 damage to both."
+    }
+  }
+}

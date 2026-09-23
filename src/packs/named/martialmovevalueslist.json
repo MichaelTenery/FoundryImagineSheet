@@ -1,0 +1,75 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "martialmovevalueslist",
+    "lines": [
+      100742,
+      100751
+    ]
+  },
+  "_fields": [
+    "name",
+    "rating",
+    "skillMod",
+    "speed",
+    "special"
+  ],
+  "entries": {
+    "Jump": {
+      "name": "Jump",
+      "rating": "14",
+      "skillMod": "20",
+      "speed": "1",
+      "special": "Requires 5'. If success, jumping as if +2 AGL. To hit +2, Dam +1, +1 die. Cannot be combined with Spinning. Fail make AGL Save to remain standing."
+    },
+    "Flying": {
+      "name": "Flying",
+      "rating": "16",
+      "skillMod": "0",
+      "speed": "2",
+      "special": "Requires 10'. If success, jumping as if +2 AGL. To hit +4, Dam x2. Cannot be combined with Spinning. Fail make AGL Save to remain standing."
+    },
+    "Immoveable Stance": {
+      "name": "Immoveable Stance",
+      "rating": "17",
+      "skillMod": "5",
+      "speed": "3",
+      "special": "If success, amount skill roll is made by, added to any STR Saves. No Defense."
+    },
+    "Spinning": {
+      "name": "Spinning",
+      "rating": "15",
+      "skillMod": "5",
+      "speed": "+2",
+      "special": "If success, To hit +2, +2 Dam per die. Cannot be combined with Jump or Flying. Fail make AGL Save or lose 1-3 seconds."
+    },
+    "Sweep": {
+      "name": "Sweep",
+      "rating": "14",
+      "skillMod": "10",
+      "speed": "2",
+      "special": "After successful Martial Kick. If success, opponent makes an AGL Save or falls prone. "
+    },
+    "Snap": {
+      "name": "Snap",
+      "rating": "13",
+      "skillMod": "15",
+      "speed": "-1",
+      "special": "If success, 1 second is reduced from another martial attack (minimum 1), but no STR modifier applies to that attack."
+    },
+    "Tension": {
+      "name": "Tension",
+      "rating": "15",
+      "skillMod": "5",
+      "speed": "2",
+      "special": "If success, doubles STR bonus/or halves a STR penalty on an other attack."
+    },
+    "Double Attack": {
+      "name": "Double Attack",
+      "rating": "13",
+      "skillMod": "15",
+      "speed": "+1",
+      "special": "If success, allows combo of 2 standard martial attacks(Punch/Kick) at once. Adds 1 second to each attack. Cannot attack with both legs unless prone."
+    }
+  }
+}

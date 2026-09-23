@@ -189,6 +189,38 @@ ARMORPENALTYDICT = ["skills", "defense", "initiative", "speed"]
     # is per entry rather than per column, which is why they stay strings downstream.
 TRAITDICT = ["canonicalName", "value1", "value2", "description"]
 
+# ---------------------------------------------------------------------------
+# @MARKER MARTIAL ARTS MAPS
+# ---------------------------------------------------------------------------
+    # The eight martial arts dictionaries -- source: HIS OWN COLUMN-HEADER COMMENTS, written on
+    # the line above each dictionary inside its accessor function (getMartialKnowAttackValues and
+    # its seven siblings, sheet-worker.js:100674-100838). Every one of them was also checked
+    # against how setMartialKnowDisplayValues / setMartialLoreDisplayValues read the row
+    # (sheet-worker.js:99715, 100338): index 1 goes to *_rating, 2 to *_rating_mod, 3 to *_speed.
+    #
+    # His header calls column 2 "Skill". It is the subskill's MODIFIER to the parent skill's
+    # chance, not a chance of its own -- Player's Guide p.93, "Subskills": the difference between
+    # the parent skill's rating (Martial Knowledge 16, Martial Lore 18) and the subskill's rating,
+    # times 5%. So it is named skillMod here. extract_combat_tables.py checks every row against
+    # that formula and reports the one that does not fit (Jump).
+    #
+    # "speed" is kept as his TEXT for moves and throws, because a leading "+" or "-" there means
+    # "added to the attack it is combined with" rather than a time of its own -- Spinning "+2",
+    # Snap "-1". The generator parses the number and keeps the text beside it.
+MARTIALATTACKVALUESLIST     = ["name", "rating", "skillMod", "speed", "minSpeed", "damage", "special"]
+MARTIALBLOCKVALUESLIST      = ["name", "rating", "skillMod", "speed", "special"]
+MARTIALHOLDVALUESLIST       = ["name", "rating", "skillMod", "speed", "special"]
+MARTIALMOVEVALUESLIST       = ["name", "rating", "skillMod", "speed", "special"]
+MARTIALTHROWVALUESLIST      = ["name", "rating", "skillMod", "speed", "damage", "special"]
+    # martiallorevalueslist -- his header: "Name Type Rating Skill Special". Type is which of the
+    # five Martial Knowledge families the Lore value extends (Attack, Block, Hold, Throw, Move).
+MARTIALLOREVALUESLIST       = ["name", "type", "rating", "skillMod", "special"]
+    # The two stance dictionaries are text only -- "Name Special". The NUMBERS a stance applies
+    # are not in either dictionary; they are in handleStanceOn's switch, which
+    # extract_combat_tables.py walks.
+MARTIALKNOWSTANCEVALUESLIST = ["name", "special"]
+MARTIALLORESTANCEVALUESLIST = ["name", "special"]
+
 MAPS = {
     "skilldict": SKILLDICT,
     "abilitylist@176213": TRAITDICT,
@@ -207,6 +239,14 @@ MAPS = {
     "classtitledict": CLASSTITLEDICT,
     "goalupdict": GOALUPDICT,
     "archmortalqualifylist": ARCHMORTALQUALIFYLIST,
+    "martialattackvalueslist": MARTIALATTACKVALUESLIST,
+    "martialblockvalueslist": MARTIALBLOCKVALUESLIST,
+    "martialholdvalueslist": MARTIALHOLDVALUESLIST,
+    "martialmovevalueslist": MARTIALMOVEVALUESLIST,
+    "martialthrowvalueslist": MARTIALTHROWVALUESLIST,
+    "martiallorevalueslist": MARTIALLOREVALUESLIST,
+    "martialknowstancevalueslist": MARTIALKNOWSTANCEVALUESLIST,
+    "martiallorestancevalueslist": MARTIALLORESTANCEVALUESLIST,
 }
 MAPS.update(RATING_VALUE_MAPS)
 

@@ -1409,6 +1409,393 @@ def movement_bases():
     return rows, drift, missing, ceiling, start
 
 
+""" Martial arts.                                                                          """
+# @MARKER MARTIAL ARTS
+#
+# His martial arts subsystem lives in three places, and all three are read here rather than
+# transcribed:
+#
+#   1. eight data dictionaries (getMartialKnowAttackValues and siblings, sheet-worker.js:100674),
+#      already mapped to named columns by map_columns.py -- the subskills themselves;
+#   2. setMartialKnowArts (98801) -- which subskills each of the four preset disciplines teaches;
+#   3. three handlers that turn a SUCCESSFUL roll into numbers the attack reads --
+#      handleMartialModifierSet (68113) for moves, handleMartialLoreModifierSet (68276) for
+#      Martial Lore values, and handleStanceOn (68794) for the stances. The stance and move
+#      dictionaries carry only prose; the numbers are in these switches, and nowhere else.
+#
+# His code and his own dictionary prose disagree in a handful of places (Flying's extra damage,
+# Spinning's to-hit, Double Attack's seconds, Drunken fighting's dice). The tables below are his
+# CODE, faithfully; module/combat/martial-arts.mjs decides what he meant and says why, and
+# docs/UPSTREAM-ISSUES.md carries each one for him.
+
+MARTIAL_DICTIONARIES = [
+    # (named file,                    export name,           base skill for the modifier)
+    ("martialattackvalueslist",      "MARTIAL_ATTACKS",      "Martial Knowledge"),
+    ("martialblockvalueslist",       "MARTIAL_BLOCKS",       "Martial Knowledge"),
+    ("martialholdvalueslist",        "MARTIAL_HOLDS",        "Martial Knowledge"),
+    ("martialmovevalueslist",        "MARTIAL_MOVES",        "Martial Knowledge"),
+    ("martialthrowvalueslist",       "MARTIAL_THROWS",       "Martial Knowledge"),
+    ("martiallorevalueslist",        "MARTIAL_LORE_VALUES",  "Martial Lore"),
+]
+
+
+def load_named(name):
+    with open(os.path.join(NAMED, name + ".json"), encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _martial_int(tmptext):
+    """A number out of one of his cells: "20 " (Head Butt carries a trailing space), "+2", "-1"."""
+    tmpm = re.match(r'\s*([+-]?\d+)', str(tmptext))
+    return int(tmpm.group(1)) if tmpm else 0
+
+
+def martial_subskills():
+    """
+    The six subskill dictionaries, typed, plus a check of every row's modifier against the
+    Player's Guide's subskill rule (p.93): (parent skill rating - subskill rating) x 5%. The parent
+    ratings are read from his skilldict rather than typed here -- Martial Knowledge 16, Martial
+    Lore 18.
+
+    Returns ({export name: {subskill: row}}, [mismatch rows], {parent skill: rating}).
+    """
+    tmpskills = load_named("skilldict")["entries"]
+    tmpbases = {tmpname: int(tmpskills[tmpname]["skillRating"])
+                for tmpname in ("Martial Knowledge", "Martial Lore")}
+    tmptables, tmpmismatch = {}, []
+    for tmpfile, tmpexport, tmpparent in MARTIAL_DICTIONARIES:
+        tmprows = {}
+        for tmpkey, tmprow in load_named(tmpfile)["entries"].items():
+            tmpout = {}
+            for tmpfield, tmpvalue in tmprow.items():
+                if tmpfield in ("rating", "skillMod", "minSpeed"):
+                    tmpout[tmpfield] = _martial_int(tmpvalue)
+                elif tmpfield == "speed":
+                    tmpout["speed"] = _martial_int(tmpvalue)
+                    tmpout["speedText"] = str(tmpvalue).strip()
+                else:
+                    tmpout[tmpfield] = str(tmpvalue).strip()
+            tmpexpected = (tmpbases[tmpparent] - tmpout["rating"]) * 5
+            if tmpexpected != tmpout["skillMod"]:
+                tmpmismatch.append((tmpexport, tmpkey, tmpout["rating"], tmpout["skillMod"], tmpexpected))
+            tmprows[tmpkey] = tmpout
+        tmptables[tmpexport] = tmprows
+    return tmptables, tmpmismatch, tmpbases
+
+
+def martial_stances():
+    """His two stance dictionaries side by side: the prose for the learned form and the mastered."""
+    tmpknow = load_named("martialknowstancevalueslist")["entries"]
+    tmplore = load_named("martiallorestancevalueslist")["entries"]
+    return {tmpname: {"knowledge": tmpknow[tmpname]["special"].strip(),
+                      "lore": tmplore.get(tmpname, {}).get("special", "").strip()}
+            for tmpname in tmpknow}
+
+
+def martial_disciplines():
+    """
+    Read setMartialKnowArts (sheet-worker.js:98801): which attacks, blocks, holds, moves and
+    throws each preset discipline teaches. Custom is not a list at all -- it is whatever boxes the
+    player ticked -- so its checkbox-to-subskill wiring is returned separately, which is how the
+    hold5 slip (one box adding all three Torso holds) is caught every run.
+    """
+    start, body = function_body("setMartialKnowArts")
+    tmpfamilies = {"Attacks": "attacks", "Blocks": "blocks", "Holds": "holds",
+                   "Moves": "moves", "Throws": "throws"}
+    tmpout, tmpcustom, tmpcurrent = {}, [], None
+    for line in body:
+        tmpsel = re.search(r'selectionMKA=="(\w*)"', line)
+        if tmpsel:
+            tmpcurrent = tmpsel.group(1)
+            if tmpcurrent and tmpcurrent != "Custom":
+                tmpout[tmpcurrent] = {v: [] for v in tmpfamilies.values()}
+            continue
+        if tmpcurrent == "Custom":
+            tmpbox = re.search(r'values\.(martial_\w+_check)\)=="on"\).*?tempMKA(\w+)="([^"]+)"', line)
+            if tmpbox:
+                tmpcustom.append((tmpbox.group(1), tmpfamilies[tmpbox.group(2)], tmpbox.group(3)))
+            continue
+        if tmpcurrent:
+            for tmpfamily, tmpkey in tmpfamilies.items():
+                tmpset = re.search(r'tempMKA%s="([^"]*)"\s*;' % tmpfamily, line)
+                if tmpset:
+                    tmpout[tmpcurrent][tmpkey] = [n for n in tmpset.group(1).split(",") if n]
+    return tmpout, tmpcustom, start
+
+
+def martial_stance_mods():
+    """
+    Read handleStanceOn (sheet-worker.js:68794). Each stance is a case with THREE branches --
+    `if (!masteredStance)`, `else if (masteredStance)`, and a final `else` that can never run
+    (a boolean is one or the other) -- so the first two are the learned and the mastered forms.
+
+    Returns ({stance: {"knowledge": {...}, "lore": {...}}}, first line).
+    """
+    start, body = function_body("handleStanceOn")
+    tmpat = next(i for i, l in enumerate(body) if "switch (stanceName)" in l)
+    tmpout, tmpcase, tmpbranch = {}, None, None
+    for line in body[tmpat:]:
+        tmpc = re.search(r'case\s+"([^"]+)"\s*:', line)
+        if tmpc:
+            tmpcase = tmpc.group(1)
+            tmpout[tmpcase] = {"knowledge": {}, "lore": {}}
+            tmpbranch = None
+            continue
+        if re.search(r'\bdefault\s*:', line):
+            break
+        if tmpcase is None:
+            continue
+        if "if (!masteredStance)" in line:
+            tmpbranch = "knowledge"
+        elif "else if (masteredStance)" in line:
+            tmpbranch = "lore"
+        elif re.match(r'\s*\}\s*else\s*\{\s*$', line):
+            tmpbranch = None                  # his unreachable third branch
+        if tmpbranch is None:
+            continue
+        tmpset = re.search(r'setAttrs\(\{martial_stance_(\w+):\s*(-?[\d.]+|"[^"]*")\s*\}', line)
+        if tmpset:
+            tmpkey, tmpval = tmpset.group(1), tmpset.group(2)
+            if tmpkey == "on":
+                continue
+            tmpout[tmpcase][tmpbranch][tmpkey] = (tmpval.strip('"') if tmpval.startswith('"')
+                                                  else (float(tmpval) if "." in tmpval else int(tmpval)))
+    return tmpout, start
+
+
+def martial_move_mods():
+    """
+    Read handleMartialModifierSet (sheet-worker.js:68113): what a SUCCESSFUL move adds to the
+    attacks that follow. Walks the second `switch(tempMove)` (the first only notes whether Jump,
+    Flying or Spinning were made, for the combination rule) and takes, per move, the arithmetic
+    in its success branch -- skipping the else branch that writes "Illegal Combo".
+
+    comboGate records which rule guards the move: "spinning" (Jump and Flying are void if
+    Spinning was also made) or "jumpOrFly" (Spinning is void if either was). His Martial Lore
+    override lifts both.
+    """
+    start, body = function_body("handleMartialModifierSet")
+    tmpswitches = [i for i, l in enumerate(body) if "switch(tempMove)" in l]
+    if len(tmpswitches) < 2:
+        raise SystemExit("handleMartialModifierSet: expected two switch(tempMove) blocks")
+    tmpout, tmpcase, tmpillegal = {}, None, False
+    for line in body[tmpswitches[1]:]:
+        tmpc = re.search(r'case\s+"([^"]+)"\s*:', line)
+        if tmpc:
+            tmpcase = tmpc.group(1)
+            tmpout[tmpcase] = {"melee": 0, "damage": 0, "multiplier": 1, "defensive": None,
+                               "special": "", "comboGate": ""}
+            tmpillegal = False
+            continue
+        if tmpcase is None:
+            continue
+        if "setAttrs(" in line:
+            break                              # the switch is over; his writes begin
+        if "!spinningOn" in line:
+            tmpout[tmpcase]["comboGate"] = "spinning"
+        if "!jumpOrFly" in line:
+            tmpout[tmpcase]["comboGate"] = "jumpOrFly"
+        if "Illegal Combo" in line:
+            tmpillegal = True
+            continue
+        if re.match(r'\s*\}\s*else\s*\{\s*$', line) and tmpout[tmpcase]["comboGate"]:
+            tmpillegal = True                  # the else of the combination test
+            continue
+        if tmpillegal:
+            continue
+        for tmpfield, tmppattern in (("melee", r'MKModMelee=MKModMelee\+(-?\d+)'),
+                                     ("damage", r'MKModDamage=MKModDamage\+(-?\d+)')):
+            tmphit = re.search(tmppattern, line)
+            if tmphit:
+                tmpout[tmpcase][tmpfield] += int(tmphit.group(1))
+        tmphit = re.search(r'MKModMulti=([\d.]+)', line)
+        if tmphit:
+            tmpout[tmpcase]["multiplier"] = float(tmphit.group(1))
+        tmphit = re.search(r'MKModDefensive=(-?\d+)\s*;', line)
+        if tmphit:
+            tmpout[tmpcase]["defensive"] = int(tmphit.group(1))
+        tmphit = re.search(r'if \(first\) \{ MKModSpecial="([^"]*)"', line)
+        if tmphit and not tmpout[tmpcase]["special"]:
+            tmpout[tmpcase]["special"] = tmphit.group(1)
+    for tmprow in tmpout.values():
+        if tmprow["multiplier"] == int(tmprow["multiplier"]):
+            tmprow["multiplier"] = int(tmprow["multiplier"])
+    return tmpout, start
+
+
+def martial_lore_mods():
+    """
+    Read handleMartialLoreModifierSet (sheet-worker.js:68276): what a successful Martial Lore value
+    adds. Only Flip changes a number (-4 to be hit, and it cannot attack); the rest are the line of
+    prose his sheet prints, which is kept so the port can print the same.
+
+    A special that his code builds from a roll made at that moment ("Next Hold does 3d6="+...)
+    is kept up to the roll, and flagged dynamic.
+    """
+    start, body = function_body("handleMartialLoreModifierSet")
+    tmpat = next(i for i, l in enumerate(body) if "switch(tempMove)" in l)
+    tmpout, tmpcase = {}, None
+    for line in body[tmpat:]:
+        tmpc = re.search(r'case\s+"([^"]+)"\s*:', line)
+        if tmpc:
+            tmpcase = tmpc.group(1)
+            tmpout[tmpcase] = {"melee": 0, "damage": 0, "multiplier": 1, "defensive": 0,
+                               "special": "", "dynamic": False}
+            continue
+        if tmpcase is None:
+            continue
+        if "setAttrs(" in line:
+            break
+        tmphit = re.search(r'MLModDefensive=MLModDefensive([+-]\d+)', line)
+        if tmphit:
+            tmpout[tmpcase]["defensive"] += int(tmphit.group(1))
+        tmphit = re.search(r'MLModMelee=MLModMelee([+-]\d+)', line)
+        if tmphit:
+            tmpout[tmpcase]["melee"] += int(tmphit.group(1))
+        tmphit = re.search(r'MLModDamage=MLModDamage([+-]\d+)', line)
+        if tmphit:
+            tmpout[tmpcase]["damage"] += int(tmphit.group(1))
+        tmphit = re.search(r'if \(first\) \{ MLModSpecial="([^"]*)"(\s*\+)?', line)
+        if tmphit and not tmpout[tmpcase]["special"]:
+            tmpout[tmpcase]["special"] = tmphit.group(1)
+            tmpout[tmpcase]["dynamic"] = bool(tmphit.group(2))
+    return tmpout, start
+
+
+def martial_lore_blind():
+    """
+    Read setMartialLoreDisplayValues (sheet-worker.js:100338) for Martial Lore's blind fighting:
+    one point off the blindness penalty per so many percent of the skill, and the percentage at
+    which the defensive adjustment comes back.
+    """
+    start, body = function_body("setMartialLoreDisplayValues")
+    tmptext = "".join(body)
+    tmpper = re.search(r'tempMLBlindModLevels=parseInt\(\(martialLoreChance/(\d+)\)\)', tmptext)
+    tmpfull = re.search(r'if \(martialLoreChance>(\d+)\) \{ tempMLBlindModDefense="Full Defensive Mod"', tmptext)
+    if not (tmpper and tmpfull):
+        raise SystemExit("setMartialLoreDisplayValues: blind fighting rule has moved")
+    return {"percentPerLevel": int(tmpper.group(1)), "fullDefenseAt": int(tmpfull.group(1)) + 1}, start
+
+
+def _martial_row(tmprow, tmpfields):
+    """One subskill as a JS object literal, fields in his column order."""
+    return "{ " + ", ".join("%s: %s" % (f, js(tmprow[f])) for f in tmpfields if f in tmprow) + " }"
+
+
+def emit_martial(martial, mismatch, bases, stance_text, disciplines, discipline_line,
+                 stance_mods, stance_line, move_mods, move_line, lore_mods, lore_line,
+                 lore_blind, lore_blind_line):
+    """The martial arts block of combat-tables.mjs. Returns a list of lines."""
+    o = []
+    o.append("// @MARKER MARTIAL ARTS\n")
+    o.append("// From his eight martial arts dictionaries (getMartialKnowAttackValues and siblings,\n")
+    o.append("// sheet-worker.js:100674-100838), the four preset disciplines (setMartialKnowArts, %d),\n" % discipline_line)
+    o.append("// and the three handlers that turn a successful roll into numbers: handleStanceOn (%d),\n" % stance_line)
+    o.append("// handleMartialModifierSet (%d) and handleMartialLoreModifierSet (%d).\n" % (move_line, lore_line))
+    o.append("//\n")
+    o.append("// Every subskill is rolled against its PARENT skill's chance plus skillMod -- Player's Guide\n")
+    o.append("// p.93, \"Subskills\": the difference between the parent's rating and the subskill's, x5%.\n")
+    o.append("// Martial Knowledge is rating %d, Martial Lore %d, both read from his skilldict.\n"
+             % (bases["Martial Knowledge"], bases["Martial Lore"]))
+    if mismatch:
+        o.append("// Rows whose skillMod does NOT fit that rule, kept as he wrote them:\n")
+        for tmpexport, tmpkey, tmprating, tmpgot, tmpwant in mismatch:
+            o.append("//     %s %s: rating %d gives %+d, his table says %+d\n"
+                     % (tmpexport, tmpkey, tmprating, tmpwant, tmpgot))
+    o.append("//\n")
+    o.append("// A move's or throw's speed is kept as his text beside the number: a leading sign means it is\n")
+    o.append("// ADDED to the attack it is combined with (Spinning \"+2\", Snap \"-1\"), not a time of its own.\n\n")
+
+    tmplayouts = {
+        "MARTIAL_ATTACKS":     ("//                     rating skillMod speed minSpeed damage special\n",
+                                ["rating", "skillMod", "speed", "minSpeed", "damage", "special"]),
+        "MARTIAL_BLOCKS":      ("//                     rating skillMod speed special\n",
+                                ["rating", "skillMod", "speed", "special"]),
+        "MARTIAL_HOLDS":       ("//                     rating skillMod speed special\n",
+                                ["rating", "skillMod", "speed", "special"]),
+        "MARTIAL_MOVES":       ("//                     rating skillMod speed speedText special\n",
+                                ["rating", "skillMod", "speed", "speedText", "special"]),
+        "MARTIAL_THROWS":      ("//                     rating skillMod speed speedText damage special\n",
+                                ["rating", "skillMod", "speed", "speedText", "damage", "special"]),
+        "MARTIAL_LORE_VALUES": ("//                     type rating skillMod special\n",
+                                ["type", "rating", "skillMod", "special"]),
+    }
+    for tmpfile, tmpexport, tmpparent in MARTIAL_DICTIONARIES:
+        tmpheader, tmpfields = tmplayouts[tmpexport]
+        o.append("// %s -- from %s, rolled against %s.\n" % (tmpexport, tmpfile, tmpparent))
+        o.append(tmpheader)
+        o.append("export const %s = {\n" % tmpexport)
+        for tmpkey, tmprow in martial[tmpexport].items():
+            o.append("\t%-20s %s,\n" % (js(tmpkey) + ":", _martial_row(tmprow, tmpfields)))
+        o.append("};\n\n")
+
+    o.append("// The rating each family of subskill is measured against, read from his skilldict.\n")
+    o.append("export const MARTIAL_PARENT_RATINGS = %s;\n\n" % js({"knowledge": bases["Martial Knowledge"],
+                                                                 "lore": bases["Martial Lore"]}))
+
+    o.append("// The five stances, in prose: the learned form (Martial Knowledge) and the mastered one\n")
+    o.append("// (Martial Lore). From martialknowstancevalueslist and martiallorestancevalueslist.\n")
+    o.append("export const MARTIAL_STANCES = {\n")
+    for tmpname, tmptext in stance_text.items():
+        o.append("\t%-20s { knowledge: %s,\n\t%-20s   lore: %s },\n"
+                 % (js(tmpname) + ":", js(tmptext["knowledge"]), "", js(tmptext["lore"])))
+    o.append("};\n\n")
+
+    o.append("// What each stance actually DOES, read from the two live branches of each case in his\n")
+    o.append("// handleStanceOn (sheet-worker.js:%d). His third branch per case cannot run and is not read.\n" % stance_line)
+    o.append("//   mod_melee / mod_missile / mod_damage     added to to-hit and damage\n")
+    o.append("//   mod_damage_multi                        a damage multiplier (1 = none)\n")
+    o.append("//   mod_defensive                           added to the defensive adjustment (+ is WORSE)\n")
+    o.append("//   blind_fighting                          what the -8 for fighting blind becomes easier by\n")
+    o.append("//   blind_defense                           \"Full Defensive Mod\" keeps defence when blind\n")
+    o.append("//   mod_special                             his prose; initiative and speed are read out of it\n")
+    o.append("export const MARTIAL_STANCE_MODS = {\n")
+    for tmpname, tmpforms in stance_mods.items():
+        o.append("\t%s: {\n" % js(tmpname))
+        for tmpform in ("knowledge", "lore"):
+            o.append("\t\t%-10s %s,\n" % (tmpform + ":", js(tmpforms[tmpform])))
+        o.append("\t},\n")
+    o.append("};\n\n")
+
+    o.append("// What a SUCCESSFUL move adds to the attacks after it, from the success branch of each case in\n")
+    o.append("// his handleMartialModifierSet (sheet-worker.js:%d). defensive null means the move does not\n" % move_line)
+    o.append("// touch it. comboGate: \"spinning\" -- void if Spinning was also made; \"jumpOrFly\" -- void if\n")
+    o.append("// Jump or Flying was. Martial Lore lifts both. THESE ARE HIS CODE'S NUMBERS; where they\n")
+    o.append("// disagree with his own move prose, martial-arts.mjs says which is followed and why.\n")
+    o.append("//                        melee damage multiplier defensive special comboGate\n")
+    o.append("export const MARTIAL_MOVE_MODS = {\n")
+    for tmpname, tmprow in move_mods.items():
+        o.append("\t%-20s %s,\n" % (js(tmpname) + ":", _martial_row(tmprow,
+                 ["melee", "damage", "multiplier", "defensive", "special", "comboGate"])))
+    o.append("};\n\n")
+
+    o.append("// What a successful Martial Lore value adds, from handleMartialLoreModifierSet\n")
+    o.append("// (sheet-worker.js:%d). Only Flip changes a number. dynamic marks a line his code finishes\n" % lore_line)
+    o.append("// with a roll made at that moment.\n")
+    o.append("//                        melee damage multiplier defensive special dynamic\n")
+    o.append("export const MARTIAL_LORE_MODS = {\n")
+    for tmpname, tmprow in lore_mods.items():
+        o.append("\t%-20s %s,\n" % (js(tmpname) + ":", _martial_row(tmprow,
+                 ["melee", "damage", "multiplier", "defensive", "special", "dynamic"])))
+    o.append("};\n\n")
+
+    o.append("// The four preset disciplines, from setMartialKnowArts (sheet-worker.js:%d). Custom is not a\n" % discipline_line)
+    o.append("// list -- it is whatever the player picks -- so it has no entry here.\n")
+    o.append("export const MARTIAL_DISCIPLINES = {\n")
+    for tmpname, tmplists in disciplines.items():
+        o.append("\t%s: {\n" % js(tmpname))
+        for tmpkey in ("attacks", "blocks", "holds", "moves", "throws"):
+            o.append("\t\t%-8s %s,\n" % (tmpkey + ":", js(tmplists[tmpkey])))
+        o.append("\t},\n")
+    o.append("};\n\n")
+
+    o.append("// Martial Lore's blind fighting, from setMartialLoreDisplayValues (sheet-worker.js:%d): one\n" % lore_blind_line)
+    o.append("// point off the penalty for fighting blind per percentPerLevel of the skill, and the\n")
+    o.append("// defensive adjustment kept when blind from fullDefenseAt.\n")
+    o.append("export const MARTIAL_LORE_BLIND = %s;\n\n" % js(lore_blind))
+    return o
+
+
 def js(value):
     return json.dumps(value, ensure_ascii=False)
 
@@ -1648,6 +2035,18 @@ def main():
                    % (lo, hi, js(v["walk"]), js(v["jog"]), js(v["run"]),
                       js(v["jumpStand"]), js(v["jumpUp"])))
     out.append("];\n\n")
+
+    # MARTIAL ARTS
+    martial, martial_mismatch, martial_bases = martial_subskills()
+    stance_text = martial_stances()
+    disciplines, discipline_custom, discipline_line = martial_disciplines()
+    stance_mods, stance_line = martial_stance_mods()
+    move_mods, move_line = martial_move_mods()
+    lore_mods, lore_line = martial_lore_mods()
+    lore_blind, lore_blind_line = martial_lore_blind()
+    out.extend(emit_martial(martial, martial_mismatch, martial_bases, stance_text, disciplines,
+                            discipline_line, stance_mods, stance_line, move_mods, move_line,
+                            lore_mods, lore_line, lore_blind, lore_blind_line))
 
     out.append("// @END (CODE)\n")
 
@@ -1892,6 +2291,24 @@ def main():
     if move_drift:
         print("  WARNING: his two copies of the base table disagree at %s"
               % ", ".join(str(d) for d in move_drift))
+    print("martial arts       %s; %d stances, %d moves with effects, %d disciplines"
+          % (", ".join("%s %d" % (k.replace("MARTIAL_", "").lower(), len(v)) for k, v in martial.items()),
+             len(stance_mods), len(move_mods), len(disciplines)))
+    for tmpexport, tmpkey, tmprating, tmpgot, tmpwant in martial_mismatch:
+        print("  note: %s %s -- rating %d gives %+d%% by the subskill rule, his table says %+d%%"
+              % (tmpexport, tmpkey, tmprating, tmpwant, tmpgot))
+    tmpboxes = {}
+    for tmpbox, tmpfamily, tmpname in discipline_custom:
+        tmpboxes.setdefault(tmpbox, []).append(tmpname)
+    for tmpbox, tmpnames in tmpboxes.items():
+        if len(tmpnames) > 1:
+            print("  note: his Custom discipline reads %s for %d subskills (%s) -- UPSTREAM-ISSUES.md"
+                  % (tmpbox, len(tmpnames), ", ".join(tmpnames)))
+    for tmpname, tmpforms in stance_mods.items():
+        for tmpform in ("knowledge", "lore"):
+            if "mod_melee" not in tmpforms[tmpform]:
+                print("  WARNING: stance %s (%s) parsed with no melee figure -- his case may have moved"
+                      % (tmpname, tmpform))
     if not (melee_ambi and damage_ambi and skill_ambi):
         print("  WARNING: a penalty table does not zero for Ambidextrous -- check his short-circuit")
     if shield_unresolved:

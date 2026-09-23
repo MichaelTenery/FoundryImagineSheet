@@ -1,0 +1,68 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "martialholdvalueslist",
+    "lines": [
+      100719,
+      100728
+    ]
+  },
+  "_fields": [
+    "name",
+    "rating",
+    "skillMod",
+    "speed",
+    "special"
+  ],
+  "entries": {
+    "Half Neck": {
+      "name": "Half Neck",
+      "rating": "18",
+      "skillMod": "-10",
+      "speed": "3",
+      "special": "If success, incapacitates the head, neck and one arm. Escape requires skill versus roll vs AGL or STR Save (once per 3 sec)."
+    },
+    "Full Neck": {
+      "name": "Full Neck",
+      "rating": "20",
+      "skillMod": "-20",
+      "speed": "5",
+      "special": "If success, incapacitates the head, neck and both arms. Escape requires skill versus roll vs AGL Save (once per 5 sec)."
+    },
+    "Arm": {
+      "name": "Arm",
+      "rating": "16",
+      "skillMod": "0",
+      "speed": "3",
+      "special": "If success, incapacitates one arm. Escape requires skill versus roll vs Half AGL Save (once per 3 sec)."
+    },
+    "Leg": {
+      "name": "Leg",
+      "rating": "17",
+      "skillMod": "-5",
+      "speed": "4",
+      "special": "If success, incapacitates one leg. Escape requires skill versus roll vs Half AGL Save (once per 4 sec)."
+    },
+    "Torso": {
+      "name": "Torso",
+      "rating": "18",
+      "skillMod": "-10",
+      "speed": "5",
+      "special": "If success, incapacitates one torso. Escape requires skill versus roll vs Quarter AGL Save (once per 5 sec)."
+    },
+    "Torso(1 Arm)": {
+      "name": "Torso(1 Arm)",
+      "rating": "20",
+      "skillMod": "-20",
+      "speed": "5",
+      "special": "If success, incapacitates one torso and one arm. Escape requires skill versus roll vs Quarter AGL Save (once per 5 sec)."
+    },
+    "Torso(2 Arms)": {
+      "name": "Torso(2 Arms)",
+      "rating": "22",
+      "skillMod": "-30",
+      "speed": "5",
+      "special": "If success, incapacitates one torso and both arms. Escape requires skill versus roll vs Quarter AGL Save (once per 5 sec)."
+    }
+  }
+}

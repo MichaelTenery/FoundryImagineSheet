@@ -1,0 +1,60 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "martialthrowvalueslist",
+    "lines": [
+      100765,
+      100771
+    ]
+  },
+  "_fields": [
+    "name",
+    "rating",
+    "skillMod",
+    "speed",
+    "damage",
+    "special"
+  ],
+  "entries": {
+    "Arm Throw": {
+      "name": "Arm Throw",
+      "rating": "16",
+      "skillMod": "0",
+      "speed": "3",
+      "damage": "1d6",
+      "special": "Contest of STR Save vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Arm Hold."
+    },
+    "Leg Throw": {
+      "name": "Leg Throw",
+      "rating": "17",
+      "skillMod": "-5",
+      "speed": "4",
+      "damage": "1d4",
+      "special": "Contest of STR Save(-20%) vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Leg Hold."
+    },
+    "Shoulder Throw": {
+      "name": "Shoulder Throw",
+      "rating": "18",
+      "skillMod": "-10",
+      "speed": "3",
+      "damage": "1d8",
+      "special": "Contest of STR Save(+20%) vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Neck Hold."
+    },
+    "Body Throw": {
+      "name": "Body Throw",
+      "rating": "19",
+      "skillMod": "-15",
+      "speed": "5",
+      "damage": "1d8",
+      "special": "Contest of STR Save(+30%) vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Arm Hold."
+    },
+    "Spin Throw": {
+      "name": "Spin Throw",
+      "rating": "18",
+      "skillMod": "-10",
+      "speed": "+1",
+      "damage": "+2",
+      "special": "Does not require touch before using. Add to another throw. Opponent is -20% to Agility Save. Removes hold chance as the opponent is thrown."
+    }
+  }
+}

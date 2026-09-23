@@ -1,0 +1,40 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "dictionary": "martialblockvalueslist",
+    "lines": [
+      100701,
+      100705
+    ]
+  },
+  "_fields": [
+    "name",
+    "rating",
+    "skillMod",
+    "speed",
+    "special"
+  ],
+  "entries": {
+    "Arm Block": {
+      "name": "Arm Block",
+      "rating": "10",
+      "skillMod": "30",
+      "speed": "1",
+      "special": "If success, attack is blocked by arm or forearm and damage is reduced to 1/2."
+    },
+    "Leg Block": {
+      "name": "Leg Block",
+      "rating": "12",
+      "skillMod": "20",
+      "speed": "1",
+      "special": "If success, attack is blocked by thigh or shin and damage is reduced to 1/2."
+    },
+    "Body Block": {
+      "name": "Body Block",
+      "rating": "14",
+      "skillMod": "10",
+      "speed": "1",
+      "special": "If success, attack is blocked by a torso and damage is reduced to 1/2."
+    }
+  }
+}
