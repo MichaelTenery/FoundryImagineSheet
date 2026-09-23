@@ -1616,3 +1616,50 @@ input.source-unknown {
 .imagine.round-clock-window .round-clock-key span { display: inline-flex; align-items: center; gap: 3px; }
 .imagine.round-clock-window .round-clock-key .clock-cell { display: inline-block; width: 12px; flex: 0 0 12px; height: 10px; }
 .imagine.round-clock-window .round-clock-empty { color: var(--imagine-muted); padding: 12px; }
+
+
+/* @MARKER WEAPON MODS ----------------------------------------------------------------------------
+   The weapon mods window a weapon row's wand button opens (module/apps/weapon-mods.mjs,
+   templates/apps/weapon-mods.hbs): temporary effects above, his Customize panel below. Also the
+   weapon's tags on the Combat tab's row and its specials on the attack card. */
+.imagine.weapon-mods .weapon-mods-window { display: flex; flex-direction: column; height: 100%; gap: 6px; }
+.imagine.weapon-mods .weapon-mods-head h2 { margin: 0; border: none; font-size: 18px; }
+.imagine.weapon-mods .weapon-mods-head p { margin: 2px 0; }
+.imagine.weapon-mods .weapon-mods-body { flex: 1; overflow-y: auto; padding-right: 4px; }
+.imagine.weapon-mods .section-head {
+	margin: 10px 0 4px; padding-bottom: 2px;
+	border-bottom: 2px solid var(--imagine-accent);
+	font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.imagine.weapon-mods table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.imagine.weapon-mods th { text-align: left; background: var(--imagine-head); font-size: 11px; padding: 2px 4px; }
+.imagine.weapon-mods td { padding: 2px 4px; border-bottom: 1px solid var(--imagine-rule-soft); }
+.imagine.weapon-mods tr.unavailable td { color: var(--imagine-faded); text-decoration: line-through; }
+.imagine.weapon-mods .col-row-actions { width: 28px; text-align: right; }
+.imagine.weapon-mods .row-button {
+	width: auto; min-width: 20px; line-height: 16px; padding: 0 4px;
+	border: 1px solid var(--imagine-rule); background: transparent; font-size: 11px;
+}
+.imagine.weapon-mods .race-chip .row-button { border: none; min-width: 0; padding: 0 0 0 3px; }
+.imagine.weapon-mods .weapon-mods-group {
+	margin: 6px 0; padding: 2px 8px 6px;
+	border: 1px solid var(--imagine-rule-soft); border-radius: 3px;
+}
+.imagine.weapon-mods .weapon-mods-group legend { font-weight: 600; padding: 0 4px; }
+.imagine.weapon-mods label.row { display: flex; align-items: center; gap: 6px; margin: 4px 0; font-size: 12px; }
+.imagine.weapon-mods label.row > input[type="text"] { flex: 1; }
+.imagine.weapon-mods input.short { width: 4.5em; flex: none; }
+.imagine.weapon-mods .weapon-mods-grid {
+	display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 4px 12px;
+	font-size: 12px;
+}
+.imagine.weapon-mods .weapon-mods-grid label { display: flex; align-items: center; gap: 6px; }
+.imagine.weapon-mods .weapon-mods-grid label > input:not(.short),
+.imagine.weapon-mods .weapon-mods-grid label > select { flex: 1; min-width: 0; }
+.imagine.weapon-mods .weapon-mods-grid label > select + input.short,
+.imagine.weapon-mods .weapon-mods-grid label > select + select { flex: 0 0 auto; width: 4.5em; }
+.imagine.weapon-mods .gear-add button,
+.imagine.weapon-mods .weapon-mods-group > button { width: auto; }
+.imagine.weapon-mods .empty { color: var(--imagine-muted); padding: 4px 0; }
+.imagine.sheet .weapon-custom-tags { font-size: 10px; margin-left: 4px; }
+.imagine-chat .weapon-specials p, .weapon-specials p { margin: 3px 0; font-size: 11px; }

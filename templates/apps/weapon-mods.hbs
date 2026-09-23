@@ -1,0 +1,102 @@
+{{!--
+	Weapon mods. One root element, as the framework requires of every PART.
+
+	For now: temporary effects, Bless and the Game Master's own. For good: his Customize panel, the
+	weapon half. module/apps/weapon-mods.mjs; the rules are module/weapon-custom-rules.mjs.
+--}}
+<div class="imagine weapon-mods-window">
+
+	<header class="weapon-mods-head">
+		<h2>{{weapon.name}}</h2>
+		<p class="muted">{{weapon.type}}{{#if weapon.material}} &middot; {{weapon.material}}{{/if}} &middot; carried: {{weapon.quantity}}</p>
+		{{#if weapon.tags.length}}<p>{{#each weapon.tags as |t|}}<span class="race-chip">{{t}}</span>{{/each}}</p>{{/if}}
+	</header>
+
+	<section class="weapon-mods-body">
+
+	{{!-- @MARKER FOR NOW --}}
+	<h3 class="section-head">For now</h3>
+	<div class="gear-add">
+		<button type="button" data-action="addBless" data-tooltip="Holy Weapon (Bless skill, Player's Guide): one day">
+			<i class="fa-solid fa-hands-praying"></i> Bless it</button>
+		{{#if hasExpired}}<button type="button" data-action="clearExpired">Clear the ended ones</button>{{/if}}
+	</div>
+	<p class="muted">{{blessNote}}</p>
+	{{#if temporary.length}}
+	<table class="skill-table">
+		<thead><tr><th class="col-name">Effect</th><th>Figures</th><th>Lasts</th><th class="col-row-actions"></th></tr></thead>
+		<tbody>
+			{{#each temporary as |e|}}
+			<tr class="{{#unless e.active}}unavailable{{/unless}}" data-tooltip="{{e.notes}}">
+				<td class="col-name">{{e.name}}</td>
+				<td class="muted">{{#if e.figures}}{{e.figures}}{{else}}&mdash;{{/if}}</td>
+				<td class="muted">{{e.lasts}}{{#if e.lasts}} &middot; {{/if}}{{e.ends}}</td>
+				<td class="col-row-actions"><button type="button" class="row-button" data-action="removeTemporary"
+					data-id="{{e.id}}" data-tooltip="Take it off">&times;</button></td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+	{{else}}
+	<p class="empty">Nothing temporary on this weapon.</p>
+	{{/if}}
+	<fieldset class="weapon-mods-group">
+		<legend>Add your own</legend>
+		<label class="row">Name <input type="text" name="temporary.name" placeholder="Oil of Sharpness, a spell's edge..."></label>
+		<label class="row">To hit <input type="number" name="temporary.toHit" value="0" class="short">
+			Damage <input type="number" name="temporary.damage" value="0" class="short">
+			Lasts <select name="temporary.span">{{#each spans as |s|}}<option value="{{s.seconds}}">{{s.label}}</option>{{/each}}</select></label>
+		<label class="row">Notes <input type="text" name="temporary.notes"></label>
+		<button type="button" data-action="addTemporary">Add</button>
+	</fieldset>
+
+	{{!-- @MARKER FOR GOOD --}}
+	<h3 class="section-head">For good &mdash; his Customize panel</h3>
+	{{#if chips.length}}
+	<p>{{#each chips as |c|}}<span class="race-chip">{{c.label}}
+		<button type="button" class="row-button" data-action="removeCustom" data-group="{{c.group}}" data-value="{{c.value}}"
+			data-tooltip="Take it off">&times;</button></span>{{/each}}</p>
+	{{/if}}
+	<div class="weapon-mods-grid">
+		<label>Prefix <input type="text" name="custom.prefix" value="{{custom.prefix}}" maxlength="30"></label>
+		<label>Suffix <input type="text" name="custom.suffix" value="{{custom.suffix}}" maxlength="30"></label>
+		<label>Condition <select name="custom.condition"><option value="-">(leave)</option>
+			{{#each options.conditions as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select></label>
+		<label>Quality <select name="custom.quality"><option value="-">(leave)</option>
+			{{#each options.qualities as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select></label>
+		<label>Magical <select name="custom.plus"><option value="">(leave)</option>
+			{{#each options.plus as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select></label>
+		<label>Base Aura <input type="number" name="custom.baseAura" value="{{custom.baseAura}}" min="0" {{#if custom.auraSet}}disabled{{/if}}></label>
+		<label>Magical weapon <select name="custom.magicAbility"><option value=""></option>
+			{{#each options.magic as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select></label>
+		<label>Weapon rune <select name="custom.rune"><option value=""></option>
+			{{#each options.runes as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select>
+			level <input type="number" name="custom.runeLevel" min="1" class="short"></label>
+		<label>Energy <select name="custom.energyType"><option value=""></option>
+			{{#each options.energy as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select>
+			dice <select name="custom.energyDice"><option value=""></option>
+			{{#each options.energyDice as |n|}}<option value="{{n}}">{{n}}</option>{{/each}}</select></label>
+		<label>Divine weapon <select name="custom.divineAbility"><option value=""></option>
+			{{#each options.divine as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select></label>
+		<label>Base Piety Control <input type="number" name="custom.basePiety" value="{{custom.basePiety}}" min="0" {{#if custom.pietySet}}disabled{{/if}}></label>
+		<label>Customization <select name="custom.customization"><option value=""></option>
+			{{#each options.customizations as |o|}}<option value="{{o.value}}" {{#if o.disabled}}disabled{{/if}}
+				title="{{o.reason}}">{{o.label}}{{#if o.disabled}} &mdash; not this weapon{{/if}}</option>{{/each}}</select></label>
+		<label>Magical effect <input type="text" name="custom.magicalEffect" placeholder="any spell, by name"></label>
+		<label>Divine effect <input type="text" name="custom.divineEffect" placeholder="any invocation, by name"></label>
+		<label>Set weight <input type="number" name="custom.setWeight" step="0.1" min="0" class="short"> lb</label>
+		<label>Adjust weight <input type="number" name="custom.adjustWeight" class="short"> <span class="muted">200 = double, -50 = half</span></label>
+	</div>
+	<p class="muted">As his panel has it: a magical plus clears quality and condition, Blessed and a +N are one or the
+		other, and a base Aura or Piety Control once set stays. The name is left alone &mdash; the lore lists find a
+		weapon by it &mdash; and the prefix and suffix are shown beside it.</p>
+	<fieldset class="weapon-mods-group">
+		<legend>Apply to</legend>
+		<label class="row"><input type="radio" name="custom.target" value="this" checked> This weapon</label>
+		<label class="row"><input type="radio" name="custom.target" value="copy"> A customized copy, carried beside it
+			{{#if (gt weapon.quantity 1)}}&mdash; how many of the {{weapon.quantity}}: <input type="number" name="custom.count" value="1" min="1" max="{{weapon.quantity}}" class="short">{{/if}}</label>
+		<button type="button" data-action="customize"><i class="fa-solid fa-hammer"></i> Customize</button>
+	</fieldset>
+
+	</section>
+</div>

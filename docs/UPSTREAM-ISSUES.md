@@ -1841,3 +1841,47 @@ the extra seconds, the off hand and carry-over. Two places needed a reading.
    who goes first within one second. Also following the sheet, anyone with speed seconds from an
    effect starts at the first second whatever they rolled ("always wins initiative", as the Speed
    potion puts it).
+
+## 62. Seven poison types last hours when used, minutes on their row
+
+**Status:** open · **Severity:** real, when a poison is used -- a poison meant to last minutes lasts hours
+
+`doPoisonAction` (sheet-worker.js:135358) writes the duration of types IV, VIII, IX, X, XI, XII and
+XX as "Effects last 1d6=N hour(s)" (IV "1d10 ... hour(s)"). Your own `getPoisonDetails` (135117), the
+text the poison carries on its row, says **minutes** for all seven, and so does the Master's Manual's
+poison table. A type IX at 1d6 hours of 1d6 Endurance a minute is sixty times the poison it reads as.
+The hours may have come across from III, V and VI, which are hours on every source (135455-135467).
+
+The port follows the row and the book: minutes. Are they minutes?
+
+## 63. A rune's damage: the weapon's own dice, or d6?
+
+**Status:** open · **Severity:** a question -- changes every runed weapon's damage
+
+Your rune dictionary, and the tag your Customize panel writes, give a weapon rune as "+Nd6+N"
+damage for a rune of level N. Your attack code does something else: it adds N to the **weapon's**
+dice count (64973 -- a 1d8 sword with a rune of 2 rolls 3d8) and adds the flat +N only inside the
+verbose damage listing (65040), so the card shows "Rune (+2)" but the total never includes it.
+
+The port follows the dictionary and the tag: +Nd6+N, flat bonus included, since that is what a
+player reading the rune is told it does. Which did you mean -- and is the flat +N meant to be rolled?
+
+## 64. A Doubling Blade changes nothing on the combat sheet
+
+**Status:** open · **Severity:** low -- one customization has no effect
+
+Your Customize panel offers "Doubling Blade(Axe)", value `Doubling Blade`, and `customizeItem` writes
+`[Doubling Blade]` into the name. Your listing functions test for `[Double Blade]` beside
+`[Double Head]` -- strength x1.2 (89861), a second slower (89911), +20% to skills (90025) -- so a
+Doubling Blade never gets them. The port reads Doubling Blade as Double Blade. Is that what you meant?
+
+## 65. Customizing a whole stack can stop on an undeclared name
+
+**Status:** open · **Severity:** real, but narrow -- the customize does nothing
+
+In `customizeItem`, the two branches for customizing every item of a stack of more than one
+(`currentitems==tmpitemnumber`, 79102 and 79106) build the new name with
+`...+tmpbasepietytmpnewweaprune+...` -- a missing `+` between `tmpbasepiety` and `tmpnewweaprune`.
+Reading an undeclared name throws, so when that stack is the first weapon in the list the whole
+customize stops there. The `else` half of the same lines has the `+`. The port does not share the
+code; noted for your sheet.

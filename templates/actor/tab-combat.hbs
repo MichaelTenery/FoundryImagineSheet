@@ -169,9 +169,13 @@
 		<tbody>
 			{{#each weapons as |w|}}
 			<tr>
-				<td class="col-name">{{w.name}}{{#unless w.equipped}} <span class="muted">(carried)</span>{{/unless}}
-					{{#if w.lore}} <span class="lore-tag" data-tooltip="Attack +{{w.lore.attack}}, damage +{{w.lore.damage}}, speed {{w.lore.speed}}, skills +{{w.lore.skills}}%">{{#if w.lore.specific}}Lore{{else}}lore{{/if}}</span>{{/if}}</td>
-				<td class="col-num">{{w.damage}}</td>
+				<td class="col-name">{{#if w.displayName}}{{w.displayName}}{{else}}{{w.name}}{{/if}}{{#unless w.equipped}} <span class="muted">(carried)</span>{{/unless}}
+					{{#if w.lore}} <span class="lore-tag" data-tooltip="Attack +{{w.lore.attack}}, damage +{{w.lore.damage}}, speed {{w.lore.speed}}, skills +{{w.lore.skills}}%">{{#if w.lore.specific}}Lore{{else}}lore{{/if}}</span>{{/if}}
+					{{!-- What has been done to it, for now and for good, and the window to do more. --}}
+					{{#if w.customTags.length}} <span class="weapon-custom-tags muted">{{#each w.customTags as |t|}}{{t}}{{#unless @last}} &middot; {{/unless}}{{/each}}</span>{{/if}}
+					<button type="button" class="row-button" data-action="openWeaponMods" data-item-id="{{w.id}}"
+						data-tooltip="Weapon mods: bless it, or customize it as his panel does"><i class="fa-solid fa-wand-magic-sparkles"></i></button></td>
+				<td class="col-num" {{#if w.listingTip}}data-tooltip="{{w.listingTip}}"{{/if}}>{{w.damage}}</td>
 				<td class="col-num">{{w.speed}}{{#if w.reload}} <span class="muted">/ reload {{w.reload}}</span>{{/if}}</td>
 				{{!-- Which hand it is in. Off-handedness is derived from this against the
 				      character's handedness below, so an Ambidextrous character never shows the

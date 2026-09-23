@@ -7,6 +7,8 @@
 //
 // His buttons, and what each became:
 //     USE on a consumable        useConsumable       a dose spent; the last one removes the row
+//     USE on a poison            usePoison           on the targets, on self or on no one; each
+//                                                    victim rolls their own Poison Resistance
 //     USE / MOD on a lore row    useLore             the use skill against chance + modifier
 //     USE / MOD on a recipe      brewRecipe          the lore against its chance; a batch of doses
 //     the memorized tick         toggleMemorized
@@ -23,7 +25,9 @@
 //==================================================================================================================
 
 import { MAGIC_KINDS, getItemKind, getSkillStanding, resolveLoreUse, resolveBrew, isLoreSuccess,
-         useConsumableDose, makePoisonSystem, POISON_FORMS } from "./lore-rules.mjs";
+         useConsumableDose, makePoisonSystem, POISON_FORMS, resolvePoisonOnVictim,
+         describePoisonOnVictim } from "./lore-rules.mjs";
+import { resolveResistanceRoll, describeResistanceRoll } from "./resistance-rules.mjs";
 import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 
 	// The words each outcome is reported in, as his chat lines put them.
@@ -84,6 +88,7 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 	// removeRepeatingRow does; nothing left means nothing done.
 	export async function useConsumable(tmpactor, tmpitem) {
 		var tmpkind = tmpitem.system.kind;
+		if (tmpkind == "poison") { return await usePoison(tmpactor, tmpitem); }
 		var tmpresult = useConsumableDose(tmpkind, tmpitem.system.doses);
 		var tmplabel = (MAGIC_KINDS[tmpkind]?.label ?? tmpkind).toLowerCase();
 		if (!tmpresult.used) {
@@ -103,6 +108,76 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		} else if (tmpkind != "charm") {
 			await tmpitem.update({ "system.doses": tmpresult.remaining });
 		}
+	}
+
+	// @MARKER POISON AGAINST A VICTIM
+	// This is the function which uses a dose of poison ON someone -- his usePoison and doPoisonAction
+	// (sheet-worker.js:135316, 135358). His row has an "on self" tick that rolls the user's own Poison
+	// Resistance; everyone else was the table's to roll. Here the victim can be the tokens the user has
+	// targeted as well, each rolling their own Poison Resistance (with its immunity), or no one at all
+	// -- a dose spent to coat something, bait a trap, or hand over.
+	//
+	// His row's Poison Resistance modifier becomes the modifier asked for here. What follows from the
+	// roll is resolvePoisonOnVictim (lore-rules.mjs): the success or failure clause, the onset and
+	// duration rolled, and any Endurance damage over the duration rolled for convenience.
+	export async function usePoison(tmpactor, tmpitem) {
+		var tmpresult = useConsumableDose("poison", tmpitem.system.doses);
+		if (!tmpresult.used) {
+			ui.notifications.warn(`${tmpactor.name} has no doses left of ${tmpitem.name}. Nothing done.`);
+			return;
+		}
+		// A poison made by hand may carry only its name, "Type: IV, Potency: C".
+		var tmpnamed = tmpitem.name.match(/Type:\s*([IVX]+),\s*Potency:\s*([A-Q])/i) ?? [];
+		var tmptype = tmpitem.system.poisonType || tmpnamed[1] || "";
+		var tmppotency = tmpitem.system.poisonPotency || tmpnamed[2] || "";
+
+		var tmptargets = Array.from(game.user.targets ?? []).map(tmptoken => tmptoken.actor).filter(tmpa => tmpa);
+		var tmptargetnames = tmptargets.map(tmpa => escapeText(tmpa.name)).join(", ");
+		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
+			window: { title: `Use ${tmpitem.name}` },
+			content: `<div class="form-group"><label>Who takes it</label><select name="who">
+					${tmptargets.length ? `<option value="targets">Targeted: ${tmptargetnames}</option>` : ""}
+					<option value="self">${escapeText(tmpactor.name)} (on self)</option>
+					<option value="none">No one &mdash; just take a dose (a coating, a trap, a gift)</option>
+				</select></div>
+				<div class="form-group"><label>Poison Resistance modifier</label>
+				<input type="number" name="modifier" value="0"></div>
+				${tmptargets.length ? "" : `<p class="hint">Target a token first to use it on someone else.</p>`}`,
+			rejectClose: false,
+			ok: { label: "Use", callback: (tmpe, tmpbutton) => ({ who: tmpbutton.form.elements.who.value,
+				modifier: parseInt(tmpbutton.form.elements.modifier.value) || 0 }) }
+		});
+		if (!tmpanswer) { return; }
+
+		var tmpvictims = tmpanswer.who == "targets" ? tmptargets : (tmpanswer.who == "self" ? [tmpactor] : []);
+		var tmpdie = (tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1;
+		var tmpsections = [];
+		var tmprolls = [];
+		for (const tmpvictim of tmpvictims) {
+			var tmpresist = tmpvictim.system?.resistances?.poison;
+			if (!tmpresist) {
+				tmpsections.push(`<p><strong>${escapeText(tmpvictim.name)}</strong>: has no Poison Resistance to roll; the Game Master decides.</p>`);
+				continue;
+			}
+			var tmproll = await new Roll("1d100").evaluate();
+			tmprolls.push(tmproll);
+			var tmpresistance = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpanswer.modifier);
+			var tmpeffect = resolvePoisonOnVictim({ type: tmptype, potency: tmppotency, resistance: tmpresistance }, tmpdie);
+			tmpsections.push(`<p><strong>${escapeText(tmpvictim.name)}</strong> &mdash; ${describeResistanceRoll("Poison", tmpresistance)}</p>`
+				+ describePoisonOnVictim(tmpeffect).map(tmpline => `<p>${escapeText(tmpline)}</p>`).join(""));
+		}
+		if (!tmpvictims.length) {
+			tmpsections.push(`<p class="muted">A dose taken, on no one yet. ${escapeText(tmpitem.system.description)}</p>`);
+		}
+
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+			flavor: `Uses poison <strong>${escapeText(tmpitem.name)}</strong>${tmpitem.system.form ? ` (${escapeText(tmpitem.system.form)})` : ""}`,
+			content: `<div class="imagine-magic-card">${tmpsections.join("")}`
+			       + `<p class="muted">Remaining doses: ${tmpresult.remaining}.</p></div>`,
+			rolls: tmprolls
+		});
+		if (tmpresult.remove) { await tmpitem.delete(); } else { await tmpitem.update({ "system.doses": tmpresult.remaining }); }
 	}
 
 	// This is the function which adds one dose to a consumable already carried -- bought, found or

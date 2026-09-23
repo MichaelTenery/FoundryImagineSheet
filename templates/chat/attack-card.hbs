@@ -5,7 +5,7 @@
 --}}
 <div class="imagine-chat attack-card">
 	<header>
-		<strong>{{actorName}}</strong> — {{weapon}} ({{modeLabel}})
+		<strong>{{actorName}}</strong> — {{#if weaponDisplay}}{{weaponDisplay}}{{else}}{{weapon}}{{/if}} ({{modeLabel}})
 		{{#if targetName}}<span class="target">vs {{targetName}}</span>{{/if}}
 	</header>
 
@@ -37,7 +37,7 @@
 	{{#if damage}}
 	<div class="damage">
 		<span class="total">{{damage.total}}</span> {{damage.type}} damage
-		<span class="breakdown">({{damage.dice}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.magic}} +{{damage.magic}} magic{{/if}}{{#if damage.lore}} {{#if (gt damage.lore 0)}}+{{/if}}{{damage.lore}} lore{{#if damage.loreSpecific}} (specific){{/if}}{{/if}}{{#if damage.projectileLore}} {{#if (gt damage.projectileLore 0)}}+{{/if}}{{damage.projectileLore}} projectile lore ({{damage.projectileLorePerDie}}/die){{/if}}{{#if damage.multiMissile}} {{damage.multiMissile}} multiple missiles{{/if}}{{#if damage.offhand}} {{damage.offhand}} off hand{{#if (eq damage.offhandTier "knowledge")}} (Second Weapon Knowledge){{/if}}{{/if}}{{#if damage.situation}} {{#if (gt damage.situation 0)}}+{{/if}}{{damage.situation}} situational{{/if}}{{#if damage.martial}} {{#if (gt damage.martial 0)}}+{{/if}}{{damage.martial}} martial{{/if}}{{#if damage.maximized}}, every die at its highest{{/if}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}
+		<span class="breakdown">({{damage.dice}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.magic}} +{{damage.magic}} magic{{/if}}{{#if damage.lore}} {{#if (gt damage.lore 0)}}+{{/if}}{{damage.lore}} lore{{#if damage.loreSpecific}} (specific){{/if}}{{/if}}{{#if damage.projectileLore}} {{#if (gt damage.projectileLore 0)}}+{{/if}}{{damage.projectileLore}} projectile lore ({{damage.projectileLorePerDie}}/die){{/if}}{{#if damage.multiMissile}} {{damage.multiMissile}} multiple missiles{{/if}}{{#if damage.offhand}} {{damage.offhand}} off hand{{#if (eq damage.offhandTier "knowledge")}} (Second Weapon Knowledge){{/if}}{{/if}}{{#if damage.situation}} {{#if (gt damage.situation 0)}}+{{/if}}{{damage.situation}} situational{{/if}}{{#if damage.martial}} {{#if (gt damage.martial 0)}}+{{/if}}{{damage.martial}} martial{{/if}}{{#if damage.runeDice}} +{{damage.runeDice}} rune{{/if}}{{#if damage.custom}} {{#if (gt damage.custom 0)}}+{{/if}}{{damage.custom}} weapon{{/if}}{{#if damage.special}} +{{damage.special}} magical{{/if}}{{#if damage.specialDoubles}}, doubled by the natural roll{{/if}}{{#if damage.maximized}}, every die at its highest{{/if}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}
 		= {{damage.rolled}}{{#if (gt damage.situationMulti 1)}}, x{{damage.situationMulti}} situational{{/if}}{{#if (gt damage.martialMulti 1)}}, x{{damage.martialMulti}} martial{{/if}}{{#if damage.halfDamage}}, halved for the failed shot{{/if}}{{#if (lt damage.multiplier 1)}}{{#unless damage.halfDamage}}, halved for the called shot{{/unless}}{{/if}})</span>
 		{{!-- Two or three projectiles are one roll; the rest land on the same target for the same
 		      damage again, which is his sheet's rule and not the book's. --}}
@@ -45,6 +45,12 @@
 		<span class="breakdown">{{damage.perShot}} each &times; {{damage.shots}} projectiles{{#if damage.multiMissileTier}} &mdash; {{damage.multiMissileTier}}{{/if}}</span>
 		{{/if}}
 	</div>
+	{{/if}}
+
+	{{!-- What the weapon's customization does on a hit that is the table's to settle: Foe Strike's
+	      figure against its foe type, energy and divine damage behind a Magic Resistance, Bane. --}}
+	{{#if weaponSpecials.length}}
+	<div class="weapon-specials">{{#each weaponSpecials as |s|}}<p>{{s}}</p>{{/each}}</div>
 	{{/if}}
 
 	<footer>

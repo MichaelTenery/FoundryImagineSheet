@@ -1,0 +1,214 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG weapon mods test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:680px}</style>
+<pre id="out">running...</pre>
+<h3>The window, rendered against a real customized weapon</h3>
+<div id="window" class="render imagine weapon-mods"></div>
+<h3>An attack card with the weapon's specials</h3>
+<div id="card" class="render"></div>
+<script type="module">
+// Tests for the weapon mods: module/weapon-custom-rules.mjs (his Customize panel and what his attack
+// does with it, and the temporary effects), module/weapon-custom-tables.mjs (what the extraction
+// read), module/weapon-mods-view.mjs (what the window shows) -- and the window's template and the
+// attack card's, compiled and rendered against real weapons from src/packs/documents/weapons.json.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/weapon-mods-test.html
+const R = await import("../module/weapon-custom-rules.mjs");
+const T = await import("../module/weapon-custom-tables.mjs");
+const V = await import("../module/weapon-mods-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+function dice(...tmpvalues) {
+	var tmpqueue = [...tmpvalues];
+	return (tmpsides) => {
+		if (!tmpqueue.length) { throw new Error("rolled more dice than the test scripted (d" + tmpsides + ")"); }
+		return tmpqueue.shift();
+	};
+}
+const weapons = await (await fetch("../src/packs/documents/weapons.json", { cache: "no-store" })).json();
+const byName = (n) => { const d = weapons.find(w => w.name == n); if (!d) { throw new Error("no weapon " + n); } return structuredClone(d); };
+
+// --- the extraction -------------------------------------------------------------------------------
+check("his panel: 7 conditions, 6 qualities, 16 customizations, Blessed and +1..+10",
+	[T.WEAPON_CONDITIONS.length, T.ITEM_QUALITIES.length, T.WEAPON_CUSTOMIZATIONS.length, T.MAGIC_PLUS_CHOICES.length], [7, 6, 16, 11]);
+check("every customization has a rule", T.WEAPON_CUSTOMIZATIONS.every(([v]) => T.WEAPON_CUSTOMIZATION_RULES[v]), true);
+check("every energy has dice", T.ENERGY_TYPES.every(([v]) => T.ENERGY_DICE[v]), true);
+check("energy dice: Light d2 ... Obliteration d100, Kinetic +1 a die",
+	[T.ENERGY_DICE.Light.sides, T.ENERGY_DICE.Flame.sides, T.ENERGY_DICE.Obliteration.sides, T.ENERGY_DICE.Kinetic.plusPerDie], [2, 6, 100, 1]);
+check("abilities and runes by mode", [T.ABILITY_MODES.Sharpness, T.ABILITY_MODES.Accuracy, T.RUNE_MODES.Piercing, T.RUNE_MODES.Disruption],
+	["cut", "missile", "thrust", "smash"]);
+check("brands: Frostbrand d4 ... Deathbrand d20; Divine Might and Rebuke are their own rules",
+	[T.DIVINE_BRAND_DICE.Frostbrand, T.DIVINE_BRAND_DICE.Deathbrand, "Divine Might" in T.DIVINE_BRAND_DICE, "Rebuke" in T.DIVINE_BRAND_DICE], [4, 20, false, false]);
+check("Rebuke's stroke ladder ends in an else", T.REBUKE_STROKES[T.REBUKE_STROKES.length - 1][0], 101);
+
+// --- which weapons ------------------------------------------------------------------------------
+const sword = byName("Long Sword");
+const club = byName(weapons.find(w => w.system.type == "Bludgeon" && !/hammer/i.test(w.name))?.name);
+check("Serrated suits a blade", R.checkWeaponCustomization(sword, "Serrated").ok, true);
+check("...and not a bludgeon, with his reason", R.checkWeaponCustomization(club, "Serrated"),
+	{ ok: false, reason: `Serrated is for a Blade or Axe weapon; this is a Bludgeon.` });
+check("Silvering suits anything", R.checkWeaponCustomization(club, "Silvering").ok, true);
+check("Double Head only on a hammer", [R.checkWeaponCustomization(sword, "Double Head").ok,
+	R.checkWeaponCustomization({ name: "War Hammer", system: { type: "Bludgeon" } }, "Double Head").ok], [false, true]);
+check("Chain Weapon: speed 3 to 5 only", [3, 5, 6, 2].map(s => R.checkWeaponCustomization({ name: "x", system: { type: "Bludgeon", speed: s } }, "Chain Weapon").ok),
+	[true, true, false, false]);
+check("a thing that is not a weapon takes none", R.checkWeaponCustomization({ name: "Rope", system: {} }, "Silvering").ok, false);
+
+// --- the plus -------------------------------------------------------------------------------------
+check("Sharpness on a plain weapon: +1 per 5 base Aura", R.updateMagicPlus(0, "Sharpness", 12, "", 0), 2);
+check("...on a +3 weapon: simply one more", R.updateMagicPlus(3, "Sharpness", 30, "", 0), 4);
+check("Firebrand: +1 per 5 base Piety Control", R.updateMagicPlus(0, "", 0, "Firebrand", 15), 3);
+check("an ability that does not raise it leaves it", R.updateMagicPlus(2, "Bane", 20, "Rebuke", 20), 2);
+
+// --- blessed --------------------------------------------------------------------------------------
+check("Holy Weapon: good +1/+1, evil -1/-1, others nothing", ["Lawful Good", "Chaotic Evil", "Neutral", "Non-Good"].map(R.getBlessingModifier),
+	[{ toHit: 1, damage: 1 }, { toHit: -1, damage: -1 }, { toHit: 0, damage: 0 }, { toHit: 0, damage: 0 }]);
+const blessing = R.makeTemporaryEffect({ name: "Blessed", kind: "blessed", seconds: 86400, lasts: "1 day" }, 1000);
+check("a temporary effect ends by the world's clock", [R.isTemporaryActive(blessing, 1000), R.isTemporaryActive(blessing, 87399), R.isTemporaryActive(blessing, 87400)],
+	[true, true, false]);
+check("one with no end holds until taken off", R.isTemporaryActive(R.makeTemporaryEffect({ name: "x" }, 5), 1e12), true);
+
+// --- what the attack adds -----------------------------------------------------------------------
+const runed = { ...sword.system, custom: { runes: [{ name: "Sharpness", level: 2 }] }, tempEffects: [blessing] };
+let extras = R.getWeaponAttackExtras({ system: runed, mode: "cut", alignment: "Good", worldTime: 2000 });
+check("a Sharpness rune on a cut: +2 to hit, +2d6+2 damage; Blessed +1/+1 for a good wielder",
+	[extras.toHit, extras.runeDice, extras.damage], [[{ label: "Rune of Sharpness", value: 2 }, { label: "Blessed", value: 1 }], "2d6+2", [{ label: "Blessed", value: 1 }]]);
+check("...and nothing from the rune on a thrust", R.getWeaponAttackExtras({ system: runed, mode: "thrust", alignment: "Good", worldTime: 2000 }).runeDice, "");
+check("a rune on a magical weapon adds only +1 to hit (his stacking rule)",
+	R.getWeaponAttackExtras({ system: { ...runed, magicBonus: 2 }, mode: "cut", alignment: "", worldTime: 2000 }).toHit, [{ label: "Rune of Sharpness", value: 1 }]);
+check("a blessing that has ended adds nothing", R.getWeaponAttackExtras({ system: runed, mode: "thrust", alignment: "Good", worldTime: 90000 }).toHit, []);
+check("blessed for good AND for now counts once", R.getWeaponAttackExtras({ system: { ...runed, custom: { blessed: true } }, mode: "thrust", alignment: "Good", worldTime: 2000 }).toHit,
+	[{ label: "Blessed", value: 1 }]);
+check("a Game Master's own effect", R.getWeaponAttackExtras({ system: { tempEffects: [R.makeTemporaryEffect({ name: "Oil", toHit: 1, damage: 2 }, 0)] }, mode: "cut", worldTime: 5 }),
+	{ toHit: [{ label: "Oil", value: 1 }], runeDice: "", damage: [{ label: "Oil", value: 2 }], blessed: false });
+
+// --- what the hit does ---------------------------------------------------------------------------
+const sharp = { custom: { baseAura: 10, magicAbilities: ["Sharpness"] } };
+let sp = R.resolveWeaponSpecials({ system: sharp, mode: "cut", natural: 12, baseDice: "1d8" }, dice(3, 4));
+check("Sharpness on a cut, base Aura 10: +2d6 + (1 die + 2) = 3+4+3", [sp.extraDamage, sp.doubles], [10, false]);
+sp = R.resolveWeaponSpecials({ system: sharp, mode: "cut", natural: 19, baseDice: "1d8" }, dice(1, 1));
+check("...a natural 19 (21 - Aura/5) doubles the blow", sp.doubles, true);
+check("...but not on a thrust", R.resolveWeaponSpecials({ system: sharp, mode: "thrust", natural: 20, baseDice: "1d8" }, dice()).extraDamage, 0);
+sp = R.resolveWeaponSpecials({ system: { custom: { baseAura: 5, magicAbilities: ["Foe Strike", "Bane"], energyType: "Flame", energyDice: 2 } },
+	mode: "cut", natural: 20, baseDice: "2d6" }, dice(4, 5, 6));
+check("Foe Strike reported apart, energy behind a Magic Resistance, and Bane",
+	sp.lines, ["Foe Strike, against its foe type only: +1d6+3 = 7 more damage, and the natural 20 doubles it.",
+	           "Energy: the target makes a Magic Resistance or takes 11 (2d6) magical Flame damage.",
+	           "Bane: a target of its type makes a Magic Resistance or dies."]);
+sp = R.resolveWeaponSpecials({ system: { custom: { basePiety: 10, divineAbilities: ["Frostbrand", "Firebrand", "Divine Might"] } }, mode: "cut", natural: 5, baseDice: "1d8" },
+	dice(1, 2, 3, 4, 1, 1, 1, 1, 1));
+check("brands at 10 PC: 2d4 + 2d6, Divine Might 5d6, reported together", sp.lines,
+	["Divine: the target makes a Magic Resistance or takes 15 (2d4 + 2d6 + 5d6) divine Cold, Fire, Celestial damage."]);
+sp = R.resolveWeaponSpecials({ system: { custom: { basePiety: 8, divineAbilities: ["Rebuke"] } }, mode: "smash", natural: 5, baseDice: "1d6" },
+	dice(2, 3, 2, 1, 80, 1, 1, 1, 1, 1));
+check("Rebuke to the head (2d4 at 8 PC), a stroke on the chance roll, his severity by d100 (80: Severe)",
+	[sp.lines[0].startsWith("Rebuke: the target makes a Magic Resistance or takes 5 to the Head and suffers a stroke for 5 Head damage"),
+	 sp.lines[0].includes("Severe Stroke")], [true, true]);
+sp = R.resolveWeaponSpecials({ system: { custom: { basePiety: 4, divineAbilities: ["Divine Wrath"] } }, mode: "cut", natural: 5, baseDice: "1d8" }, dice(12, 10, 9, 9, 8, 1, 6, 1));
+check("Divine Wrath: four rings, 2d12 to 2d6, out to 2, 4, 6 and 8 feet",
+	sp.lines[0], "Divine Wrath: a divine explosion radiates outward -- 22 divine damage out to 2 feet, then 18 divine damage out to 4 feet, then 9 divine damage out to 6 feet, then 7 divine damage out to 8 feet.");
+
+// --- applying his panel ------------------------------------------------------------------------------
+let applied = R.applyWeaponCustomization(sword, { quality: "Good", condition: "Worn", prefix: "Glamdring" });
+check("quality, condition and a prefix", [applied.system.quality, applied.system.condition, applied.system.custom.prefix], ["Good", "Worn", "Glamdring"]);
+applied = R.applyWeaponCustomization({ name: sword.name, system: applied.system }, { plus: "+2" });
+check("a magical plus clears quality and condition, as his panel does", [applied.system.magicBonus, applied.system.quality, applied.system.condition], [2, "", ""]);
+applied = R.applyWeaponCustomization({ name: sword.name, system: applied.system }, { plus: "Blessed" });
+check("Blessed and a +N are one or the other", [applied.system.magicBonus, applied.system.custom.blessed], [0, true]);
+applied = R.applyWeaponCustomization(sword, { baseAura: 15, magicAbility: "Sharpness" });
+check("Sharpness at base Aura 15 makes a plain sword +3", [applied.system.magicBonus, applied.system.custom.magicAbilities], [3, ["Sharpness"]]);
+applied = R.applyWeaponCustomization({ name: sword.name, system: applied.system }, { baseAura: 40 });
+check("a base Aura once set stays", applied.system.custom.baseAura, 15);
+applied = R.applyWeaponCustomization(club, { customization: "Serrated", rune: "Disruption", runeLevel: 0, energyType: "Acid" });
+check("refusals are reported, not applied", [applied.system.custom.customizations, applied.issues.length], [[], 3]);
+applied = R.applyWeaponCustomization(sword, { setWeight: 4 });
+check("set weight", applied.system.weight, 4);
+check("adjust weight: 200 doubles, -50 halves", [R.applyWeaponCustomization({ name: "x", system: { weight: 3 } }, { adjustWeight: 200 }).system.weight,
+	R.applyWeaponCustomization({ name: "x", system: { weight: 3 } }, { adjustWeight: -50 }).system.weight], [6, 1.5]);
+check("the name is left alone; the prefix and suffix are shown beside it", R.getWeaponDisplayName("Long Sword", { custom: { prefix: "Glamdring", suffix: "the Foe-Hammer" } }),
+	"Glamdring Long Sword the Foe-Hammer");
+check("taking one off", R.removeWeaponCustomization({ custom: { magicAbilities: ["Bane", "Sharpness"] } }, { group: "magicAbilities", value: "Bane" }).custom.magicAbilities,
+	["Sharpness"]);
+
+// --- what a tag does to the weapon's figures (his listing changes) ---------------------------------
+check("his listing changes: 78 tag rows and the +1..+10 ladder", [T.WEAPON_LISTING_CHANGES.length, Object.keys(T.MAGIC_PLUS_LISTING).length], [78, 10]);
+const ls = sword.system;   // Long Sword: 4d6, speed 5 (min 3), 3.5', strength 45, skills +0
+const cw = (sys) => R.getCustomizedWeapon({ ...ls, custom: {}, ...sys });
+const figures = (w) => [w.damage, w.speed, w.minSpeed, w.structuralStrength, w.skillsMod, w.listingToHit];
+check("a plain Long Sword is itself", [figures(cw({})), cw({}).listingChanges], [["4d6", 5, 3, 45, 0, 0], []]);
+let lw = cw({ custom: { customizations: ["Chain Weapon"] } });
+check("Chain Weapon: a die more, two seconds slower, a second on the minimum, six more (of his parseInt'd 3)", [lw.damage, lw.speed, lw.minSpeed, lw.length],
+	["5d6", 7, 4, "9'"]);
+check("Serrated: +1 a die, and a third of its strength (truncated)", figures(cw({ custom: { customizations: ["Serrated"] } })), ["4d6+4", 5, 3, 14, 0, 0]);
+check("Chain Weapon then Serrated: the extra die counts for the serration", cw({ custom: { customizations: ["Chain Weapon", "Serrated"] } }).damage, "5d6+5");
+check("Master: +1 damage, a second quicker, x1.25 strength, +5% skills, +1 to hit", figures(cw({ quality: "Master" })), ["4d6+1", 4, 3, 56, 5, 1]);
+check("Worn: -2 damage, a second slower, x0.85, -5%, -1 to hit", figures(cw({ condition: "Worn" })), ["4d6-2", 6, 3, 38, -5, -1]);
+check("Master and Worn together, strength truncated once", figures(cw({ quality: "Master", condition: "Worn" })), ["4d6-1", 5, 3, 47, 0, 0]);
+check("+3: two seconds quicker, x1.75, +10%; its +3 damage and to hit are the attack's Magic, not here",
+	figures(cw({ magicBonus: 3 })), ["4d6", 3, 3, 78, 10, 0]);
+check("+10: never quicker than its minimum", cw({ magicBonus: 10 }).speed, 3);
+lw = cw({ custom: { customizations: ["Dulling"] } });
+check("Dulling: a die fewer, and it smashes only", [lw.damage, lw.thrust.available, lw.cut.available, lw.smash], ["3d6", false, false, { available: true, mod: 0 }]);
+const axe = byName("Battle Axe").system;
+check("Doubling Blade (his panel's name) takes his Double Blade rules: +1 second, +20%, x1.2",
+	figures(R.getCustomizedWeapon({ ...axe, custom: { customizations: ["Doubling Blade"] } })), ["6d6", 9, 4, 72, -10 + 20, 0]);
+check("Frictionless: +1 a die", cw({ custom: { magicAbilities: ["Frictionless"] } }).damage, "4d6+4");
+check("Fulcrum: a second quicker, and its minimum a second lower", [cw({ custom: { magicAbilities: ["Fulcrum"] } }).speed, cw({ custom: { magicAbilities: ["Fulcrum"] } }).minSpeed], [4, 2]);
+const spear = byName("Spear").system;
+lw = R.getCustomizedWeapon({ ...spear, custom: { customizations: ["Chain Weapon"] } });
+check("the Spear's thrown damage takes the Chain Weapon's die too", [lw.damage, lw.damageAlt], ["5d6", "6d6"]);
+const bow = byName("Crossbow").system;
+check("a Worn crossbow reloads a second slower", R.getCustomizedWeapon({ ...bow, condition: "Worn" }).reloadSpeed, (parseInt(bow.reloadSpeed) || 0) ? bow.reloadSpeed + 1 : 0);
+lw = cw({ quality: "Master", custom: { customizations: ["Chain Weapon"] } });
+check("worked once: passing the result in again changes nothing", R.getCustomizedWeapon(lw), lw);
+check("what changed, for the row's tooltip", lw.listingChanges, ["damage 4d6 -> 5d6+1", "speed 5 -> 6", "minSpeed 3 -> 4", "structuralStrength 45 -> 56", "skillsMod 0 -> 5", "length 3.5' -> 9'"]);
+check("the attack takes quality and condition's to-hit", R.getWeaponAttackExtras({ system: cw({ condition: "Heavily Damaged" }), mode: "cut", worldTime: 0 }).toHit,
+	[{ label: "Quality/condition", value: -3 }]);
+
+// --- the window's view, and rendering ----------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+Handlebars.registerHelper("lt", (a, b) => a < b);
+const custom = R.applyWeaponCustomization(sword, { baseAura: 10, magicAbility: "Sharpness", rune: "Piercing", runeLevel: 2,
+	energyType: "Flame", energyDice: 2, customization: "Serrated", suffix: "of the North" }).system;
+custom.tempEffects = [blessing, R.makeTemporaryEffect({ name: "Oil", toHit: 1, seconds: 60, lasts: "1 minute" }, 0)];
+const view = V.buildWeaponModsView({ name: "Calanar", system: { identity: { alignment: "Good (Active)" } } },
+	{ id: "w1", name: sword.name, system: { ...custom, quantity: 2 } }, 2000);
+check("the view: display name, the blessing for this wielder, the temporary list with one ended",
+	[view.weapon.name, view.blessNote, view.temporary.map(t => [t.name, t.active])],
+	["Long Sword of the North", "For Calanar (Good (Active)): +1 to hit, +1 damage.", [["Blessed", true], ["Oil", false]]]);
+check("the view: a blessing's figures are the wielder's alignment's", view.temporary[0].figures, "+1 to hit, +1 damage (by alignment)");
+check("...and nothing for a wielder it does nothing for", V.buildWeaponModsView({ name: "Orm", system: { identity: { alignment: "Neutral" } } },
+	{ id: "w1", name: sword.name, system: { tempEffects: [blessing] } }, 2000).temporary[0].figures, "none, by alignment");
+check("the view: chips for everything on it", view.chips.map(c => c.label), ["+2", "Sharpness", "Rune of Piercing 2", "2 dice Flame", "Serrated"]);
+check("the view: a customization this sword cannot take is disabled", view.options.customizations.find(c => c.value == "Sprinkler").disabled, true);
+const windowSource = await (await fetch("../templates/apps/weapon-mods.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(windowSource)(view);
+check("the window template renders: both halves, and the copy count for a stack of two",
+	["For now", "his Customize panel", "how many of the 2"].map(t => document.getElementById("window").textContent.includes(t)), [true, true, true]);
+
+const cardSource = await (await fetch("../templates/chat/attack-card.hbs", { cache: "no-store" })).text();
+document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({
+	actorName: "Calanar", weapon: "Long Sword", weaponDisplay: "Long Sword of the North", modeLabel: "Cut",
+	result: { natural: 19, final: 24, skill: "Expert", zone: "Hit(Center)", isHit: true },
+	mods: { list: [{ label: "Magic", value: 2 }, { label: "Blessed", value: 1 }] },
+	damage: { total: 38, type: "Cutting", dice: "1d8", magic: 2, runeDice: "2d6+2", custom: 1, special: 9, specialDoubles: true,
+	          rolled: 19, multiplier: 2, shots: 1 },
+	weaponSpecials: ["Energy: the target makes a Magic Resistance or takes 7 (2d6) magical Flame damage."], speed: 5 });
+check("the attack card shows the rune, the weapon's own damage, the magical extra and the specials",
+	["Long Sword of the North", "+2d6+2 rune", "+1 weapon", "+9 magical", "doubled by the natural roll", "magical Flame damage"]
+		.map(t => document.getElementById("card").textContent.includes(t)), [true, true, true, true, true, true]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

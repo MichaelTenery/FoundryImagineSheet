@@ -313,6 +313,126 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 		};
 	}
 
+	// @MARKER POISON AGAINST A VICTIM
+	// What a dose does to whoever takes it -- his doPoisonAction (sheet-worker.js:135358), run against
+	// a victim's own Poison Resistance. The resistance roll itself is resolveResistanceRoll's
+	// (module/resistance-rules.mjs), made by the caller; this works out what follows from it.
+	//
+	//     immune          nothing happens at all
+	//     resisted        the type's "if Poison Resistance succeeds" clause
+	//     failed          its "if Poison Resistance fails" clause
+	//
+	// and in both of the last two, the potency's onset and the type's duration are rolled, and a
+	// clause that deals Endurance damage "per" some interval has its damage over the whole duration
+	// rolled as well -- the Master's Manual's "damage numbers apply to overall Endurance during the
+	// poison's duration" (Effects of Poisons, p.103). His handler rolls the duration and leaves the
+	// per-interval damage to the table; rolling it too is a convenience the card labels, not a rule.
+	//
+	// DURATIONS FOLLOW HIS ROW AND THE BOOK, NOT HIS USE HANDLER. For types IV, VIII-XII and XX his
+	// doPoisonAction writes "Effects last 1d6=N hour(s)" where his own getPoisonDetails -- the text
+	// the poison's row carries -- and the Master's Manual table both say minutes. Taken to be a slip
+	// in the handler's units; UPSTREAM-ISSUES.
+
+	// The seconds in each unit his time spans are written in.
+	const TIME_UNIT_SECONDS = { second: 1, minute: 60, hour: 3600, day: 86400 };
+
+	// This is the function which rolls one of his time spans -- "1d4 minutes", "2d4 hours",
+	// "10-40 minutes" (his 1d4 x 10), "10-30 seconds" (the Player's Guide's (1/2 x d6) x 10, a d3 x 10),
+	// "Immediate", "Instantly". Returns { text, label, amount, unit, seconds }; label is the dice as
+	// his cards write them ("1d4", "10-40") and amount the number rolled in that unit.
+	export function rollTimeSpan(tmpText, tmpRoll) {
+		var tmpClean = ("" + (tmpText ?? "")).trim();
+		var tmpNow = /^(immediate|instant)/i.test(tmpClean);
+		if (tmpNow || !tmpClean) { return { text: tmpClean || "Instantly", label: "", amount: 0, unit: "", seconds: 0 }; }
+		var tmpUnitMatch = tmpClean.match(/(second|minute|hour|day)/i);
+		var tmpUnit = tmpUnitMatch ? tmpUnitMatch[1].toLowerCase() : "minute";
+		var tmpRange = tmpClean.match(/^(\d+)\s*-\s*(\d+)/);
+		var tmpAmount = 0;
+		var tmpLabel = "";
+		if (tmpRange) {
+			var tmpLow = parseInt(tmpRange[1]);
+			var tmpHigh = parseInt(tmpRange[2]);
+			tmpAmount = tmpRoll(Math.max(1, Math.round(tmpHigh / tmpLow))) * tmpLow;
+			tmpLabel = `${tmpLow}-${tmpHigh}`;
+		} else {
+			var tmpDice = tmpClean.match(/^(\d+d\d+(?:[+-]\d+)?)/i);
+			tmpLabel = tmpDice ? tmpDice[1] : "";
+			tmpAmount = tmpDice ? rollLoreDice(tmpDice[1], tmpRoll) : (parseInt(tmpClean) || 0);
+		}
+		return { text: `${tmpLabel}=${tmpAmount} ${tmpUnit}${tmpAmount == 1 ? "" : "s"}`, label: tmpLabel,
+		         amount: tmpAmount, unit: tmpUnit, seconds: tmpAmount * TIME_UNIT_SECONDS[tmpUnit] };
+	}
+
+	// This is the function which splits a type's effect into what happens on a made Poison
+	// Resistance and on a failed one. His getPoisonDetails writes both into one sentence.
+	export function splitPoisonEffect(tmpType) {
+		var tmpText = POISON_TYPES[tmpType]?.effect ?? "";
+		var tmpMatch = tmpText.match(/succeeds:\s*(.*?)\.\s*If Poison Resistance fails:\s*(.*?)\.\s*Effect starts/i);
+		return tmpMatch ? { success: tmpMatch[1].trim(), fail: tmpMatch[2].trim() } : { success: "", fail: "" };
+	}
+
+	// This is the function which reads the damage out of a clause -- "1d6 Base Endurance damage per
+	// 1 minute", "1d4 Base Endurance damage per 10 seconds" -- as { dice, everySeconds }, or null for
+	// a clause that deals none (sleep, paralysis, death, "no damage or effect").
+	export function getPoisonDamage(tmpClause) {
+		var tmpMatch = ("" + (tmpClause ?? "")).match(/(\d+d\d+)\s+Base Endurance damage per\s+(\d+)?\s*(second|minute|hour|day)/i);
+		if (!tmpMatch) { return null; }
+		return { dice: tmpMatch[1], everySeconds: (parseInt(tmpMatch[2]) || 1) * TIME_UNIT_SECONDS[tmpMatch[3].toLowerCase()] };
+	}
+
+	// This is the function which works out what one dose does to one victim.
+	//
+	//   tmpInput = { type, potency, resistance } -- resistance is resolveResistanceRoll's result
+	//
+	// Returns { outcome: "immune" | "resisted" | "failed", clause, onset, duration, damage, death },
+	// where damage is { dice, everySeconds, times, total } or null.
+	export function resolvePoisonOnVictim(tmpInput, tmpRoll) {
+		var tmpResistance = tmpInput.resistance ?? {};
+		if (tmpResistance.outcome == "Immune") {
+			return { outcome: "immune", clause: "no effect", onset: null, duration: null, damage: null, death: false };
+		}
+		var tmpOutcome = tmpResistance.resisted ? "resisted" : "failed";
+		var tmpClauses = splitPoisonEffect(tmpInput.type);
+		var tmpClause = tmpOutcome == "resisted" ? tmpClauses.success : tmpClauses.fail;
+		var tmpNothing = /no damage or effect/i.test(tmpClause);
+		var tmpResult = { outcome: tmpOutcome, clause: tmpClause, onset: null, duration: null, damage: null,
+		                  death: /\bdeath\b/i.test(tmpClause) };
+		if (tmpNothing) { return tmpResult; }
+
+		tmpResult.onset = rollTimeSpan(POISON_POTENCIES[tmpInput.potency], tmpRoll);
+		tmpResult.duration = rollTimeSpan(POISON_TYPES[tmpInput.type]?.duration, tmpRoll);
+		var tmpDamage = getPoisonDamage(tmpClause);
+		if (tmpDamage) {
+			var tmpTimes = Math.max(1, Math.floor(tmpResult.duration.seconds / tmpDamage.everySeconds));
+			var tmpDiceMatch = tmpDamage.dice.match(/^(\d+)d(\d+)$/);
+			var tmpAll = `${parseInt(tmpDiceMatch[1]) * tmpTimes}d${tmpDiceMatch[2]}`;
+			tmpResult.damage = { dice: tmpDamage.dice, everySeconds: tmpDamage.everySeconds, times: tmpTimes,
+			                     all: tmpAll, total: rollLoreDice(tmpAll, tmpRoll) };
+		}
+		return tmpResult;
+	}
+
+	// This is the function which writes what resolvePoisonOnVictim worked out as the lines of a chat
+	// card, kept beside the rule so a test can read it without a chat message existing.
+	export function describePoisonOnVictim(tmpResult) {
+		if (tmpResult.outcome == "immune") { return ["Immune to poison: it has no effect."]; }
+		var tmpLines = [`${tmpResult.outcome == "resisted" ? "Resisted" : "Failed"}: ${tmpResult.clause}.`];
+		if (tmpResult.onset) {
+			tmpLines.push(tmpResult.onset.amount ? `Takes effect in ${tmpResult.onset.text}.` : "Takes effect at once.");
+		}
+		if (tmpResult.duration) {
+			tmpLines.push(tmpResult.duration.amount
+				? `${tmpResult.death ? "Death comes within" : "Lasts"} ${tmpResult.duration.text}.`
+				: (tmpResult.death ? "Death is immediate." : ""));
+		}
+		if (tmpResult.damage) {
+			tmpLines.push(`Endurance damage over the whole of it: ${tmpResult.damage.times} x ${tmpResult.damage.dice}`
+				+ ` (${tmpResult.damage.all}) = ${tmpResult.damage.total} (rolled here for convenience; `
+				+ `applies to overall Endurance).`);
+		}
+		return tmpLines.filter(tmpLine => tmpLine);
+	}
+
 	// This is the function which rolls his random poison form (getRandomPoisonForm).
 	export function rollPoisonForm(tmpRoll) {
 		var tmpDie = tmpRoll(10);

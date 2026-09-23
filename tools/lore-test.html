@@ -310,6 +310,35 @@ check("hymns carry the alignment of the starting list they are on", ["Absolution
 check("a poem's two-cell start time is joined", tmplore.find(d => d.name == "Anger" && d.system.kind == "poem").system.startTime, "3d6 sec.");
 check("the misnamed potion keeps its own key", tmpconsumables.some(d => d.name == "Enhancing(Sight/Taste)"), true);
 
+// --- a poison against a victim (lore-rules.mjs, POISON AGAINST A VICTIM) ----------------------------
+check("his time spans: 1d4 minutes", L.rollTimeSpan("1d4 minutes", dice(3)),
+	{ text: "1d4=3 minutes", label: "1d4", amount: 3, unit: "minute", seconds: 180 });
+check("...10-40 minutes is his 1d4 x 10", L.rollTimeSpan("10-40 minutes", dice(2)).seconds, 1200);
+check("...10-30 seconds a d3 x 10", L.rollTimeSpan("10-30 seconds", dice(3)).text, "10-30=30 seconds");
+check("...Immediate is no time at all", L.rollTimeSpan("Immediate", dice()).seconds, 0);
+check("a type's two clauses", L.splitPoisonEffect("III"), { success: "-2 Physical Attributes", fail: "sleep" });
+check("damage by the interval, or none", [L.getPoisonDamage("1d4 Base Endurance damage per 10 seconds"),
+	L.getPoisonDamage("1d4 Base Endurance damage per hour"), L.getPoisonDamage("sleep")],
+	[{ dice: "1d4", everySeconds: 10 }, { dice: "1d4", everySeconds: 3600 }, null]);
+check("immune: nothing at all, nothing rolled", L.resolvePoisonOnVictim({ type: "XXV", potency: "L", resistance: { outcome: "Immune" } }, dice()).outcome,
+	"immune");
+check("type I resisted: no damage or effect, and no time rolled", L.describePoisonOnVictim(
+	L.resolvePoisonOnVictim({ type: "I", potency: "L", resistance: { resisted: true } }, dice())), ["Resisted: no damage or effect."]);
+let tmpvictim = L.resolvePoisonOnVictim({ type: "IX", potency: "L", resistance: { resisted: false } }, dice(2, 3, 1, 2, 3));
+check("type IX failed: onset 1d4 minutes, lasting 1d6 MINUTES (his row and the book, not his handler's hours)",
+	[tmpvictim.onset.text, tmpvictim.duration.text], ["1d4=2 minutes", "1d6=3 minutes"]);
+check("...1d6 a minute for 3 minutes is 3d6 over the whole of it", tmpvictim.damage,
+	{ dice: "1d6", everySeconds: 60, times: 3, all: "3d6", total: 6 });
+check("...as the card writes it", L.describePoisonOnVictim(tmpvictim), ["Failed: 1d6 Base Endurance damage per 1 minute.",
+	"Takes effect in 1d4=2 minutes.", "Lasts 1d6=3 minutes.",
+	"Endurance damage over the whole of it: 3 x 1d6 (3d6) = 6 (rolled here for convenience; applies to overall Endurance)."]);
+tmpvictim = L.resolvePoisonOnVictim({ type: "XIII", potency: "M", resistance: { resisted: false } }, dice(1, 2, ...Array(12).fill(1)));
+check("type XIII failed: 1d4 every 10 seconds for 2 minutes is 12d4", [tmpvictim.damage.times, tmpvictim.damage.all, tmpvictim.damage.total], [12, "12d4", 12]);
+check("type XIX failed: death, at once", L.describePoisonOnVictim(L.resolvePoisonOnVictim({ type: "XIX", potency: "L", resistance: { resisted: false } }, dice(2))),
+	["Failed: death.", "Takes effect in 1d4=2 minutes.", "Death is immediate."]);
+check("type XX failed: death within its minutes", L.describePoisonOnVictim(L.resolvePoisonOnVictim({ type: "XX", potency: "L", resistance: { resisted: false } }, dice(1, 4)))[2],
+	"Death comes within 1d6=4 minutes.");
+
 const failed = results.filter(r => r.startsWith("FAIL")).length;
 document.getElementById("out").textContent =
 	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");

@@ -26,6 +26,7 @@ import {
 	getSituationalForAttack, getSituationalNotes, getNumberOfDice
 } from "./combat-rules.mjs";
 import { ARMOR_BLOCKING } from "../combat-tables.mjs";
+import { getWeaponAttackExtras, resolveWeaponSpecials, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
 import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } from "./martial-arts.mjs";
 import { getActionHand } from "./round-rules.mjs";
 
@@ -80,7 +81,9 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 	// The Situation Mods the attacker has set are shown, and fill in the called shot and the
 	// firing mode they imply; the player can still change either here.
 	async function askAttackOptions(tmpweapon, tmptarget, tmpsituation) {
-		var tmpmodes = ["thrust", "cut", "smash", "missile"].filter(m => tmpweapon.system[m]?.available);
+		// A Dulled weapon smashes only -- his listing changes; see getCustomizedWeapon.
+		var tmpcustomized = getCustomizedWeapon(tmpweapon.system);
+		var tmpmodes = ["thrust", "cut", "smash", "missile"].filter(m => tmpcustomized[m]?.available);
 		if (!tmpmodes.length) {
 			ui.notifications.warn(`${tmpweapon.name} has no attack modes.`);
 			return null;
@@ -165,7 +168,10 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	if (!tmpoptions) { return null; }
 
 	var tmpsys = tmpactor.system;
-	var tmpw = tmpweapon.system;
+	// The weapon as his combat sheet carries it: its customizations, quality, condition and plus
+	// already worked into its damage, speed and modes (his setEquippedWeaponInCombatSheet). The
+	// stored figures are left as they are. See getCustomizedWeapon.
+	var tmpw = getCustomizedWeapon(tmpweapon.system);
 	var tmpmode = tmpoptions.mode;
 
 	// The Situation Mods, cut to this kind of attack: set for missile, a sword blow reads none of
@@ -251,6 +257,16 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	tmpmods.list.push(...tmpmartial.list);
 	tmpmods.total = tmpmods.total + tmpmartial.total;
 
+	// What has been done to the weapon: a rune of its attack's kind, Blessed (for now or for good),
+	// and the Game Master's own temporary effects. The magical plus is already "Magic" above. See
+	// module/weapon-custom-rules.mjs and the weapon mods window.
+	var tmpcustom = getWeaponAttackExtras({ system: tmpw, mode: tmpmode, alignment: tmpsys.identity?.alignment,
+		worldTime: game.time?.worldTime ?? 0 });
+	for (const tmpentry of tmpcustom.toHit) {
+		tmpmods.list.push(tmpentry);
+		tmpmods.total = tmpmods.total + tmpentry.value;
+	}
+
 	var tmpd20 = await new Roll("1d20").evaluate();
 	var tmpresult = resolveAttack({
 		natural: tmpd20.total,
@@ -319,13 +335,23 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 
 		// Maximum damage -- a Focused Attack, a Perfect Shot, an immobile target -- rolls every die
 		// at its highest, which is his getMaxValueFromDiceString. The flat additions still add.
+		// The weapon's own: a rune's dice (its level in d6, plus its level) and Blessed's or a
+		// temporary effect's flat figure.
+		var tmpcustomdamage = tmpcustom.damage.reduce((tmpsum, tmpentry) => tmpsum + tmpentry.value, 0);
 		var tmpdmgroll = await new Roll(
-			`${tmpdice} + @str + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial`,
+			`${tmpdice}${tmpcustom.runeDice ? " + " + tmpcustom.runeDice : ""} + @str + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial + @custom`,
 			{ str: tmpstrmod, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
 			  projlore: tmpprojlore.damage, offhand: tmpoffhand.damage,
-			  missiles: tmpmissiles.damage, situation: tmpsitdamage, martial: tmpmartialdamage })
+			  missiles: tmpmissiles.damage, situation: tmpsitdamage, martial: tmpmartialdamage, custom: tmpcustomdamage })
 			.evaluate({ maximize: tmpsitmods.maxDamage });
 		tmprolls.push(tmpdmgroll);
+
+		// What the weapon does once it has hit -- his setMagicDamageDetails: a magical ability of this
+		// attack's kind adds its dice and may double the blow on a high natural roll; Foe Strike,
+		// energy, Bane and the divine abilities are written out for the table. See resolveWeaponSpecials.
+		var tmpspecials = resolveWeaponSpecials({ system: tmpw, mode: tmpmode, natural: tmpd20.total,
+			baseDice: getWeaponDamageDice(tmpw, tmpmode) },
+			(tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1);
 
 		// Multipliers. The Situation Mods' own is already his additive total (two x2s are x3);
 		// a called shot and a critically failed Perfect Shot each halve it. combineDamageMultipliers
@@ -337,8 +363,11 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		if (tmpmartial.damage.multiplier != 1) { tmpmultipliers.push(tmpmartial.damage.multiplier); }
 		if (tmpoptions.calledShot) { tmpmultipliers.push(0.5); }
 		if (tmpsitmods.halfDamage) { tmpmultipliers.push(0.5); }
+		// A magical ability's natural-roll double -- his "triple" when the blow was already doubled,
+		// which the additive combining gives by itself (two x2s are x3).
+		if (tmpspecials.doubles) { tmpmultipliers.push(2); }
 		var tmpmulti = combineDamageMultipliers(tmpmultipliers);
-		var tmpeach = Math.max(0, parseInt(tmpdmgroll.total * tmpmulti) || 0);
+		var tmpeach = Math.max(0, parseInt((tmpdmgroll.total + tmpspecials.extraDamage) * tmpmulti) || 0);
 
 		// Two or three projectiles are ONE roll, and the others land on the same target for the
 		// same damage again -- "2nd projectile hits the same target for the same damage"
@@ -359,8 +388,10 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 			situation: tmpsitdamage, maximized: tmpsitmods.maxDamage,
 			situationMulti: tmpsitmods.multi, halfDamage: tmpsitmods.halfDamage,
 			martial: tmpmartialdamage, martialMulti: tmpmartial.damage.multiplier,
+			runeDice: tmpcustom.runeDice, custom: tmpcustomdamage, special: tmpspecials.extraDamage,
+			specialDoubles: tmpspecials.doubles,
 			shots: tmpmissiles.shots, perShot: tmpeach,
-			rolled: tmpdmgroll.total, multiplier: tmpmulti, total: tmptotal,
+			rolled: tmpdmgroll.total + tmpspecials.extraDamage, multiplier: tmpmulti, total: tmptotal,
 			type: MODE_DAMAGE_TYPES[tmpmode]
 		};
 	}
@@ -386,6 +417,10 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special) },
 		// The stance's and moves' own prose, for the table -- what his card printed beside them.
 		martialNotes: tmpmartial.special,
+		// What the weapon's customization does on a hit, written out for the table (Foe Strike,
+		// energy, Bane, the divine abilities), and the name as his panel would print it.
+		weaponSpecials: tmpdamage ? tmpspecials.lines : [],
+		weaponDisplay: getWeaponDisplayName(tmpweapon.name, tmpw),
 		// Once set, the Apply Damage button stops offering itself, so a hit cannot be applied twice.
 		applied: false
 	};

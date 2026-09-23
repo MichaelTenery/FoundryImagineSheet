@@ -25,6 +25,8 @@ import { buildMagicPanel } from "../magic-view.mjs";
 import { useConsumable, addDose, toggleMemorized, useLore, brewRecipe, addPoison,
          postMagic } from "../magic-actions.mjs";
 import { provideStartingLore } from "../starting-lore.mjs";
+import { getWeaponCustomTags, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
+import ImagineWeaponMods from "../apps/weapon-mods.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
          learnMartialStance, masterMartialStance, learnMartialSubskill,
          learnMartialLoreValue } from "../combat/martial-attack.mjs";
@@ -84,6 +86,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			brewRecipe: ImagineCharacterSheet.#onBrewRecipe,
 			postMagic: ImagineCharacterSheet.#onPostMagic,
 			provideStartingLore: ImagineCharacterSheet.#onProvideStartingLore,
+			openWeaponMods: ImagineCharacterSheet.#onOpenWeaponMods,
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
 			rollResistance: ImagineCharacterSheet.#onRollResistance,
 			rollSkill: ImagineCharacterSheet.#onRollSkill,
@@ -418,7 +421,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpspeedmod = tmpactor.system.combat.weaponSpeedMod;
 		for (const tmpitem of tmpactor.items) {
 			if (tmpitem.type != "weapon") { continue; }
-			var tmpw = tmpitem.system;
+			// As his combat sheet carries it: customizations, quality, condition and plus worked in.
+			var tmpw = getCustomizedWeapon(tmpitem.system);
 			if (tmpw.location != "equipped" && tmpw.location != "carried") { continue; }
 			var tmpmodes = [];
 			for (const tmpmode of ["thrust", "cut", "smash", "missile"]) {
@@ -469,7 +473,13 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				hand: tmpw.hand || "right",
 				offhand: tmpoffhand.offhand,
 				offhandTier: tmpoffhand.tier,
-				offhandTip: ImagineCharacterSheet.#describeOffhand(tmpoffhand)
+				offhandTip: ImagineCharacterSheet.#describeOffhand(tmpoffhand),
+
+				// What has been done to it -- his Customize panel's tags, and anything on it for now --
+				// and its name as his panel prints it, prefix and suffix and all.
+				customTags: getWeaponCustomTags(tmpw, game.time?.worldTime ?? 0),
+				displayName: getWeaponDisplayName(tmpitem.name, tmpw),
+				listingTip: tmpw.listingChanges?.length ? "Changed by what has been done to it: " + tmpw.listingChanges.join("; ") : ""
 			});
 		}
 		return tmprows;
@@ -761,6 +771,14 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			modal: true
 		});
 		if (tmpconfirmed) { await provideStartingLore(this.document); }
+	}
+
+	// This is the function behind a weapon row's wand: the weapon mods window -- Bless it for now, or
+	// customize it for good as his panel does. module/apps/weapon-mods.mjs.
+	static async #onOpenWeaponMods(event, target) {
+		event.preventDefault();
+		var tmpweapon = this.document.items.get(target.dataset.itemId);
+		if (tmpweapon?.type == "weapon") { new ImagineWeaponMods(this.document, tmpweapon).render(true); }
 	}
 
 	// This is the function which TAKES OFF every weapon and every piece of armour, shields
