@@ -23,6 +23,7 @@
 import { toggleSituationalOption, getSituationalRollResult, getSituationalOptions,
          getLoreModifiers, resolveOffhandPenalties, getSecondWeaponFlags } from "../combat/combat-rules.mjs";
 import { resolveSkillOutcome } from "../skills-rules.mjs";
+import { getStanceSkillBonus } from "../combat/martial-arts.mjs";
 import { buildSituationalView } from "../situational-view.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 
@@ -160,8 +161,11 @@ export default class ImagineSituationalMods extends HandlebarsApplicationMixin(A
 			if (!tmpcopies.length) { return null; }
 			return Math.max(...tmpcopies.map(i => parseInt(i.system.totalChance) || 0));
 		}
+		// A creature's chance is its entered figure; a held martial stance's bonus (Strike as wind's
+		// Critical, Focused Attack and Perfect Shot) is added here, as its skill roll adds it.
 		var tmpskill = (tmpactor.system.skills ?? []).find(s => s.name == tmpname);
-		return tmpskill ? (parseInt(tmpskill.chance) || 0) : null;
+		if (!tmpskill) { return null; }
+		return (parseInt(tmpskill.chance) || 0) + getStanceSkillBonus(tmpactor.system.martial?.state?.bonuses, tmpname, []);
 	}
 
 	// @MARKER WRITING

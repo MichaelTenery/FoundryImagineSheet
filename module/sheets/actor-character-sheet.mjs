@@ -29,7 +29,7 @@ import { getWeaponCustomTags, getWeaponDisplayName, getCustomizedWeapon } from "
 import ImagineWeaponMods from "../apps/weapon-mods.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
          learnMartialStance, masterMartialStance, learnMartialSubskill,
-         learnMartialLoreValue } from "../combat/martial-attack.mjs";
+         learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
 import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import {
@@ -186,6 +186,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
+		// The martial panel is a partial; see loadMartialTemplates.
+		await loadMartialTemplates();
 
 		return tmpcontext;
 	}

@@ -11,6 +11,7 @@
 // Seconds buttons already wired by registerAttackCardListeners work on it unchanged.
 //==================================================================================================================
 
+import { getMartialAttackModifiers } from "./martial-arts.mjs";
 import { resolveAttack, resolveFumble, resolveOffhandPenalties, combineDamageMultipliers,
          getSituationalForAttack, getSituationalNotes, getNumberOfDice } from "./combat-rules.mjs";
 import {
@@ -129,6 +130,18 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		return null;
 	}
 
+	// Martial arts, for a creature that holds them. His handleCreatureAttack reads the martial
+	// move and stance MELEE to-hit (martial_arts_mod_melee, martial_stance_mod_melee) and nothing
+	// else of them -- no damage, no missile -- so a creature's natural melee attack takes exactly
+	// that: the to-hit entries getMartialAttackModifiers lists, and nothing from its damage. A Flip
+	// in progress still forbids the attack.
+	var tmpmartial = getMartialAttackModifiers(tmpsys.martial?.state, { mode: "smash", martialAttack: false });
+	if (tmpmartial.noAttack) {
+		ui.notifications.warn(`${tmpactor.name} cannot attack: ${tmpmartial.noAttackReason}.`);
+		return null;
+	}
+	var tmpmartialhit = (tmpbehaviour.mods == "melee") ? tmpmartial.list : [];
+
 	// What fighting with this attack in the off hand costs. Blank hand means the attack is not
 	// hand-based at all -- a bite, a tail slap, a breath -- and is never off-hand; only an attack
 	// with a hand actually set (a claw, a punch) is even asked. Creatures have no Second Weapon
@@ -152,6 +165,8 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		situational: tmpoptions.situational,
 		offhand: tmpoffhand.melee
 	});
+	tmpmods.list.push(...tmpmartialhit);
+	tmpmods.total = tmpmods.total + tmpmartialhit.reduce((tmpsum, tmpm) => tmpsum + tmpm.value, 0);
 
 	// The roll, in whichever of the three ways this type resolves.
 	var tmprolls = [];

@@ -34,7 +34,12 @@ there. Kept for the record:
   martial-card and `rollMartialAttack` in `martial-attack.mjs` do all of this already for a martial
   attack; copy that. Add a combat-test case: Strike as wind + Jump on a sword cut is +5 to hit.
 
-## 2. Creature martial arts
+## 2. Creature martial arts -- DONE 2026-09-22 at the user's request
+
+Built as below, with one refinement: the character's derivation became the shared `deriveMartialArts`
+rather than a copy. A creature's natural attack takes the martial melee to-hit only, as his
+`handleCreatureAttack` does. See DECISIONS, "Creatures get martial arts". Kept for the record:
+
 
 - **What:** his creature sheet has the same martial section, reading Martial Knowledge and Lore off
   the creature's skill list (`getCreatureSkillChance`). The rules take a STATE, not a character, so
@@ -90,5 +95,5 @@ Kept for the record:
 - **Martial Lore values roll against Martial Lore**, not Knowledge (UPSTREAM 56 item 7).
 - **A martial attack is one click** (skill roll and roll to hit together); a failed skill roll halves.
 - **Not to be built without the user or the developer:** missing-limb checks (the port has no lost
-  limbs), stance bonuses to other skills and saves, and a speed for Martial Lore values -- all three
-  are open questions in UPSTREAM 56.
+  limbs). The other two once here -- stance bonuses and Lore value speeds -- the user ruled on
+  2026-09-22 and both are built.

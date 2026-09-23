@@ -144,6 +144,10 @@
 	<p class="empty">No attacks. Add a Creature Attack item for each bite, claw, breath or gaze.</p>
 	{{/if}}
 
+	{{!-- @MARKER MARTIAL ARTS -- the same partial the character's Combat tab includes. It shows only
+	      for a creature holding Martial Knowledge (or with a discipline written down). --}}
+	{{> imagine-martial-panel}}
+
 	{{!-- As on the character sheet: handedness decides which side a shield covers. A creature's
 	      is blank by default, and blank reads as right-handed. --}}
 	<h3 class="section-head">Body <span class="muted">{{system.body.type}}{{#if system.body.bodyChart}} (own chart){{/if}}</span>

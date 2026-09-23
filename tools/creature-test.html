@@ -86,6 +86,7 @@ function makeCreature(options = {}) {
 			defenseMisc: 0, initiativeMisc: options.initiativeMisc ?? 0, skillMisc: 0,
 			situation: options.situation ?? { kind: "", selected: [], weaponId: "" }
 		},
+		martial: options.martial,
 		notes: "", biography: ""
 	});
 	c.parent = { items: options.items ?? [] };
@@ -489,6 +490,37 @@ const fadedBeast = makeCreature({ agility: 12, situation: { kind: "melee", selec
 check("a creature faded into darkness is 8 harder to hit",
 	fadedBeast.combat.defensiveAdjust - calmBeast.combat.defensiveAdjust, -8);
 check("...and reads +4 on its own melee attacks", fadedBeast.combat.situational.attack, 4);
+
+// --- martial arts on a creature (the user's ruling of 2026-09-22: build it) --------------------------
+// His creature branch reads Martial Knowledge and Lore off the stat block's own skill list, with no
+// title to reach: holding the skill at all is having it.
+const martialSkills = [{ name: "Martial Knowledge", chance: 60 }, { name: "Martial Lore", chance: 50 }];
+const plainBeast = makeCreature({ agility: 12 });
+check("a creature without the skills has no martial arts", plainBeast.martial.hasKnowledge, false);
+const monk = makeCreature({ agility: 12, skills: martialSkills,
+	martial: { discipline: "Balanced", stances: "Strike as wind", activeStance: "Strike as wind", activeMoves: "Jump" } });
+check("Martial Knowledge 60% off the stat block, Lore 50%", [monk.martial.knowChance, monk.martial.loreChance], [60, 50]);
+check("the discipline's attacks are rows, a Martial Kick at 80% as the book's example gives",
+	monk.martial.rows.attacks.find(r => r.name == "Martial Kick").chance, 80);
+check("the stance folds in: defence +2, initiative -2, speed -1",
+	[monk.combat.defensiveAdjust - plainBeast.combat.defensiveAdjust,
+	 monk.combat.initiativeMod - plainBeast.combat.initiativeMod,
+	 monk.combat.weaponSpeedMod - plainBeast.combat.weaponSpeedMod], [2, -2, -1]);
+check("the move is made: Jump's +2 to hit is in the state for its melee attacks",
+	monk.martial.state.moves.melee, 2);
+const calmBeastM = makeCreature({ agility: 12, skills: martialSkills,
+	martial: { discipline: "Defensive", stances: "Calm in the storm", activeStance: "Calm in the storm" } });
+check("Calm in the storm on a creature: AGL save +20, Control +10",
+	[calmBeastM.attributes.agl.save - plainBeast.attributes.agl.save,
+	 calmBeastM.resistances.control.value - plainBeast.resistances.control.value], [20, 10]);
+const blindMonk = makeCreature({ agility: 12, skills: martialSkills,
+	situation: { kind: "melee", selected: ["selfBlind"], weaponId: "" },
+	martial: { discipline: "Balanced" } });
+check("blind, with Martial Lore 50%: the book's +4 against -8, and +2 damage",
+	[blindMonk.combat.situational.attack, blindMonk.combat.situational.damage], [-4, 2]);
+const immoveableBeast = makeCreature({ agility: 12, skills: martialSkills,
+	martial: { discipline: "Defensive", activeMoves: "Immoveable Stance" } });
+check("Immoveable Stance takes a creature's defence away too", immoveableBeast.combat.noDefense, true);
 
 const noMods = C.getCreatureToHitModifiers({ mods: "melee", attacker: {} });
 check("a creature with no modifiers has an empty list", noMods.list, []);

@@ -50,6 +50,7 @@ import ImagineCombatTracker from "./combat/combat-tracker.mjs";
 import ImagineRoundClock, { loadClockTemplates } from "./apps/round-clock.mjs";
 import { rollWeaponAttack, registerAttackCardListeners } from "./combat/attack.mjs";
 import { rollCreatureAttack } from "./combat/creature-attack.mjs";
+import { loadMartialTemplates } from "./combat/martial-attack.mjs";
 import {
 	SOURCEBOOKS, MAGIC_SUBSYSTEMS,
 	registerAvailabilitySettings, registerAvailabilityEnforcement,
@@ -246,6 +247,9 @@ Hooks.once("init", function () {
 	CONFIG.Combat.documentClass = ImagineCombat;
 	CONFIG.Combat.initiative = { formula: "1d10 + @combat.initiativeMod", decimals: 0 };
 	registerAttackCardListeners();
+	// The martial arts panel is a partial both Combat tabs include; loaded here, and awaited again
+	// by the sheets before they render.
+	loadMartialTemplates();
 
 	// @MARKER ROUND CLOCK
 	// Each combatant's seconds through the round -- his Mr. Initiative chart (Master's Manual

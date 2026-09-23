@@ -272,6 +272,34 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 		return tmpout;
 	}
 
+	// How long each Martial Lore value takes. HIS SHEET CARRIES NO TIME FOR THEM -- martiallorevalueslist
+	// has no speed column, unlike every Martial Knowledge table -- so these are the Player's Guide's
+	// (pp.97-98) and the Master's Manual's (p.101), BY THE USER'S RULING of 2026-09-22 ("book").
+	// Kept by hand for that reason, as MARTIAL_ATTACK_DAMAGE_TYPES is.
+	//
+	//   seconds  what the value itself takes, or adds to what it is joined to
+	//   joins    the family it adds its seconds to when made: a Feather Block is "combined with any
+	//            other block, adding +1 second", a Slam "adds +2 seconds to the other Throw". Blank
+	//            means it takes its own time (Flip, "the move takes 2 seconds") or none at all.
+	//   text     how the panel and the card word it; the values the books give no time for happen
+	//            WITH the attack, hold or throw they go with, which is what their text says
+	//
+	//                        seconds joins     text
+	export const MARTIAL_LORE_TIMING = {
+		"Combined Attack":    { seconds: 0, joins: "",       text: "the longer of the two attacks" },
+		"Stunning Head Blow": { seconds: 0, joins: "",       text: "with the two Martial Punches" },
+		"Eye Gouge":          { seconds: 0, joins: "",       text: "with the two Finger Punches" },
+		"Death Strike":       { seconds: 0, joins: "",       text: "with the Rake or Heel Strike" },
+		"Feather Block":      { seconds: 1, joins: "blocks", text: "+1 second to the block" },
+		"Crushing Hold":      { seconds: 0, joins: "",       text: "with the hold; 3d6 per full 5 seconds held" },
+		"Punch Throw":        { seconds: 0, joins: "",       text: "simultaneous with the throw" },
+		"Kick Throw":         { seconds: 0, joins: "",       text: "simultaneous with the throw" },
+		"Slam":               { seconds: 2, joins: "throws", text: "+2 seconds to the throw" },
+		"Martial Disarm":     { seconds: 0, joins: "",       text: "a contest; no time given" },
+		"Flip":               { seconds: 2, joins: "",       text: "2 seconds" },
+		"Wall Jump":          { seconds: 0, joins: "",       text: "with the Jump or Flying move" }
+	};
+
 	// This is the function which lays out the Martial Lore values a character knows, each rolled
 	// against Martial Lore's own chance.
 	//
@@ -291,6 +319,8 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 				rating: tmprow.rating,
 				skillMod: tmprow.skillMod,
 				chance: getMartialSubskillChance(tmplorechance, "lore", tmpname),
+				speed: MARTIAL_LORE_TIMING[tmpname]?.seconds ?? 0,
+				speedText: MARTIAL_LORE_TIMING[tmpname]?.text ?? "",
 				special: tmprow.special
 			});
 		}
@@ -358,6 +388,105 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 		};
 		Object.assign(tmpout, MARTIAL_STANCE_CORRECTIONS[tmpname]?.[tmpform] ?? {});
 		return tmpout;
+	}
+
+	// What a stance does to OTHER figures -- skills, saves, resistances -- which his sheet only
+	// prints (mod_special, and the stance prose in MARTIAL_STANCES). BY THE USER'S RULING of
+	// 2026-09-22 they apply automatically while the stance is held, with a toggle for each that
+	// depends on something the sheet cannot see. Every figure is his own prose's, learned and
+	// mastered; kept by hand because his tables carry them only as sentences.
+	//
+	//   skills         by exact skill name
+	//   skillsNamed    every skill whose name contains the word -- "Parries" is Weapon, Shield
+	//                  and Body Parry
+	//   combatSkills   every skill typed Combat (his "combat skills")
+	//   martialAttacks Martial Knowledge attacks and Martial Lore attack values (his "martial
+	//                  know/lore skill attack rolls")
+	//   saves          attribute saves, by attribute key
+	//   resistances    resistances, by name
+	//   holdResist     every resistance, but only against "effects which hold or affect movement"
+	//                  -- applied while the character's "resisting a hold" toggle is ticked
+	//   intoxication   the Drunken stance works only "after failing 1 VIT Save for intoxication"
+	//                  and is lost "if more than 3 VIT Saves" (5 mastered) -- the count of failed
+	//                  saves is the character's own figure; outside it the stance does NOTHING,
+	//                  its to-hit and damage included
+	//
+	//                                      skills / skillsNamed / combatSkills / martialAttacks / saves / resistances / holdResist / intoxication
+	export const MARTIAL_STANCE_BONUSES = {
+		"See without eyes":  { knowledge: {}, lore: {} },
+		"Flow as water":     { knowledge: { skills: { "Dodge": 30, "Feint": 30, "Sidestep": 30 } },
+		                       lore:      { skills: { "Dodge": 50, "Feint": 50, "Sidestep": 50 } } },
+		"Strike as wind":    { knowledge: { skills: { "Critical": 20, "Focused Attack": 20, "Perfect Shot": 20 } },
+		                       lore:      { skills: { "Critical": 50, "Focused Attack": 50, "Perfect Shot": 50 } } },
+		"Calm in the storm": { knowledge: { skills: { "Disarm": 10, "Trap Weapon": 10 }, skillsNamed: { "Parry": 10 },
+		                                    saves: { agl: 20 }, resistances: { control: 10 }, holdResist: 25 },
+		                       lore:      { skills: { "Disarm": 25, "Trap Weapon": 25 }, skillsNamed: { "Parry": 25 },
+		                                    saves: { agl: 40 }, resistances: { control: 20 }, holdResist: 50 } },
+		"Drunken fighting":  { knowledge: { combatSkills: 10, martialAttacks: 10, intoxication: { min: 1, max: 3 } },
+		                       lore:      { combatSkills: 20, martialAttacks: 20, intoxication: { min: 1, max: 5 } } }
+	};
+
+	// This is the function which says what the stance held adds to other figures, given the two
+	// things only the player can say: how many VIT saves for intoxication have been failed, and
+	// whether a hold or movement effect is being resisted right now.
+	//
+	// Returns { active, reason, skills, skillsNamed, combatSkills, martialAttacks, saves,
+	// resistances, allResistances, lines } -- active false (with the reason) when the Drunken
+	// stance is outside its intoxication window, in which case nothing at all applies; lines is the
+	// bonuses in words, for the panel.
+	export function getStanceBonuses(tmpstance, tmpconditions) {
+		var tmpout = { active: true, reason: "", skills: {}, skillsNamed: {}, combatSkills: 0, martialAttacks: 0,
+		               saves: {}, resistances: {}, allResistances: 0, lines: [] };
+		if (!tmpstance) { return tmpout; }
+		var tmpform = MARTIAL_STANCE_BONUSES[tmpstance.name]?.[tmpstance.mastered ? "lore" : "knowledge"] ?? {};
+
+		if (tmpform.intoxication) {
+			var tmpfailed = parseInt(tmpconditions?.intoxication) || 0;
+			if (tmpfailed < tmpform.intoxication.min || tmpfailed > tmpform.intoxication.max) {
+				tmpout.active = false;
+				tmpout.reason = (tmpfailed < tmpform.intoxication.min)
+					? `${tmpstance.name} needs at least ${tmpform.intoxication.min} failed VIT save for intoxication`
+					: `${tmpstance.name} is lost past ${tmpform.intoxication.max} failed VIT saves`;
+				return tmpout;
+			}
+		}
+
+		Object.assign(tmpout.skills, tmpform.skills ?? {});
+		Object.assign(tmpout.skillsNamed, tmpform.skillsNamed ?? {});
+		Object.assign(tmpout.saves, tmpform.saves ?? {});
+		Object.assign(tmpout.resistances, tmpform.resistances ?? {});
+		tmpout.combatSkills = parseInt(tmpform.combatSkills) || 0;
+		tmpout.martialAttacks = parseInt(tmpform.martialAttacks) || 0;
+		if (tmpform.holdResist && tmpconditions?.resistingHold) { tmpout.allResistances = tmpform.holdResist; }
+
+		for (const [tmpname, tmpvalue] of Object.entries(tmpout.skills)) { tmpout.lines.push(`${tmpname} +${tmpvalue}%`); }
+		for (const [tmpword, tmpvalue] of Object.entries(tmpout.skillsNamed)) { tmpout.lines.push(`every ${tmpword} +${tmpvalue}%`); }
+		if (tmpout.combatSkills) { tmpout.lines.push(`combat skills +${tmpout.combatSkills}%`); }
+		if (tmpout.martialAttacks) { tmpout.lines.push(`martial attacks +${tmpout.martialAttacks}%`); }
+		for (const [tmpkey, tmpvalue] of Object.entries(tmpout.saves)) { tmpout.lines.push(`${tmpkey.toUpperCase()} saves +${tmpvalue}%`); }
+		for (const [tmpname, tmpvalue] of Object.entries(tmpout.resistances)) {
+			tmpout.lines.push(`${tmpname.charAt(0).toUpperCase() + tmpname.slice(1)} Resistance +${tmpvalue}%`);
+		}
+		if (tmpform.holdResist) {
+			tmpout.lines.push(`every resistance +${tmpform.holdResist}% against holds and movement effects`
+				+ (tmpout.allResistances ? " (applied now)" : " (tick when resisting one)"));
+		}
+		return tmpout;
+	}
+
+	// This is the function which gives what the stance held adds to one skill, by its name and its
+	// types (a character's skill item carries a types list; a creature's skill has none, so only the
+	// by-name bonuses reach it). A skill that qualifies twice -- a Combat skill also named -- takes
+	// both, since his prose lists them as separate bonuses.
+	export function getStanceSkillBonus(tmpbonuses, tmpskillname, tmpskilltypes) {
+		if (!tmpbonuses || !tmpbonuses.active) { return 0; }
+		var tmpname = "" + (tmpskillname ?? "");
+		var tmpadd = parseInt(tmpbonuses.skills?.[tmpname]) || 0;
+		for (const [tmpword, tmpvalue] of Object.entries(tmpbonuses.skillsNamed ?? {})) {
+			if (tmpname.includes(tmpword)) { tmpadd = tmpadd + (parseInt(tmpvalue) || 0); }
+		}
+		if ((tmpskilltypes ?? []).includes("Combat")) { tmpadd = tmpadd + (parseInt(tmpbonuses.combatSkills) || 0); }
+		return tmpadd;
 	}
 
 
@@ -444,8 +573,11 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 	// His list of which were made reads martial5_MOVE_success where martial5_lore_success is meant
 	// (line 68280), so the fifth Lore value on his sheet takes its success from the fifth MOVE.
 	// Each value's own success is used here.
+	//
+	// A made Feather Block or Slam also adds its seconds to the next block or throw
+	// (MARTIAL_LORE_TIMING); those come back as blockSeconds and throwSeconds.
 	export function getLoreValueModifiers(tmpactive) {
-		var tmpout = { defensive: 0, noAttack: false, made: [], special: [] };
+		var tmpout = { defensive: 0, noAttack: false, made: [], special: [], blockSeconds: 0, throwSeconds: 0 };
 		for (const tmpname of parseMartialList(tmpactive)) {
 			var tmpmods = MARTIAL_LORE_MODS[tmpname];
 			if (!tmpmods) { continue; }
@@ -453,27 +585,46 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 			tmpout.defensive = tmpout.defensive + (parseInt(tmpmods.defensive) || 0);
 			if (("" + tmpmods.special).includes("No Attack")) { tmpout.noAttack = true; }
 			tmpout.special.push(`${tmpname}: ${MARTIAL_LORE_VALUES[tmpname]?.special ?? tmpmods.special}`);
+			var tmptiming = MARTIAL_LORE_TIMING[tmpname];
+			if (tmptiming?.joins == "blocks") { tmpout.blockSeconds = tmpout.blockSeconds + tmptiming.seconds; }
+			if (tmptiming?.joins == "throws") { tmpout.throwSeconds = tmpout.throwSeconds + tmptiming.seconds; }
 		}
 		return tmpout;
 	}
 
-	// This is the function which gives Martial Lore's blind fighting on its own: one point off the
-	// -8 for fighting blind per full 25% of the skill, and the defensive adjustment kept when blind
-	// from 100% -- his setMartialLoreDisplayValues (sheet-worker.js:100370), the figures generated
-	// into MARTIAL_LORE_BLIND.
+	// What each full 25% of Martial Lore is worth when fighting blind or in the dark. THE BOOK'S
+	// FIGURES, BY THE USER'S RULING of 2026-09-22 ("book"): "For every full 25% of the Martial Lore
+	// skill chance, the practitioner reduces his penalties when fighting blind or in the dark: +2 to
+	// hit with melee and missile weapons, +1 damage and +5% to combat skills" (Player's Guide p.97).
+	// His setMartialLoreDisplayValues (sheet-worker.js:100370) gives one point of to-hit per level
+	// and nothing else -- MARTIAL_LORE_BLIND, still generated and still what "per level" is counted in.
 	//
-	// THE BOOK SAYS MORE: "+2 to hit ... +1 damage and +5% to combat skills" per 25% (p.97). His
-	// sheet applies one point of to-hit per 25% and nothing else. His sheet is consistent with
-	// itself here, so it is followed; the book's larger figure is noted in UPSTREAM item 56.
+	//                           toHit damage skills
+	export const MARTIAL_LORE_BLIND_BOOK = { toHit: 2, damage: 1, skills: 5 };
+
+	// This is the function which gives Martial Lore's blind fighting on its own, per level of the
+	// skill (a full MARTIAL_LORE_BLIND.percentPerLevel, 25%), and the defensive adjustment kept when
+	// blind from 100%.
+	//
+	// The to-hit is an OFFSET against the blindness penalty -- "the practitioner does not gain
+	// additional bonuses once the blindness penalties are negated" -- so the Situation Mods cap it at
+	// the penalty it offsets (resolveSituationalMods). It is the only one of the three that is also
+	// the See without eyes stance's figure, and the better of the two is used, as his handleMeleeSet
+	// takes the better of stance and lore.
 	//
 	// His blind DEFENCE test compares against "Full Defense Mod" where it writes "Full Defensive
 	// Mod" (setBodyHeaderValues, line 102808), so on his sheet 100% Martial Lore never actually
 	// keeps a blind character's defence. The intent is plain from the value he writes; used here.
+	//
+	// Returns { blindFighting, damage, skills, fullDefense } -- blindFighting being the to-hit.
 	export function getLoreBlindFighting(tmplorechance) {
 		var tmpchance = parseInt(tmplorechance) || 0;
-		if (tmpchance <= 0) { return { blindFighting: 0, fullDefense: false }; }
+		if (tmpchance <= 0) { return { blindFighting: 0, damage: 0, skills: 0, fullDefense: false }; }
+		var tmplevels = Math.floor(tmpchance / MARTIAL_LORE_BLIND.percentPerLevel);
 		return {
-			blindFighting: Math.floor(tmpchance / MARTIAL_LORE_BLIND.percentPerLevel),
+			blindFighting: tmplevels * MARTIAL_LORE_BLIND_BOOK.toHit,
+			damage: tmplevels * MARTIAL_LORE_BLIND_BOOK.damage,
+			skills: tmplevels * MARTIAL_LORE_BLIND_BOOK.skills,
 			fullDefense: tmpchance >= MARTIAL_LORE_BLIND.fullDefenseAt
 		};
 	}
@@ -503,9 +654,21 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 	// combat.defensiveAdjust, combat.initiativeMod and combat.weaponSpeedMod, so every attack against
 	// the character, the initiative roll and every weapon's time follow them without being told.
 	// blind is his handleMeleeSet's pair of blind-fighting figures, the better of stance and Lore.
+	//
+	// Two more inputs, the player's own: intoxication (VIT saves failed for intoxication, for the
+	// Drunken stance) and resistingHold (a hold or movement effect is being resisted now, for Calm
+	// in the storm). The stance's bonuses to skills, saves and resistances come back as bonuses; a
+	// Drunken stance outside its window is still HELD (so it still bars the special engagements)
+	// but adds nothing at all.
 	export function resolveMartialState(tmpinput) {
 		var tmpstance = tmpinput?.stance ? getStanceModifiers(tmpinput.stance,
 			hasMartialName(tmpinput.mastered, tmpinput.stance)) : null;
+		var tmpbonuses = getStanceBonuses(tmpstance, { intoxication: tmpinput?.intoxication,
+			resistingHold: tmpinput?.resistingHold });
+		if (tmpstance && !tmpbonuses.active) {
+			tmpstance = { ...tmpstance, melee: 0, missile: 0, damage: 0, perDie: 0, extraDice: 0, multiplier: 1,
+			              inactive: tmpbonuses.reason };
+		}
 		var tmpmoves = getMoveModifiers(tmpinput?.activeMoves, !!tmpinput?.hasLore);
 		var tmplore = getLoreValueModifiers(tmpinput?.activeLore);
 		var tmploreblind = getLoreBlindFighting(tmpinput?.loreChance);
@@ -526,17 +689,97 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 			stance: tmpstance,
 			moves: tmpmoves,
 			lore: tmplore,
+			bonuses: tmpbonuses,
 			defense: { adjust: tmpadjust, noDefense: tmpmoves.noDefense, reasons: tmpreasons },
 			initiative: tmpstance ? tmpstance.initiative : 0,
 			seconds: tmpstance ? tmpstance.seconds : 0,
 			// His handleMeleeSet takes the better of the two; with no stance his sentinel is -8,
-			// so Martial Lore's figure is what counts.
+			// so Martial Lore's figure is what counts. See without eyes is a MELEE stance ("reduced
+			// to -4 melee"), so a missile's offset is Martial Lore's alone -- the book gives Lore's
+			// to "melee and missile weapons". Damage and combat skills are Lore's only.
 			blind: {
 				blindFighting: Math.max(tmpstance ? tmpstance.blindFighting : 0, tmploreblind.blindFighting),
+				missileBlindFighting: tmploreblind.blindFighting,
+				damage: tmploreblind.damage,
+				skills: tmploreblind.skills,
 				fullDefense: !!(tmpstance?.blindFullDefense || tmploreblind.fullDefense),
 				inStance: !!tmpstance
 			}
 		};
+	}
+
+
+	// This is the function which works out everything a martial artist's panel and attacks read,
+	// for EITHER actor type: what is known, what is in play, the state, and the rows with their
+	// chances and times. The two data models differ only in where the two skills' chances come from
+	// (a character's skill items, a creature's flat stat-block percentages) and in how they lay the
+	// character-wide figures onto their own combat block, so those stay with them.
+	//
+	//   tmpmartial  the actor's system.martial (his comma-separated strings, and the two conditions)
+	//   tmpskills = {
+	//       know:           { held, chance } for Martial Knowledge
+	//       lore:           { held, chance } for Martial Lore
+	//       weaponSpeedMod: the actor's weapon speed modifier BEFORE the stance's seconds
+	//   }
+	//
+	// Returns { known, state, rows, loreRows, stanceRows, activeMoveNames, activeLoreNames,
+	// standFromProne }. Nothing applies without Martial Knowledge held: a stance or move written on
+	// an actor who does not hold it is shown and does nothing.
+	export function deriveMartialArts(tmpmartial, tmpskills) {
+		var tmpm = tmpmartial ?? {};
+		var tmpknow = tmpskills?.know ?? { held: false, chance: 0 };
+		var tmplore = tmpskills?.lore ?? { held: false, chance: 0 };
+		var tmpout = {};
+
+		// What is known: the discipline's list and anything learned beyond it.
+		tmpout.known = resolveMartialKnown(tmpm.discipline, {
+			attacks: tmpm.learnedAttacks, blocks: tmpm.learnedBlocks,
+			holds: tmpm.learnedHolds, moves: tmpm.learnedMoves, throws: tmpm.learnedThrows
+		});
+
+		// What is in play, held to what is actually known: a stance must have been learned to be
+		// held, and a move or Lore value must be one the actor has.
+		var tmpstances = parseMartialList(tmpm.stances).filter(tmpname => MARTIAL_STANCES[tmpname]);
+		var tmpstance = tmpstances.includes(tmpm.activeStance) ? tmpm.activeStance : "";
+		var tmpmoves = parseMartialList(tmpm.activeMoves).filter(tmpname => tmpout.known.moves.includes(tmpname));
+		var tmplorevalues = parseMartialList(tmpm.activeLoreValues).filter(tmpname => hasMartialName(tmpm.loreValues, tmpname));
+
+		tmpout.state = resolveMartialState({
+			stance:        tmpknow.held ? tmpstance : "",
+			mastered:      tmpm.masteredStances,
+			activeMoves:   tmpknow.held ? tmpmoves.join(",") : "",
+			activeLore:    tmplore.held ? tmplorevalues.join(",") : "",
+			hasLore:       tmplore.held,
+			loreChance:    tmplore.chance,
+			intoxication:  tmpm.intoxication,
+			resistingHold: tmpm.resistingHold
+		});
+
+		// The rows, each with its chance and time. A martial attack is an offensive action, so its
+		// time takes the stance's seconds on top of the actor's own weapon speed modifier. The
+		// Drunken stance's "+10% to martial know/lore skill attack rolls" lands on the attack rows and
+		// the Martial Lore attack values.
+		var tmpspeedmod = (parseInt(tmpskills?.weaponSpeedMod) || 0) + tmpout.state.seconds;
+		tmpout.rows = buildMartialRows(tmpout.known, tmpknow.chance, tmpspeedmod);
+		tmpout.loreRows = buildMartialLoreRows(tmpm.loreValues, tmplore.chance);
+		var tmpattackbonus = tmpout.state.bonuses.active ? (parseInt(tmpout.state.bonuses.martialAttacks) || 0) : 0;
+		if (tmpattackbonus) {
+			for (const tmprow of tmpout.rows.attacks ?? []) { if (tmprow.chance > 0) { tmprow.chance = tmprow.chance + tmpattackbonus; } }
+			for (const tmprow of tmpout.loreRows) { if (tmprow.type == "Attack" && tmprow.chance > 0) { tmprow.chance = tmprow.chance + tmpattackbonus; } }
+		}
+		tmpout.stanceRows = tmpstances.map(tmpname => ({
+			name: tmpname,
+			mastered: hasMartialName(tmpm.masteredStances, tmpname),
+			held: tmpname == tmpstance,
+			text: MARTIAL_STANCES[tmpname][hasMartialName(tmpm.masteredStances, tmpname) ? "lore" : "knowledge"]
+		}));
+		tmpout.activeMoveNames = tmpmoves;
+		tmpout.activeLoreNames = tmplorevalues;
+
+		// Every martial artist gets up quickly: "All martial artists take only 1-3 seconds to jump to
+		// their feet rather than the usual 2-7" (p.97), his martial_arts_stand_from_prone.
+		tmpout.standFromProne = tmpknow.held ? "Jump to feet (1-3 seconds)" : "Stand up (2-7 seconds)";
+		return tmpout;
 	}
 
 

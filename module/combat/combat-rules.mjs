@@ -564,22 +564,24 @@ export const MODE_DAMAGE_TYPES = {
 		twoProjectiles:    { heading: "Multiple Weapons/Projectiles", label: "2 Projectiles",   group: "multimissile", attack: 0,  damage: 0,  multi: 0, defense: 0,  special: [],                      multiMissile: "twoProjectiles", closeOnly: true },
 		threeProjectiles:  { heading: "Multiple Weapons/Projectiles", label: "3 Projectiles",   group: "multimissile", attack: 0,  damage: 0,  multi: 0, defense: 0,  special: [],                      multiMissile: "threeProjectiles", closeOnly: true },
 		// Missile visibility never takes the defence away, unlike melee: his missile SET has no
-		// "Can`t See Target" override at all.
-		targetInvisible:   { heading: "Visibility (Target)", label: "Invisible",                group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
-		fadeDark:          { heading: "Visibility (Target)", label: "Fade (Darkness)",          group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
-		fadeDiffuse:       { heading: "Visibility (Target)", label: "Fade (Diffuse Light)",     group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		// "Can`t See Target" override at all. The words are carried all the same, since Martial
+		// Lore's blind fighting reads them, and the book gives it to missile weapons (user's ruling,
+		// 2026-09-22); they print on the card as a note, as melee's do.
+		targetInvisible:   { heading: "Visibility (Target)", label: "Invisible",                group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Can`t See Target"] },
+		fadeDark:          { heading: "Visibility (Target)", label: "Fade (Darkness)",          group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Can`t See Target"] },
+		fadeDiffuse:       { heading: "Visibility (Target)", label: "Fade (Diffuse Light)",     group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Can`t See Target"] },
 		fadeDim:           { heading: "Visibility (Target)", label: "Fade (Dim Light)",         group: "targetvis",   attack: -6,  damage: 0,  multi: 0, defense: 0,  special: [] },
 		fadeNormal:        { heading: "Visibility (Target)", label: "Fade (Normal Light)",      group: "targetvis",   attack: -4,  damage: 0,  multi: 0, defense: 0,  special: [] },
 		fadeSunlight:      { heading: "Visibility (Target)", label: "Fade (Sunlight)",          group: "targetvis",   attack: -2,  damage: 0,  multi: 0, defense: 0,  special: [] },
 		// His label says "No Defense" for Darkness; his missile SET gives none. The code is kept.
 		environmentDim:    { heading: "Visibility (Environment)", label: "Partial Darkness (Dim)", group: "environment", attack: -4, damage: 0, multi: 0, defense: 2,  special: [] },
-		environmentDark:   { heading: "Visibility (Environment)", label: "Darkness",            group: "environment", attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		environmentDark:   { heading: "Visibility (Environment)", label: "Darkness",            group: "environment", attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Blind"] },
 		coverTarget:       { heading: "Cover (Target)",   label: "Behind Cover",                group: "",            attack: -4,  damage: 0,  multi: 0, defense: 0,  special: [] },
 		// His SET tests sit_self_one_eye but never asks the sheet for it (it is missing from that
 		// getAttrs list), so on his sheet One Eye silently does nothing. His label and his own test
 		// both say -2; that is what is built. docs/UPSTREAM-ISSUES.md records it.
 		selfOneEye:        { heading: "Attacker Disability", label: "One Eye",                  group: "",            attack: -2,  damage: 0,  multi: 0, defense: 0,  special: [] },
-		selfBlind:         { heading: "Attacker Disability", label: "Blind",                    group: "",            attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [],       noDef: true }
+		selfBlind:         { heading: "Attacker Disability", label: "Blind",                    group: "",            attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Blind"], noDef: true }
 	};
 
 	// Target size, shared by both panels and one-of across all twenty-four -- his
@@ -694,13 +696,15 @@ export const MODE_DAMAGE_TYPES = {
 	// labels } -- labels being the chosen options by name, for the combat tab and the chat card.
 	export function resolveSituationalMods(tmpkind, tmpselected, tmpmartial) {
 		var tmpout = { kind: "", attack: 0, damage: 0, multi: 1, defense: 0, noDefense: false,
-		               special: [], multiMissile: "", noAttack: false, labels: [] };
+		               special: [], multiMissile: "", noAttack: false, labels: [], blindSkills: 0 };
 		var tmpoptions = getSituationalOptions(tmpkind);
 		if (!Object.keys(tmpoptions).length) { return tmpout; }
 		tmpout.kind = tmpkind;
 
 		var tmpmartialin = tmpmartial ?? {};
 		var tmpmulti = 1;
+		var tmpblindnodef = false;
+		var tmpothernodef = false;
 		for (const tmpkey of tmpselected ?? []) {
 			var tmpoption = tmpoptions[tmpkey];
 			if (!tmpoption) { continue; }
@@ -710,7 +714,13 @@ export const MODE_DAMAGE_TYPES = {
 			tmpout.damage  = tmpout.damage  + (parseInt(tmpoption.damage)  || 0);
 			tmpout.defense = tmpout.defense + (parseInt(tmpoption.defense) || 0);
 			tmpmulti = tmpmulti + (parseInt(tmpoption.multi) || 0);
-			if (tmpoption.noDef) { tmpout.noDefense = true; }
+			// A defence lost to blindness is kept apart from one lost any other way (a critically
+			// failed Critical), since only the first is what a blind fighter can keep.
+			if (tmpoption.noDef) {
+				var tmpblindword = (tmpoption.special ?? []).some(w => w == "Blind" || w == "Can`t See Target");
+				if (tmpblindword) { tmpblindnodef = true; } else { tmpothernodef = true; }
+				tmpout.noDefense = true;
+			}
 			if (tmpoption.multiMissile) { tmpout.multiMissile = tmpoption.multiMissile; }
 			for (const tmpword of tmpoption.special ?? []) {
 				if (!tmpout.special.includes(tmpword)) { tmpout.special.push(tmpword); }
@@ -722,12 +732,36 @@ export const MODE_DAMAGE_TYPES = {
 		tmpout.multi = tmpmulti;
 		tmpout.noAttack = tmpout.special.includes("No Attack");
 
-		// Martial blind fighting: only for a melee SET, which is the only one of his two that reads it.
-		if (tmpkind == "melee") {
-			if (tmpout.special.includes("Blind") || tmpout.special.includes("Can`t See Target")) {
-				tmpout.attack = tmpout.attack + (parseInt(tmpmartialin.blindFighting) || 0);
+		// Martial blind fighting, whenever the attacker is blind or cannot see the target.
+		//
+		// His handleMeleeSet reads it for melee only. By the user's ruling of 2026-09-22 the BOOK's
+		// Martial Lore figures are used, and the book gives them to "melee and missile weapons", so a
+		// missile set reads Martial Lore's offset too (See without eyes stays melee-only, being a
+		// melee stance -- martial-arts.mjs hands the two apart). The to-hit is an offset and is held
+		// to the blindness penalty it offsets: "the practitioner does not gain additional bonuses once
+		// the blindness penalties are negated". Damage and combat skills are the book's per-level
+		// extras; skills comes back as blindSkills for the character to lay on its combat skills.
+		//
+		// "Full Defensive Mod" keeps the defence only against a BLIND loss of it. His handleMeleeSet
+		// clears the No Defense override whatever caused it, so on his sheet a blind fighter who
+		// critically failed a Critical kept their defence too; his own comment says what it is for,
+		// "a blind fighter/Martial Lorist who can hear well enough to get defensive modifier anyway".
+		var tmpblind = tmpout.special.includes("Blind") || tmpout.special.includes("Can`t See Target");
+		if (tmpblind) {
+			var tmppenalty = 0;
+			for (const tmpkey of tmpselected ?? []) {
+				var tmpblindoption = tmpoptions[tmpkey];
+				if (!tmpblindoption) { continue; }
+				var tmpwords = tmpblindoption.special ?? [];
+				if ((tmpwords.includes("Blind") || tmpwords.includes("Can`t See Target")) && tmpblindoption.attack < 0) {
+					tmppenalty = tmppenalty - tmpblindoption.attack;
+				}
 			}
-			if (tmpmartialin.fullDefense) { tmpout.noDefense = false; }
+			var tmpoffset = parseInt((tmpkind == "missile") ? tmpmartialin.missileBlindFighting : tmpmartialin.blindFighting) || 0;
+			tmpout.attack = tmpout.attack + Math.min(tmpoffset, tmppenalty);
+			tmpout.damage = tmpout.damage + (parseInt(tmpmartialin.damage) || 0);
+			tmpout.blindSkills = parseInt(tmpmartialin.skills) || 0;
+			if (tmpmartialin.fullDefense && tmpblindnodef && !tmpothernodef) { tmpout.noDefense = false; }
 		}
 		return tmpout;
 	}

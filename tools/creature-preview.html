@@ -62,6 +62,11 @@ Handlebars.registerHelper("eq", (a, b) => a === b);
 Handlebars.registerHelper("gt", (a, b) => a > b);
 Handlebars.registerHelper("lt", (a, b) => a < b);
 Handlebars.registerHelper("gte", (a, b) => a >= b);
+// The martial arts panel is a partial both Combat tabs include (loadMartialTemplates registers it in
+// Foundry); a plain Handlebars render needs it registered by hand.
+Handlebars.registerPartial("imagine-martial-panel", await (await fetch("../templates/actor/martial-panel.hbs")).text());
+const SV = await import("../module/situational-view.mjs");
+const MV = await import("../module/martial-view.mjs");
 Handlebars.registerHelper("localize", (k) => {
 	const names = { str: "Strength", agl: "Agility", vit: "Vitality", int: "Intelligence",
 		wis: "Wisdom", knw: "Knowledge", app: "Appearance", chm: "Charm", soc: "Social Class",
@@ -155,13 +160,23 @@ const creature = new ImagineCreatureData({
 	], jumpStand: 8, jumpUp: 4 },
 	physical: { heightFeet: 14, heightInches: 0, weight: 3800 },
 	skills: ImagineCreatureData.parseSkillList(
-		"Ambush 55%, Blend 40%, Listen 60%, Smell 65%, Weapon Lore 35%, Intimidate 50%"),
+		"Ambush 55%, Blend 40%, Listen 60%, Smell 65%, Weapon Lore 35%, Intimidate 50%, "
+		// Martial Knowledge and Lore off the stat block, so the creature's martial panel renders
+		// against real rules -- his creature sheet carries the same section a character's does.
+		+ "Martial Knowledge 55%, Martial Lore 40%"),
 	combat: { attackChart: "Expert", attackNotes: "Breathes frost once every three rounds.",
 	          meleeMisc: 0, missileMisc: 0, damageMisc: 0,
 	          defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
 	          painThreshold: -3, highPainThreshold: false, damageAbsorb: 12,
 	          spiritArmor: 0, forceArmor: 4, outerKinetic: 0, magicShield: 0,
-	          invulnerable: false },
+	          invulnerable: false,
+	          // Faded into the dark and at the rear: the Situation Mods bar reads the totals, and its own
+	          // Defence is 8 harder to hit.
+	          situation: { kind: "melee", selected: ["selfFadeDark", "positionRear"], weaponId: "" } },
+	martial: { discipline: "Contact", learnedAttacks: "", learnedBlocks: "", learnedHolds: "", learnedMoves: "",
+	           learnedThrows: "", loreValues: "Slam", stances: "Calm in the storm", masteredStances: "",
+	           activeStance: "Calm in the storm", activeMoves: "", activeLoreValues: "Slam",
+	           intoxication: 0, resistingHold: false },
 	notes: "Hoards worked metal. Will parley if offered silver.", biography: ""
 });
 creature.parent = { items, name: "Cave Wyrm" };
@@ -209,6 +224,9 @@ const ctx = {
 	gear: [],
 	config: { creatureTypes: T.CREATURE_TYPES, bodyTypes: T.CREATURE_BODY_TYPES,
 	          attackCharts: T.CREATURE_ATTACK_CHARTS },
+	// Mirrors the sheet's own two lines, built by the same functions.
+	situationLine: SV.describeSituationalTotals(creature.combat.situational),
+	martial: MV.buildMartialPanel(creature, true),
 	handednessChoices: [
 		{ value: "",             label: "Right (default)", selected: true },
 		{ value: "Right",        label: "Right" },

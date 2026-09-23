@@ -6,7 +6,7 @@ missile modifiers window, and Second Weapon held per weapon". These are the piec
 one only repeats a pattern that already exists. **Everything in "Already decided" below is settled.
 Do not reopen it.**
 
-## 1. Creature preview: show the Situation Mods bar
+## 1. Creature preview: show the Situation Mods bar -- DONE 2026-09-22 with creature martial arts
 
 - **What:** `tools/creature-preview.html` builds its own copy of the creature sheet's context. The
   real sheet now adds `situationLine` (from `describeSituationalTotals` in

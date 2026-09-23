@@ -1733,7 +1733,11 @@ back (`MARTIAL_MOVE_CORRECTIONS`, `MARTIAL_STANCE_CORRECTIONS`, `MARTIAL_SKILLMO
 **Where the book says more than your sheet, and your sheet is followed**
 
 - Martial Lore's blind fighting: the book gives +2 to hit, +1 damage and +5% skills per 25%; your
-  sheet gives +1 to hit per 25% and nothing else.
+  sheet gives +1 to hit per 25% and nothing else. **Ruled by the user 2026-09-22: the book's.** So
+  it is +2 to hit per level for melee AND missile (your SET reads it for melee only), never past the
+  blindness penalty it offsets, with +1 damage and +5% to combat skills while blind. And a "Full
+  Defensive Mod" now keeps only a defence lost to blindness -- your handleMeleeSet clears the No
+  Defense override whatever set it, so a blind fighter who critically failed a Critical kept theirs.
 - The book says Flying "replaces" Jump; your sheet lets both apply at once.
 - The book says no offensive manoeuvre is possible in Immoveable Stance; your sheet only takes the
   defence away.
@@ -1743,10 +1747,16 @@ back (`MARTIAL_MOVE_CORRECTIONS`, `MARTIAL_STANCE_CORRECTIONS`, `MARTIAL_SKILLMO
 **Questions your sheet leaves open (not guessed at)**
 
 - A Martial Lore value has no speed column. The book gives some (Flip 2 seconds, Feather Block +1,
-  Slam +2) and not others. None is shown until you say.
+  Slam +2) and not others. **Ruled by the user 2026-09-22: the book's.** Flip takes 2 seconds, a
+  made Feather Block adds 1 to the block and a made Slam 2 to the throw; the rest happen with the
+  attack, hold or throw they go with (Combined Attack takes the longer of its two attacks).
 - Stances carry skill and save bonuses in their text ("Dodge, Feint and Sidestep +30%", "+20% to all
-  AGL Saves", resistances). Your sheet prints them and applies none; so does the port. Should any be
-  automatic?
+  AGL Saves", resistances). Your sheet prints them and applies none. **Ruled by the user 2026-09-22:
+  they apply automatically while the stance is held**, with a control for each that depends on
+  something the sheet cannot see -- how many VIT saves for intoxication have been failed (the
+  Drunken stance works from 1 to 3, 5 mastered, and outside that adds NOTHING, its to-hit and damage
+  included, which your sheet applies regardless), and whether a hold or movement effect is being
+  resisted (Calm in the storm's +25%/+50% to every resistance).
 - The missing-limb checks (`racial_standard_disabilities` "All manipulator limbs lost" and the rest)
   are not ported, because the port does not track lost limbs yet. One of them tests a hold named
   "Leg Block" (67446), which is a block; "Leg" is presumably meant.

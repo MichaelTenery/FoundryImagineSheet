@@ -4674,3 +4674,98 @@ rest); every module parses. **Not verified:** anything in a running V14 -- the w
 writing back, the copy, the poison dialog and targets.
 
 **Not built:** see `docs/sonnet/2026-09-22-weapon-mods.md`.
+
+## Martial arts: three of the user's rulings, built (2026-09-22)
+
+The martial pass left five questions open. The user answered four of them, the first as "book"
+(Spinning +2, its own entry above), and the next three are built here. Creatures are the fourth and
+have their own entry.
+
+**Martial Lore values take the book's time.** His `martiallorevalueslist` has no speed column, so
+`MARTIAL_LORE_TIMING` in `martial-arts.mjs` is kept by hand from the Player's Guide (pp.97-98) and
+the Master's Manual (p.101): Flip takes 2 seconds; a made Feather Block adds 1 second to the block it
+joins, and a made Slam adds 2 to the throw. The other nine happen WITH what they go with (Combined
+Attack takes the longer of its two attacks; Punch and Kick Throw are "simultaneous"; Martial Disarm
+is a contest the book gives no time for) and add nothing. The Lore rows show the time, a Lore roll's
+card says it, and a block or throw rolled while Feather Block or Slam is made prints its time with
+the addition.
+
+**A stance's bonuses to skills, saves and resistances apply while it is held, with toggles.** His
+sheet prints them (the stance prose, and `mod_special`) and applies none; the user ruled they apply.
+`MARTIAL_STANCE_BONUSES` holds every figure from his own prose, learned and mastered: Flow as water's
+Dodge/Feint/Sidestep, Strike as wind's Critical/Focused Attack/Perfect Shot, Calm in the storm's
+Parries/Disarm/Trap Weapon, AGL saves, Control Resistance, and its resistance bonus "against effects
+which hold or affect movement", and the Drunken stance's combat skills and martial attacks. Two
+conditions the sheet cannot see are the player's own figures on the martial panel: VIT saves failed
+for intoxication (`system.martial.intoxication`), and whether a hold or movement effect is being
+resisted now (`system.martial.resistingHold`). **A Drunken stance outside its window (1 to 3 failed
+saves, 5 mastered) adds nothing at all, to-hit and damage included** -- the prose's "after failing 1
+VIT Save ... If more than 3 ... all modifiers are lost" read as the whole stance, where his code applies
+the to-hit regardless. It is still HELD, so it still bars Furious Attack and Desperate Defense.
+The bonus lands on each skill item's `totalChance` and is recorded as `stanceBonus`; **the Arch Mortal
+screen takes it back out**, since qualifying reads a skill as trained, not as boosted by whatever
+stance is held. Because a skill's total can now move with the stance, `_prepareMartialArts` runs
+BEFORE `_prepareOffhandSkills` rather than after: the Drunken stance's combat-skill bonus reaches
+Second Weapon Knowledge, which is typed Combat.
+
+**Martial Lore's blind fighting is the book's.** Per full 25%: +2 to hit, +1 damage, +5% to combat
+skills (Player's Guide p.97), where his sheet gives +1 to hit and nothing else. The book gives the
+to-hit to "melee and missile weapons", so the missile Situation Mods now read it too (his SET reads it
+for melee only); See without eyes stays melee-only, being a melee stance, so a bow reads Martial
+Lore's figure alone. The to-hit is an OFFSET held to the blindness penalty it offsets -- "the
+practitioner does not gain additional bonuses once the blindness penalties are negated" -- so +12
+against Blind's -8 comes to 0, not +4. The +5% combat skills lands on every skill typed Combat while
+the blind Situation Mods are set, recorded as `blindBonus` and taken out for the Arch Mortal screen
+as `stanceBonus` is. To carry blindness into a missile set, the missile Blind, Darkness and three
+cannot-see options now carry his melee words ("Blind", "Can't See Target"); they add no No Defense
+there, since his missile SET has none.
+
+**A "Full Defensive Mod" keeps only a defence lost to blindness.** His handleMeleeSet clears the No
+Defense override whatever caused it, so on his sheet a blind fighter who also critically failed a
+Critical kept their defence. His own comment says what it is for ("a blind fighter ... who can hear
+well enough to get defensive modifier anyway"), so a defence lost any other way stays lost. In
+UPSTREAM-ISSUES item 56.
+
+**The martial panel is now a partial**, `templates/actor/martial-panel.hbs`, registered as
+`imagine-martial-panel` by `loadMartialTemplates` (the round clock's arrangement), so the creature's
+Combat tab can include the same one.
+
+Checked: martial 179 (25 new), combat 511 (8 new), derivation 507; both previews render the partial.
+Not verified: the two new fields writing back, and the partial loading, in a running Foundry V14.
+
+## Creatures get martial arts (2026-09-22)
+
+The user's ruling on the fifth question: build it now. His creature sheet carries the same martial
+section a character's does, reading Martial Knowledge and Martial Lore off the creature's own skill
+list (`getCreatureSkillChance`), and his creature branches treat holding the skill at all as having
+acquired it -- there is no title to reach.
+
+**One derivation for both.** The body of the character's `_prepareMartialArts` moved into
+`deriveMartialArts` in `martial-arts.mjs`, which both data models call; they differ only in where the
+two chances come from and in laying the character-wide figures (defence, initiative, weapon speed,
+`martialDefense`, `martialBlind`) onto their own combat block. The character's behaviour is unchanged
+(martial 179 before and after). The creature's Situation Mods moved out of `_prepareCombat` into their
+own `_prepareSituation`, after martial arts, so a creature's blind fighting and Immoveable Stance reach
+them as a character's do.
+
+**A creature's stance bonuses land on saves and resistances in derivation, and on a skill when it is
+rolled.** A creature's skill chances are the entered figures themselves -- the sheet's inputs write
+them -- so a derived bonus on them would be written back by the next save. The creature skill roll
+and the Situation Mods window add `getStanceSkillBonus` at roll time instead. A creature's skills
+carry no types, so the Drunken stance's "combat skills" bonus does not reach them; the by-name
+bonuses (Dodge, Critical, the Parries) do.
+
+**A creature's natural attack takes the martial MELEE to-hit only.** His `handleCreatureAttack` reads
+`martial_arts_mod_melee` and `martial_stance_mod_melee` and nothing else of martial arts -- no damage,
+no missile -- so that is what `creature-attack.mjs` adds: `getMartialAttackModifiers`' to-hit entries,
+for a melee-kind attack, and Flip still forbidding the attack. Its martial ATTACKS (a Martial Punch
+thrown by a creature) go through the same `rollMartialAttack` a character's do, which reads only what
+both actor types have.
+
+**The panel is the same partial**, included on the creature's Combat tab, with the same handlers on the
+creature sheet. `tools/creature-preview.html` now gives its Cave Wyrm Martial Knowledge and Lore, a
+Calm in the storm stance and a made Slam, and the Situation Mods bar (the Sonnet note's item 1 from the
+Situation Mods pass).
+
+Checked: creature 157 (8 new), martial 179, combat 511, derivation 507, 71 modules parse; the creature
+preview renders the panel. Not verified: anything needing a running Foundry V14.

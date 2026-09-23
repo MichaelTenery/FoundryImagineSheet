@@ -33,6 +33,7 @@ import {
 	getInitiativeModifier, getNextAttackSkill, getAreaArmor, getAreaShield, resolveEncumbrance,
 	resolveSituationalMods, getOffhandSecondsCap
 } from "../combat/combat-rules.mjs";
+import { MARTIAL_DISCIPLINE_NAMES, deriveMartialArts } from "../combat/martial-arts.mjs";
 
 const fields = foundry.data.fields;
 
@@ -296,6 +297,29 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				})
 			}),
 
+			// @MARKER MARTIAL ARTS
+			// The same martial section a character has: his creature sheet carries it too, reading
+			// Martial Knowledge and Martial Lore off the creature's own skill list
+			// (getCreatureSkillChance, sheet-worker.js). The same fields and names as the character's,
+			// so the one panel partial serves both. See the character model for what each holds.
+			martial: new fields.SchemaField({
+				discipline:       new fields.StringField({ required: true, blank: true, initial: "",
+					choices: ["", ...MARTIAL_DISCIPLINE_NAMES] }),
+				learnedAttacks:   new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedBlocks:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedHolds:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedMoves:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedThrows:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				loreValues:       new fields.StringField({ required: true, blank: true, initial: "" }),
+				stances:          new fields.StringField({ required: true, blank: true, initial: "" }),
+				masteredStances:  new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeStance:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeMoves:      new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeLoreValues: new fields.StringField({ required: true, blank: true, initial: "" }),
+				intoxication:     new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				resistingHold:    new fields.BooleanField({ required: true, initial: false })
+			}),
+
 			// @MARKER NOTES
 			notes:     new fields.StringField({ required: true, initial: "", label: "Notes" }),
 			biography: new fields.HTMLField({ required: true, initial: "" })
@@ -332,6 +356,10 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this._prepareResistances();
 		this._prepareEncumbrance();
 		this._prepareCombat();
+		// Martial arts after the standing combat figures it adds to, and before the Situation Mods,
+		// which read the blind fighting it sets -- the character's order.
+		this._prepareMartialArts();
+		this._prepareSituation();
 		this._prepareBody();
 		this._prepareAvailability();
 
@@ -554,14 +582,6 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this.combat.defensiveAdjust = (parseInt(tmpaglmods.defensiveAdjust) || 0)
 		                            + tmparmordef + (parseInt(this.combat.defenseMisc) || 0);
 
-		// The Situation Mods, totalled. Their defence is the creature's own and stands whatever it
-		// attacks with; "No Defense" takes the adjustment away from anyone attacking it.
-		// Creatures have no martial arts, so nothing is passed for blind fighting.
-		var tmpsituation = this.combat.situation ?? {};
-		this.combat.situational = resolveSituationalMods(tmpsituation.kind, tmpsituation.selected, null);
-		this.combat.defensiveAdjust = this.combat.defensiveAdjust + this.combat.situational.defense;
-		this.combat.noDefense = this.combat.situational.noDefense;
-
 		this.combat.weaponSpeedMod = (parseInt(tmpstrmods.weaponSpeed) || 0)
 		                           + (parseInt(tmpaglmods.weaponSpeed) || 0) + tmparmorspeed;
 
@@ -569,6 +589,71 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this.combat.meleeDamage   = parseInt(tmpstrmods.meleeDamage) || 0;
 		this.combat.missileAttack = parseInt(tmpaglmods.missileAttack) || 0;
 		this.combat.armorSkillPenalty = tmparmorskills;
+	}
+
+	// @MARKER MARTIAL ARTS
+	// This is the function which works out the creature's martial arts, the same as a character's
+	// (deriveMartialArts) but for where the two skills come from: a creature's flat stat-block
+	// percentages, as his creature branch reads them (getCreatureSkillChance -- set2ndWeaponKnowSheet
+	// and its siblings treat a creature holding the skill at all as having acquired it, with no title
+	// to reach). A stance's defence, initiative and speed fold into the creature's standing figures as
+	// a character's do; its bonuses land on saves and resistances here and on a skill when it is
+	// rolled, since a creature's skill chances are the entered figures themselves and cannot carry a
+	// derived bonus without the sheet writing it back.
+	_prepareMartialArts() {
+		var tmpmartial = this.martial ?? {};
+		this.martial = tmpmartial;
+		var tmpknowchance = this._getCreatureSkillChance("Martial Knowledge");
+		var tmplorechance = this._getCreatureSkillChance("Martial Lore");
+		var tmpknow = { held: tmpknowchance > 0, chance: tmpknowchance };
+		var tmplore = { held: tmplorechance > 0, chance: tmplorechance };
+		tmpmartial.hasKnowledge = tmpknow.held;
+		tmpmartial.hasLore = tmplore.held;
+		tmpmartial.knowChance = tmpknow.chance;
+		tmpmartial.loreChance = tmplore.chance;
+
+		Object.assign(tmpmartial, deriveMartialArts(tmpmartial, {
+			know: tmpknow, lore: tmplore, weaponSpeedMod: this.combat.weaponSpeedMod }));
+
+		var tmpstate = tmpmartial.state;
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + tmpstate.defense.adjust;
+		this.combat.initiativeMod = (parseInt(this.combat.initiativeMod) || 0) + tmpstate.initiative;
+		this.combat.weaponSpeedMod = (parseInt(this.combat.weaponSpeedMod) || 0) + tmpstate.seconds;
+		this.combat.martialDefense = tmpstate.defense;
+		this.combat.martialBlind = tmpstate.blind;
+
+		// A held stance's saves and resistances (the user's ruling of 2026-09-22). An immune
+		// resistance has no figure and stays immune.
+		var tmpbonuses = tmpstate.bonuses;
+		if (tmpbonuses?.active) {
+			for (const [tmpkey, tmpvalue] of Object.entries(tmpbonuses.saves ?? {})) {
+				if (this.attributes[tmpkey]) { this.attributes[tmpkey].save = (parseInt(this.attributes[tmpkey].save) || 0) + tmpvalue; }
+			}
+			for (const [tmpname, tmpresist] of Object.entries(this.resistances ?? {})) {
+				if (tmpresist?.value === null || tmpresist?.value === undefined) { continue; }
+				var tmpresistadd = (parseInt(tmpbonuses.resistances?.[tmpname]) || 0) + (parseInt(tmpbonuses.allResistances) || 0);
+				if (tmpresistadd) { tmpresist.value = tmpresist.value + tmpresistadd; }
+			}
+		}
+	}
+
+	// This is the function which reads one skill's chance off the creature's stat block, 0 if it has
+	// no such skill -- his getCreatureSkillChance.
+	_getCreatureSkillChance(tmpname) {
+		var tmpskill = (this.skills ?? []).find(tmpentry => String(tmpentry.name ?? "").trim() == tmpname);
+		return tmpskill ? (parseInt(tmpskill.chance) || 0) : 0;
+	}
+
+	// This is the function which totals the Situation Mods the creature has set. Their defence is
+	// the creature's own and stands whatever it attacks with; "No Defense" takes the adjustment away
+	// from anyone attacking it. Martial arts hands in blind fighting through combat.martialBlind, and
+	// Immoveable Stance's No Defense is folded in, as for a character.
+	_prepareSituation() {
+		var tmpsituation = this.combat.situation ?? {};
+		this.combat.situational = resolveSituationalMods(tmpsituation.kind, tmpsituation.selected,
+			this.combat.martialBlind ?? null);
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + this.combat.situational.defense;
+		this.combat.noDefense = this.combat.situational.noDefense || !!this.combat.martialDefense?.noDefense;
 	}
 
 	// This is the function which lays out the creature's body: every area of its chart, with its

@@ -205,10 +205,14 @@ check("Sweep adds nothing to the attack itself",
 const flip = M.getLoreValueModifiers("Flip");
 check("Flip: -4 to be hit, and no attack", [flip.defensive, flip.noAttack], [-4, true]);
 check("Feather Block changes no number", M.getLoreValueModifiers("Feather Block").defensive, 0);
-check("Martial Lore 0: no blind fighting", M.getLoreBlindFighting(0), { blindFighting: 0, fullDefense: false });
-check("Martial Lore 49: one level", M.getLoreBlindFighting(49).blindFighting, 1);
-check("Martial Lore 99: three levels, no defence yet", M.getLoreBlindFighting(99), { blindFighting: 3, fullDefense: false });
-check("Martial Lore 100: four levels and the defence kept", M.getLoreBlindFighting(100), { blindFighting: 4, fullDefense: true });
+// The BOOK's figures per full 25%, by the user's ruling of 2026-09-22: +2 to hit, +1 damage, +5%
+// combat skills (Player's Guide p.97). His sheet gave +1 to hit and nothing else.
+check("Martial Lore 0: no blind fighting", M.getLoreBlindFighting(0), { blindFighting: 0, damage: 0, skills: 0, fullDefense: false });
+check("Martial Lore 49: one level is +2 to hit (the book), not his +1", M.getLoreBlindFighting(49).blindFighting, 2);
+check("Martial Lore 99: three levels, no defence yet", M.getLoreBlindFighting(99),
+	{ blindFighting: 6, damage: 3, skills: 15, fullDefense: false });
+check("Martial Lore 100: four levels and the defence kept", M.getLoreBlindFighting(100),
+	{ blindFighting: 8, damage: 4, skills: 20, fullDefense: true });
 
 // --- the state together --------------------------------------------------------------------------
 const state = M.resolveMartialState({ stance: "Strike as wind", mastered: "Strike as wind",
@@ -216,11 +220,14 @@ const state = M.resolveMartialState({ stance: "Strike as wind", mastered: "Strik
 check("the mastered form is used when mastered", state.stance.mastered, true);
 check("defence: the stance's +1 and Flip's -4", state.defense.adjust, -3);
 check("initiative and seconds come from the stance", [state.initiative, state.seconds], [-4, -2]);
-check("blind: the better of stance (none) and Lore (2 levels)", state.blind,
-	{ blindFighting: 2, fullDefense: false, inStance: true });
+check("blind: the better of stance (none) and Lore (2 levels, +4)", state.blind,
+	{ blindFighting: 4, missileBlindFighting: 4, damage: 2, skills: 10, fullDefense: false, inStance: true });
 const seeState = M.resolveMartialState({ stance: "See without eyes", mastered: "", loreChance: 100 });
-check("See without eyes (4) against Martial Lore 100% (4): 4, defence kept", seeState.blind,
-	{ blindFighting: 4, fullDefense: true, inStance: true });
+check("See without eyes (4) against Martial Lore 100% (8): 8 melee, 8 missile (Lore alone), defence kept", seeState.blind,
+	{ blindFighting: 8, missileBlindFighting: 8, damage: 4, skills: 20, fullDefense: true, inStance: true });
+const seeNoLore = M.resolveMartialState({ stance: "See without eyes", mastered: "" });
+check("See without eyes alone: +4 melee, none for missile -- it is a melee stance",
+	[seeNoLore.blind.blindFighting, seeNoLore.blind.missileBlindFighting], [4, 0]);
 check("no stance held: not in a stance", M.resolveMartialState({}).blind.inStance, false);
 
 // --- what an attack gets -------------------------------------------------------------------------
@@ -379,7 +386,7 @@ const plain = makeCharacter(ratings, 5, [], {});
 const before = { def: plain.combat.defensiveAdjust, init: plain.combat.initiativeMod, speed: plain.combat.weaponSpeedMod };
 check("no martial arts: nothing known, nothing held", [plain.martial.hasKnowledge, plain.martial.rows.attacks.length], [false, 0]);
 check("...and the blind-fighting hand-off is all zeroes", plain.combat.martialBlind,
-	{ blindFighting: 0, fullDefense: false, inStance: false });
+	{ blindFighting: 0, missileBlindFighting: 0, damage: 0, skills: 0, fullDefense: false, inStance: false });
 
 const artist = makeCharacter(ratings, 5, [mk], { discipline: "Balanced", stances: "Strike as wind",
 	activeStance: "Strike as wind", activeMoves: "Jump,Spinning" });
@@ -398,7 +405,7 @@ check("...a punch row's time follows the stance: 3 - 1 on top of the base modifi
 	artist.martial.rows.attacks.find(r => r.name == "Martial Punch").speed,
 	Math.max(2, 3 + artist.combat.weaponSpeedMod));
 check("the Situation Mods hand-off: in a stance, no blind fighting",
-	artist.combat.martialBlind, { blindFighting: 0, fullDefense: false, inStance: true });
+	artist.combat.martialBlind, { blindFighting: 0, missileBlindFighting: 0, damage: 0, skills: 0, fullDefense: false, inStance: true });
 
 const lorist = makeCharacter(ratings, 9, [mk, ml], { discipline: "Balanced", stances: "Strike as wind",
 	masteredStances: "Strike as wind", activeStance: "Strike as wind", activeMoves: "Jump,Spinning",
@@ -406,7 +413,7 @@ const lorist = makeCharacter(ratings, 9, [mk, ml], { discipline: "Balanced", sta
 check("Martial Lore 40%", lorist.martial.loreChance, 40);
 check("with Martial Lore, Jump and Spinning combine", lorist.martial.state.moves.illegal, []);
 check("the mastered stance: +1 defence, and Flip's -4", lorist.combat.defensiveAdjust - before.def, -3);
-check("Martial Lore 40%: one level of blind fighting", lorist.combat.martialBlind.blindFighting, 1);
+check("Martial Lore 40%: one level of blind fighting, +2 to hit (the book)", lorist.combat.martialBlind.blindFighting, 2);
 check("Flip is a Lore row at Martial Lore's 40%", lorist.martial.loreRows[0].chance, 40);
 
 const untrained = makeCharacter(ratings, 5, [], { discipline: "Offensive", stances: "Flow as water",
@@ -429,6 +436,80 @@ check("Immoveable Stance made: the character's defence is gone, through combat.n
 const gated = makeCharacter(ratings, 2, [skill("Martial Knowledge", "STR", "AGL", 16, 60, { acquiredAtTitle: 4 })],
 	{ discipline: "Offensive" });
 check("a class skill held before its title reads as not held", gated.martial.hasKnowledge, false);
+
+// --- Martial Lore values' time: the BOOK's, by the user's ruling of 2026-09-22 ---------------------
+// His martiallorevalueslist has no speed column at all; Player's Guide pp.97-98, Master's Manual p.101.
+check("Flip takes 2 seconds", [M.MARTIAL_LORE_TIMING["Flip"].seconds, M.MARTIAL_LORE_TIMING["Flip"].joins], [2, ""]);
+check("Feather Block adds 1 to the block; Slam adds 2 to the throw",
+	[M.MARTIAL_LORE_TIMING["Feather Block"].seconds, M.MARTIAL_LORE_TIMING["Feather Block"].joins,
+	 M.MARTIAL_LORE_TIMING["Slam"].seconds, M.MARTIAL_LORE_TIMING["Slam"].joins], [1, "blocks", 2, "throws"]);
+check("every one of his twelve Lore values has a timing entry",
+	Object.keys(T.MARTIAL_LORE_VALUES).filter(n => !M.MARTIAL_LORE_TIMING[n]), []);
+check("a Lore row carries its time", M.buildMartialLoreRows("Slam,Flip", 40).map(r => [r.name, r.speed, r.speedText]),
+	[["Slam", 2, "+2 seconds to the throw"], ["Flip", 2, "2 seconds"]]);
+const loreMade = M.getLoreValueModifiers("Feather Block,Slam");
+check("made Feather Block and Slam add to the next block and throw", [loreMade.blockSeconds, loreMade.throwSeconds], [1, 2]);
+
+// --- a stance's bonuses to skills, saves and resistances: applied, by the user's ruling -----------
+const stanceOf = (name, mastered) => M.getStanceModifiers(name, mastered);
+check("Flow as water: Dodge, Feint and Sidestep +30%", M.getStanceBonuses(stanceOf("Flow as water", false)).skills,
+	{ "Dodge": 30, "Feint": 30, "Sidestep": 30 });
+check("...+50% mastered", M.getStanceBonuses(stanceOf("Flow as water", true)).skills.Dodge, 50);
+check("Strike as wind: Critical, Focused Attack, Perfect Shot +20%",
+	M.getStanceBonuses(stanceOf("Strike as wind", false)).skills, { "Critical": 20, "Focused Attack": 20, "Perfect Shot": 20 });
+const calm = M.getStanceBonuses(stanceOf("Calm in the storm", false));
+check("Calm in the storm: AGL saves +20, Control +10, Parries +10",
+	[calm.saves, calm.resistances, calm.skillsNamed], [{ agl: 20 }, { control: 10 }, { "Parry": 10 }]);
+check("...its hold bonus waits on the toggle", calm.allResistances, 0);
+check("...and applies to every resistance while ticked, +50 mastered",
+	M.getStanceBonuses(stanceOf("Calm in the storm", true), { resistingHold: true }).allResistances, 50);
+check("Drunken fighting with no failed VIT save: inactive, and says why",
+	[M.getStanceBonuses(stanceOf("Drunken fighting", false), { intoxication: 0 }).active,
+	 M.getStanceBonuses(stanceOf("Drunken fighting", false), { intoxication: 0 }).reason],
+	[false, "Drunken fighting needs at least 1 failed VIT save for intoxication"]);
+check("...at 2: combat skills and martial attacks +10",
+	(({ active, combatSkills, martialAttacks }) => ({ active, combatSkills, martialAttacks }))(
+		M.getStanceBonuses(stanceOf("Drunken fighting", false), { intoxication: 2 })),
+	{ active: true, combatSkills: 10, martialAttacks: 10 });
+check("...past 3 it is lost, but mastered it lasts to 5",
+	[M.getStanceBonuses(stanceOf("Drunken fighting", false), { intoxication: 4 }).active,
+	 M.getStanceBonuses(stanceOf("Drunken fighting", true), { intoxication: 4 }).active], [false, true]);
+const drunkOff = M.resolveMartialState({ stance: "Drunken fighting", intoxication: 0 });
+check("an inactive Drunken stance is still held (no special engagements) but adds nothing",
+	[drunkOff.blind.inStance, drunkOff.stance.melee, drunkOff.stance.perDie], [true, 0, 0]);
+check("...active, its to-hit and per-die come back", (s => [s.stance.melee, s.stance.perDie])(
+	M.resolveMartialState({ stance: "Drunken fighting", intoxication: 1 })), [2, 1]);
+const drunkBonus = M.getStanceBonuses(stanceOf("Drunken fighting", false), { intoxication: 1 });
+check("one skill's bonus: a Combat-typed Dodge under the Drunken stance +10",
+	M.getStanceSkillBonus(drunkBonus, "Dodge", ["Combat"]), 10);
+check("...Weapon Parry under Calm in the storm, by the word Parry",
+	M.getStanceSkillBonus(calm, "Weapon Parry", ["Combat"]), 10);
+check("...a skill no stance names gets nothing", M.getStanceSkillBonus(calm, "Swimming", []), 0);
+
+// Through the character model: the bonus lands on the skill's total and is recorded.
+const dodge = skill("Dodge", "AGL", "", 16, 50, { types: ["Combat"] });
+const parry = skill("Weapon Parry", "AGL", "", 16, 50, { types: ["Combat"] });
+const flowing = makeCharacter(ratings, 5, [mk, dodge], { discipline: "Defensive", stances: "Flow as water",
+	activeStance: "Flow as water" });
+const still = makeCharacter(ratings, 5, [mk, structuredClone(dodge)], { discipline: "Defensive" });
+check("Flow as water held: Dodge's total is 30 higher, and says so",
+	[flowing.parent.items[1].system.totalChance - still.parent.items[1].system.totalChance,
+	 flowing.parent.items[1].system.stanceBonus], [30, 30]);
+check("...no stance, no bonus recorded", still.parent.items[1].system.stanceBonus, 0);
+const calmChar = makeCharacter(ratings, 5, [mk, parry], { discipline: "Defensive", stances: "Calm in the storm",
+	activeStance: "Calm in the storm", resistingHold: true });
+const calmNone = makeCharacter(ratings, 5, [mk, structuredClone(parry)], { discipline: "Defensive" });
+check("Calm in the storm held: AGL save +20, Control +10 +25 (resisting a hold), Magic +25",
+	[calmChar.attributes.agl.save - calmNone.attributes.agl.save,
+	 calmChar.resistances.control.value - calmNone.resistances.control.value,
+	 calmChar.resistances.magic.value - calmNone.resistances.magic.value], [20, 35, 25]);
+check("...and a Parry skill +10", calmChar.parent.items[1].system.totalChance - calmNone.parent.items[1].system.totalChance, 10);
+const drunkChar = makeCharacter(ratings, 5, [mk], { discipline: "Balanced", stances: "Drunken fighting",
+	activeStance: "Drunken fighting", intoxication: 2 });
+const soberChar = makeCharacter(ratings, 5, [mk], { discipline: "Balanced", stances: "Drunken fighting",
+	activeStance: "Drunken fighting", intoxication: 0 });
+check("Drunken at 2 failed saves: a Martial Punch row +10 over the sober one",
+	drunkChar.martial.rows.attacks[0].chance - soberChar.martial.rows.attacks[0].chance, 10);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =

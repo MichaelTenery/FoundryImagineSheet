@@ -52,6 +52,9 @@ Handlebars.registerHelper("eq", (a, b) => a === b);
 Handlebars.registerHelper("gt", (a, b) => a > b);
 Handlebars.registerHelper("lt", (a, b) => a < b);
 Handlebars.registerHelper("gte", (a, b) => a >= b);
+// The martial arts panel is a partial the Combat tab includes (loadMartialTemplates registers it
+// in Foundry); a plain Handlebars render needs it registered by hand.
+Handlebars.registerPartial("imagine-martial-panel", await (await fetch("../templates/actor/martial-panel.hbs")).text());
 
 const checks = [];
 const check = (label, actual, expected) => {

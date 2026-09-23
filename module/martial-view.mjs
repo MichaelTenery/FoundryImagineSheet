@@ -58,11 +58,22 @@ import { MARTIAL_DISCIPLINE_NAMES, MARTIAL_FAMILIES, parseMartialList } from "./
 		}
 		if (tmpstate?.initiative) { tmpeffects.push(`Initiative ${signed(tmpstate.initiative)}`); }
 		if (tmpstate?.seconds) { tmpeffects.push(`Offensive actions ${signed(tmpstate.seconds)} second(s)`); }
-		if (tmpstate?.blind?.blindFighting) {
-			tmpeffects.push(`Fighting blind: ${signed(tmpstate.blind.blindFighting)} to hit`
-				+ `${tmpstate.blind.fullDefense ? ", defence kept" : ""}`);
+		if (tmpstance?.inactive) { tmpeffects.push(`${tmpstance.inactive}: the stance adds nothing`); }
+		if ((tmpstate?.bonuses?.lines ?? []).length) {
+			tmpeffects.push(`While held: ${tmpstate.bonuses.lines.join(", ")}`);
+		}
+		var tmpblind = tmpstate?.blind;
+		if (tmpblind?.blindFighting || tmpblind?.missileBlindFighting || tmpblind?.damage) {
+			var tmpblindparts = [`${signed(tmpblind.blindFighting)} melee`];
+			if (tmpblind.missileBlindFighting) { tmpblindparts.push(`${signed(tmpblind.missileBlindFighting)} missile`); }
+			if (tmpblind.damage) { tmpblindparts.push(`${signed(tmpblind.damage)} damage`); }
+			if (tmpblind.skills) { tmpblindparts.push(`${signed(tmpblind.skills)}% combat skills`); }
+			tmpeffects.push(`Fighting blind: ${tmpblindparts.join(", ")}, never past the blindness penalty`
+				+ `${tmpblind.fullDefense ? "; defence kept" : ""}`);
 		}
 		if (tmpstate?.lore?.noAttack) { tmpeffects.push("Flipping: no attack"); }
+		if (tmpstate?.lore?.blockSeconds) { tmpeffects.push(`Feather Block: +${tmpstate.lore.blockSeconds} second(s) to the next block`); }
+		if (tmpstate?.lore?.throwSeconds) { tmpeffects.push(`Slam: +${tmpstate.lore.throwSeconds} seconds to the next throw`); }
 		return tmpeffects;
 	}
 
@@ -121,6 +132,13 @@ import { MARTIAL_DISCIPLINE_NAMES, MARTIAL_FAMILIES, parseMartialList } from "./
 			standFromProne: tmpm.standFromProne ?? "",
 			stanceChoices: tmpstancechoices,
 			stanceText: tmpstance ? tmpstance.text : "",
+			// The two conditions a stance's bonuses wait on, shown only with the stance that reads
+			// them: the Drunken stance's count of failed VIT saves, and Calm in the storm's "resisting
+			// a hold or movement effect".
+			showIntoxication: tmpstance?.name == "Drunken fighting",
+			intoxication: parseInt(tmpm.intoxication) || 0,
+			showResistingHold: tmpstance?.name == "Calm in the storm",
+			resistingHold: !!tmpm.resistingHold,
 			effects: describeMartialEffects(tmpstate),
 			illegal: tmpmoves.illegal.length
 				? `${tmpmoves.illegal.join(" and ")} cannot be combined without Martial Lore: none of them applies.` : "",

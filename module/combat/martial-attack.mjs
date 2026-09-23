@@ -26,6 +26,22 @@ import { resolveSkillOutcome } from "../skills-rules.mjs";
 
 const { resolveAttack, resolveCriticalFumble } = CombatRules;
 
+// The martial arts panel, a partial both Combat tabs include under this name.
+const MARTIAL_PARTIALS = {
+	"imagine-martial-panel": "systems/imagine-rpg/templates/actor/martial-panel.hbs"
+};
+var tmpMartialTemplatesReady = null;
+
+// This is the function which loads the panel's partial, once. Called at init, and awaited again
+// by both sheets before they render, so a sheet opened before the fetch has finished waits for it
+// rather than failing on a missing partial -- the round clock's arrangement.
+export function loadMartialTemplates() {
+	if (!tmpMartialTemplatesReady) {
+		tmpMartialTemplatesReady = foundry.applications.handlebars.loadTemplates(MARTIAL_PARTIALS);
+	}
+	return tmpMartialTemplatesReady;
+}
+
 
 	// This is the function which escapes text for chat. Names are user-editable.
 	function esc(tmptext) {
@@ -329,6 +345,17 @@ export async function rollMartialSubskill(tmpactor, tmpfamily, tmpname, tmpevent
 		tmplines.push(`If the contest is won: ${esc(tmprow.damage)} = <strong>${tmpthrow.total}</strong> damage
 			(+2 with a Spin Throw made; +1 per die against stone, +2 per die against metal).`);
 	}
+
+	// Time. The row's own figure, and what a made Feather Block adds to a block or a made Slam to a
+	// throw -- the book's timings, by the user's ruling of 2026-09-22 (MARTIAL_LORE_TIMING).
+	var tmplorestate = tmpmartial.state?.lore ?? {};
+	var tmpadded = (tmpfamily == "blocks") ? (parseInt(tmplorestate.blockSeconds) || 0)
+	             : (tmpfamily == "throws") ? (parseInt(tmplorestate.throwSeconds) || 0) : 0;
+	var tmpbase = parseInt(tmprow.speed) || 0;
+	if (tmpbase || tmpadded) {
+		tmplines.push(`Time: ${tmpbase + tmpadded} second(s)${tmpadded
+			? ` (${tmpbase} + ${tmpadded} for ${tmpfamily == "blocks" ? "Feather Block" : "Slam"})` : ""}.`);
+	}
 	if (tmprow.special) { tmplines.push(`<span class="muted">${esc(tmprow.special)}</span>`); }
 	return await postMartialCard(tmpactor, tmpname, tmplines, tmprolls);
 }
@@ -378,6 +405,10 @@ export async function rollMartialLoreValue(tmpactor, tmpname, tmpevent) {
 	var tmpskill = await rollSkillCheck(tmprow.chance + tmpmod);
 	var tmprolls = [tmpskill.rollObject];
 	var tmplines = [`${esc(tmpname)}: ${tmpskill.text}`];
+
+	// Its time, the book's (MARTIAL_LORE_TIMING): Flip's own 2 seconds, or what it adds to the block
+	// or throw it goes with, or "with" whatever it is part of.
+	if (tmprow.speedText) { tmplines.push(`Time: ${esc(tmprow.speedText)}.`); }
 
 	var tmpactive = parseMartialList(tmpmartial.activeLoreValues).filter(n => n != tmpname);
 	if (tmpskill.made) {

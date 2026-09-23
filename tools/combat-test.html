@@ -807,7 +807,7 @@ const sitMissile = (keys, martial) => R.resolveSituationalMods("missile", keys, 
 check("nothing set is nothing at all",
 	R.resolveSituationalMods("", ["positionRear"]),
 	{ kind: "", attack: 0, damage: 0, multi: 1, defense: 0, noDefense: false, special: [],
-	  multiMissile: "", noAttack: false, labels: [] });
+	  multiMissile: "", noAttack: false, labels: [], blindSkills: 0 });
 check("rear +4/+2 and prone +6/x2 add up", (({ attack, damage, multi }) => ({ attack, damage, multi }))(
 	sitMelee(["positionRear", "targetProne"])), { attack: 10, damage: 2, multi: 2 });
 // A multiplier is ADDED: each x2 is +1 on a running figure that starts at 1.
@@ -903,6 +903,28 @@ const sitHit = R.getToHitModifiers({ mode: "cut", weapon: { cut: { available: tr
 check("Situation Mods and the typed modifier are listed apart",
 	sitHit.list, [{ label: "Situational", value: 6 }, { label: "Modifier", value: -1 }]);
 check("...and both reach the total", sitHit.total, 5);
+
+// Martial blind fighting, the BOOK's figures by the user's ruling of 2026-09-22: Martial Lore's to-hit
+// offsets melee AND missile blindness, never past the penalty; +1 damage and +5% combat skills a level.
+const loreBlind = { blindFighting: 4, missileBlindFighting: 4, damage: 2, skills: 10, fullDefense: false };
+check("melee, blind, Martial Lore 50%: -8 + 4, +2 damage, +10% combat skills",
+	(({ attack, damage, blindSkills }) => ({ attack, damage, blindSkills }))(sitMelee(["selfBlind"], loreBlind)),
+	{ attack: -4, damage: 2, blindSkills: 10 });
+check("missile, blind: the same offset now reaches a bow (his SET gave missile none)",
+	(({ attack, damage, blindSkills }) => ({ attack, damage, blindSkills }))(sitMissile(["selfBlind"], loreBlind)),
+	{ attack: -4, damage: 2, blindSkills: 10 });
+check("...See without eyes is melee only: a stance offset with no Lore gives a bow nothing",
+	sitMissile(["selfBlind"], { blindFighting: 4, missileBlindFighting: 0 }).attack, -8);
+check("never past the penalty: +12 against -8 negates it and stops",
+	sitMelee(["selfBlind"], { blindFighting: 12 }).attack, 0);
+check("...and a bonus that is not blindness is untouched by the cap",
+	sitMelee(["selfBlind", "positionRear"], { blindFighting: 12 }).attack, 4);
+check("not blind, nothing from blind fighting", (({ attack, damage, blindSkills }) => ({ attack, damage, blindSkills }))(
+	sitMelee(["positionRear"], loreBlind)), { attack: 4, damage: 2, blindSkills: 0 });
+check("\"Full Defensive Mod\" keeps a defence lost to blindness...",
+	sitMelee(["selfBlind"], { fullDefense: true }).noDefense, false);
+check("...but not one lost to a critically failed Critical as well",
+	sitMelee(["selfBlind", "criticalFail"], { fullDefense: true }).noDefense, true);
 
 // It reaches the to-hit sum for MISSILE as well as melee -- his offHandPenalty is in both
 // totalmods branches (sheet-worker.js:64804 missile, 64806 melee) despite the table's name.
