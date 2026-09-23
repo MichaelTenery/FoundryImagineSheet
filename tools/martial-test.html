@@ -1,0 +1,428 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG martial arts test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/combat/martial-arts.mjs and the martial arts step of the character model,
+// checked against his generated tables, his handlers, and the Player's Guide's own worked example.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/martial-test.html
+//
+// The character model is imported with the same two Foundry globals stubbed that
+// tools/derive-test.html stubs; defineSchema() is never called.
+globalThis.foundry = {
+	abstract: {
+		TypeDataModel: class {
+			constructor(data) { Object.assign(this, data); }
+			prepareBaseData() {}
+			prepareDerivedData() {}
+		}
+	},
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+const M = await import("../module/combat/martial-arts.mjs");
+const T = await import("../module/combat-tables.mjs");
+const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+	return ok;
+}
+
+// --- the generated tables, against his dictionaries ------------------------------------
+check("his eleven attacks", Object.keys(T.MARTIAL_ATTACKS).length, 11);
+check("three blocks, seven holds, eight moves, five throws",
+	[Object.keys(T.MARTIAL_BLOCKS).length, Object.keys(T.MARTIAL_HOLDS).length,
+	 Object.keys(T.MARTIAL_MOVES).length, Object.keys(T.MARTIAL_THROWS).length], [3, 7, 8, 5]);
+check("twelve Martial Lore values, five stances",
+	[Object.keys(T.MARTIAL_LORE_VALUES).length, Object.keys(T.MARTIAL_STANCES).length], [12, 5]);
+check("parent ratings read from his skilldict: Knowledge 16, Lore 18", T.MARTIAL_PARENT_RATINGS,
+	{ knowledge: 16, lore: 18 });
+check("Martial Punch row, his columns", T.MARTIAL_ATTACKS["Martial Punch"],
+	{ rating: 10, skillMod: 30, speed: 3, minSpeed: 2, damage: "2d4", special: "None" });
+check("Head Butt's trailing-space \"20 \" reads as 20", T.MARTIAL_ATTACKS["Head Butt"].skillMod, 20);
+check("Spinning keeps his \"+2\" beside the number", [T.MARTIAL_MOVES["Spinning"].speed,
+	T.MARTIAL_MOVES["Spinning"].speedText], [2, "+2"]);
+check("Snap's speed is minus one", T.MARTIAL_MOVES["Snap"].speed, -1);
+
+// The subskill rule (Player's Guide p.93): (parent rating - subskill rating) x 5%. Every row fits
+// except the two the extractor reports.
+const misfits = [];
+for (const [fam, table, base] of [["attacks", T.MARTIAL_ATTACKS, 16], ["blocks", T.MARTIAL_BLOCKS, 16],
+	["holds", T.MARTIAL_HOLDS, 16], ["moves", T.MARTIAL_MOVES, 16], ["throws", T.MARTIAL_THROWS, 16],
+	["lore", T.MARTIAL_LORE_VALUES, 18]]) {
+	for (const [name, row] of Object.entries(table)) {
+		if ((base - row.rating) * 5 != row.skillMod) { misfits.push(name); }
+	}
+}
+check("only Jump and Immoveable Stance do not fit the subskill rule", misfits.sort(), ["Immoveable Stance", "Jump"]);
+
+// The Master's Manual errata's missing table (p.101), which throws each discipline teaches:
+// Arm all four; Leg Defensive/Balanced/Contact; Shoulder and Body Defensive/Contact; Spin Contact.
+const throwsIn = d => T.MARTIAL_DISCIPLINES[d].throws;
+check("Offensive throws, against his errata table", throwsIn("Offensive"), ["Arm Throw"]);
+check("Defensive throws", throwsIn("Defensive"), ["Arm Throw", "Leg Throw", "Shoulder Throw", "Body Throw"]);
+check("Balanced throws", throwsIn("Balanced"), ["Arm Throw", "Leg Throw"]);
+check("Contact throws", throwsIn("Contact"), ["Arm Throw", "Leg Throw", "Shoulder Throw", "Body Throw", "Spin Throw"]);
+check("Offensive has no holds; Contact has all seven",
+	[T.MARTIAL_DISCIPLINES.Offensive.holds.length, T.MARTIAL_DISCIPLINES.Contact.holds.length], [0, 7]);
+
+// Stance numbers, from handleStanceOn, and the book's (Mysteries of the Planes p.167).
+check("Strike as wind learned: +3 hit and damage, defence +2 (worse)",
+	[T.MARTIAL_STANCE_MODS["Strike as wind"].knowledge.mod_melee,
+	 T.MARTIAL_STANCE_MODS["Strike as wind"].knowledge.mod_damage,
+	 T.MARTIAL_STANCE_MODS["Strike as wind"].knowledge.mod_defensive], [3, 3, 2]);
+check("See without eyes mastered: blind fighting 6, keeps defence",
+	[T.MARTIAL_STANCE_MODS["See without eyes"].lore.blind_fighting,
+	 T.MARTIAL_STANCE_MODS["See without eyes"].lore.blind_defense], [6, "Full Defensive Mod"]);
+check("his move table: Flying's code adds +1 damage (corrected below)", T.MARTIAL_MOVE_MODS["Flying"].damage, 1);
+check("his move table: Spinning's code is +4 to hit (corrected below)", T.MARTIAL_MOVE_MODS["Spinning"].melee, 4);
+check("Flip is the only Lore value with a number: -4", T.MARTIAL_LORE_MODS["Flip"].defensive, -4);
+check("Martial Lore blind fighting: one per 25%, defence kept from 100%", T.MARTIAL_LORE_BLIND,
+	{ percentPerLevel: 25, fullDefenseAt: 100 });
+
+// --- lists --------------------------------------------------------------------------------
+check("a list parses, blanks and spaces dropped", M.parseMartialList(" Jump, ,Flying,"), ["Jump", "Flying"]);
+check("names match EXACTLY -- his includes() would find Arm in Torso(1 Arm)",
+	M.hasMartialName("Torso(1 Arm)", "Arm"), false);
+check("...and the name itself is found", M.hasMartialName("Half Neck,Arm", "Arm"), true);
+
+// --- subskill chances ---------------------------------------------------------------------
+// The Player's Guide's own example (p.93): "if the total skill chance of Martial Knowledge for a
+// character is 60%, then her Martial Kick total chance would be 80%."
+check("the book's example: Martial Knowledge 60% makes a Martial Kick 80%",
+	M.getMartialSubskillChance(60, "attacks", "Martial Kick"), 80);
+check("a Martial Punch is +30", M.getMartialSkillMod("attacks", "Martial Punch"), 30);
+check("Jump is his +20, which the book prints too", M.getMartialSkillMod("moves", "Jump"), 20);
+check("Immoveable Stance is -5 (rating, rule and book), not his table's +5",
+	M.getMartialSkillMod("moves", "Immoveable Stance"), -5);
+check("a Full Neck hold is -20", M.getMartialSubskillChance(60, "holds", "Full Neck"), 40);
+check("a Lore value is measured against Martial Lore: Combined Attack +5",
+	M.getMartialSubskillChance(40, "lore", "Combined Attack"), 45);
+check("no parent skill, no chance -- not the modifier on its own",
+	M.getMartialSubskillChance(0, "attacks", "Martial Punch"), 0);
+check("a name his tables do not hold has no modifier", M.getMartialSkillMod("attacks", "Haymaker"), 0);
+
+// --- what is known --------------------------------------------------------------------------
+const balanced = M.resolveMartialKnown("Balanced", {});
+check("Balanced attacks, from his setMartialKnowArts", balanced.attacks,
+	["Martial Punch", "Martial Kick", "Elbow Smash", "Knee Smash", "Heel Strike"]);
+check("Balanced moves", balanced.moves, ["Jump", "Flying", "Spinning", "Sweep", "Snap"]);
+const withLore = M.resolveMartialKnown("Balanced", { attacks: "Rake,Martial Punch", holds: "Torso", moves: "Haymaker" });
+check("learned with Martial Lore: added once, after the discipline's own", withLore.attacks,
+	["Martial Punch", "Martial Kick", "Elbow Smash", "Knee Smash", "Heel Strike", "Rake"]);
+check("...a learned hold joins the discipline's", withLore.holds, ["Half Neck", "Arm", "Leg", "Torso"]);
+check("...a name his tables do not hold is reported, not shown", withLore.unknown, ["Haymaker"]);
+const custom = M.resolveMartialKnown("Custom", { attacks: "Martial Punch", throws: "Spin Throw" });
+check("Custom is only what was picked", [custom.attacks, custom.blocks, custom.throws],
+	[["Martial Punch"], [], ["Spin Throw"]]);
+check("no discipline, nothing known", M.resolveMartialKnown("", {}).attacks, []);
+
+// --- rows -------------------------------------------------------------------------------------
+const rows = M.buildMartialRows(M.resolveMartialKnown("Offensive", {}), 60, 2);
+const punch = rows.attacks.find(r => r.name == "Martial Punch");
+check("a punch's chance is Martial Knowledge + 30", punch.chance, 90);
+check("its time is its speed plus the weapon speed modifier: 3 + 2", punch.speed, 5);
+check("its damage type is the book's, Smashing", punch.damageType, "Smashing");
+check("a Rake cuts and a Finger Punch thrusts",
+	[rows.attacks.find(r => r.name == "Rake").damageType, rows.attacks.find(r => r.name == "Finger Punch").damageType],
+	["Cutting", "Thrusting"]);
+const fast = M.buildMartialRows(M.resolveMartialKnown("Offensive", {}), 60, -3);
+check("never under the attack's own minimum (Finger Punch 2, minimum 1, -3)",
+	fast.attacks.find(r => r.name == "Finger Punch").speed, 1);
+check("a move's time is his table's, not moved by weapon speed",
+	rows.moves.find(r => r.name == "Spinning").speed, 2);
+check("'None' in his special column shows as nothing", punch.special, "");
+const loreRows = M.buildMartialLoreRows("Flip,Death Strike,Nonsense", 40);
+check("Lore rows: against Martial Lore, unknown names dropped",
+	loreRows.map(r => [r.name, r.chance]), [["Flip", 40], ["Death Strike", 30]]);
+
+// --- stances ------------------------------------------------------------------------------------
+const wind = M.getStanceModifiers("Strike as wind", false);
+check("Strike as wind: +3 to hit melee and missile, +3 damage",
+	[wind.melee, wind.missile, wind.damage], [3, 3, 3]);
+check("...defence +2, initiative -2, a second off offensive actions",
+	[wind.defensive, wind.initiative, wind.seconds], [2, -2, -1]);
+const windM = M.getStanceModifiers("Strike as wind", true);
+check("mastered: +4, defence +1, initiative -4, two seconds off",
+	[windM.melee, windM.defensive, windM.initiative, windM.seconds], [4, 1, -4, -2]);
+const water = M.getStanceModifiers("Flow as water", false);
+check("Flow as water: -2 hit and damage, defence -6 (better)",
+	[water.melee, water.damage, water.defensive], [-2, -2, -6]);
+check("...and +1 second, which his parser never reads (corrected)", water.seconds, 1);
+check("mastered Flow as water: -1, defence -8, no extra second",
+	[M.getStanceModifiers("Flow as water", true).melee, M.getStanceModifiers("Flow as water", true).defensive,
+	 M.getStanceModifiers("Flow as water", true).seconds], [-1, -8, 0]);
+const drunk = M.getStanceModifiers("Drunken fighting", false);
+check("Drunken fighting: +2 to hit, +1 PER DIE (his prose and the book), not his extra die",
+	[drunk.melee, drunk.perDie, drunk.extraDice], [2, 1, 0]);
+check("mastered: +4, +2 per die", [M.getStanceModifiers("Drunken fighting", true).melee,
+	M.getStanceModifiers("Drunken fighting", true).perDie], [4, 2]);
+const see = M.getStanceModifiers("See without eyes", false);
+check("See without eyes: blind fighting 4 and keeps defence", [see.blindFighting, see.blindFullDefense], [4, true]);
+check("a stance with his -8 sentinel reads as no blind fighting", wind.blindFighting, 0);
+check("Calm in the storm changes no combat number",
+	[M.getStanceModifiers("Calm in the storm", false).melee, M.getStanceModifiers("Calm in the storm", false).defensive], [0, 0]);
+check("no stance, no modifiers", M.getStanceModifiers("", false), null);
+
+// --- moves --------------------------------------------------------------------------------------
+const jump = M.getMoveModifiers("Jump", false);
+check("Jump: +2 to hit, +1 damage, one more die, one more second",
+	[jump.melee, jump.damage, jump.extraDice, jump.seconds], [2, 1, 1, 1]);
+const flying = M.getMoveModifiers("Flying", false);
+check("Flying: +4 to hit, x2, two seconds, and NOT his copied +1 damage",
+	[flying.melee, flying.multiplier, flying.seconds, flying.damage], [4, 2, 2, 0]);
+const spin = M.getMoveModifiers("Spinning", false);
+check("Spinning: +2 to hit (prose and book, not his +4), +2 per die, two seconds",
+	[spin.melee, spin.perDie, spin.seconds], [2, 2, 2]);
+const combo = M.getMoveModifiers("Jump,Spinning", false);
+check("Jump with Spinning, without Martial Lore: both void, as his code voids each",
+	[combo.melee, combo.illegal], [0, ["Jump", "Spinning"]]);
+const comboLore = M.getMoveModifiers("Jump,Spinning", true);
+check("...with Martial Lore the combination is allowed: +4, one die, +2 per die",
+	[comboLore.melee, comboLore.extraDice, comboLore.perDie, comboLore.illegal], [4, 1, 2, []]);
+check("Jump and Flying together are NOT refused -- his code has no such test",
+	[M.getMoveModifiers("Jump,Flying", false).melee, M.getMoveModifiers("Jump,Flying", false).multiplier], [6, 2]);
+check("Immoveable Stance: no defence", M.getMoveModifiers("Immoveable Stance", false).noDefense, true);
+const snap = M.getMoveModifiers("Snap", false);
+check("Snap: a second off a MARTIAL attack and no Strength, and nothing for a weapon",
+	[snap.martialOnly.seconds, snap.martialOnly.strength, snap.seconds, snap.strength], [-1, "snap", 0, ""]);
+const tension = M.getMoveModifiers("Tension", false);
+check("Tension: Strength doubled, two seconds, for weapons too", [tension.strength, tension.seconds], ["tension", 2]);
+check("Double Attack: one second more per attack (his table and book, not his -1)",
+	M.getMoveModifiers("Double Attack", false).martialOnly.seconds, 1);
+check("Sweep adds nothing to the attack itself",
+	[M.getMoveModifiers("Sweep", false).melee, M.getMoveModifiers("Sweep", false).damage], [0, 0]);
+
+// --- Martial Lore values -------------------------------------------------------------------------
+const flip = M.getLoreValueModifiers("Flip");
+check("Flip: -4 to be hit, and no attack", [flip.defensive, flip.noAttack], [-4, true]);
+check("Feather Block changes no number", M.getLoreValueModifiers("Feather Block").defensive, 0);
+check("Martial Lore 0: no blind fighting", M.getLoreBlindFighting(0), { blindFighting: 0, fullDefense: false });
+check("Martial Lore 49: one level", M.getLoreBlindFighting(49).blindFighting, 1);
+check("Martial Lore 99: three levels, no defence yet", M.getLoreBlindFighting(99), { blindFighting: 3, fullDefense: false });
+check("Martial Lore 100: four levels and the defence kept", M.getLoreBlindFighting(100), { blindFighting: 4, fullDefense: true });
+
+// --- the state together --------------------------------------------------------------------------
+const state = M.resolveMartialState({ stance: "Strike as wind", mastered: "Strike as wind",
+	activeMoves: "Jump", activeLore: "Flip", hasLore: true, loreChance: 50 });
+check("the mastered form is used when mastered", state.stance.mastered, true);
+check("defence: the stance's +1 and Flip's -4", state.defense.adjust, -3);
+check("initiative and seconds come from the stance", [state.initiative, state.seconds], [-4, -2]);
+check("blind: the better of stance (none) and Lore (2 levels)", state.blind,
+	{ blindFighting: 2, fullDefense: false, inStance: true });
+const seeState = M.resolveMartialState({ stance: "See without eyes", mastered: "", loreChance: 100 });
+check("See without eyes (4) against Martial Lore 100% (4): 4, defence kept", seeState.blind,
+	{ blindFighting: 4, fullDefense: true, inStance: true });
+check("no stance held: not in a stance", M.resolveMartialState({}).blind.inStance, false);
+
+// --- what an attack gets -------------------------------------------------------------------------
+const melee = M.getMartialAttackModifiers(M.resolveMartialState({ stance: "Strike as wind", activeMoves: "Jump" }),
+	{ mode: "cut", martialAttack: false });
+check("a sword cut: the stance's +3 and the move's +2, by name, in getToHitModifiers' shape", melee.list,
+	[{ label: "Stance (Strike as wind)", value: 3 }, { label: "Martial Moves", value: 2 }]);
+check("...totalling +5", melee.total, 5);
+check("...damage +3 stance +1 Jump, and Jump's extra die for a weapon too",
+	[melee.damage.flat, melee.damage.extraDice], [4, 1]);
+check("...the Jump's second on this attack; the stance's is already in weapon speed", melee.seconds, 1);
+const missile = M.getMartialAttackModifiers(M.resolveMartialState({ stance: "Strike as wind", activeMoves: "Jump" }),
+	{ mode: "missile", martialAttack: false });
+check("a bow: only the stance's missile +3 -- his missile branch zeroes the rest",
+	[missile.list, missile.damage.flat, missile.damage.extraDice],
+	[[{ label: "Stance (Strike as wind)", value: 3 }], 0, 0]);
+const snapPunch = M.getMartialAttackModifiers(M.resolveMartialState({ activeMoves: "Snap,Tension" }),
+	{ mode: "smash", martialAttack: true });
+check("a punch with Snap and Tension: Snap's no-Strength wins, and a second off, two on",
+	[snapPunch.damage.strength, snapPunch.seconds], ["snap", 1]);
+const snapSword = M.getMartialAttackModifiers(M.resolveMartialState({ activeMoves: "Snap,Tension" }),
+	{ mode: "cut", martialAttack: false });
+check("the same with a sword: Snap is martial-only, so Tension's doubling stands",
+	[snapSword.damage.strength, snapSword.seconds], ["tension", 2]);
+const flipping = M.getMartialAttackModifiers(M.resolveMartialState({ activeLore: "Flip" }), { mode: "thrust" });
+check("flipping: no attack, and says why", [flipping.noAttack, flipping.noAttackReason],
+	[true, "Flip: no attack while flipping"]);
+check("Flying doubles the attack's damage", M.getMartialAttackModifiers(
+	M.resolveMartialState({ activeMoves: "Flying" }), { mode: "smash", martialAttack: true }).damage.multiplier, 2);
+check("an illegal combination says so on the card", M.getMartialAttackModifiers(
+	M.resolveMartialState({ activeMoves: "Jump,Spinning" }), { mode: "smash" }).special.slice(-1)[0],
+	"Illegal combination, no effect: Jump, Spinning");
+check("no state at all, nothing added", M.getMartialAttackModifiers(null, { mode: "cut" }).total, 0);
+
+// --- dice and Strength ----------------------------------------------------------------------------
+check("a die added: 2d4+2 -> 3d4+2", M.addMartialDice("2d4+2", 1), "3d4+2");
+check("his rule: no dice added to a '1'", M.addMartialDice("1", 1), "1");
+check("nor to any flat figure", M.addMartialDice("8", 2), "8");
+check("Tension doubles a Strength bonus", M.getMartialStrengthDamage(3, "tension", false), 6);
+check("...and trebles it in two hands, the book's note", M.getMartialStrengthDamage(3, "tension", true), 9);
+check("...and halves a penalty, toward zero", M.getMartialStrengthDamage(-3, "tension", false), -1);
+check("Snap: no Strength at all", M.getMartialStrengthDamage(4, "snap", false), 0);
+check("otherwise two hands double and one hand leaves it",
+	[M.getMartialStrengthDamage(3, "", true), M.getMartialStrengthDamage(3, "", false)], [6, 3]);
+
+// --- a martial attack's damage ----------------------------------------------------------------------
+check("dice + Strength + flat, skill made", M.resolveMartialAttackDamage({ rolled: 5, dice: "2d4",
+	strength: 2, flat: 1, skillMade: true }).total, 8);
+check("skill FAILED: half, the book's 'still 1/2 damage'", M.resolveMartialAttackDamage({ rolled: 5, dice: "2d4",
+	strength: 2, flat: 1, skillMade: false }).total, 4);
+check("his halving rounds up: 7 -> 4", M.resolveMartialAttackDamage({ rolled: 7, dice: "2d4", skillMade: false }).total, 4);
+check("per die: Spinning's +2 on 2d4 is +4", M.resolveMartialAttackDamage({ rolled: 5, dice: "2d4",
+	perDie: 2, skillMade: true }).total, 9);
+check("Flying's x2", M.resolveMartialAttackDamage({ rolled: 5, dice: "2d4", multipliers: [2], skillMade: true }).total, 10);
+check("never past x3", M.resolveMartialAttackDamage({ rolled: 5, dice: "2d4", multipliers: [2, 2], skillMade: true }).total, 15);
+check("floored at zero before multiplying", M.resolveMartialAttackDamage({ rolled: 2, dice: "2d4",
+	strength: -5, skillMade: true }).total, 0);
+check("a called shot that missed halves too", M.resolveMartialAttackDamage({ rolled: 6, dice: "2d4",
+	skillMade: true, halve: true }).total, 3);
+check("Scissor Strike doubles only when the skill is made and both land",
+	[M.isScissorStrikeDoubled(true, true, true), M.isScissorStrikeDoubled(true, true, false),
+	 M.isScissorStrikeDoubled(false, true, true)], [true, false, false]);
+
+// --- touch and failed moves -------------------------------------------------------------------------
+check("touch: 10 or better", [M.resolveMartialTouch(9, 1).touched, M.resolveMartialTouch(9, 0).touched], [true, false]);
+check("touch: a natural 1 always fails", M.resolveMartialTouch(1, 20).touched, false);
+check("a failed Jump, save missed: prone, 1d6+1 to stand",
+	M.resolveFailedMove("Jump", 60, { saveRoll: 80, proneRoll: 3 }).secondsLost, 4);
+check("a failed Jump, save made: standing", M.resolveFailedMove("Jump", 60, { saveRoll: 40 }).saved, true);
+check("a failed Spinning, save missed: 1d3 seconds lost",
+	M.resolveFailedMove("Spinning", 60, { saveRoll: 80, lossRoll: 2 }).secondsLost, 2);
+check("a failed Snap costs nothing", M.resolveFailedMove("Snap", 60, { saveRoll: 99 }).secondsLost, 0);
+
+// --- learning -----------------------------------------------------------------------------------------
+check("learn a stance: succeeds under the chance and joins the list",
+	M.resolveLearnStance({ stance: "Flow as water", chance: 60, list: "See without eyes", roll: 40 }),
+	{ outcome: "succeeded", reason: "Rolled 40% against a 60% chance. Learned.", list: "See without eyes,Flow as water" });
+check("...fails over it, list unchanged",
+	M.resolveLearnStance({ stance: "Flow as water", chance: 60, list: "", roll: 61 }).list, "");
+check("...already known is refused before rolling",
+	M.resolveLearnStance({ stance: "Flow as water", chance: 60, list: "Flow as water", roll: 1 }).outcome, "alreadyKnown");
+check("master a stance: needs Martial Lore",
+	M.resolveMasterStance({ stance: "Flow as water", hasLore: false, known: "Flow as water", chance: 90, roll: 1 }).outcome, "noLore");
+check("...and needs the stance learned first",
+	M.resolveMasterStance({ stance: "Flow as water", hasLore: true, known: "", chance: 90, roll: 1 }).outcome, "notLearned");
+check("...then rolls against Martial Lore",
+	M.resolveMasterStance({ stance: "Flow as water", hasLore: true, known: "Flow as water", mastered: "",
+		chance: 50, roll: 30 }).list, "Flow as water");
+check("learn a subskill outside the discipline with Martial Lore",
+	M.resolveLearnSubskill({ family: "holds", name: "Torso(1 Arm)", chance: 50, known: ["Half Neck"],
+		learned: "", roll: 20 }).list, "Torso(1 Arm)");
+check("...already known through the discipline is refused",
+	M.resolveLearnSubskill({ family: "holds", name: "Half Neck", chance: 50, known: ["Half Neck"], learned: "", roll: 1 }).outcome,
+	"alreadyKnown");
+check("...Arm is NOT already known just because Torso(1 Arm) is",
+	M.resolveLearnSubskill({ family: "holds", name: "Arm", chance: 50, known: ["Torso(1 Arm)"], learned: "", roll: 1 }).outcome,
+	"succeeded");
+check("learn a Martial Lore value", M.resolveLearnLoreValue({ name: "Flip", chance: 40, list: "Slam", roll: 12 }).list,
+	"Slam,Flip");
+check("...nothing picked", M.resolveLearnLoreValue({ name: "", chance: 40, list: "", roll: 12 }).outcome, "noValue");
+
+// --- the character model ------------------------------------------------------------------------------
+// A trimmed copy of derive-test.html's makeCharacter, with a martial block.
+function makeCharacter(ratings, title, items, martial) {
+	const attributes = {};
+	for (const k of ["str","agl","vit","int","wis","knw","app","chm","soc","aur","pty","wil"]) {
+		attributes[k] = { rating: ratings[k] ?? 10, permMod: 0, tempMod: 0 };
+	}
+	const characteristic = () => ({ titleBonus: 0, raceMod: 0, permMod: 0, tempMod: 0 });
+	const resistance = () => ({ misc: 0, immune: false });
+	const c = new ImagineCharacterData({
+		identity: { title },
+		attributes,
+		characteristics: { endurance: characteristic(), perception: characteristic(),
+		                   affinity: characteristic(), fortune: characteristic() },
+		resistances: { magic: resistance(), illusion: resistance(), control: resistance(),
+		               poison: resistance(), disease: resistance() },
+		body: { bodyType: "Humanoid", areas: [], armorDamage: {} },
+		combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
+		          weaponLoreList: "", missileLoreList: "", projectileLoreList: "" },
+		physical: { weight: 0, handedness: "", famorian: {} },
+		languages: [],
+		skillSlotMoves: { racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0,
+		                  racialSacrificed: 0, socialSacrificed: 0 },
+		movement: { walk: { hourly: 0, tenSec: 0, oneSec: 0 }, jog: { hourly: 0, tenSec: 0, oneSec: 0 },
+		            run: { hourly: 0, tenSec: 0, oneSec: 0 }, special: { hourly: 0, tenSec: 0, oneSec: 0 },
+		            specialName: "", travelHours: 0, restHours: 0, jumpStand: 0, jumpUp: 0 },
+		martial: Object.assign({ discipline: "", learnedAttacks: "", learnedBlocks: "", learnedHolds: "",
+			learnedMoves: "", learnedThrows: "", loreValues: "", stances: "", masteredStances: "",
+			activeStance: "", activeMoves: "", activeLoreValues: "" }, martial ?? {})
+	});
+	c.parent = { items };
+	c.prepareBaseData();
+	c.prepareDerivedData();
+	return c;
+}
+// STR 16 AGL 16 against Martial Knowledge's rating 16 is 0 base; +60 misc makes 60%.
+// AGL 16 WIS 16 against Martial Lore's 18 is -10 base; +50 misc makes 40%.
+const skill = (name, a1, a2, rating, misc, extra = {}) => ({ type: "skill", name,
+	system: Object.assign({ attr1: a1, attr2: a2, skillRating: rating, startingBonus: 0, abilityBonus: 0,
+	                        misc, isCommon: false, category: "class" }, extra) });
+const mk = skill("Martial Knowledge", "STR", "AGL", 16, 60);
+const ml = skill("Martial Lore", "AGL", "WIS", 18, 50);
+const ratings = { str: 16, agl: 16, wis: 16 };
+
+const plain = makeCharacter(ratings, 5, [], {});
+const before = { def: plain.combat.defensiveAdjust, init: plain.combat.initiativeMod, speed: plain.combat.weaponSpeedMod };
+check("no martial arts: nothing known, nothing held", [plain.martial.hasKnowledge, plain.martial.rows.attacks.length], [false, 0]);
+check("...and the blind-fighting hand-off is all zeroes", plain.combat.martialBlind,
+	{ blindFighting: 0, fullDefense: false, inStance: false });
+
+const artist = makeCharacter(ratings, 5, [mk], { discipline: "Balanced", stances: "Strike as wind",
+	activeStance: "Strike as wind", activeMoves: "Jump,Spinning" });
+check("Martial Knowledge read off the actor: 60%", artist.martial.knowChance, 60);
+check("the Balanced discipline's five attacks are rows", artist.martial.rows.attacks.length, 5);
+check("a Martial Kick at 80%, the book's example through the whole model",
+	artist.martial.rows.attacks.find(r => r.name == "Martial Kick").chance, 80);
+check("the stance is held", artist.martial.state.stance.name, "Strike as wind");
+check("its defence +2 is folded into the character's defensive adjustment",
+	artist.combat.defensiveAdjust - before.def, 2);
+check("its initiative -2 into the initiative modifier", artist.combat.initiativeMod - before.init, -2);
+check("its second off into weapon speed", artist.combat.weaponSpeedMod - before.speed, -1);
+check("Jump and Spinning without Martial Lore: both void",
+	artist.martial.state.moves.illegal, ["Jump", "Spinning"]);
+check("...a punch row's time follows the stance: 3 - 1 on top of the base modifier",
+	artist.martial.rows.attacks.find(r => r.name == "Martial Punch").speed,
+	Math.max(2, 3 + artist.combat.weaponSpeedMod));
+check("the Situation Mods hand-off: in a stance, no blind fighting",
+	artist.combat.martialBlind, { blindFighting: 0, fullDefense: false, inStance: true });
+
+const lorist = makeCharacter(ratings, 9, [mk, ml], { discipline: "Balanced", stances: "Strike as wind",
+	masteredStances: "Strike as wind", activeStance: "Strike as wind", activeMoves: "Jump,Spinning",
+	loreValues: "Flip", activeLoreValues: "Flip" });
+check("Martial Lore 40%", lorist.martial.loreChance, 40);
+check("with Martial Lore, Jump and Spinning combine", lorist.martial.state.moves.illegal, []);
+check("the mastered stance: +1 defence, and Flip's -4", lorist.combat.defensiveAdjust - before.def, -3);
+check("Martial Lore 40%: one level of blind fighting", lorist.combat.martialBlind.blindFighting, 1);
+check("Flip is a Lore row at Martial Lore's 40%", lorist.martial.loreRows[0].chance, 40);
+
+const untrained = makeCharacter(ratings, 5, [], { discipline: "Offensive", stances: "Flow as water",
+	activeStance: "Flow as water", activeMoves: "Jump" });
+check("a stance written on a character without Martial Knowledge does nothing",
+	[untrained.martial.state.stance, untrained.combat.defensiveAdjust - before.def], [null, 0]);
+check("...but what they would know is still listed", untrained.martial.rows.attacks.length, 8);
+check("...at no chance", untrained.martial.rows.attacks[0].chance, 0);
+
+const unlearned = makeCharacter(ratings, 5, [mk], { discipline: "Offensive", stances: "",
+	activeStance: "Flow as water", activeMoves: "Flying" });
+check("a stance never learned cannot be held", unlearned.martial.state.stance, null);
+check("a move outside what is known cannot be made (Offensive has no Flying)",
+	unlearned.martial.state.moves.made, []);
+
+const immoveable = makeCharacter(ratings, 5, [mk], { discipline: "Defensive", activeMoves: "Immoveable Stance" });
+check("Immoveable Stance made: the character's defence is gone, through combat.noDefense",
+	[immoveable.combat.martialDefense.noDefense, immoveable.combat.noDefense], [true, true]);
+
+const gated = makeCharacter(ratings, 2, [skill("Martial Knowledge", "STR", "AGL", 16, 60, { acquiredAtTitle: 4 })],
+	{ discipline: "Offensive" });
+check("a class skill held before its title reads as not held", gated.martial.hasKnowledge, false);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${results.length - passed} failed`;
+</script>

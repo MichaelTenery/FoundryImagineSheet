@@ -30,6 +30,9 @@ import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions
          checkClassSkillTitle } from "../class-rules.mjs";
 import { checkClassQualification } from "../chargen-rules.mjs";
 import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../advancement-rules.mjs";
+import { MARTIAL_DISCIPLINE_NAMES, parseMartialList, hasMartialName, resolveMartialKnown,
+         buildMartialRows, buildMartialLoreRows, resolveMartialState } from "../combat/martial-arts.mjs";
+import { MARTIAL_STANCES } from "../combat-tables.mjs";
 
 const fields = foundry.data.fields;
 
@@ -392,6 +395,38 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				})
 			}),
 
+			// @MARKER MARTIAL ARTS
+			// What a martial artist KNOWS and what they have IN PLAY, kept as his sheet keeps them:
+			// comma-separated strings of names (martial_know_attacks, martial_lore_list,
+			// martial_stance_list and the rest), so a text field can write one back and his lists
+			// read across unchanged. Everything worked out from them -- the rows with their chances
+			// and times, what a stance or a made move does -- is derived in _prepareMartialArts.
+			//
+			// The discipline is chosen once, when Martial Knowledge is acquired, and brings its own
+			// list of subskills (MARTIAL_DISCIPLINES). The learned* strings hold what is known
+			// BEYOND it: a Custom discipline's picks, and anything added later with Martial Lore.
+			martial: new fields.SchemaField({
+				discipline:       new fields.StringField({ required: true, blank: true, initial: "",
+					choices: ["", ...MARTIAL_DISCIPLINE_NAMES] }),
+				learnedAttacks:   new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedBlocks:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedHolds:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedMoves:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedThrows:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				// The twelve Martial Lore values learned, his martial_lore_list.
+				loreValues:       new fields.StringField({ required: true, blank: true, initial: "" }),
+				// Stances learned with Martial Knowledge, and those mastered with Martial Lore -- his
+				// martial_stance_list and martial_mastered_stances_list.
+				stances:          new fields.StringField({ required: true, blank: true, initial: "" }),
+				masteredStances:  new fields.StringField({ required: true, blank: true, initial: "" }),
+				// In play. Only one stance at a time (Mysteries of the Planes p.167). A move or Lore
+				// value is here once its skill roll has been made, and stays until cleared -- his
+				// martialN_move_success boxes and the SET/CLEAR buttons beside them.
+				activeStance:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeMoves:      new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeLoreValues: new fields.StringField({ required: true, blank: true, initial: "" })
+			}),
+
 			// @MARKER NOTES
 			biography: new fields.HTMLField({ required: true, initial: "" })
 		};
@@ -618,6 +653,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this._prepareSkills();
 		this._prepareSkillSlotStatus();
 		this._prepareOffhandSkills();
+		// Martial arts after the skills, whose chances it reads, and straight before the Situation
+		// Mods, which read the blind fighting it sets in combat.martialBlind.
+		this._prepareMartialArts();
 		// Late, so that anything martial arts derives before it (blind fighting, a stance held) is
 		// already in place when the situational figures are totalled. It changes defensiveAdjust,
 		// which nothing between _prepareCombat and here reads.
@@ -1593,6 +1631,98 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		if (!tmpactor || !tmpactor.items) { return 0; }
 		var tmpskill = tmpactor.items.find(i => i.type == "skill" && i.name == tmpname);
 		return tmpskill ? (parseInt(tmpskill.system.totalChance) || 0) : 0;
+	}
+
+	// @MARKER MARTIAL ARTS
+	// This is the function which works out the character's martial arts: which subskills they know
+	// and at what chance, the stance they hold, the moves and Martial Lore values they have made, and
+	// what all of that does to the rest of their combat figures. The rules are in
+	// module/combat/martial-arts.mjs; this only gathers the inputs and lays the results out.
+	//
+	// Its own step, run after _prepareOffhandSkills for the same reason that one is: the two skill
+	// chances it reads are not finished until _prepareSkills has run. And BEFORE _prepareSituation,
+	// which reads combat.martialBlind -- his handleMeleeSet takes the better of the stance's and
+	// Martial Lore's blind fighting when it totals the situational modifiers.
+	//
+	// Three figures are CHARACTER-WIDE and are folded straight into the combat block, so that
+	// everything already reading them follows without being told: a stance's defensive change and a
+	// made Flip into defensiveAdjust (read by every attack against the character), a stance's
+	// initiative into initiativeMod, and a stance's change to "offensive actions starting speed"
+	// into weaponSpeedMod (every weapon's time, never under its minimum). Immoveable Stance's "No
+	// Defense" is combat.martialDefense.noDefense; the attack against this character reads it.
+	//
+	// Nothing applies without Martial Knowledge. A stance or move written on a character who does
+	// not hold the skill -- dragged off, or never acquired -- is shown and does nothing.
+	_prepareMartialArts() {
+		var tmpmartial = this.martial ?? {};
+		this.martial = tmpmartial;
+
+		var tmpknow = this._getMartialSkill("Martial Knowledge");
+		var tmplore = this._getMartialSkill("Martial Lore");
+		tmpmartial.hasKnowledge = tmpknow.held;
+		tmpmartial.hasLore = tmplore.held;
+		tmpmartial.knowChance = tmpknow.chance;
+		tmpmartial.loreChance = tmplore.chance;
+
+		// What is known: the discipline's list and anything learned beyond it.
+		tmpmartial.known = resolveMartialKnown(tmpmartial.discipline, {
+			attacks: tmpmartial.learnedAttacks, blocks: tmpmartial.learnedBlocks,
+			holds: tmpmartial.learnedHolds, moves: tmpmartial.learnedMoves, throws: tmpmartial.learnedThrows
+		});
+
+		// What is in play, held to what is actually known: a stance must have been learned to be
+		// held, and a move or Lore value must be one the character has.
+		var tmpstances = parseMartialList(tmpmartial.stances).filter(tmpname => MARTIAL_STANCES[tmpname]);
+		var tmpstance = tmpstances.includes(tmpmartial.activeStance) ? tmpmartial.activeStance : "";
+		var tmpmoves = parseMartialList(tmpmartial.activeMoves)
+			.filter(tmpname => tmpmartial.known.moves.includes(tmpname));
+		var tmplorevalues = parseMartialList(tmpmartial.activeLoreValues)
+			.filter(tmpname => hasMartialName(tmpmartial.loreValues, tmpname));
+
+		tmpmartial.state = resolveMartialState({
+			stance:      tmpknow.held ? tmpstance : "",
+			mastered:    tmpmartial.masteredStances,
+			activeMoves: tmpknow.held ? tmpmoves.join(",") : "",
+			activeLore:  tmplore.held ? tmplorevalues.join(",") : "",
+			hasLore:     tmplore.held,
+			loreChance:  tmplore.chance
+		});
+
+		// Character-wide, folded into what everything else already reads. See the note above.
+		var tmpstate = tmpmartial.state;
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + tmpstate.defense.adjust;
+		this.combat.initiativeMod = (parseInt(this.combat.initiativeMod) || 0) + tmpstate.initiative;
+		this.combat.weaponSpeedMod = (parseInt(this.combat.weaponSpeedMod) || 0) + tmpstate.seconds;
+		this.combat.martialDefense = tmpstate.defense;
+		this.combat.martialBlind = tmpstate.blind;
+
+		// The rows the Combat tab shows, each with its chance and time. Built AFTER the stance's
+		// seconds are folded in, because a martial attack is an offensive action too.
+		tmpmartial.rows = buildMartialRows(tmpmartial.known, tmpknow.chance, this.combat.weaponSpeedMod);
+		tmpmartial.loreRows = buildMartialLoreRows(tmpmartial.loreValues, tmplore.chance);
+		tmpmartial.stanceRows = tmpstances.map(tmpname => ({
+			name: tmpname,
+			mastered: hasMartialName(tmpmartial.masteredStances, tmpname),
+			held: tmpname == tmpstance,
+			text: MARTIAL_STANCES[tmpname][hasMartialName(tmpmartial.masteredStances, tmpname) ? "lore" : "knowledge"]
+		}));
+		tmpmartial.activeMoveNames = tmpmoves;
+		tmpmartial.activeLoreNames = tmplorevalues;
+
+		// Every martial artist gets up quickly: "All martial artists take only 1-3 seconds to jump to
+		// their feet rather than the usual 2-7" (p.97), his martial_arts_stand_from_prone.
+		tmpmartial.standFromProne = tmpknow.held ? "Jump to feet (1-3 seconds)" : "Stand up (2-7 seconds)";
+	}
+
+	// This is the function which reads Martial Knowledge or Martial Lore off the character: whether
+	// it is held and usable, and its chance. A class skill held before its title is reached is
+	// refused on the roll (his handleHighTitleClassSkillRoll), and his checkForClassSkill finds no
+	// such skill then either, so it reads as not held.
+	_getMartialSkill(tmpname) {
+		var tmpactor = this.parent;
+		var tmpskill = tmpactor?.items?.find(i => i.type == "skill" && i.name == tmpname);
+		if (!tmpskill || tmpskill.system.usableByTitle === false) { return { held: false, chance: 0 }; }
+		return { held: true, chance: parseInt(tmpskill.system.totalChance) || 0 };
 	}
 
 	// This is the function which gives the chance for a skill the character does NOT hold,
