@@ -1623,3 +1623,42 @@ closing depends on the answer here: if the call is meant to work, the fix is `ge
 and the port should add the table (small — six rows) to the Social skill total the way class-skill
 bonuses already are. If the array-vs-string comparison is not a bug but some Roll20-specific
 coercion you relied on, or if this feature was abandoned deliberately, say so and it stays out.
+
+## 53. "One Eye" in the missile Situation Mods never applies
+
+**Status:** open · **Severity:** low — a -2 that silently never lands
+
+Found 2026-09-22 porting the Situation Mods. `handleMissileSet` (sheet-worker.js:72990) tests
+`sit_self_one_eye` and subtracts 2 -- but `sit_self_one_eye` is not in the `getAttrs` list at the
+top of the function, so `values.sit_self_one_eye` is always undefined and the test is always false.
+Your label beside the box says -2 Missile and your own test says -2, so the port applies -2. If One
+Eye was meant to do nothing, say so and it comes out.
+
+## 54. A critically failed Perfect Shot halves damage only when something else multiplies it
+
+**Status:** open · **Severity:** low
+
+The Perfect Shot's Crit Fail puts "Half Dam" in the special modifiers, and the halving is in your
+attack's multiplier block (sheet-worker.js:65147, 65155) -- which is inside `if (damMulti!=1.0)`. With
+no other multiplier in play, `damMulti` is 1.0 and the halving is never reached, so an ordinary
+failed Perfect Shot does full damage. Your label reads "Crit Fail (Half Damage)" without condition,
+so the port halves it every time. Say if the condition was intended.
+
+## 55. Three Situation Mods whose label and code disagree, kept as the code has them
+
+**Status:** open · **Severity:** questions rather than defects
+
+1. **"In Cover" is +4 Defense.** On your sheet a positive defence figure is worse for its owner --
+   Furious Attack is +4, Desperate Defense -4 -- so being in cover makes the character 4 EASIER to
+   hit. Label and code agree on +4, so the port keeps it; it reads as though it should be -4.
+2. **Missile "Darkness" says "(-8 Missile/No Defense)"; the missile SET gives no No Defense.** The
+   melee SET does. The port follows the code.
+3. **Quick Load's Crit Fail ("AGL Save or drop Projectiles") is never read by `handleMissileSet`.**
+   The port sets it on a critically failed roll and prints the consequence on the attack card, but
+   applies nothing, since there is nothing in your code to apply.
+
+A fourth, smaller one, decided rather than asked: `handlePhysicalAttacks` zeroes the other kind's
+situational to-hit, damage and multiplier when a melee attack reads missile modifiers (or the other
+way round), but the line that would clear the special words is commented out, so a missile panel's
+"Max" or "+1 per Die" would reach a sword blow. The port clears them too. See `docs/DECISIONS.md`,
+"Situation Mods".

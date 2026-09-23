@@ -17,6 +17,7 @@
 import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../creature-tables.mjs";
 import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -61,7 +62,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			rollCreatureSkill: ImagineCreatureSheet.#onRollCreatureSkill,
 			rollCreatureAttack: ImagineCreatureSheet.#onRollCreatureAttack,
 			setAttackHand: ImagineCreatureSheet.#onSetAttackHand,
-			usePower: ImagineCreatureSheet.#onUsePower
+			usePower: ImagineCreatureSheet.#onUsePower,
+			openSituation: ImagineCreatureSheet.#onOpenSituation,
+			clearSituation: ImagineCreatureSheet.#onClearSituation
 		}
 	};
 
@@ -112,6 +115,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 		tmpcontext.handednessChoices =
 			ImagineCreatureSheet.#buildHandednessChoices(this.document.system.identity.handedness);
+
+		// The Situation Mods bar, one line -- his creature page carries the same bar.
+		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
 
 		return tmpcontext;
 	}
@@ -341,6 +347,19 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			return;
 		}
 		await game.imagine.rollCreatureAttack(this.document, tmpitem);
+	}
+
+	// This is the function which opens the Situation Mods window, reached through game.imagine
+	// as the attack roll is.
+	static async #onOpenSituation(event, target) {
+		event.preventDefault();
+		game.imagine?.situationMods(this.document);
+	}
+
+	// This is the function which clears every Situation Mod -- his "Clear all modifiers".
+	static async #onClearSituation(event, target) {
+		event.preventDefault();
+		await this.document.update({ "system.combat.situation.kind": "", "system.combat.situation.selected": [] });
 	}
 
 	// This is the function which sets which limb an attack comes from -- or clears it back to

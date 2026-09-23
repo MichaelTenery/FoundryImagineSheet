@@ -23,9 +23,12 @@
 		<div class="char-box"><label>Initiative</label>
 			<span class="value">d10 {{#if (gte system.combat.initiativeMod 0)}}+{{/if}}{{system.combat.initiativeMod}}</span>
 			<span class="sub">lower acts first</span></div>
+		{{!-- Includes the Situation Mods' own defence; "No Defense" takes it away altogether. --}}
 		<div class="char-box"><label>Defence</label>
-			<span class="value">{{#if (gt system.combat.defensiveAdjust 0)}}+{{/if}}{{system.combat.defensiveAdjust}}</span>
-			<span class="sub">to attackers' rolls</span></div>
+			{{#if system.combat.noDefense}}<span class="value alarm">None</span>
+			<span class="sub">No Defense, from Situation Mods</span>
+			{{else}}<span class="value">{{#if (gt system.combat.defensiveAdjust 0)}}+{{/if}}{{system.combat.defensiveAdjust}}</span>
+			<span class="sub">to attackers' rolls</span>{{/if}}</div>
 		<div class="char-box"><label>Shock</label>
 			<span class="value {{#if system.body.inShock}}alarm{{/if}}">{{system.body.totalWounds}} / {{#if system.characteristics.shock.immune}}Imm{{else}}{{system.body.shock}}{{/if}}</span>
 			<span class="sub">{{#if system.body.inShock}}IN SHOCK{{else}}total wounds{{/if}}</span></div>
@@ -42,6 +45,14 @@
 			<span class="value"><input type="number" class="pain-input" min="0"
 				name="system.combat.damageAbsorb" value="{{system.combat.damageAbsorb}}"></span>
 			<span class="sub">pool, spent as used</span></div>
+	</div>
+
+	{{!-- His "SITUATION MODS" bar, the same one a character's combat page has. --}}
+	<div class="situation-bar">
+		<strong>Situation Mods:</strong>
+		{{#if situationLine}}<span class="situation-line">{{situationLine}}</span>{{else}}<span class="muted">none set</span>{{/if}}
+		<button type="button" data-action="openSituation"><i class="fa-solid fa-sliders"></i> Melee / Missile Mods</button>
+		{{#if situationLine}}<button type="button" data-action="clearSituation" data-tooltip="Clear all modifiers"><i class="fa-solid fa-eraser"></i></button>{{/if}}
 	</div>
 
 	{{!-- Everything here comes off a blow BEFORE any worn armour blocks it, in his order. Each is

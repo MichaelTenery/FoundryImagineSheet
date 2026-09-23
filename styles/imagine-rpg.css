@@ -1352,3 +1352,44 @@ input.source-unknown {
 .imagine.item-picker .picker-foot { display: flex; align-items: center; gap: 10px; }
 .imagine.item-picker .picker-foot p { flex: 1; margin: 0; font-size: 11px; }
 .imagine.item-picker .empty { padding: 10px; color: var(--imagine-muted); }
+
+/* ---- Situation Mods: the combat tab's bar and the melee/missile window ---------------------- */
+.situation-bar {
+	display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+	margin: 6px 0 8px; padding: 4px 8px;
+	border: 1px solid var(--imagine-rule); border-radius: 3px; background: var(--imagine-panel);
+	font-size: 12px;
+}
+.situation-bar .situation-line { flex: 1 1 auto; }
+.situation-bar button { flex: 0 0 auto; width: auto; line-height: 20px; padding: 0 8px; }
+
+.imagine.situation-mods .situation-mods-window { display: flex; flex-direction: column; height: 100%; gap: 6px; }
+.imagine.situation-mods .situation-head,
+.imagine.situation-mods .situation-rollwith { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.imagine.situation-mods .situation-head label { flex: 1; }
+.imagine.situation-mods .situation-head button { width: auto; flex: 0 0 auto; }
+.imagine.situation-mods .situation-rollwith { font-size: 11px; }
+.imagine.situation-mods input.short { width: 4em; }
+.imagine.situation-mods .situation-body { flex: 1; overflow-y: auto; }
+.imagine.situation-mods .situation-group {
+	margin: 4px 0; padding: 2px 8px 4px;
+	border: 1px solid var(--imagine-rule-soft); border-radius: 3px;
+}
+.imagine.situation-mods .situation-group legend { font-weight: 600; padding: 0 4px; }
+.imagine.situation-mods .situation-option { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.imagine.situation-mods .situation-option.on label { font-weight: 600; }
+.imagine.situation-mods .situation-option label { display: flex; align-items: center; gap: 4px; }
+.imagine.situation-mods .situation-option .figures { font-size: 11px; }
+.imagine.situation-mods .situation-option .roll-option { width: auto; flex: 0 0 auto; margin-left: auto; line-height: 18px; padding: 0 6px; font-size: 11px; }
+.imagine.situation-mods .situation-totals {
+	display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 6px 8px;
+	border-top: 2px solid var(--imagine-accent); background: var(--imagine-head);
+}
+.imagine.situation-mods .situation-totals label { font-weight: 600; margin-right: 2px; }
+.imagine.situation-mods .situation-totals .specials { flex-basis: 100%; font-size: 11px; }
+.imagine.situation-mods .situation-totals .alarm,
+.value.alarm { color: var(--imagine-alarm); font-weight: 600; }
+.imagine.situation-mods .situation-foot { display: flex; justify-content: flex-end; }
+.imagine.situation-mods .situation-foot button { width: auto; }
+.imagine.situation-mods .empty { color: var(--imagine-muted); padding: 10px; }
+.imagine-chat .situation, .imagine-chat .situation-notes { font-size: 11px; }

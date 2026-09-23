@@ -83,7 +83,8 @@ function makeCreature(options = {}) {
 		combat: {
 			attackChart: options.attackChart ?? "None", attackNotes: "",
 			meleeMisc: 0, missileMisc: 0, damageMisc: 0,
-			defenseMisc: 0, initiativeMisc: options.initiativeMisc ?? 0, skillMisc: 0
+			defenseMisc: 0, initiativeMisc: options.initiativeMisc ?? 0, skillMisc: 0,
+			situation: options.situation ?? { kind: "", selected: [], weaponId: "" }
 		},
 		notes: "", biography: ""
 	});
@@ -471,8 +472,23 @@ const withTarget = C.getCreatureToHitModifiers({
 	target: { defensiveAdjust: -3 }, situational: 2
 });
 check("the target's defence and a situational modifier are included", withTarget.total, 3);
+// The number typed into the dialog is "Modifier" -- "Situational" is now what the Situation Mods
+// window sets, which is the name his card gives those.
 check("every modifier is listed by name", withTarget.list.map(m => m.label),
-	["STR", "Melee Other", "Target's Defence", "Situational"]);
+	["STR", "Melee Other", "Target's Defence", "Modifier"]);
+const withSituation = C.getCreatureToHitModifiers({
+	mods: "melee", attacker: attacker, situation: 4, situational: 1
+});
+check("the Situation Mods come in as Situational, beside the typed Modifier",
+	withSituation.list.slice(-2), [{ label: "Situational", value: 4 }, { label: "Modifier", value: 1 }]);
+check("the creature's damage takes the Situation Mods' damage too",
+	C.getCreatureDamageMods({ damageMisc: 0, situation: 6, situational: 0 }).total, 6);
+// His creature page has the same bar, so the creature's own defence moves with it.
+const calmBeast = makeCreature({ agility: 12 });
+const fadedBeast = makeCreature({ agility: 12, situation: { kind: "melee", selected: ["selfFadeDark"], weaponId: "" } });
+check("a creature faded into darkness is 8 harder to hit",
+	fadedBeast.combat.defensiveAdjust - calmBeast.combat.defensiveAdjust, -8);
+check("...and reads +4 on its own melee attacks", fadedBeast.combat.situational.attack, 4);
 
 const noMods = C.getCreatureToHitModifiers({ mods: "melee", attacker: {} });
 check("a creature with no modifiers has an empty list", noMods.list, []);

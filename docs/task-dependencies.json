@@ -36,6 +36,8 @@
     "Experience & Levelling":             { "dependsOn": ["Attributes module", "Races & Classes", "Skills module"], "note": "Added 2026-09-19 by the levelling pass; its magic side waits on Layer 4." },
     "Combat module — phase 1":            { "dependsOn": ["Design Actor data model", "Attributes module"] },
     "Combat module — phase 2":            { "dependsOn": ["Combat module — phase 1", "Equipment module"] },
+    "Situation Mods":                     { "dependsOn": ["Combat module — phase 1", "Creature actor type", "Skills module"], "note": "Martial blind fighting and stance feed it through combat.martialBlind." },
+    "Second Weapon Knowledge/Lore held":  { "dependsOn": ["Combat module — phase 2", "Skills module"] },
     "Visual attack-chart":                { "dependsOn": ["Combat module — phase 1", "Creature actor type"], "note": "Needs a design pass first: an adjacency model for each body chart." },
     "Equipment module":                   { "dependsOn": ["Attributes module", "Generate src/packs", "Design content/compendium layer"] },
 

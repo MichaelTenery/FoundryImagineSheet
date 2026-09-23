@@ -176,8 +176,13 @@ import { CREATURE_ATTACK_TYPES } from "../creature-tables.mjs";
 		var tmpoffhand = parseInt(tmpinput.offhand) || 0;
 		if (tmpoffhand) { tmplist.push({ label: "Off Hand", value: tmpoffhand }); }
 
+		// The Situation Mods the creature has set, cut to this attack by getSituationalForAttack
+		// -- his creature page has the same bar a character's does -- then the number typed into
+		// the attack dialog, as a character's are.
+		var tmpsituation = parseInt(tmpinput.situation) || 0;
+		if (tmpsituation) { tmplist.push({ label: "Situational", value: tmpsituation }); }
 		var tmpsituational = parseInt(tmpinput.situational) || 0;
-		if (tmpsituational) { tmplist.push({ label: "Situational", value: tmpsituational }); }
+		if (tmpsituational) { tmplist.push({ label: "Modifier", value: tmpsituational }); }
 
 		var tmptotal = 0;
 		for (const tmpmod of tmplist) { tmptotal = tmptotal + tmpmod.value; }
@@ -194,8 +199,10 @@ import { CREATURE_ATTACK_TYPES } from "../creature-tables.mjs";
 		if (tmpmisc) { tmplist.push({ label: "Damage Other", value: tmpmisc }); }
 		var tmpoffhand = parseInt(tmpinput.offhand) || 0;
 		if (tmpoffhand) { tmplist.push({ label: "Off Hand", value: tmpoffhand }); }
+		var tmpsituation = parseInt(tmpinput.situation) || 0;
+		if (tmpsituation) { tmplist.push({ label: "Situational", value: tmpsituation }); }
 		var tmpsituational = parseInt(tmpinput.situational) || 0;
-		if (tmpsituational) { tmplist.push({ label: "Situational", value: tmpsituational }); }
+		if (tmpsituational) { tmplist.push({ label: "Modifier", value: tmpsituational }); }
 
 		var tmptotal = 0;
 		for (const tmpmod of tmplist) { tmptotal = tmptotal + tmpmod.value; }

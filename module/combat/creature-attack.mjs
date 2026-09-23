@@ -11,7 +11,8 @@
 // Seconds buttons already wired by registerAttackCardListeners work on it unchanged.
 //==================================================================================================================
 
-import { resolveAttack, resolveFumble, resolveOffhandPenalties } from "./combat-rules.mjs";
+import { resolveAttack, resolveFumble, resolveOffhandPenalties, combineDamageMultipliers,
+         getSituationalForAttack, getSituationalNotes, getNumberOfDice } from "./combat-rules.mjs";
 import {
 	getCreatureAttackBehaviour, getAreaAttackSize, resolveTouchAttack,
 	getCreatureToHitModifiers, getCreatureDamageMods, getTriggeredEffects, getCreatureAttackSeconds } from "./creature-rules.mjs";
@@ -54,22 +55,31 @@ import {
 		// An attack that hits without a roll cannot be aimed or called.
 		var tmpisauto = tmpbehaviour.resolve == "auto";
 
+		// The creature's standing Situation Mods, as they apply to this attack's kind.
+		var tmpsitmods = getSituationalForAttack(tmpactor.system.combat.situational, tmpbehaviour.mods);
+		var tmpcalled = tmpsitmods.special.includes("Called Shot");
+		var tmptargetnodef = !!tmptarget?.actor?.system?.combat?.noDefense;
+
 		var tmpcontent = `
 			<div class="imagine-attack-dialog">
 				<p class="hint">${esc(tmpattack.name)} &mdash; ${esc(tmpattack.system.attackType)}${tmpisauto
 					? ": this hits without a roll." : ""}</p>
 				<div class="form-group"><label>Aimed at</label><select name="aim">${tmpaim}</select></div>
-				<div class="form-group"><label>Situational modifier</label>
+				${tmpsitmods.labels.length ? `<div class="form-group situation-summary"><label>Situation Mods</label>
+					<p class="hint">${esc(tmpsitmods.labels.join(", "))}. Change them from the Combat tab.</p></div>` : ""}
+				<div class="form-group"><label>Other modifier</label>
 					<input type="number" name="situational" value="0"></div>
-				<div class="form-group"><label>Situational damage</label>
+				<div class="form-group"><label>Other damage</label>
 					<input type="number" name="situationalDamage" value="0"></div>
 				${tmpisauto ? "" : `<div class="form-group"><label>Called shot</label>
-					<input type="checkbox" name="calledShot">
+					<input type="checkbox" name="calledShot" ${tmpcalled ? "checked" : ""}>
 					<p class="hint">Needs an unmodified roll of 21 minus the attack skill level, takes one
 					more second and does half damage whether it lands or not.</p></div>`}
 				${(tmptarget && !tmpisauto) ? `<div class="form-group"><label>Target is avoiding the blow</label>
-					<input type="checkbox" name="useDefense" checked>
-					<p class="hint">Applies ${esc(tmptarget.name)}'s defensive adjustment. Untick if they
+					<input type="checkbox" name="useDefense" ${tmptargetnodef ? "" : "checked"}>
+					<p class="hint">${tmptargetnodef
+						? `${esc(tmptarget.name)} has No Defense from their own Situation Mods.`
+						: `Applies ${esc(tmptarget.name)}'s defensive adjustment.`} Untick if they
 					are held, surprised or otherwise cannot move.</p></div>` : ""}
 			</div>`;
 
@@ -111,6 +121,13 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	var tmpa = tmpattackitem.system;
 	var tmpbehaviour = getCreatureAttackBehaviour(tmpa.attackType);
 
+	// The Situation Mods, cut to this attack's kind. See getSituationalForAttack.
+	var tmpsitmods = getSituationalForAttack(tmpsys.combat.situational, tmpbehaviour.mods);
+	if (tmpsitmods.noAttack) {
+		ui.notifications.warn(`${tmpactor.name} is in Desperate Defense and cannot attack. Clear it from the Situation Mods first.`);
+		return null;
+	}
+
 	// What fighting with this attack in the off hand costs. Blank hand means the attack is not
 	// hand-based at all -- a bite, a tail slap, a breath -- and is never off-hand; only an attack
 	// with a hand actually set (a claw, a punch) is even asked. Creatures have no Second Weapon
@@ -130,6 +147,7 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 			missileMisc: tmpsys.combat.missileMisc
 		},
 		target: (tmptarget && tmpoptions.useDefense) ? { defensiveAdjust: tmptarget.actor?.system?.combat?.defensiveAdjust } : null,
+		situation: tmpsitmods.attack,
 		situational: tmpoptions.situational,
 		offhand: tmpoffhand.melee
 	});
@@ -206,19 +224,28 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	if (tmpresult.isHit && tmpa.damage) {
 		var tmpdammods = getCreatureDamageMods({
 			damageMisc: tmpsys.combat.damageMisc,
+			situation: tmpsitmods.damage + (tmpsitmods.perDie * getNumberOfDice(tmpa.damage)),
 			situational: tmpoptions.situationalDamage,
 			offhand: tmpoffhand.damage
 		});
 
-		var tmpdmgroll = await new Roll(`${tmpa.damage} + @mods`, { mods: tmpdammods.total }).evaluate();
+		var tmpdmgroll = await new Roll(`${tmpa.damage} + @mods`, { mods: tmpdammods.total })
+			.evaluate({ maximize: tmpsitmods.maxDamage });
 		tmprolls.push(tmpdmgroll);
 
-		var tmpmulti = tmpoptions.calledShot ? 0.5 : 1;
+		// The Situation Mods' multiplier, then a called shot or a critically failed Perfect Shot
+		// halving it, held at x3 -- as for a character.
+		var tmpmultipliers = [];
+		if (tmpsitmods.multi != 1) { tmpmultipliers.push(tmpsitmods.multi); }
+		if (tmpoptions.calledShot) { tmpmultipliers.push(0.5); }
+		if (tmpsitmods.halfDamage) { tmpmultipliers.push(0.5); }
+		var tmpmulti = combineDamageMultipliers(tmpmultipliers);
 		var tmptotal = Math.max(0, parseInt(tmpdmgroll.total * tmpmulti) || 0);
 
 		tmpdamage = {
 			dice: tmpa.damage, str: 0, magic: 0, misc: tmpdammods.total,
 			rolled: tmpdmgroll.total, multiplier: tmpmulti, total: tmptotal,
+			maximized: tmpsitmods.maxDamage, situationMulti: tmpsitmods.multi,
 			type: tmpa.damageType || "Other"
 		};
 	}
@@ -243,6 +270,7 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		speed: tmpspeed,
 		fumble: tmpfumble,
 		damage: tmpdamage,
+		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special) },
 		applied: false
 	};
 

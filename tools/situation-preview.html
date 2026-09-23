@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG situation mods preview</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>
+	body { margin: 0; background: #3a3632; font-family: "Signika", "Segoe UI", sans-serif; }
+	.frame { max-width: 560px; height: 680px; margin: 18px auto; background: #fdfbf6; border-radius: 5px;
+	         box-shadow: 0 8px 30px rgba(0,0,0,.45); overflow: hidden; display: flex; flex-direction: column; }
+	.frame-title { background: #22201d; color: #d8d0c0; padding: 7px 12px; font-size: 13px; }
+	.window-content { padding: 10px 12px; flex: 1; min-height: 0; }
+	.caption { color: #d8d0c0; text-align: center; font-size: 12px; margin-top: 18px; }
+	pre.result { max-width: 560px; margin: 12px auto; color: #d8d0c0; font-size: 11px; white-space: pre-wrap; }
+</style>
+<div id="frames"></div>
+<pre class="result" id="result"></pre>
+<script type="module">
+// Renders the real Situation Mods template against the view the real window builds
+// (buildSituationalView), once for each of his two panels, with the totals worked out by the real
+// rules. The melee panel has a Critical already rolled critically, so the roll-set boxes show
+// their state; the missile panel has point blank double fire.
+//
+// Must be served over HTTP -- see tools/combat-test.html.
+const R = await import("../module/combat/combat-rules.mjs");
+const V = await import("../module/situational-view.mjs");
+
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+Handlebars.registerHelper("lt", (a, b) => a < b);
+Handlebars.registerHelper("gte", (a, b) => a >= b);
+const source = await (await fetch("../templates/apps/situational-mods.hbs")).text();
+const template = Handlebars.compile(source);
+
+const weapons = [{ id: "w1", name: "Bastard Sword", skillsMod: 20 }, { id: "w2", name: "Dagger", skillsMod: 0 }];
+const chances = { "Critical": 45, "Focused Attack": 30, "Surprise Attack": 25, "Brace": 50, "Perfect Shot": 40, "Quick Load": 35 };
+
+const cases = [
+	{ caption: "Melee: from the rear, target prone, Critical rolled critically (x3, +1 Dam)",
+	  situation: { kind: "melee", selected: ["positionRear", "targetProne", "critical", "criticalCrit", "smaller2"], weaponId: "w1" } },
+	{ caption: "Missile: two arrows at point blank, aiming 2 seconds, target in dim light",
+	  situation: { kind: "missile", selected: ["rangePointBlank", "twoProjectiles", "aimSec2", "fadeDim"], weaponId: "" } },
+	{ caption: "Nothing set", situation: { kind: "", selected: [], weaponId: "" } }
+];
+
+const out = [];
+for (const c of cases) {
+	const resolved = R.resolveSituationalMods(c.situation.kind, c.situation.selected, null);
+	const view = V.buildSituationalView(c.situation, resolved, weapons, chances);
+	const frame = document.createElement("div");
+	frame.innerHTML = `<div class="caption">${c.caption}</div><div class="frame imagine situation-mods">
+		<div class="frame-title">Situation Mods: Calanar Elfriend</div>
+		<div class="window-content">${template(view)}</div></div>`;
+	document.getElementById("frames").appendChild(frame);
+	out.push(`${c.caption}\n    ${V.describeSituationalTotals(resolved) || "(none)"}`);
+}
+document.getElementById("result").textContent = out.join("\n");
+</script>

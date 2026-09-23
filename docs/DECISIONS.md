@@ -4190,3 +4190,93 @@ answered by the 2026-09-19 decision that strings are not localised; none were ac
 copy of release notes; per user (client setting) so each player sees updates they missed; only the
 version sections, never the publishing preamble; and a small Markdown reader of its own that escapes
 before it formats, because nothing in Foundry's public API promises one.
+
+## Situation Mods: the melee and missile modifiers window, and Second Weapon held per weapon (2026-09-22)
+
+**Asked for by the user: "a ranged and melee modifiers popup/popout submenu", and "make sure there is
+a check for 2nd weapon knowledge / lore that applies the appropriate mods".** Built on Opus at the
+user's choice; martial arts, asked for in the same message, is a separate pass by a separate agent
+and has its own entry.
+
+**Second Weapon Knowledge and Lore never applied in play, and now do.** `resolveOffhandPenalties`
+read two per-weapon booleans, `secondWeaponKnowledge`/`secondWeaponLore` on `item-weapon.mjs`, and
+**nothing ever set them**: no template showed them and no code wrote them, so every off-hand attack
+paid the full Agility-banded penalty whatever the character's skill. The unit tests passed because
+they set the flags by hand. His sheet does not store those flags as a free choice either: it keeps
+one comma-separated list of simplified weapon names per discipline (`second_know_list` /
+`second_lore_list`), and `handleSecondWeaponKnow` / `checkEquippedWeaponsAgainstSecondWeaponKnowList`
+(sheet-worker.js:90648, 90855) switch a weapon's `weaponN_2weapknow` on only when its name is in the
+list, and off when it is not. **So the list is the authority, and the flag is derived.** The
+character carries `combat.secondWeaponKnowList` / `secondWeaponLoreList` in his shape (a string, as
+the five lore lists already are); `getSecondWeaponFlags` works the two flags out per weapon, gated by
+the title eligibility already derived, and the attack, the weapon rows and the Situation Mods window
+all call it. The two booleans are **removed** from the weapon rather than left as a second source
+that could contradict the list -- the same call made for `offhand`/`twoHanded` earlier. Slots follow
+his `set2ndWeaponKnowSheet`: one weapon per title held in the discipline, counting the title it
+arrived at (`(title - when) + 1`), less those named, negative shown rather than trimmed. The chat
+card also now shows the off-hand damage it was already rolling (it had been missing from the
+breakdown).
+
+**Situation Mods are stored on the actor, not asked per attack.** His combat page has one bar,
+"SITUATION MODS", whose dropdown opens a melee panel or a missile panel; SET totals the ticks into
+five figures that every later attack of that kind reads until they are cleared. That is kept rather
+than turned into a per-attack dialog for two reasons: it outlives any one attack (a flanking position
+holds for several swings), and **the defence figure belongs to the character, not the attack** --
+Furious Attack leaves the attacker +4 easier to hit while it is set, and "No Defense" (blind, cannot
+see the target, a critically failed Critical) takes their adjustment away from anyone attacking
+them. So `system.combat.situation` = `{ kind, selected, weaponId }` on both actor types; the actor
+totals it in `_prepareSituation` (character) / `_prepareCombat` (creature), adds the defence onto
+`defensiveAdjust`, and exposes `combat.noDefense`, which the attack dialog reads off the TARGET to
+start its "avoiding the blow" box unticked. The window (`module/apps/situational-mods.mjs`) writes as
+it is ticked, so an attack made with it still open sees the change. Opened from a bar on both Combat
+tabs, or `game.imagine.situationMods(actor)`.
+
+**Every figure is from his SET handlers, not his labels** (`handleMeleeSet` / `handleMissileSet`,
+sheet-worker.js:72874, 72990). **A multiplier is additive** -- each "x2 Dam" adds one to a running
+figure from 1, so charge plus wall is x3, not x4 -- and held at x3, which is his SET's own cap and the
+Player's Guide's. The exclusions are his change handlers (17107-17850): one position per axis, one of
+each visibility, one size of twenty-four, one range; a medium or longer range clears double and
+triple fire; Wrong Type/Size ticks Override Type Check. **Six options are set only by a skill roll**
+(Critical, Focused Attack, Surprise Attack, Brace, Perfect Shot, Quick Load) -- his handlers untick
+them if a player tries -- so the window gives each a Roll button: d100 against the skill's chance
+plus the chosen weapon's skills modifier (lore's skills bonus and the off hand's skills penalty,
+which is his weapon Skills Mod column) plus an optional modifier standing in for his MOD prompt. A
+critical success also sets the Crit, a critical failure only the Crit Fail, and a roll clears the
+three first so a second roll replaces the first. `resolveSkillOutcome`'s +/-20 thresholds are his
+exactly (`criticalSuccessChance = total - 20`).
+
+**Three readings, recorded so they are not re-litigated:**
+- **The multi-missile boxes do not add their own penalty.** His missile panel has 2 Weapons / 2 / 3
+  Projectiles with -4/-6 and -8/-12, and his attack then refunds them for Multiple Missile Knowledge
+  or Lore. The port already does both halves in `resolveMultiMissile`, so the box picks the firing
+  mode (the attack dialog's Firing starts on it) and counts nothing itself. Counting both would
+  double the penalty.
+- **Set for one kind, the other kind's attack reads none of it, special words included.** His
+  `handlePhysicalAttacks` zeroes the other kind's to-hit, damage and multiplier, and has the line
+  that would clear the special words commented out. They are cleared here: a missile panel's "Max"
+  or "+1 per Die" reaching a sword blow cannot be meant, and the one word that must reach an attack
+  -- Desperate Defense's "No Attack" -- is melee's own.
+- **In the character's `situational` the special words are data; the attack applies five of them**
+  (`Max` rolls every die at its highest via `evaluate({ maximize })`; `+1`/`-1 per Die` count the
+  weapon's dice; `Half Dam` halves; `Called Shot` pre-ticks the called shot; `No Attack` refuses the
+  attack). The rest -- `Random Location`, `Half Reload Speed`, `Wrong Projectile`, `Ignore Projectile
+  Type`, `+20% Skills`, `Blind`, `Can't See Target`, and Quick Load's critical failure -- are printed
+  on the card for the table, since nothing in the port models them (`getSituationalNotes`).
+
+**Labels.** His card prints set modifiers as "Situational(+N)", so that label now means the Situation
+Mods; the free number typed into the attack dialog becomes "Modifier" (his roll prompt's
+`?{Modifier}`), on both the character and creature paths. `creature-test.html` was updated for it.
+
+**Martial arts plugs in, rather than being duplicated.** His melee SET adds the better of stance and
+lore blind fighting when the attacker is blind or cannot see the target, keeps the defence for a
+"Full Defensive Mod", and drops the two special engagements while a martial stance is held.
+`resolveSituationalMods` takes those three as `{ blindFighting, fullDefense, inStance }`, and the
+character reads them from `combat.martialBlind` if the martial arts derivation has set it -- which it
+runs before `_prepareSituation` for that reason.
+
+**Not verified:** anything needing a running Foundry V14 -- the window opening and re-rendering on the
+actor's update, `actor.apps` still being the re-render registry in V14, `Roll#evaluate({ maximize })`,
+the two dropdowns' change listeners, and the new schema fields reaching the database. Checked: 503 /
+507 / 149 / 46 across combat, derivation, creature and availability; 51 modules parse; the real
+template rendered in `tools/situation-preview.html` for both panels, and the combat tab's bar and
+Second Weapon lists in `tools/sheet-preview.html`.

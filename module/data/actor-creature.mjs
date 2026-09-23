@@ -30,7 +30,8 @@ import ImagineCharacterData from "./actor-character.mjs";
 import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../creature-tables.mjs";
 import {
 	getBodyChart, parseBodyChart, getAreaEndurance, getStrongestMaterial,
-	getInitiativeModifier, getNextAttackSkill, getAreaArmor, getAreaShield, resolveEncumbrance
+	getInitiativeModifier, getNextAttackSkill, getAreaArmor, getAreaShield, resolveEncumbrance,
+	resolveSituationalMods
 } from "../combat/combat-rules.mjs";
 
 const fields = foundry.data.fields;
@@ -274,7 +275,17 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 
 				// Invulnerability scales rather than subtracts: a weapon with no magical plus
 				// does nothing at all, +1/+2 a quarter, +3/+4 a half, +5 and better full damage.
-				invulnerable: new fields.BooleanField({ required: true, initial: false })
+				invulnerable: new fields.BooleanField({ required: true, initial: false }),
+
+				// @MARKER SITUATION MODS
+				// The same Situation Mods a character has -- his creature combat page carries the
+				// same bar and the same two panels (change_situation_mods2). See the character model.
+				situation: new fields.SchemaField({
+					// blank: true outright -- see the character model.
+					kind:     new fields.StringField({ required: true, blank: true, initial: "", choices: ["", "melee", "missile"] }),
+					selected: new fields.ArrayField(new fields.StringField({ required: true, blank: false })),
+					weaponId: new fields.StringField({ required: true, initial: "" })
+				})
 			}),
 
 			// @MARKER NOTES
@@ -529,6 +540,14 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 
 		this.combat.defensiveAdjust = (parseInt(tmpaglmods.defensiveAdjust) || 0)
 		                            + tmparmordef + (parseInt(this.combat.defenseMisc) || 0);
+
+		// The Situation Mods, totalled. Their defence is the creature's own and stands whatever it
+		// attacks with; "No Defense" takes the adjustment away from anyone attacking it.
+		// Creatures have no martial arts, so nothing is passed for blind fighting.
+		var tmpsituation = this.combat.situation ?? {};
+		this.combat.situational = resolveSituationalMods(tmpsituation.kind, tmpsituation.selected, null);
+		this.combat.defensiveAdjust = this.combat.defensiveAdjust + this.combat.situational.defense;
+		this.combat.noDefense = this.combat.situational.noDefense;
 
 		this.combat.weaponSpeedMod = (parseInt(tmpstrmods.weaponSpeed) || 0)
 		                           + (parseInt(tmpaglmods.weaponSpeed) || 0) + tmparmorspeed;

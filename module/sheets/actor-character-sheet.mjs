@@ -15,8 +15,10 @@
 import { rollWeaponAttack } from "../combat/attack.mjs";
 import { chooseBestArmor } from "../equip-rules.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
-import { getWeaponSpeed, getLoreModifiers, isOffhandWeapon } from "../combat/combat-rules.mjs";
+import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
+         getSecondWeaponFlags } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import ImagineItemPicker from "../apps/item-picker.mjs";
 import {
@@ -70,6 +72,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			rollUntrainedSkill: ImagineCharacterSheet.#onRollUntrainedSkill,
 			stepClassTitle: ImagineCharacterSheet.#onStepClassTitle,
 			openLevelUp: ImagineCharacterSheet.#onOpenLevelUp,
+			openSituation: ImagineCharacterSheet.#onOpenSituation,
+			clearSituation: ImagineCharacterSheet.#onClearSituation,
 			transferSlot: ImagineCharacterSheet.#onTransferSlot,
 			sacrificeSlot: ImagineCharacterSheet.#onSacrificeSlot,
 			addLanguage: ImagineCharacterSheet.#onAddLanguage,
@@ -134,6 +138,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			.map(tmpskill => ({ value: tmpskill, label: tmpskill,
 			                    selected: tmpskill == this.document.system.combat.chosenAttackSkill }));
 		tmpcontext.lore = ImagineCharacterSheet.#buildLorePanel(this.document.system);
+		// The Situation Mods bar, one line, as his combat page shows it.
+		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
 		tmpcontext.languages = ImagineCharacterSheet.#buildLanguageRows(this.document.system);
 		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
@@ -241,19 +247,34 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpmultiknow = tmpknowchance > 0;
 		var tmpmultilore = !!tmpsystem.combat.hasMultiMissileLore;
 
+		// Second Weapon Knowledge and Lore. Both wait on a class title, and each is held in the
+		// weapons named on its own list -- one more weapon for every title held in it.
+		var tmpsecondknow = !!tmpsystem.combat.hasSecondWeaponKnowledge;
+		var tmpsecondlore = !!tmpsystem.combat.hasSecondWeaponLore;
+
 		var tmpkinds = [];
 		if (tmpweapon) { tmpkinds.push("Weapon"); }
 		if (tmpmissile) { tmpkinds.push("Missile"); }
 		if (tmpprojectile) { tmpkinds.push("Projectile"); }
 		if (tmpmultiknow || tmpmultilore) { tmpkinds.push("Multiple Missile"); }
+		if (tmpsecondknow || tmpsecondlore) { tmpkinds.push("Second Weapon"); }
 
 		return {
-			show: tmpweapon || tmpmissile || tmpprojectile || tmpmultiknow || tmpmultilore,
+			show: tmpweapon || tmpmissile || tmpprojectile || tmpmultiknow || tmpmultilore
+			   || tmpsecondknow || tmpsecondlore,
 			hasWeapon: tmpweapon,
 			hasMissile: tmpmissile,
 			hasProjectile: tmpprojectile,
 			hasMultiKnow: tmpmultiknow,
 			hasMultiLore: tmpmultilore,
+			hasSecondKnow: tmpsecondknow,
+			hasSecondLore: tmpsecondlore,
+			secondKnowText: tmpsystem.combat.secondWeaponKnowList ?? "",
+			secondLoreText: tmpsystem.combat.secondWeaponLoreList ?? "",
+			secondKnowChance: parseInt(tmpsystem.combat.secondWeaponKnowChance) || 0,
+			secondKnowLevels: Math.floor((parseInt(tmpsystem.combat.secondWeaponKnowChance) || 0) / 20),
+			secondKnowSlots: parseInt(tmpsystem.combat.secondWeaponKnowSlots) || 0,
+			secondLoreSlots: parseInt(tmpsystem.combat.secondWeaponLoreSlots) || 0,
 			label: tmpkinds.join(", "),
 			weaponText: tmpsystem.combat.weaponLoreList ?? "",
 			missileText: tmpsystem.combat.missileLoreList ?? "",
@@ -377,6 +398,20 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				missileLoreList: tmpactor.system.combat.missileLoreNames
 			});
 
+			// What the off hand costs with this weapon, after whichever of Second Weapon
+			// Knowledge or Lore the character holds in it -- the same figures the attack uses.
+			var tmpcombat = tmpactor.system.combat;
+			var tmpsecond = getSecondWeaponFlags({
+				weaponName: tmpitem.name,
+				hasSecondWeaponKnowledge: tmpcombat.hasSecondWeaponKnowledge,
+				hasSecondWeaponLore: tmpcombat.hasSecondWeaponLore,
+				secondWeaponKnowList: tmpcombat.secondWeaponKnowNames,
+				secondWeaponLoreList: tmpcombat.secondWeaponLoreNames
+			});
+			var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond },
+				tmpactor.system.attributes?.agl?.rating, tmpactor.system.physical?.handedness,
+				tmpcombat.secondWeaponKnowChance);
+
 			tmprows.push({
 				id: tmpitem.id,
 				name: tmpitem.name,
@@ -392,10 +427,20 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				// The flag is derived rather than stored, so it follows a change of handedness
 				// without anything having to be re-tagged.
 				hand: tmpw.hand || "right",
-				offhand: isOffhandWeapon(tmpw.hand, tmpactor.system.physical?.handedness)
+				offhand: tmpoffhand.offhand,
+				offhandTier: tmpoffhand.tier,
+				offhandTip: ImagineCharacterSheet.#describeOffhand(tmpoffhand)
 			});
 		}
 		return tmprows;
+	}
+
+	// This is the function which words an off-hand weapon's cost for its tooltip.
+	static #describeOffhand(tmpoffhand) {
+		if (!tmpoffhand.offhand) { return ""; }
+		if (tmpoffhand.tier == "lore") { return "Off hand, Second Weapon Lore: no penalty"; }
+		var tmpwho = (tmpoffhand.tier == "knowledge") ? "Off hand, Second Weapon Knowledge" : "Off hand";
+		return `${tmpwho}: attack ${tmpoffhand.melee}, damage ${tmpoffhand.damage}, skills ${tmpoffhand.skill}%`;
 	}
 
 	// @MARKER ACTION HANDLERS
@@ -673,6 +718,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	static async #onOpenLevelUp(event, target) {
 		event.preventDefault();
 		game.imagine.levelUp(this.document);
+	}
+
+	// This is the function which opens the Situation Mods window from the Combat tab's bar.
+	static async #onOpenSituation(event, target) {
+		event.preventDefault();
+		game.imagine.situationMods(this.document);
+	}
+
+	// This is the function which clears every Situation Mod -- his "Clear all modifiers".
+	static async #onClearSituation(event, target) {
+		event.preventDefault();
+		await this.document.update({ "system.combat.situation.kind": "", "system.combat.situation.selected": [] });
 	}
 
 	// This is the function which advances or steps back one class's own title.

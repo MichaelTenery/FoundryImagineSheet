@@ -432,11 +432,352 @@ export const MODE_DAMAGE_TYPES = {
 		var tmpmulti = parseInt(tmpinput.multiMissile) || 0;
 		if (tmpmulti) { tmplist.push({ label: "Multiple Missiles", value: tmpmulti }); }
 
+		// The situational modifiers set from the Situation Mods window, already worked out by
+		// resolveSituationalMods and cut to this kind of attack by getSituationalForAttack. His
+		// card prints these as "Situational(+N)", so they keep that label.
+		var tmpsituation = parseInt(tmpinput.situation) || 0;
+		if (tmpsituation) { tmplist.push({ label: "Situational", value: tmpsituation }); }
+
+		// A number typed into the attack dialog for anything the window does not list -- his roll
+		// prompt's ?{Modifier}.
 		var tmpsit = parseInt(tmpinput.situational) || 0;
-		if (tmpsit) { tmplist.push({ label: "Situational", value: tmpsit }); }
+		if (tmpsit) { tmplist.push({ label: "Modifier", value: tmpsit }); }
 
 		var tmptotal = tmplist.reduce((sum, m) => sum + m.value, 0);
 		return { list: tmplist, total: tmptotal };
+	}
+
+
+//==================================================================================================================
+// @MARKER SITUATIONAL MODIFIERS
+//==================================================================================================================
+// His "SITUATION MODS" bar on the combat page, and the two panels it opens: "Set melee modifiers"
+// and "Set missile modifiers". A player ticks what applies -- flanking, a prone target, darkness,
+// the target's size -- and SET totals them into five figures that every attack of that kind then
+// reads until they are cleared: to hit, damage, a damage multiplier, the character's OWN defence,
+// and a list of special effects (maximum damage, half damage, "Random Location" and the like).
+//
+// Every figure below is from his handleMeleeSet / handleMissileSet (sheet-worker.js:72874, 72990),
+// NOT from the labels printed beside the checkboxes, which he wrote separately and which are only
+// right where the two agree. Where they disagree it is recorded against the entry.
+//
+// A MULTIPLIER IS ADDED, NOT MULTIPLIED. Each "x2 Dam" adds one to a running multiplier that
+// starts at 1, so a charge into a target against a wall is x3, not x4; diving adds two. His SET
+// then caps it at x3 -- "x3 is the max damage" -- which is also the Player's Guide's limit.
+//
+// The multiple-missile checkboxes are in his missile panel, but their penalties are NOT counted
+// here. The port already works those out, with the Knowledge and Lore that buy them back, in
+// resolveMultiMissile -- which is where his own attack refunds them too (sheet-worker.js:64743).
+// An option carries which mode it picks instead, and the attack hands that to resolveMultiMissile.
+//
+// Six options cannot simply be ticked. Critical, Focused Attack, Surprise Attack, Brace, Perfect
+// Shot and Quick Load are each "set by a successful skill roll" -- his change handlers untick them
+// if a player tries -- and a roll that succeeds critically or fails critically sets the matching
+// Crit or Crit Fail option alongside. See getSituationalRollResult.
+
+	// One row per option, keyed the way his checkbox names are (sit_position_rear -> positionRear).
+	//
+	//   group     options sharing an exclusive group are one-of: ticking one clears the rest
+	//             (his change handlers, sheet-worker.js:17107-17850). Blank means it stands alone.
+	//   attack    to hit, for this kind of attack
+	//   damage    flat damage
+	//   multi     added to the damage multiplier (x2 Dam is +1)
+	//   defense   the character's own defensive adjustment -- added to anyone attacking THEM, so
+	//             a positive figure is worse for them
+	//   special   his special-effect words, read by the attack
+	//   noDef     the character loses their defensive adjustment altogether ("No Defense")
+	//   skill     set only by a roll of this skill; blank means the player ticks it
+	//   roll      for a Crit / Crit Fail option: which skill's roll sets it, and on what result
+	//
+	// @MARKER SITUATIONAL MELEE
+	//                   key                      label                         group         attack damage multi defense special                         noDef  skill / roll
+	export const SITUATIONAL_MELEE = {
+		calledShot:        { heading: "Called Shot",      label: "Called Shot",                 group: "",            attack: 0,   damage: 0,  multi: 0, defense: 0,  special: ["Called Shot"] },
+		critical:          { heading: "Critical Skill",   label: "Critical (x2 Dam)",           group: "",            attack: 0,   damage: 0,  multi: 1, defense: 0,  special: [],                      skill: "Critical" },
+		criticalCrit:      { heading: "Critical Skill",   label: "Crit (+1 Dam)",               group: "",            attack: 0,   damage: 1,  multi: 0, defense: 0,  special: [],                      roll: { skill: "Critical", on: "crit" } },
+		criticalFail:      { heading: "Critical Skill",   label: "Crit Fail (No Defense)",      group: "",            attack: 0,   damage: 0,  multi: 0, defense: 0,  special: [],             noDef: true, roll: { skill: "Critical", on: "fail" } },
+		focusAttack:       { heading: "Focused Attack",   label: "Focused Attack (Max Dam)",    group: "",            attack: 0,   damage: 0,  multi: 0, defense: 0,  special: ["Max"],                 skill: "Focused Attack" },
+		focusAttackCrit:   { heading: "Focused Attack",   label: "Crit (+1 Dam)",               group: "",            attack: 0,   damage: 1,  multi: 0, defense: 0,  special: [],                      roll: { skill: "Focused Attack", on: "crit" } },
+		focusAttackFail:   { heading: "Focused Attack",   label: "Crit Fail (No Defense)",      group: "",            attack: 0,   damage: 0,  multi: 0, defense: 0,  special: [],             noDef: true, roll: { skill: "Focused Attack", on: "fail" } },
+		surpriseNormal:    { heading: "Surprise",         label: "Surprise",                    group: "",            attack: 4,   damage: 6,  multi: 0, defense: 0,  special: [] },
+		surpriseAttack:    { heading: "Surprise",         label: "Surprise Attack (x2 Dam)",    group: "",            attack: 0,   damage: 0,  multi: 1, defense: 0,  special: [],                      skill: "Surprise Attack" },
+		positionSide:      { heading: "Position",         label: "Side",                        group: "flank",       attack: 2,   damage: 1,  multi: 0, defense: 0,  special: [] },
+		positionRear:      { heading: "Position",         label: "Rear",                        group: "flank",       attack: 4,   damage: 2,  multi: 0, defense: 0,  special: [] },
+		positionAbove:     { heading: "Position",         label: "Above",                       group: "height",      attack: 2,   damage: 2,  multi: 0, defense: 0,  special: [] },
+		positionBelow:     { heading: "Position",         label: "Below",                       group: "height",      attack: -2,  damage: -2, multi: 0, defense: 0,  special: [] },
+		targetWall:        { heading: "Target",           label: "Against Wall",                group: "",            attack: 2,   damage: 0,  multi: 1, defense: 0,  special: [] },
+		targetProne:       { heading: "Target",           label: "Prone/Dazed",                 group: "",            attack: 6,   damage: 0,  multi: 1, defense: 0,  special: [] },
+		targetImmobile:    { heading: "Target",           label: "Immobile",                    group: "",            attack: 10,  damage: 0,  multi: 1, defense: 0,  special: ["Max"] },
+		speedBrace:        { heading: "Speed",            label: "Brace",                       group: "speed",       attack: 2,   damage: 2,  multi: 0, defense: 0,  special: [],                      skill: "Brace" },
+		speedCharge:       { heading: "Speed",            label: "Charging",                    group: "speed",       attack: 2,   damage: 0,  multi: 1, defense: 0,  special: [] },
+		speedDiving:       { heading: "Speed",            label: "Diving",                      group: "speed",       attack: 3,   damage: 0,  multi: 2, defense: 0,  special: [] },
+		engageStandard:    { heading: "Engagement",       label: "Standard",                    group: "engage",      attack: 0,   damage: 0,  multi: 0, defense: 0,  special: [] },
+		engageFurious:     { heading: "Engagement",       label: "Furious Attack",              group: "engage",      attack: 2,   damage: 2,  multi: 0, defense: 4,  special: [],                      engagement: true },
+		engageDefense:     { heading: "Engagement",       label: "Desperate Defense",           group: "engage",      attack: 0,   damage: 0,  multi: 0, defense: -4, special: ["No Attack", "+20% Skills"], engagement: true },
+		selfInvisible:     { heading: "Visibility (Self)",   label: "Invisible",                group: "selfvis",     attack: 4,   damage: 0,  multi: 0, defense: -8, special: [] },
+		selfFadeDark:      { heading: "Visibility (Self)",   label: "Fade (Darkness)",          group: "selfvis",     attack: 4,   damage: 0,  multi: 0, defense: -8, special: [] },
+		targetInvisible:   { heading: "Visibility (Target)", label: "Invisible",                group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Can`t See Target"], noDef: true },
+		fadeDark:          { heading: "Visibility (Target)", label: "Fade (Darkness)",          group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Can`t See Target"], noDef: true },
+		fadeDiffuse:       { heading: "Visibility (Target)", label: "Fade (Diffuse Light)",     group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Can`t See Target"], noDef: true },
+		fadeDim:           { heading: "Visibility (Target)", label: "Fade (Dim Light)",         group: "targetvis",   attack: -6,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		fadeNormal:        { heading: "Visibility (Target)", label: "Fade (Normal Light)",      group: "targetvis",   attack: -4,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		fadeSunlight:      { heading: "Visibility (Target)", label: "Fade (Sunlight)",          group: "targetvis",   attack: -2,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		environmentDim:    { heading: "Visibility (Environment)", label: "Partial Darkness (Dim)", group: "environment", attack: -4, damage: 0, multi: 0, defense: 2,  special: [] },
+		environmentDark:   { heading: "Visibility (Environment)", label: "Darkness",            group: "environment", attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Blind"],   noDef: true },
+		coverTarget:       { heading: "Cover (Target)",   label: "Against Cover",               group: "",            attack: -4,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		// "In Cover" is +4 to his defence, which by his own sign reads as WORSE for the one in
+		// cover. His label and code agree on +4, so it is kept -- and put to him as a question.
+		coverSelf:         { heading: "Cover (Self)",     label: "In Cover",                    group: "cover",       attack: 0,   damage: 0,  multi: 0, defense: 4,  special: [] },
+		coverWater:        { heading: "Cover (Self)",     label: "In Water",                    group: "cover",       attack: -4,  damage: 0,  multi: 0, defense: 2,  special: [] },
+		coverUnderwater:   { heading: "Cover (Self)",     label: "Underwater",                  group: "cover",       attack: -2,  damage: -6, multi: 0, defense: 4,  special: [] },
+		selfDeaf:          { heading: "Attacker Disability", label: "Deaf",                     group: "",            attack: -1,  damage: -1, multi: 0, defense: 1,  special: [] },
+		selfBlind:         { heading: "Attacker Disability", label: "Blind",                    group: "",            attack: -8,  damage: 0,  multi: 0, defense: 0,  special: ["Blind"],   noDef: true }
+	};
+
+	// @MARKER SITUATIONAL MISSILE
+	//                   key                      label                         group         attack damage multi defense special                         noDef  skill / roll
+	export const SITUATIONAL_MISSILE = {
+		calledShot:        { heading: "Called Shot",      label: "Called Shot",                 group: "",            attack: 0,   damage: 0,  multi: 0, defense: 0,  special: ["Called Shot"] },
+		perfectShot:       { heading: "Perfect Shot",     label: "Perfect Shot (Max Dam)",      group: "",            attack: 0,   damage: 0,  multi: 0, defense: 0,  special: ["Max"],                 skill: "Perfect Shot" },
+		perfectShotCrit:   { heading: "Perfect Shot",     label: "Crit (+1 Dam)",               group: "",            attack: 0,   damage: 1,  multi: 0, defense: 0,  special: [],                      roll: { skill: "Perfect Shot", on: "crit" } },
+		perfectShotFail:   { heading: "Perfect Shot",     label: "Crit Fail (Half Damage)",     group: "",            attack: 0,   damage: 0,  multi: 0, defense: 0,  special: ["Half Dam"],            roll: { skill: "Perfect Shot", on: "fail" } },
+		quickLoad:         { heading: "Quick Load",       label: "Quick Load (Half Reload Speed)", group: "",         attack: 0,   damage: 0,  multi: 0, defense: 0,  special: ["Half Reload Speed"],   skill: "Quick Load" },
+		// His SET never reads sit_quick_load_fail, so it has no figure. The consequence is his
+		// label's -- an Agility save or the projectiles are dropped -- and is printed as a note.
+		quickLoadFail:     { heading: "Quick Load",       label: "Crit Fail (AGL Save or drop Projectiles)", group: "", attack: 0, damage: 0, multi: 0, defense: 0, special: ["AGL Save or Drop Projectiles"], roll: { skill: "Quick Load", on: "fail" } },
+		speedBrace:        { heading: "Brace Skill",      label: "Brace",                       group: "",            attack: 2,   damage: 2,  multi: 0, defense: 0,  special: [],                      skill: "Brace" },
+		surpriseNormal:    { heading: "Surprise",         label: "Surprise",                    group: "",            attack: 4,   damage: 6,  multi: 0, defense: 0,  special: [] },
+		surpriseAttack:    { heading: "Surprise",         label: "Surprise Attack (x2 Dam)",    group: "",            attack: 0,   damage: 0,  multi: 1, defense: 0,  special: [],                      skill: "Surprise Attack" },
+		aimSec1:           { heading: "Aiming",           label: "Aim 1 Second",                group: "aim",         attack: 1,   damage: 0,  multi: 0, defense: 0,  special: [] },
+		aimSec2:           { heading: "Aiming",           label: "Aim 2 Seconds",               group: "aim",         attack: 2,   damage: 0,  multi: 0, defense: 0,  special: [] },
+		aimSec3:           { heading: "Aiming",           label: "Aim 3 Seconds",               group: "aim",         attack: 3,   damage: 0,  multi: 0, defense: 0,  special: [] },
+		aimSec4:           { heading: "Aiming",           label: "Aim 4 Seconds",               group: "aim",         attack: 4,   damage: 0,  multi: 0, defense: 0,  special: [] },
+		rangePointBlank:   { heading: "Range",            label: "Point Blank",                 group: "range",       attack: 2,   damage: 0,  multi: 0, defense: 0,  special: ["+1 per Die"] },
+		rangeShort:        { heading: "Range",            label: "Short",                       group: "range",       attack: 0,   damage: 0,  multi: 0, defense: 0,  special: [] },
+		rangeMedium:       { heading: "Range",            label: "Medium",                      group: "range",       attack: -2,  damage: 0,  multi: 0, defense: 0,  special: [],                      clears: ["twoProjectiles", "threeProjectiles"] },
+		rangeLong:         { heading: "Range",            label: "Long",                        group: "range",       attack: -4,  damage: 0,  multi: 0, defense: 0,  special: [],                      clears: ["twoProjectiles", "threeProjectiles"] },
+		rangeExtreme:      { heading: "Range",            label: "Extreme",                     group: "range",       attack: -6,  damage: 0,  multi: 0, defense: 0,  special: ["-1 per Die", "Random Location"], clears: ["twoProjectiles", "threeProjectiles"] },
+		wrongProjectile:   { heading: "Wrong Type/Size Projectile", label: "Wrong Type/Size",   group: "",            attack: -2,  damage: 0,  multi: 0, defense: 0,  special: ["Wrong Projectile"],    sets: ["ignoreType"] },
+		ignoreType:        { heading: "Wrong Type/Size Projectile", label: "Override Type Check", group: "",          attack: 0,   damage: 0,  multi: 0, defense: 0,  special: ["Ignore Projectile Type"] },
+		// Penalties counted by resolveMultiMissile, not here -- see the note above.
+		twoWeapons:        { heading: "Multiple Weapons/Projectiles", label: "2 Missile Weapons", group: "multimissile", attack: 0, damage: 0,  multi: 0, defense: 0,  special: [],                      multiMissile: "twoWeapons" },
+		twoProjectiles:    { heading: "Multiple Weapons/Projectiles", label: "2 Projectiles",   group: "multimissile", attack: 0,  damage: 0,  multi: 0, defense: 0,  special: [],                      multiMissile: "twoProjectiles", closeOnly: true },
+		threeProjectiles:  { heading: "Multiple Weapons/Projectiles", label: "3 Projectiles",   group: "multimissile", attack: 0,  damage: 0,  multi: 0, defense: 0,  special: [],                      multiMissile: "threeProjectiles", closeOnly: true },
+		// Missile visibility never takes the defence away, unlike melee: his missile SET has no
+		// "Can`t See Target" override at all.
+		targetInvisible:   { heading: "Visibility (Target)", label: "Invisible",                group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		fadeDark:          { heading: "Visibility (Target)", label: "Fade (Darkness)",          group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		fadeDiffuse:       { heading: "Visibility (Target)", label: "Fade (Diffuse Light)",     group: "targetvis",   attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		fadeDim:           { heading: "Visibility (Target)", label: "Fade (Dim Light)",         group: "targetvis",   attack: -6,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		fadeNormal:        { heading: "Visibility (Target)", label: "Fade (Normal Light)",      group: "targetvis",   attack: -4,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		fadeSunlight:      { heading: "Visibility (Target)", label: "Fade (Sunlight)",          group: "targetvis",   attack: -2,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		// His label says "No Defense" for Darkness; his missile SET gives none. The code is kept.
+		environmentDim:    { heading: "Visibility (Environment)", label: "Partial Darkness (Dim)", group: "environment", attack: -4, damage: 0, multi: 0, defense: 2,  special: [] },
+		environmentDark:   { heading: "Visibility (Environment)", label: "Darkness",            group: "environment", attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		coverTarget:       { heading: "Cover (Target)",   label: "Behind Cover",                group: "",            attack: -4,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		// His SET tests sit_self_one_eye but never asks the sheet for it (it is missing from that
+		// getAttrs list), so on his sheet One Eye silently does nothing. His label and his own test
+		// both say -2; that is what is built. docs/UPSTREAM-ISSUES.md records it.
+		selfOneEye:        { heading: "Attacker Disability", label: "One Eye",                  group: "",            attack: -2,  damage: 0,  multi: 0, defense: 0,  special: [] },
+		selfBlind:         { heading: "Attacker Disability", label: "Blind",                    group: "",            attack: -8,  damage: 0,  multi: 0, defense: 0,  special: [],       noDef: true }
+	};
+
+	// Target size, shared by both panels and one-of across all twenty-four -- his
+	// clearSizeModsOtherThan. The steps top out at +10 bigger but go to -12 smaller, as his SET has
+	// them; the gap is his.
+	//                     key         steps   attack
+	export const SITUATIONAL_SIZE = {};
+	for (var tmpstep = 1; tmpstep <= 12; tmpstep++) {
+		SITUATIONAL_SIZE["bigger" + tmpstep]  = { heading: "Target Size Difference", label: `${tmpstep} Bigger`,  group: "size", attack: Math.min(tmpstep, 10), damage: 0, multi: 0, defense: 0, special: [] };
+	}
+	for (var tmpstep = 1; tmpstep <= 12; tmpstep++) {
+		SITUATIONAL_SIZE["smaller" + tmpstep] = { heading: "Target Size Difference", label: `${tmpstep} Smaller`, group: "size", attack: -tmpstep,             damage: 0, multi: 0, defense: 0, special: [] };
+	}
+
+	// The optional body-area size, also shared, and one-of among its six.
+	//                     key         label                                   attack
+	export const SITUATIONAL_AREA = {
+		areaGiant:     { heading: "Target Body Area (Optional)", label: "Giant (Dragon's Belly)",              group: "area", attack: 4,  damage: 0, multi: 0, defense: 0, special: [] },
+		areaLarge:     { heading: "Target Body Area (Optional)", label: "Large (Dragon's Neck)",               group: "area", attack: 2,  damage: 0, multi: 0, defense: 0, special: [] },
+		areaOversize:  { heading: "Target Body Area (Optional)", label: "Oversize (Centaur Belly)",            group: "area", attack: 1,  damage: 0, multi: 0, defense: 0, special: [] },
+		areaUndersize: { heading: "Target Body Area (Optional)", label: "Undersized (Forearm, Mid-Torso, Shin)", group: "area", attack: -2, damage: 0, multi: 0, defense: 0, special: [] },
+		areaSmall:     { heading: "Target Body Area (Optional)", label: "Small (Neck)",                        group: "area", attack: -4, damage: 0, multi: 0, defense: 0, special: [] },
+		areaTiny:      { heading: "Target Body Area (Optional)", label: "Tiny (Hand/Foot)",                    group: "area", attack: -6, damage: 0, multi: 0, defense: 0, special: [] }
+	};
+
+	// This is the function which returns every option one panel offers, in the order it shows
+	// them. tmpkind is "melee" or "missile"; anything else is no panel at all.
+	export function getSituationalOptions(tmpkind) {
+		if (tmpkind == "melee")   { return { ...SITUATIONAL_MELEE,   ...SITUATIONAL_SIZE, ...SITUATIONAL_AREA }; }
+		if (tmpkind == "missile") { return { ...SITUATIONAL_MISSILE, ...SITUATIONAL_SIZE, ...SITUATIONAL_AREA }; }
+		return {};
+	}
+
+	// This is the function which ticks or unticks one option and returns the new selection, with
+	// his exclusions applied: ticking an option clears the others in its group, and a medium or
+	// longer range clears double and triple fire, which "is only allowed at point blank or short
+	// range". Ticking Wrong Type/Size also ticks Override Type Check, as his handler does.
+	//
+	// Options set by a skill roll are refused here -- tmpforce is how the roll itself sets them.
+	export function toggleSituationalOption(tmpkind, tmpselected, tmpkey, tmpforce) {
+		var tmpoptions = getSituationalOptions(tmpkind);
+		var tmpoption = tmpoptions[tmpkey];
+		var tmpout = (tmpselected ?? []).filter(k => tmpoptions[k]);
+		if (!tmpoption) { return tmpout; }
+		if ((tmpoption.skill || tmpoption.roll) && !tmpforce) { return tmpout; }
+
+		if (tmpout.includes(tmpkey)) {
+			return tmpout.filter(k => k != tmpkey);
+		}
+
+		if (tmpoption.group) {
+			tmpout = tmpout.filter(k => tmpoptions[k].group != tmpoption.group);
+		}
+		// Only the range clears the fire, not the other way round: his two_proj handler does not
+		// look at the range at all, so ticking it after Medium is allowed, as it is on his sheet.
+		for (const tmpcleared of tmpoption.clears ?? []) {
+			tmpout = tmpout.filter(k => k != tmpcleared);
+		}
+		tmpout.push(tmpkey);
+		for (const tmpalso of tmpoption.sets ?? []) {
+			if (!tmpout.includes(tmpalso)) { tmpout.push(tmpalso); }
+		}
+		return tmpout;
+	}
+
+	// This is the function which works out what a skill roll for one of the six roll-set options
+	// does to the selection. His handlers (sheet-worker.js:19112 for Critical, and the same shape
+	// for the other five) read the roll against the skill's chance plus the chosen weapon's skills
+	// modifier:
+	//
+	//     critical success  -> the option AND its Crit
+	//     success           -> the option alone
+	//     failure           -> nothing
+	//     critical failure  -> its Crit Fail alone
+	//
+	// and clear all three first, so a second roll replaces the first rather than adding to it.
+	// tmpoutcome is one of SKILL_OUTCOMES in skills-rules.mjs. Returns the new selection.
+	export function getSituationalRollResult(tmpkind, tmpselected, tmpkey, tmpoutcome) {
+		var tmpoptions = getSituationalOptions(tmpkind);
+		var tmpoption = tmpoptions[tmpkey];
+		if (!tmpoption || !tmpoption.skill) { return (tmpselected ?? []).slice(); }
+
+		var tmpfamily = Object.keys(tmpoptions).filter(k =>
+			k == tmpkey || (tmpoptions[k].roll && tmpoptions[k].roll.skill == tmpoption.skill));
+		var tmpout = (tmpselected ?? []).filter(k => tmpoptions[k] && !tmpfamily.includes(k));
+
+		var tmpcrit = tmpfamily.find(k => tmpoptions[k].roll?.on == "crit");
+		var tmpfail = tmpfamily.find(k => tmpoptions[k].roll?.on == "fail");
+		if (tmpoutcome == "Critical success") {
+			tmpout = toggleSituationalOption(tmpkind, tmpout, tmpkey, true);
+			if (tmpcrit) { tmpout.push(tmpcrit); }
+		} else if (tmpoutcome == "Succeeded") {
+			tmpout = toggleSituationalOption(tmpkind, tmpout, tmpkey, true);
+		} else if (tmpoutcome == "Critical failure") {
+			if (tmpfail) { tmpout.push(tmpfail); }
+		}
+		return tmpout;
+	}
+
+	// This is the function which totals a selection the way his SET does.
+	//
+	//   tmpkind      "melee" or "missile" -- which panel was set; "" for none
+	//   tmpselected  the keys ticked
+	//   tmpmartial   { blindFighting, fullDefense, inStance } from the martial arts, all optional:
+	//                blindFighting is the better of his martial_stance_blind_fighting and
+	//                martial_lore_blind_fighting, added to hit whenever the attacker is blind or
+	//                cannot see the target; fullDefense keeps the defence a blind attacker would
+	//                lose; inStance switches off the two special engagements, which "cannot
+	//                combine" with a martial stance.
+	//
+	// Returns { kind, attack, damage, multi, defense, noDefense, special, multiMissile, noAttack,
+	// labels } -- labels being the chosen options by name, for the combat tab and the chat card.
+	export function resolveSituationalMods(tmpkind, tmpselected, tmpmartial) {
+		var tmpout = { kind: "", attack: 0, damage: 0, multi: 1, defense: 0, noDefense: false,
+		               special: [], multiMissile: "", noAttack: false, labels: [] };
+		var tmpoptions = getSituationalOptions(tmpkind);
+		if (!Object.keys(tmpoptions).length) { return tmpout; }
+		tmpout.kind = tmpkind;
+
+		var tmpmartialin = tmpmartial ?? {};
+		var tmpmulti = 1;
+		for (const tmpkey of tmpselected ?? []) {
+			var tmpoption = tmpoptions[tmpkey];
+			if (!tmpoption) { continue; }
+			// His "cannot combine martial stances with special engagements".
+			if (tmpoption.engagement && tmpmartialin.inStance) { continue; }
+			tmpout.attack  = tmpout.attack  + (parseInt(tmpoption.attack)  || 0);
+			tmpout.damage  = tmpout.damage  + (parseInt(tmpoption.damage)  || 0);
+			tmpout.defense = tmpout.defense + (parseInt(tmpoption.defense) || 0);
+			tmpmulti = tmpmulti + (parseInt(tmpoption.multi) || 0);
+			if (tmpoption.noDef) { tmpout.noDefense = true; }
+			if (tmpoption.multiMissile) { tmpout.multiMissile = tmpoption.multiMissile; }
+			for (const tmpword of tmpoption.special ?? []) {
+				if (!tmpout.special.includes(tmpword)) { tmpout.special.push(tmpword); }
+			}
+			tmpout.labels.push(tmpoption.heading == tmpoption.label ? tmpoption.label
+				: `${tmpoption.heading}: ${tmpoption.label}`);
+		}
+		if (tmpmulti > 3) { tmpmulti = 3; }            // x3 is the max damage
+		tmpout.multi = tmpmulti;
+		tmpout.noAttack = tmpout.special.includes("No Attack");
+
+		// Martial blind fighting: only for a melee SET, which is the only one of his two that reads it.
+		if (tmpkind == "melee") {
+			if (tmpout.special.includes("Blind") || tmpout.special.includes("Can`t See Target")) {
+				tmpout.attack = tmpout.attack + (parseInt(tmpmartialin.blindFighting) || 0);
+			}
+			if (tmpmartialin.fullDefense) { tmpout.noDefense = false; }
+		}
+		return tmpout;
+	}
+
+	// This is the function which cuts the character's standing situational modifiers down to one
+	// attack. Set for melee and swinging a sword, they all apply; set for missile and swinging a
+	// sword, none of the attack's own figures do -- his handlePhysicalAttacks zeroes the other
+	// kind's to-hit, damage and multiplier (sheet-worker.js:64571-64640).
+	//
+	// His code leaves the special words in place across kinds (the line that would clear them is
+	// commented out). They are cleared here too: a missile panel's "Max" or "+1 per Die" reaching a
+	// sword blow cannot be meant, and the only word that has to cross -- Desperate Defense's
+	// "No Attack" -- is melee's own. Recorded in docs/DECISIONS.md as a reading.
+	//
+	// The character's own defence is not part of this: it stands whatever they attack with.
+	export function getSituationalForAttack(tmpsituation, tmpmode) {
+		var tmpnone = { attack: 0, damage: 0, multi: 1, special: [], multiMissile: "", noAttack: false,
+		                maxDamage: false, halfDamage: false, perDie: 0, labels: [] };
+		if (!tmpsituation || !tmpsituation.kind) { return tmpnone; }
+		// A weapon's mode (thrust, cut, smash, missile) or a creature attack's "melee"/"missile".
+		var tmpismissile = (tmpmode == "missile");
+		if ((tmpsituation.kind == "missile") != tmpismissile) { return tmpnone; }
+
+		var tmpspecial = tmpsituation.special ?? [];
+		var tmpperdie = 0;
+		if (tmpspecial.includes("+1 per Die")) { tmpperdie = tmpperdie + 1; }
+		if (tmpspecial.includes("-1 per Die")) { tmpperdie = tmpperdie - 1; }
+		return {
+			attack: parseInt(tmpsituation.attack) || 0,
+			damage: parseInt(tmpsituation.damage) || 0,
+			multi: parseFloat(tmpsituation.multi) || 1,
+			special: tmpspecial.slice(),
+			multiMissile: tmpsituation.multiMissile ?? "",
+			noAttack: !!tmpsituation.noAttack,
+			maxDamage: tmpspecial.includes("Max"),
+			halfDamage: tmpspecial.includes("Half Dam"),
+			perDie: tmpperdie,
+			labels: (tmpsituation.labels ?? []).slice()
+		};
+	}
+
+	// The special words the attack works out itself. Everything else is for the table to act on
+	// -- where a Random Location lands, half reload time, the Agility save to keep hold of the
+	// projectiles -- and is printed on the card rather than applied.
+	export const SITUATIONAL_WORDS_APPLIED = ["Max", "Half Dam", "+1 per Die", "-1 per Die", "Called Shot", "No Attack"];
+
+	// This is the function which picks out the words the card prints as notes, with his backtick
+	// apostrophe ("Can`t See Target") turned back into an ordinary one.
+	export function getSituationalNotes(tmpspecial) {
+		return (tmpspecial ?? []).filter(w => !SITUATIONAL_WORDS_APPLIED.includes(w)).map(w => ("" + w).replace("`", "'"));
 	}
 
 
@@ -1069,6 +1410,50 @@ export const MODE_DAMAGE_TYPES = {
 			tmpout.tier = "full";
 		}
 		return tmpout;
+	}
+
+	// This is the function which says which off-hand discipline, if any, a character holds in one
+	// particular weapon -- the two flags resolveOffhandPenalties reads off the weapon.
+	//
+	// HELD PER WEAPON, NAMED ON THE CHARACTER. His sheet keeps one comma-separated list of
+	// simplified weapon names for each discipline (second_know_list / second_lore_list), and a
+	// weapon's own weaponN_2weapknow / weaponN_2weaplore flag is only ever switched on by finding
+	// its name in that list -- handleSecondWeaponKnow and checkEquippedWeaponsAgainstSecondWeapon-
+	// KnowList (sheet-worker.js:90648, 90855) both clear the flag when the name is missing. So the
+	// list is the authority, and the flag is worked out from it here rather than stored.
+	//
+	// Holding the discipline at all is title eligibility, already resolved on the actor, exactly
+	// as getLoreModifiers takes hasWeaponLore. A name on the list does nothing before the title.
+	//
+	//   tmpinput = {
+	//       weaponName:               the weapon's name, customised or not
+	//       hasSecondWeaponKnowledge: the class has reached the title for it
+	//       hasSecondWeaponLore:      the class has reached the title for it
+	//       secondWeaponKnowList:     his comma-separated list, or an array of names
+	//       secondWeaponLoreList:     the same for Lore
+	//   }
+	//
+	// Returns { secondWeaponKnowledge, secondWeaponLore }, both false when nothing applies.
+	export function getSecondWeaponFlags(tmpinput) {
+		var tmpknowlist = parseLoreList(tmpinput.secondWeaponKnowList);
+		var tmplorelist = parseLoreList(tmpinput.secondWeaponLoreList);
+		return {
+			secondWeaponKnowledge: !!tmpinput.hasSecondWeaponKnowledge && isWeaponLored(tmpinput.weaponName, tmpknowlist),
+			secondWeaponLore:      !!tmpinput.hasSecondWeaponLore      && isWeaponLored(tmpinput.weaponName, tmplorelist)
+		};
+	}
+
+	// This is the function which gives how many more weapons a character may name for one of the
+	// two off-hand disciplines. One weapon per title held in it, counting the title it was
+	// acquired at -- his practitionerTitle, ((currentTitle-whenAcquired)+1) -- less the weapons
+	// already named (set2ndWeaponKnowSheet, sheet-worker.js:49935). Can go negative, which is how
+	// his sheet shows a list that has outgrown the title; it is reported, not trimmed.
+	export function getSecondWeaponSlots(tmptitle, tmpwhenacquired, tmplist) {
+		var tmpwhen = parseInt(tmpwhenacquired) || 0;
+		if (tmpwhen == 0) { return 0; }                 // this class never acquires it
+		var tmppractitioner = ((parseInt(tmptitle) || 0) - tmpwhen) + 1;
+		if (tmppractitioner < 0) { tmppractitioner = 0; }
+		return tmppractitioner - parseLoreList(tmplist).length;
 	}
 
 	// This is the function which gives how many of the round's ten seconds a character may spend

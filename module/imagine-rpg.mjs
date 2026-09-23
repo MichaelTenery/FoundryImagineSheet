@@ -36,6 +36,7 @@ import { importAllContent } from "./content-importer.mjs";
 import { grantClassSkills, registerClassAdvancement } from "./class-advancement.mjs";
 import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
+import ImagineSituationalMods from "./apps/situational-mods.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
 import ImagineCharacterGenerator, { registerCharacterGeneratorButton } from "./apps/character-generator.mjs";
 import ImagineCombat from "./combat/combat-document.mjs";
@@ -230,6 +231,10 @@ Hooks.once("init", function () {
 		// it rather than typed, because his cap, his refusals and the Arch Mortal line all apply.
 		levelUp: (tmpactor) => new ImagineLevelUp(tmpactor).render(true),
 		addExperience: addExperience,
+		// @MARKER SITUATION MODS
+		// The melee and missile situational modifiers window, also a button on the Combat tab of
+		// both sheets.
+		situationMods: (tmpactor) => ImagineSituationalMods.open(tmpactor),
 		// @MARKER CHANGELOG
 		// The What's New window, every release. It also opens by itself once per user after an
 		// update; see module/changelog.mjs.

@@ -62,7 +62,10 @@ function makeCharacter(ratings, title = 12, items = [], extra = {}) {
 		// The real schema always provides these; the fixture has to supply them too.
 		combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
 		          weaponLoreList: extra.weaponLoreList ?? "", missileLoreList: extra.missileLoreList ?? "",
-		          projectileLoreList: extra.projectileLoreList ?? "" },
+		          projectileLoreList: extra.projectileLoreList ?? "",
+		          secondWeaponKnowList: extra.secondWeaponKnowList ?? "",
+		          secondWeaponLoreList: extra.secondWeaponLoreList ?? "",
+		          situation: extra.situation ?? { kind: "", selected: [], weaponId: "" } },
 		physical: { weight: 0, handedness: extra.handedness ?? "", famorian: extra.famorian ?? {} },
 		languages: extra.languages ?? [],
 		skillSlotMoves: Object.assign({
@@ -755,6 +758,34 @@ check("...each reads its own named skill",
 	[bothOffhand.combat.secondWeaponKnowChance, bothOffhand.combat.secondWeaponLoreChance], [60, 60]);
 check("no class means neither is ever eligible",
 	makeCharacter({}, 20).combat.hasSecondWeaponKnowledge, false);
+
+// Which weapons they are held in: his second_know_list / second_lore_list, one weapon per title
+// held in the discipline. Knowledge arrives at 8 here, so title 10 is three titles' worth.
+const listedOffhand = makeCharacter({ agl: 16 }, 10,
+	[offhandClass(8, 10), secondWeaponKnow, secondWeaponLore],
+	{ secondWeaponKnowList: "Dagger, Short Sword", secondWeaponLoreList: "Main Gauche" });
+check("the Knowledge list is parsed into names",
+	listedOffhand.combat.secondWeaponKnowNames, ["Dagger", "Short Sword"]);
+check("the Lore list is parsed into names",
+	listedOffhand.combat.secondWeaponLoreNames, ["Main Gauche"]);
+check("Knowledge at 8, title 10, two named: one more may be named",
+	listedOffhand.combat.secondWeaponKnowSlots, 1);
+check("Lore at 10, title 10, one named: none left",
+	listedOffhand.combat.secondWeaponLoreSlots, 0);
+
+// --- Situation Mods on the character ------------------------------------------------------
+// Their defence is the character's own: Furious Attack leaves them 4 easier to hit, for as long as
+// it is set, whatever they attack with.
+const calm = makeCharacter({ agl: 12 }, 5);
+const furious = makeCharacter({ agl: 12 }, 5, [], { situation: { kind: "melee", selected: ["engageFurious"], weaponId: "" } });
+check("Furious Attack worsens the character's own defence by 4",
+	furious.combat.defensiveAdjust - calm.combat.defensiveAdjust, 4);
+check("...and the totals are there for the attack to read",
+	[furious.combat.situational.attack, furious.combat.situational.damage], [2, 2]);
+const blindFighter = makeCharacter({ agl: 12 }, 5, [], { situation: { kind: "melee", selected: ["selfBlind"], weaponId: "" } });
+check("a blind attacker has No Defense", blindFighter.combat.noDefense, true);
+check("nothing set leaves the defence alone and No Defense off",
+	[calm.combat.noDefense, calm.combat.situational.kind], [false, ""]);
 
 // --- off-hand seconds cap ---------------------------------------------------------
 // 5 of the round's 10 seconds by default, one more for every 20% of Second Weapon Lore up to 5

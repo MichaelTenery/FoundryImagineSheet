@@ -19,7 +19,8 @@ import {
 	getAttackSkillForTitle, getBodyChart, getAreaEndurance, getStrongestMaterial,
 	getInitiativeModifier, getAreaArmor, getAreaShield, getNextAttackSkill, hasLore, parseLoreList,
 	getMovementBase, resolveMovementRate, resolveSpecialMovement, specialMovementReplacesOther,
-	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement
+	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement,
+	getSecondWeaponSlots, resolveSituationalMods
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
@@ -366,7 +367,29 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				// weapon thrown from the hand -- which is his shape (multi_missile_know_list /
 				// multi_missile_lore_list).
 				multiMissileKnowList: new fields.StringField({ required: true, initial: "" }),
-				multiMissileLoreList: new fields.StringField({ required: true, initial: "" })
+				multiMissileLoreList: new fields.StringField({ required: true, initial: "" }),
+
+				// The weapons this character fights with in the off hand under Second Weapon
+				// Knowledge or Lore, by simplified name -- his second_know_list / second_lore_list.
+				// A weapon only takes the discipline's benefit when it is named here; see
+				// getSecondWeaponFlags in combat-rules.mjs.
+				secondWeaponKnowList: new fields.StringField({ required: true, initial: "" }),
+				secondWeaponLoreList: new fields.StringField({ required: true, initial: "" }),
+
+				// @MARKER SITUATION MODS
+				// What the Situation Mods window has ticked, which every attack of that kind reads
+				// until it is cleared -- his situational_mod_* bar. Stored, because it outlives any
+				// one attack and because the character's own defence changes with it while others
+				// attack them. Totalled by resolveSituationalMods in combat-rules.mjs.
+				situation: new fields.SchemaField({
+					// blank: true outright -- Foundry sets it false the moment choices are given, which
+					// is what failed the first real import (see commit 3374e19).
+					kind:     new fields.StringField({ required: true, blank: true, initial: "", choices: ["", "melee", "missile"] }),
+					selected: new fields.ArrayField(new fields.StringField({ required: true, blank: false })),
+					// The weapon whose skills modifier a roll for Critical, Perfect Shot and the rest
+					// is made with -- his sit_weapon_slot_melee / sit_weapon_slot_missile.
+					weaponId: new fields.StringField({ required: true, initial: "" })
+				})
 			}),
 
 			// @MARKER NOTES
@@ -595,6 +618,10 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this._prepareSkills();
 		this._prepareSkillSlotStatus();
 		this._prepareOffhandSkills();
+		// Late, so that anything martial arts derives before it (blind fighting, a stance held) is
+		// already in place when the situational figures are totalled. It changes defensiveAdjust,
+		// which nothing between _prepareCombat and here reads.
+		this._prepareSituation();
 		// After the skills: the Arch Mortal screen reads five class skills' chances, and those
 		// are not worked out until _prepareSkills has run.
 		this._prepareAdvancement();
@@ -731,6 +758,15 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.combat.secondWeaponLoreTitle = tmplore2nd.when;
 		this.combat.hasSecondWeaponKnowledge = tmpknow2nd.reached;
 		this.combat.hasSecondWeaponLore = tmplore2nd.reached;
+
+		// Which weapons each discipline is held in, and how many more may be named. One weapon
+		// per title held in the discipline -- see getSecondWeaponSlots.
+		this.combat.secondWeaponKnowNames = parseLoreList(this.combat.secondWeaponKnowList);
+		this.combat.secondWeaponLoreNames = parseLoreList(this.combat.secondWeaponLoreList);
+		this.combat.secondWeaponKnowSlots = getSecondWeaponSlots(tmpknow2nd.title, tmpknow2nd.when,
+			this.combat.secondWeaponKnowNames);
+		this.combat.secondWeaponLoreSlots = getSecondWeaponSlots(tmplore2nd.title, tmplore2nd.when,
+			this.combat.secondWeaponLoreNames);
 
 		// Multiple Missile Lore, the last of the family. Title eligibility only, as above; the
 		// combos themselves are named launcher/missile pairs and the mechanics that read them are
@@ -1525,6 +1561,26 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// nothing here tracks how much of it a round has already spent. See getOffhandSecondsCap.
 		this.combat.offhandSecondsCap = getOffhandSecondsCap(
 			this.physical.handedness, this.combat.secondWeaponLoreChance);
+	}
+
+	// This is the function which totals the Situation Mods the character has set, and lays their
+	// defence onto the character's own.
+	//
+	// The defence is the character's and stands whatever they attack with -- Furious Attack leaves
+	// them easier to hit (+4) for as long as it is set. "No Defense" (blind, cannot see the target,
+	// a critically failed Critical) takes the adjustment away from anyone attacking them; that is
+	// read where the attack is made, as the target's noDefense.
+	//
+	// Martial arts feeds blind fighting in through combat.martialBlind, { blindFighting,
+	// fullDefense, inStance }, when it has set one; until then nothing is passed.
+	_prepareSituation() {
+		var tmpsituation = this.combat.situation ?? {};
+		this.combat.situational = resolveSituationalMods(tmpsituation.kind, tmpsituation.selected,
+			this.combat.martialBlind ?? null);
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + this.combat.situational.defense;
+		// His defensive_total is "No Defense" if the situational, martial or stance specials say so
+		// (sheet-worker.js:102805) -- Immoveable Stance does -- so martial arts' own is folded in.
+		this.combat.noDefense = this.combat.situational.noDefense || !!this.combat.martialDefense?.noDefense;
 	}
 
 	// This is the function which reads one named skill's resolved chance off the actor, for the

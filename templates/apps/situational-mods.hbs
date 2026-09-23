@@ -1,0 +1,77 @@
+{{!--
+	The Situation Mods window: his "SITUATION MODS" bar and its two panels. One root element, as the
+	framework requires. Everything here comes from buildSituationalView (module/situational-view.mjs).
+--}}
+<div class="situation-mods-window">
+	<div class="situation-head">
+		<label>Set
+			<select name="kind">
+				{{#each kinds as |k|}}<option value="{{k.value}}" {{#if k.selected}}selected{{/if}}>{{k.label}}</option>{{/each}}
+			</select></label>
+		<button type="button" data-action="clearAll"><i class="fa-solid fa-eraser"></i> Clear all</button>
+	</div>
+
+	{{#if hasPanel}}
+	<div class="situation-body">
+		{{!-- The weapon a skill roll is made with, and a modifier for it -- his Weapon Slot and his MOD
+		      prompt. At 0 the roll is his plain ROLL. --}}
+		<div class="situation-rollwith">
+			{{#if hasWeapons}}
+			<label>Skill rolls with
+				<select name="weaponId">
+					<option value="">(no weapon)</option>
+					{{#each weapons as |w|}}<option value="{{w.id}}" {{#if w.selected}}selected{{/if}}>{{w.name}} ({{#if (gte w.skillsMod 0)}}+{{/if}}{{w.skillsMod}}%)</option>{{/each}}
+				</select></label>
+			{{/if}}
+			<label>Roll modifier <input type="number" name="rollMod" value="0" class="short"></label>
+		</div>
+
+		{{#each groups as |g|}}
+		<fieldset class="situation-group">
+			<legend>{{g.heading}}</legend>
+			{{#if g.asSelect}}
+			<select data-group-select="{{g.selectName}}">
+				<option value="">None</option>
+				{{#each g.options as |o|}}<option value="{{o.key}}" {{#if (eq o.key g.selectedKey)}}selected{{/if}}>{{o.label}} ({{o.figures}})</option>{{/each}}
+			</select>
+			{{else}}
+			{{#each g.options as |o|}}
+			<div class="situation-option {{#if o.checked}}on{{/if}}">
+				{{!-- An option set by a skill roll shows its state but cannot be ticked by hand; his
+				      own sheet unticks it if you try. --}}
+				<label>
+					<input type="checkbox" {{#if o.checked}}checked{{/if}}
+						{{#if o.rollSet}}disabled{{else}}data-action="toggleOption" data-key="{{o.key}}"{{/if}}>
+					{{o.label}}
+				</label>
+				{{#if o.figures}}<span class="muted figures">{{o.figures}}</span>{{/if}}
+				{{#if o.closeOnly}}<span class="muted"> &mdash; point blank or short range only</span>{{/if}}
+				{{#if o.rollSkill}}
+				<button type="button" class="roll-option" data-action="rollOption" data-key="{{o.key}}"
+					data-tooltip="Roll {{o.rollSkill}}{{#if (eq o.rollChance null)}} (not held){{else}} at {{o.rollChance}}%{{/if}}">
+					<i class="fa-solid fa-dice-d20"></i> Roll{{#unless (eq o.rollChance null)}} {{o.rollChance}}%{{/unless}}</button>
+				{{/if}}
+			</div>
+			{{/each}}
+			{{/if}}
+		</fieldset>
+		{{/each}}
+	</div>
+
+	{{!-- The totals every {{kindWord}} attack reads until they are cleared, laid out as his bar is. --}}
+	<div class="situation-totals">
+		<span><label>{{kindWord}}</label> {{#if (gte totals.attack 0)}}+{{/if}}{{totals.attack}}</span>
+		<span><label>Damage</label> {{#if (gte totals.damage 0)}}+{{/if}}{{totals.damage}}</span>
+		<span><label>Dam Multiple</label> x{{totals.multi}}</span>
+		<span><label>Defense</label> {{#if totals.noDefense}}<strong>No Defense</strong>{{else}}{{#if (gt totals.defense 0)}}+{{/if}}{{totals.defense}}{{/if}}</span>
+		{{#if totals.special.length}}<div class="specials"><label>Special</label> {{#each totals.special as |s|}}{{s}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
+		{{#if totals.noAttack}}<div class="alarm">Desperate Defense: no attacks while this is set.</div>{{/if}}
+	</div>
+	{{else}}
+	<p class="empty">No situational modifiers are set. Choose melee or missile to set them.</p>
+	{{/if}}
+
+	<footer class="situation-foot">
+		<button type="button" data-action="done"><i class="fa-solid fa-check"></i> Done</button>
+	</footer>
+</div>

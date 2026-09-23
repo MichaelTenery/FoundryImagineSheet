@@ -75,6 +75,7 @@ const { default: ImagineCharacterData } = await import("../module/data/actor-cha
 const R = await import("../module/combat/combat-rules.mjs");
 const S = await import("../module/skills-rules.mjs");
 const C = await import("../module/class-rules.mjs");
+const SV = await import("../module/situational-view.mjs");
 
 Handlebars.registerHelper("eq", (a, b) => a === b);
 Handlebars.registerHelper("gt", (a, b) => a > b);
@@ -183,6 +184,12 @@ const character = new ImagineCharacterData({
 	                  racialSacrificed: 0, socialSacrificed: 0 },
 	combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
 	          weaponLoreList: "Bastard Sword, Garrote", missileLoreList: "",
+	          // A Warrior reaches Second Weapon Knowledge at 4 and Lore at 9, so at 12 she holds
+	          // both. The Dagger she carries left-handed is lored, so its off-hand tag reads "lore".
+	          secondWeaponKnowList: "", secondWeaponLoreList: "Dagger",
+	          // Attacking from the rear, furiously: the bar reads "+6 Melee, +4 Damage", and her
+	          // own Defence box is 4 worse than it would be, for as long as it is set.
+	          situation: { kind: "melee", selected: ["positionRear", "engageFurious"], weaponId: "" },
 	          painThreshold: -2, highPainThreshold: false, damageAbsorb: 12,
 	          spiritArmor: 0, forceArmor: 4, outerKinetic: 0, magicShield: 0,
 	          invulnerable: false },
@@ -263,6 +270,18 @@ const weaponRows = [sword, dagger, garrote].map(w => {
 	// this one had already drifted: the real sheet adds the weapon's own lore speed modifier
 	// into getWeaponSpeed, and this duplicate was missing it entirely. Fixed to match.
 	const lore = loreFor(w);
+	// The off-hand tier, from the character's Second Weapon lists, exactly as the sheet works it.
+	const second = R.getSecondWeaponFlags({
+		weaponName: w.name,
+		hasSecondWeaponKnowledge: character.combat.hasSecondWeaponKnowledge,
+		hasSecondWeaponLore: character.combat.hasSecondWeaponLore,
+		secondWeaponKnowList: character.combat.secondWeaponKnowNames,
+		secondWeaponLoreList: character.combat.secondWeaponLoreNames
+	});
+	const off = R.resolveOffhandPenalties({ ...w.system, ...second }, character.attributes.agl.rating,
+		character.physical?.handedness, character.combat.secondWeaponKnowChance);
+	const offTip = !off.offhand ? "" : off.tier === "lore" ? "Off hand, Second Weapon Lore: no penalty"
+		: `${off.tier === "knowledge" ? "Off hand, Second Weapon Knowledge" : "Off hand"}: attack ${off.melee}, damage ${off.damage}, skills ${off.skill}%`;
 	return {
 		id: w.id, name: w.name, damage: w.system.damage,
 		speed: w.system.speedSpecial ? "Special"
@@ -271,7 +290,7 @@ const weaponRows = [sword, dagger, garrote].map(w => {
 		modes: ["thrust", "cut", "smash", "missile"].filter(m => w.system[m]?.available).map(m => ({ mode: m, mod: w.system[m].mod })),
 		lore, equipped: w.system.location === "equipped",
 		hand: w.system.hand || "right",
-		offhand: R.isOffhandWeapon(w.system.hand, character.physical?.handedness)
+		offhand: off.offhand, offhandTier: off.tier, offhandTip: offTip
 	};
 });
 
@@ -282,15 +301,9 @@ const ctx = {
 	skills: skillRows,
 	gear: [sword, dagger, garrote, padding, chain, shield, tent],
 	weapons: weaponRows,
-	lore: {
-		show: character.combat.hasWeaponLore || character.combat.hasMissileLore,
-		hasWeapon: character.combat.hasWeaponLore,
-		hasMissile: character.combat.hasMissileLore,
-		label: [character.combat.hasWeaponLore ? "Weapon" : null,
-		        character.combat.hasMissileLore ? "Missile" : null].filter(Boolean).join(" and "),
-		weaponText: character.combat.weaponLoreList,
-		missileText: character.combat.missileLoreList
-	},
+	lore: buildLorePanel(character.combat),
+	// Mirrors the sheet's own line, built by the same function.
+	situationLine: SV.describeSituationalTotals(character.combat.situational),
 	handednessChoices: [
 		{ value: "",             label: "Right (default)", selected: true },
 		{ value: "Right",        label: "Right" },
@@ -476,16 +489,24 @@ function buildLorePanel(combat) {
 	const weapon = !!combat.hasWeaponLore, missile = !!combat.hasMissileLore, projectile = !!combat.hasProjectileLore;
 	const knowChance = parseInt(combat.multiMissileKnowChance) || 0;
 	const multiKnow = knowChance > 0, multiLore = !!combat.hasMultiMissileLore;
+	const secondKnow = !!combat.hasSecondWeaponKnowledge, secondLore = !!combat.hasSecondWeaponLore;
+	const secondChance = parseInt(combat.secondWeaponKnowChance) || 0;
 	const kinds = [weapon && "Weapon", missile && "Missile", projectile && "Projectile",
-	               (multiKnow || multiLore) && "Multiple Missile"].filter(Boolean);
+	               (multiKnow || multiLore) && "Multiple Missile",
+	               (secondKnow || secondLore) && "Second Weapon"].filter(Boolean);
 	return {
-		show: weapon || missile || projectile || multiKnow || multiLore,
+		show: weapon || missile || projectile || multiKnow || multiLore || secondKnow || secondLore,
 		hasWeapon: weapon, hasMissile: missile, hasProjectile: projectile,
 		hasMultiKnow: multiKnow, hasMultiLore: multiLore,
+		hasSecondKnow: secondKnow, hasSecondLore: secondLore,
 		label: kinds.join(", "), weaponText: combat.weaponLoreList ?? "",
 		missileText: combat.missileLoreList ?? "", projectileText: combat.projectileLoreList ?? "",
 		multiKnowText: combat.multiMissileKnowList ?? "", multiLoreText: combat.multiMissileLoreList ?? "",
-		multiKnowChance: knowChance, multiKnowLevels: Math.floor(knowChance / 25)
+		multiKnowChance: knowChance, multiKnowLevels: Math.floor(knowChance / 25),
+		secondKnowText: combat.secondWeaponKnowList ?? "", secondLoreText: combat.secondWeaponLoreList ?? "",
+		secondKnowChance: secondChance, secondKnowLevels: Math.floor(secondChance / 20),
+		secondKnowSlots: parseInt(combat.secondWeaponKnowSlots) || 0,
+		secondLoreSlots: parseInt(combat.secondWeaponLoreSlots) || 0
 	};
 }
 

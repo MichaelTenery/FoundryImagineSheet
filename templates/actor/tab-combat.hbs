@@ -21,9 +21,12 @@
 		<div class="char-box"><label>Initiative</label>
 			<span class="value">d10 {{#if (gte system.combat.initiativeMod 0)}}+{{/if}}{{system.combat.initiativeMod}}</span>
 			<span class="sub">lower acts first</span></div>
+		{{!-- Includes the Situation Mods' own defence; "No Defense" takes it away altogether. --}}
 		<div class="char-box"><label>Defence</label>
-			<span class="value">{{#if (gt system.combat.defensiveAdjust 0)}}+{{/if}}{{system.combat.defensiveAdjust}}</span>
-			<span class="sub">to attackers' rolls</span></div>
+			{{#if system.combat.noDefense}}<span class="value alarm">None</span>
+			<span class="sub">No Defense, from Situation Mods</span>
+			{{else}}<span class="value">{{#if (gt system.combat.defensiveAdjust 0)}}+{{/if}}{{system.combat.defensiveAdjust}}</span>
+			<span class="sub">to attackers' rolls</span>{{/if}}</div>
 		<div class="char-box"><label>Weapon Speed</label>
 			<span class="value">{{#if (gt system.combat.weaponSpeedMod 0)}}+{{/if}}{{system.combat.weaponSpeedMod}}</span>
 			<span class="sub">seconds per swing</span></div>
@@ -48,6 +51,15 @@
 			<span class="value"><input type="number" class="pain-input" min="0"
 				name="system.combat.damageAbsorb" value="{{system.combat.damageAbsorb}}"></span>
 			<span class="sub">pool, spent as used</span></div>
+	</div>
+
+	{{!-- His "SITUATION MODS" bar: what every attack of one kind reads until it is cleared, and the
+	      button that opens the melee and missile panels. --}}
+	<div class="situation-bar">
+		<strong>Situation Mods:</strong>
+		{{#if situationLine}}<span class="situation-line">{{situationLine}}</span>{{else}}<span class="muted">none set</span>{{/if}}
+		<button type="button" data-action="openSituation"><i class="fa-solid fa-sliders"></i> Melee / Missile Mods</button>
+		{{#if situationLine}}<button type="button" data-action="clearSituation" data-tooltip="Clear all modifiers"><i class="fa-solid fa-eraser"></i></button>{{/if}}
 	</div>
 
 	{{!-- Everything here comes off a blow BEFORE any worn armour blocks it, in his order. Each is
@@ -93,6 +105,23 @@
 			<input type="text" name="system.combat.multiMissileLoreList" value="{{lore.multiLoreText}}"
 				placeholder="Long Bow/Arrow">
 			<span class="muted">removes the penalty entirely for these</span></label>
+		{{/if}}
+
+		{{!-- Second Weapon Knowledge and Lore are held weapon by weapon, one more for every title
+		      held in the discipline. A weapon fights off-handed without penalty (Lore) or with
+		      the penalty bought down (Knowledge) only when it is named here. --}}
+		{{#if lore.hasSecondKnow}}
+		<label>Second Weapon Knowledge in
+			<input type="text" name="system.combat.secondWeaponKnowList" value="{{lore.secondKnowText}}"
+				placeholder="Dagger, Short Sword">
+			<span class="muted">{{lore.secondKnowChance}}% &mdash; {{lore.secondKnowLevels}} level(s) off the off-hand
+			penalty; {{lore.secondKnowSlots}} more weapon(s) may be named</span></label>
+		{{/if}}
+		{{#if lore.hasSecondLore}}
+		<label>Second Weapon Lore in
+			<input type="text" name="system.combat.secondWeaponLoreList" value="{{lore.secondLoreText}}"
+				placeholder="Dagger">
+			<span class="muted">no off-hand penalty for these; {{lore.secondLoreSlots}} more weapon(s) may be named</span></label>
 		{{/if}}
 	</div>
 	{{/if}}
@@ -151,7 +180,9 @@
 							data-action="setWeaponHand" data-item-id="{{w.id}}" data-hand="both"
 							data-tooltip="Both hands - doubles a Strength damage bonus">2H</button>
 					</span>
-					{{#if w.offhand}} <span class="offhand-tag" data-tooltip="In the off hand: attack, damage and skill penalties by Agility unless Second Weapon Knowledge or Lore applies">off</span>{{/if}}
+					{{!-- The tier is worked out from the character's Second Weapon lists, the same way
+					      the attack works it out, so what the tag says is what the roll will use. --}}
+					{{#if w.offhand}} <span class="offhand-tag" data-tooltip="{{w.offhandTip}}">off{{#if (eq w.offhandTier "knowledge")}} &middot; know{{else if (eq w.offhandTier "lore")}} &middot; lore{{/if}}</span>{{/if}}
 				</td>
 				<td>
 					{{#if w.modes.length}}

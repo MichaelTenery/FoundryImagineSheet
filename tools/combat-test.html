@@ -762,6 +762,148 @@ check("an Ambidextrous wielder is never off-hand at all",
 check("a real item's system block is unwrapped",
 	R.resolveOffhandPenalties({ system: offhandSword }, 12, "Right").tier, "full");
 
+// --- which weapons Second Weapon Knowledge / Lore are held in ------------------------------
+// His per-weapon flags were only ever set from the character's two lists of simplified names
+// (handleSecondWeaponKnow, sheet-worker.js:90648), so the flags are worked out from the lists.
+const secondFor = (name, extra = {}) => R.getSecondWeaponFlags({
+	weaponName: name, hasSecondWeaponKnowledge: true, hasSecondWeaponLore: true,
+	secondWeaponKnowList: "Dagger, Short Sword", secondWeaponLoreList: "Main Gauche", ...extra });
+check("a weapon on the Knowledge list takes Knowledge",
+	secondFor("Short Sword"), { secondWeaponKnowledge: true, secondWeaponLore: false });
+check("a weapon on the Lore list takes Lore",
+	secondFor("Main Gauche"), { secondWeaponKnowledge: false, secondWeaponLore: true });
+check("a weapon on neither list takes neither",
+	secondFor("Long Sword"), { secondWeaponKnowledge: false, secondWeaponLore: false });
+check("a customised name is matched by its simplified name",
+	secondFor("Jeweled {Dagger} of Ages").secondWeaponKnowledge, true);
+check("a name on the list does nothing before the class title",
+	secondFor("Dagger", { hasSecondWeaponKnowledge: false }).secondWeaponKnowledge, false);
+check("the lists may be arrays as well as his comma-separated strings",
+	secondFor("Dagger", { secondWeaponKnowList: ["Dagger"] }).secondWeaponKnowledge, true);
+
+// End to end, as the attack builds it: the flags from the lists, merged over the weapon, into
+// the penalty. Before this, nothing ever set the weapon's flags and every off-hand attack paid
+// the full penalty whatever the character's skill.
+const leftDagger = { hand: "left" };
+check("THE FIX: a listed weapon with 60% Knowledge is bought down, not full",
+	R.resolveOffhandPenalties({ ...leftDagger, ...secondFor("Dagger") }, 12, "Right", 60),
+	{ offhand: true, tier: "knowledge", melee: 0, damage: -2, skill: 0 });
+check("...an unlisted one still pays full at the same chance",
+	R.resolveOffhandPenalties({ ...leftDagger, ...secondFor("Long Sword") }, 12, "Right", 60),
+	{ offhand: true, tier: "full", melee: -3, damage: -5, skill: -15 });
+check("...and a Lore weapon pays nothing",
+	R.resolveOffhandPenalties({ ...leftDagger, ...secondFor("Main Gauche") }, 12, "Right", 60).tier, "lore");
+
+// One weapon per title held in the discipline, counting the title it arrived at.
+check("slots: acquired at 3, now title 5, one named -> 2 more",   R.getSecondWeaponSlots(5, 3, "Dagger"), 2);
+check("slots: acquired this title, none named -> 1",              R.getSecondWeaponSlots(3, 3, ""), 1);
+check("slots: a class that never acquires it has none",           R.getSecondWeaponSlots(9, 0, ""), 0);
+check("slots: before the title there are none, not a negative",   R.getSecondWeaponSlots(1, 3, ""), 0);
+check("slots: a list that has outgrown the title shows negative", R.getSecondWeaponSlots(3, 3, "Dagger, Axe"), -1);
+
+// --- Situation Mods: his handleMeleeSet / handleMissileSet (sheet-worker.js:72874, 72990) ----------
+const sitMelee = (keys, martial) => R.resolveSituationalMods("melee", keys, martial);
+const sitMissile = (keys, martial) => R.resolveSituationalMods("missile", keys, martial);
+check("nothing set is nothing at all",
+	R.resolveSituationalMods("", ["positionRear"]),
+	{ kind: "", attack: 0, damage: 0, multi: 1, defense: 0, noDefense: false, special: [],
+	  multiMissile: "", noAttack: false, labels: [] });
+check("rear +4/+2 and prone +6/x2 add up", (({ attack, damage, multi }) => ({ attack, damage, multi }))(
+	sitMelee(["positionRear", "targetProne"])), { attack: 10, damage: 2, multi: 2 });
+// A multiplier is ADDED: each x2 is +1 on a running figure that starts at 1.
+check("charging into a target against a wall is x3, not x4", sitMelee(["speedCharge", "targetWall"]).multi, 3);
+check("diving (+2) against a wall and prone would be x5 -- held at x3",
+	sitMelee(["speedDiving", "targetWall", "targetProne"]).multi, 3);
+check("an immobile target is +10, x2 and maximum damage",
+	(({ attack, multi, special }) => ({ attack, multi, special }))(sitMelee(["targetImmobile"])),
+	{ attack: 10, multi: 2, special: ["Max"] });
+check("Furious Attack costs the attacker 4 on their own defence", sitMelee(["engageFurious"]).defense, 4);
+check("Desperate Defense is -4 defence and no attacks",
+	(({ defense, noAttack }) => ({ defense, noAttack }))(sitMelee(["engageDefense"])), { defense: -4, noAttack: true });
+check("...neither engagement applies while in a martial stance",
+	(({ attack, defense, noAttack }) => ({ attack, defense, noAttack }))(sitMelee(["engageFurious"], { inStance: true })),
+	{ attack: 0, defense: 0, noAttack: false });
+check("an invisible target is -8 and costs the attacker their defence",
+	(({ attack, noDefense }) => ({ attack, noDefense }))(sitMelee(["targetInvisible"])), { attack: -8, noDefense: true });
+check("martial blind fighting pays it back when the target cannot be seen",
+	sitMelee(["targetInvisible"], { blindFighting: 3 }).attack, -5);
+check("...but not when the target is merely in dim light", sitMelee(["fadeDim"], { blindFighting: 3 }).attack, -6);
+check("\"Full Defensive Mod\" keeps the defence a blind attacker would lose",
+	sitMelee(["selfBlind"], { fullDefense: true }).noDefense, false);
+check("size: twelve bigger stops at +10, as his SET does", sitMelee(["bigger12"]).attack, 10);
+check("size: twelve smaller goes all the way to -12",     sitMelee(["smaller12"]).attack, -12);
+check("melee labels name the heading where it adds something",
+	sitMelee(["positionRear", "calledShot"]).labels, ["Position: Rear", "Called Shot"]);
+
+check("missile: aiming 3 seconds at point blank is +5 and +1 per die",
+	(({ attack, special }) => ({ attack, special }))(sitMissile(["aimSec3", "rangePointBlank"])),
+	{ attack: 5, special: ["+1 per Die"] });
+check("missile: extreme range is -6, -1 per die and a random location",
+	sitMissile(["rangeExtreme"]).special, ["-1 per Die", "Random Location"]);
+// Counted by resolveMultiMissile, with the skills that buy it back -- not here as well.
+check("missile: two projectiles picks the firing mode and adds no penalty of its own",
+	(({ attack, damage, multiMissile }) => ({ attack, damage, multiMissile }))(sitMissile(["twoProjectiles"])),
+	{ attack: 0, damage: 0, multiMissile: "twoProjectiles" });
+check("missile: One Eye is -2 (his SET forgot to read it; label and test both say -2)",
+	sitMissile(["selfOneEye"]).attack, -2);
+check("missile: a blind archer has no defence", sitMissile(["selfBlind"]).noDefense, true);
+check("missile: an invisible target does NOT take the defence, unlike melee",
+	sitMissile(["targetInvisible"]).noDefense, false);
+check("missile: a critically failed Perfect Shot is half damage", sitMissile(["perfectShotFail"]).special, ["Half Dam"]);
+
+// His exclusions: one of each group.
+check("side then rear leaves rear alone", R.toggleSituationalOption("melee", ["positionSide"], "positionRear"), ["positionRear"]);
+check("rear and above are different groups and stand together",
+	R.toggleSituationalOption("melee", ["positionRear"], "positionAbove"), ["positionRear", "positionAbove"]);
+check("ticking a ticked option unticks it", R.toggleSituationalOption("melee", ["positionRear"], "positionRear"), []);
+check("one size across all twenty-four", R.toggleSituationalOption("melee", ["bigger3"], "smaller2"), ["smaller2"]);
+check("charging clears brace", R.toggleSituationalOption("melee", ["speedBrace"], "speedCharge"), ["speedCharge"]);
+check("medium range clears double fire, which needs point blank or short",
+	R.toggleSituationalOption("missile", ["twoProjectiles", "aimSec1"], "rangeMedium"), ["aimSec1", "rangeMedium"]);
+check("...but short range does not", R.toggleSituationalOption("missile", ["twoProjectiles"], "rangeShort"),
+	["twoProjectiles", "rangeShort"]);
+check("Wrong Type/Size also ticks Override Type Check",
+	R.toggleSituationalOption("missile", [], "wrongProjectile"), ["wrongProjectile", "ignoreType"]);
+check("a roll-set option cannot be ticked by hand", R.toggleSituationalOption("melee", [], "critical"), []);
+check("...nor its Crit", R.toggleSituationalOption("melee", [], "criticalCrit"), []);
+check("a key from the other panel is dropped", R.toggleSituationalOption("missile", ["positionRear"], "aimSec1"), ["aimSec1"]);
+
+// A skill roll sets the option, and a critical result its Crit or Crit Fail (his handler at 19112).
+check("Critical, critically succeeded: the option and its Crit",
+	R.getSituationalRollResult("melee", ["positionRear"], "critical", "Critical success"),
+	["positionRear", "critical", "criticalCrit"]);
+check("Critical, succeeded: the option alone",
+	R.getSituationalRollResult("melee", [], "critical", "Succeeded"), ["critical"]);
+check("Critical, failed: nothing, and an earlier success is cleared",
+	R.getSituationalRollResult("melee", ["critical", "criticalCrit"], "critical", "Failed"), []);
+check("Critical, critically failed: its Crit Fail alone",
+	R.getSituationalRollResult("melee", ["critical"], "critical", "Critical failure"), ["criticalFail"]);
+check("Brace, set by its roll, still clears Charging (one-of)",
+	R.getSituationalRollResult("melee", ["speedCharge"], "speedBrace", "Succeeded"), ["speedBrace"]);
+check("Quick Load critically failed sets its note-only Crit Fail",
+	R.getSituationalRollResult("missile", [], "quickLoad", "Critical failure"), ["quickLoadFail"]);
+
+// Cut to one attack: set for one kind, the other kind's attacks read none of it.
+const sitSetMelee = sitMelee(["positionRear", "targetImmobile"]);
+check("set for melee, a sword blow reads it all",
+	(({ attack, damage, multi, maxDamage }) => ({ attack, damage, multi, maxDamage }))(R.getSituationalForAttack(sitSetMelee, "cut")),
+	{ attack: 14, damage: 2, multi: 2, maxDamage: true });
+check("set for melee, a bow shot reads none of it",
+	(({ attack, damage, multi, maxDamage }) => ({ attack, damage, multi, maxDamage }))(R.getSituationalForAttack(sitSetMelee, "missile")),
+	{ attack: 0, damage: 0, multi: 1, maxDamage: false });
+check("a creature's \"melee\" attack reads a melee set", R.getSituationalForAttack(sitSetMelee, "melee").attack, 14);
+check("point blank is +1 per die for the attack", R.getSituationalForAttack(sitMissile(["rangePointBlank"]), "missile").perDie, 1);
+check("a failed Perfect Shot halves", R.getSituationalForAttack(sitMissile(["perfectShotFail"]), "missile").halfDamage, true);
+check("the notes are the words the table acts on, apostrophe restored",
+	R.getSituationalNotes(["Max", "Random Location", "Can`t See Target", "Called Shot"]), ["Random Location", "Can't See Target"]);
+
+// The to-hit list: set mods print as his "Situational", a typed number as "Modifier".
+const sitHit = R.getToHitModifiers({ mode: "cut", weapon: { cut: { available: true, mod: 0 } }, attacker: {},
+	situation: 6, situational: -1 });
+check("Situation Mods and the typed modifier are listed apart",
+	sitHit.list, [{ label: "Situational", value: 6 }, { label: "Modifier", value: -1 }]);
+check("...and both reach the total", sitHit.total, 5);
+
 // It reaches the to-hit sum for MISSILE as well as melee -- his offHandPenalty is in both
 // totalmods branches (sheet-worker.js:64804 missile, 64806 melee) despite the table's name.
 check("the off-hand penalty reaches a missile attack",

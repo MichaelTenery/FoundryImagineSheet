@@ -136,15 +136,10 @@ export default class ImagineWeaponData extends foundry.abstract.TypeDataModel {
 			hand: new fields.StringField({ required: true, initial: "right",
 			          choices: ["right", "left", "both"] }),
 
-			// @MARKER SECOND-WEAPON LORE
-			// His per-weapon flags weaponN_2weapknow and weaponN_2weaplore. Unlike the hand, these
-			// ARE properties of this weapon in this wielder's hands -- lore is held in a particular
-			// weapon, exactly as the five lore types already ported are.
-			//
-			// Lore removes the off-hand penalty entirely; Knowledge buys it down. The tiers do not
-			// stack -- his handlePhysicalAttacks tests Lore first and stops there.
-			secondWeaponKnowledge: new fields.BooleanField({ required: true, initial: false }),
-			secondWeaponLore:      new fields.BooleanField({ required: true, initial: false }),
+			// Second Weapon Knowledge and Lore are NOT stored here. His per-weapon flags
+			// (weaponN_2weapknow / weaponN_2weaplore) were only ever set from the character's own
+			// lists of weapon names, so the lists live on the character and the flags are worked
+			// out from them -- see getSecondWeaponFlags in combat-rules.mjs.
 
 			// @MARKER PROVENANCE
 			cost:        new fields.StringField({ required: true, initial: "" }),
