@@ -668,6 +668,15 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 		return tmpmod;
 	}
 
+	// This is the function which gives a WEAPON attack's Strength damage under whatever move is
+	// made. Strength is melee only -- a missile gets none, whatever the move says, which
+	// getMartialStrengthDamage does not itself check -- and with no move made this is exactly
+	// getStrengthDamageMod in combat-rules.mjs, so the weapon attack can call it unconditionally.
+	export function getWeaponMartialStrength(tmpstrdamage, tmpmode, tmpstrength, tmptwohanded) {
+		if (!MELEE_MODES.includes(tmpmode)) { return 0; }
+		return getMartialStrengthDamage(tmpstrdamage, tmpstrength, tmptwohanded);
+	}
+
 
 //==================================================================================================================
 // @MARKER MARTIAL ATTACK

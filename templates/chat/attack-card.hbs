@@ -22,6 +22,8 @@
 	      on rather than arithmetic -- a Random Location, half reload time. --}}
 	{{#if situation.labels.length}}<div class="situation">Situation: {{#each situation.labels as |l|}}{{l}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
 	{{#if situation.notes.length}}<div class="situation-notes">{{#each situation.notes as |n|}}<strong>{{n}}</strong>{{#unless @last}} &middot; {{/unless}}{{/each}}</div>{{/if}}
+	{{!-- The stance's and moves' own words, which his card printed beside the modifiers. --}}
+	{{#if martialNotes.length}}<div class="situation-notes">{{#each martialNotes as |n|}}{{n}}{{#unless @last}} &middot; {{/unless}}{{/each}}</div>{{/if}}
 
 	<div class="zone zone-{{#if result.isHit}}hit{{else}}miss{{/if}}">
 		{{#if result.isFumble}}FUMBLE{{else}}{{result.zone}}{{/if}}
@@ -35,8 +37,8 @@
 	{{#if damage}}
 	<div class="damage">
 		<span class="total">{{damage.total}}</span> {{damage.type}} damage
-		<span class="breakdown">({{damage.dice}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.magic}} +{{damage.magic}} magic{{/if}}{{#if damage.lore}} {{#if (gt damage.lore 0)}}+{{/if}}{{damage.lore}} lore{{#if damage.loreSpecific}} (specific){{/if}}{{/if}}{{#if damage.projectileLore}} {{#if (gt damage.projectileLore 0)}}+{{/if}}{{damage.projectileLore}} projectile lore ({{damage.projectileLorePerDie}}/die){{/if}}{{#if damage.multiMissile}} {{damage.multiMissile}} multiple missiles{{/if}}{{#if damage.offhand}} {{damage.offhand}} off hand{{#if (eq damage.offhandTier "knowledge")}} (Second Weapon Knowledge){{/if}}{{/if}}{{#if damage.situation}} {{#if (gt damage.situation 0)}}+{{/if}}{{damage.situation}} situational{{/if}}{{#if damage.maximized}}, every die at its highest{{/if}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}
-		= {{damage.rolled}}{{#if (gt damage.situationMulti 1)}}, x{{damage.situationMulti}} situational{{/if}}{{#if damage.halfDamage}}, halved for the failed shot{{/if}}{{#if (lt damage.multiplier 1)}}{{#unless damage.halfDamage}}, halved for the called shot{{/unless}}{{/if}})</span>
+		<span class="breakdown">({{damage.dice}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.magic}} +{{damage.magic}} magic{{/if}}{{#if damage.lore}} {{#if (gt damage.lore 0)}}+{{/if}}{{damage.lore}} lore{{#if damage.loreSpecific}} (specific){{/if}}{{/if}}{{#if damage.projectileLore}} {{#if (gt damage.projectileLore 0)}}+{{/if}}{{damage.projectileLore}} projectile lore ({{damage.projectileLorePerDie}}/die){{/if}}{{#if damage.multiMissile}} {{damage.multiMissile}} multiple missiles{{/if}}{{#if damage.offhand}} {{damage.offhand}} off hand{{#if (eq damage.offhandTier "knowledge")}} (Second Weapon Knowledge){{/if}}{{/if}}{{#if damage.situation}} {{#if (gt damage.situation 0)}}+{{/if}}{{damage.situation}} situational{{/if}}{{#if damage.martial}} {{#if (gt damage.martial 0)}}+{{/if}}{{damage.martial}} martial{{/if}}{{#if damage.maximized}}, every die at its highest{{/if}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}
+		= {{damage.rolled}}{{#if (gt damage.situationMulti 1)}}, x{{damage.situationMulti}} situational{{/if}}{{#if (gt damage.martialMulti 1)}}, x{{damage.martialMulti}} martial{{/if}}{{#if damage.halfDamage}}, halved for the failed shot{{/if}}{{#if (lt damage.multiplier 1)}}{{#unless damage.halfDamage}}, halved for the called shot{{/unless}}{{/if}})</span>
 		{{!-- Two or three projectiles are one roll; the rest land on the same target for the same
 		      damage again, which is his sheet's rule and not the book's. --}}
 		{{#if (gt damage.shots 1)}}

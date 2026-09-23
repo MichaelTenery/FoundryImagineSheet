@@ -164,7 +164,7 @@ they run in any browser. As of 2026-09-22 the figures are:
 | Equip rules | `tools/equip-test.html` | 21 |
 | Importer (retired documents) | `tools/importer-test.html` | 9 |
 | Changelog window | `tools/changelog-test.html` | 24 |
-| Martial arts | `tools/martial-test.html` | 150 |
+| Martial arts | `tools/martial-test.html` | 154 |
 | Window chrome (every item sheet scrolls) | `tools/window-test.html` | 19 |
 | Manual-content loader (Python) | `python tools/extract/test_manual_content.py` | 82 |
 | Module parse check | `tools/syntax-check.html` | 54 modules |

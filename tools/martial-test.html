@@ -258,6 +258,15 @@ check("no state at all, nothing added", M.getMartialAttackModifiers(null, { mode
 // --- dice and Strength ----------------------------------------------------------------------------
 check("a die added: 2d4+2 -> 3d4+2", M.addMartialDice("2d4+2", 1), "3d4+2");
 check("his rule: no dice added to a '1'", M.addMartialDice("1", 1), "1");
+
+// A WEAPON attack's Strength under a move, as the weapon attack in attack.mjs works it out.
+check("weapon, no move: exactly the ordinary rule (+3, doubled two-handed)",
+	[M.getWeaponMartialStrength(3, "cut", "", false), M.getWeaponMartialStrength(3, "cut", "", true)], [3, 6]);
+check("weapon, no move: a penalty halves two-handed, toward zero", M.getWeaponMartialStrength(-3, "cut", "", true), -1);
+check("weapon under Tension: doubled, tripled in both hands",
+	[M.getWeaponMartialStrength(3, "smash", "tension", false), M.getWeaponMartialStrength(3, "smash", "tension", true)], [6, 9]);
+check("a missile takes no Strength whatever the move says",
+	[M.getWeaponMartialStrength(3, "missile", "tension", false), M.getWeaponMartialStrength(3, "missile", "", true)], [0, 0]);
 check("nor to any flat figure", M.addMartialDice("8", 2), "8");
 check("Tension doubles a Strength bonus", M.getMartialStrengthDamage(3, "tension", false), 6);
 check("...and trebles it in two hands, the book's note", M.getMartialStrengthDamage(3, "tension", true), 9);

@@ -18,7 +18,7 @@
 import {
 	MELEE_MODES, MODE_DAMAGE_TYPES,
 	resolveAttack, resolveFumble, getToHitModifiers, resolveOffhandPenalties,
-	getWeaponDamageDice, getStrengthDamageMod, combineDamageMultipliers,
+	getWeaponDamageDice, combineDamageMultipliers,
 	resolveAreaDamage, applyAreaDamage, applyPainThreshold, absorbDamage, blowLands,
 	applyMagicalReductions, getWeaveValue, isEndured, isRebounded, getAreaArmorSlot,
 	getLoreModifiers, getProjectileLoreDamage, getWeaponSpeed,
@@ -26,6 +26,7 @@ import {
 	getSituationalForAttack, getSituationalNotes, getNumberOfDice
 } from "./combat-rules.mjs";
 import { ARMOR_BLOCKING } from "../combat-tables.mjs";
+import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } from "./martial-arts.mjs";
 
 const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Missile" };
 
@@ -176,6 +177,16 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		return null;
 	}
 
+	// Martial arts: the stance held and the moves made count on a weapon attack too, as his
+	// handlePhysicalAttacks reads martial_arts_mod_* and martial_stance_mod_* beside the rest. A
+	// missile attack takes only the stance's missile to-hit. The stance's defence, initiative and
+	// speed are already in the character's standing figures, so they are not added again here.
+	var tmpmartial = getMartialAttackModifiers(tmpsys.martial?.state, { mode: tmpmode, martialAttack: false });
+	if (tmpmartial.noAttack) {
+		ui.notifications.warn(`${tmpactor.name} cannot attack: ${tmpmartial.noAttackReason}. Clear it from the Martial Arts panel first.`);
+		return null;
+	}
+
 	// Weapon or Missile Lore, if this character has it. It is worth a flat set of figures for
 	// every weapon of the right kind, and a larger set INSTEAD for a weapon specifically lored.
 	// Melee reads Weapon Lore, missile reads Missile Lore, and neither touches the other.
@@ -234,6 +245,10 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		offhand: tmpoffhand.melee,
 		multiMissile: tmpmissiles.attack
 	});
+	// The martial entries go onto the same list, labelled as his card labels them ("Stance",
+	// "Martial"), so the chat card shows them by name with everything else.
+	tmpmods.list.push(...tmpmartial.list);
+	tmpmods.total = tmpmods.total + tmpmartial.total;
 
 	var tmpd20 = await new Roll("1d20").evaluate();
 	var tmpresult = resolveAttack({
@@ -249,6 +264,8 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	var tmpspeed = getWeaponSpeed(tmpw.speed, tmpw.minSpeed,
 		tmpsys.combat.weaponSpeedMod + tmplore.speed);
 	if (tmpoptions.calledShot) { tmpspeed = tmpspeed + 1; }
+	// A move made takes its own time on top (a Spin, a Jump); a stance's is already in the speed.
+	tmpspeed = tmpspeed + tmpmartial.seconds;
 
 	// A fumble
 	var tmpfumble = null;
@@ -272,10 +289,17 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	var tmpdamage = null;
 	var tmprolls = [tmpd20];
 	if (tmpresult.isHit) {
-		var tmpdice = getWeaponDamageDice(tmpw, tmpmode);
+		// A martial move or stance can add whole dice (a Jump, the Drunken stance), which then count
+		// for everything worked out per die below. A flat-damage weapon takes none -- see addMartialDice.
+		var tmpdice = addMartialDice(getWeaponDamageDice(tmpw, tmpmode), tmpmartial.damage.extraDice);
 		// Held in both hands is what doubles a Strength bonus, and that is now read off the weapon's
-		// hand rather than a separate twoHanded boolean which could contradict it.
-		var tmpstrmod = getStrengthDamageMod(tmpsys.combat.meleeDamage, tmpmode, tmpw.hand == "both");
+		// hand rather than a separate twoHanded boolean which could contradict it. A martial move can
+		// change that -- Tension doubles it (triples it two-handed) -- and with no move made this is
+		// getStrengthDamageMod exactly. Melee only either way; see getWeaponMartialStrength.
+		var tmpstrmod = getWeaponMartialStrength(tmpsys.combat.meleeDamage, tmpmode,
+			tmpmartial.damage.strength, tmpw.hand == "both");
+		// The martial damage: flat, and per die of what this attack actually rolls.
+		var tmpmartialdamage = tmpmartial.damage.flat + (tmpmartial.damage.perDie * getNumberOfDice(tmpdice));
 		var tmpmagic = parseInt(tmpw.magicBonus) || 0;
 		var tmpmisc = MELEE_MODES.includes(tmpmode) ? (parseInt(tmpsys.combat.damageMisc) || 0) : 0;
 
@@ -295,10 +319,10 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// Maximum damage -- a Focused Attack, a Perfect Shot, an immobile target -- rolls every die
 		// at its highest, which is his getMaxValueFromDiceString. The flat additions still add.
 		var tmpdmgroll = await new Roll(
-			`${tmpdice} + @str + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation`,
+			`${tmpdice} + @str + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial`,
 			{ str: tmpstrmod, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
 			  projlore: tmpprojlore.damage, offhand: tmpoffhand.damage,
-			  missiles: tmpmissiles.damage, situation: tmpsitdamage })
+			  missiles: tmpmissiles.damage, situation: tmpsitdamage, martial: tmpmartialdamage })
 			.evaluate({ maximize: tmpsitmods.maxDamage });
 		tmprolls.push(tmpdmgroll);
 
@@ -307,6 +331,9 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// holds the whole at x3.
 		var tmpmultipliers = [];
 		if (tmpsitmods.multi != 1) { tmpmultipliers.push(tmpsitmods.multi); }
+		// A martial multiplier (a Flying kick, a stance's) joins it. His code adds the two where
+		// this multiplies them, but either way the x3 cap is reached with any two, so they agree.
+		if (tmpmartial.damage.multiplier != 1) { tmpmultipliers.push(tmpmartial.damage.multiplier); }
 		if (tmpoptions.calledShot) { tmpmultipliers.push(0.5); }
 		if (tmpsitmods.halfDamage) { tmpmultipliers.push(0.5); }
 		var tmpmulti = combineDamageMultipliers(tmpmultipliers);
@@ -330,6 +357,7 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 			offhand: tmpoffhand.damage, offhandTier: tmpoffhand.tier,
 			situation: tmpsitdamage, maximized: tmpsitmods.maxDamage,
 			situationMulti: tmpsitmods.multi, halfDamage: tmpsitmods.halfDamage,
+			martial: tmpmartialdamage, martialMulti: tmpmartial.damage.multiplier,
 			shots: tmpmissiles.shots, perShot: tmpeach,
 			rolled: tmpdmgroll.total, multiplier: tmpmulti, total: tmptotal,
 			type: MODE_DAMAGE_TYPES[tmpmode]
@@ -352,6 +380,8 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// What the Situation Mods set, and the words among them that are for the table to act
 		// on rather than arithmetic -- a random hit location, half reload time, and the like.
 		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special) },
+		// The stance's and moves' own prose, for the table -- what his card printed beside them.
+		martialNotes: tmpmartial.special,
 		// Once set, the Apply Damage button stops offering itself, so a hit cannot be applied twice.
 		applied: false
 	};

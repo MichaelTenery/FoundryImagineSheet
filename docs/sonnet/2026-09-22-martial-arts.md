@@ -8,7 +8,14 @@ tab's Martial Arts panel (`module/martial-view.mjs` + the martial block in
 and Martial Lore". These are the pieces left because each one only extends a pattern that already
 exists. **Everything in "Already decided" below is settled. Do not reopen it.**
 
-## 1. The weapon attack reads the martial state (if the Situation Mods pass has not already)
+## 1. The weapon attack reads the martial state -- DONE 2026-09-22 by the Situation Mods session
+
+Done as described below, in `rollWeaponAttack`. One change from the recipe: Strength goes through a
+new `getWeaponMartialStrength(meleeDamage, mode, strength, twoHanded)` in `martial-arts.mjs`, which
+is `getStrengthDamageMod` exactly when no move is made and returns 0 for a missile whatever the move
+says -- `getMartialStrengthDamage` does not check the mode, and a bow under Tension would otherwise
+have taken doubled Strength. Four checks in `tools/martial-test.html`. The +5 case below was already
+there. Kept for the record:
 
 - **What:** a stance's and the made moves' to-hit, damage, extra dice, per-die damage, multiplier,
   Strength handling and seconds must reach a WEAPON attack. The function is ready:
@@ -49,7 +56,10 @@ exists. **Everything in "Already decided" below is settled. Do not reopen it.**
   discipline and a stance, make moves, and roll martial attacks, blocks, holds and throws. A stance
   changes your defence, initiative and speed at once."
 
-## 4. Show the made stance on the attack cards
+## 4. Show the made stance on the attack cards -- DONE 2026-09-22 with item 1
+
+The card now shows `damage.martial`, a martial multiplier, and the stance's and moves' own words.
+Kept for the record:
 
 - **What:** once item 1 is done the weapon card will list "Stance (Strike as wind)" in its to-hit
   line by name already; its damage breakdown in `templates/chat/attack-card.hbs` has no slot for
