@@ -38,6 +38,7 @@
     "Combat module — phase 2":            { "dependsOn": ["Combat module — phase 1", "Equipment module"] },
     "Situation Mods":                     { "dependsOn": ["Combat module — phase 1", "Creature actor type", "Skills module"], "note": "Martial blind fighting and stance feed it through combat.martialBlind." },
     "Second Weapon Knowledge/Lore held":  { "dependsOn": ["Combat module — phase 2", "Skills module"] },
+    "Martial arts":                       { "dependsOn": ["Combat module — phase 2", "Skills module", "Situation Mods"], "note": "Hands blind fighting to the Situation Mods; the weapon attack reads getMartialAttackModifiers." },
     "Visual attack-chart":                { "dependsOn": ["Combat module — phase 1", "Creature actor type"], "note": "Needs a design pass first: an adjacency model for each body chart." },
     "Equipment module":                   { "dependsOn": ["Attributes module", "Generate src/packs", "Design content/compendium layer"] },
 

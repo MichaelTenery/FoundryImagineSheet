@@ -4280,3 +4280,86 @@ the two dropdowns' change listeners, and the new schema fields reaching the data
 507 / 149 / 46 across combat, derivation, creature and availability; 51 modules parse; the real
 template rendered in `tools/situation-preview.html` for both panels, and the combat tab's bar and
 Second Weapon lists in `tools/sheet-preview.html`.
+
+## Martial Knowledge and Martial Lore: the subsystem, ported, and a dropdown on the Combat tab (2026-09-22)
+
+The last unbuilt piece of combat phase 2's "martial arts and stances". Built from his code -- every
+function that reads the eight martial dictionaries was read, sheet-worker.js:66168-69100 and
+98801-100838 -- with the Player's Guide (pp.93, 95-97), Mysteries of the Planes p.167 for the
+stances, and his errata (the Master's Manual's missing throws-by-discipline table matches
+`setMartialKnowArts` exactly; the Player's Guide hold speeds match his table).
+
+**What his subsystem is.** Martial Knowledge is one class skill and everything under it a SUBSKILL,
+rolled against its chance plus the subskill's modifier -- (16 less the subskill's rating) x5%,
+Player's Guide p.93, whose own worked example (Knowledge 60% makes a Martial Kick 80%) is now a test
+through the whole character model. A DISCIPLINE, chosen once (Offensive, Defensive, Balanced,
+Contact, Custom), decides which attacks, blocks, holds, moves and throws are known. Martial Lore is a
+second, restricted class skill: twelve subskills of its own at rating 18, the right to learn anything
+outside the discipline by a Lore roll, blind fighting, and the mastery of stances. Attacks are two
+rolls, the skill and a d20 to hit on the ordinary chart, and a hit whose skill roll failed lands for
+half. Holds and throws need a touch first. MOVES are the only family that changes numbers elsewhere:
+made, they add to the attacks after them until cleared. STANCES, one held at a time, change to-hit,
+damage, defence, initiative and the speed of offensive actions.
+
+**Generated, not transcribed.** The eight dictionaries have column maps from his own header comments
+(`column_maps.py`, 37 clean) and `extract_combat_tables.py` emits them typed into `combat-tables.mjs`,
+together with the numbers his dictionaries do NOT hold, which live in three handlers and are walked
+out of them: `handleStanceOn` (both live branches of every stance), `handleMartialModifierSet` (what
+a made move adds, and which moves the Spinning rule guards), `handleMartialLoreModifierSet` (Flip),
+plus the four preset disciplines and Martial Lore's blind-fighting rule. Every subskill's modifier
+is checked against the p.93 rule each run; Jump and Immoveable Stance are reported.
+
+**The deciding rule, where his code argues with his own prose.** Where his code and his own
+dictionary text for the same move or stance disagree, and the Player's Guide sides with the text,
+the text is taken as what he meant: Flying without Jump's copied +1 damage, Spinning +2 to hit not
++4, Double Attack +1 second not -1, Drunken fighting per die not an extra die, Flow as water's +1
+second applied, Immoveable Stance -5 not +5, and Martial Lore values rolled against Martial Lore. The
+generated tables stay his code; the port's choices are three small correction tables in
+`martial-arts.mjs`, each with its reason, so each is one line to reverse. Where his code is
+consistent with itself and only the book says more (Martial Lore's blind fighting, Flying "replacing"
+Jump, Immoveable Stance forbidding attacks), his sheet is followed. All of it is UPSTREAM item 56,
+along with seven outright slips -- the worst being that a successful move roll writes "fix" where
+SET reads "on", so a made move never counted on his sheet without ticking the box by hand.
+
+**What is character-wide is folded in; what is per-attack is handed over.** A stance's defence and a
+made Flip go into `combat.defensiveAdjust`, a stance's initiative into `combat.initiativeMod`, and its
+change to offensive speed into `combat.weaponSpeedMod` -- so the defence every attacker reads, the
+initiative roll and every weapon's time all follow the stance without anything else knowing about
+it. What belongs to one attack -- the stance's and the moves' to-hit, damage, extra dice, per-die
+damage, multiplier, Strength handling and seconds -- is returned by `getMartialAttackModifiers(state,
+{ mode, martialAttack })` in the same `{ label, value }` shape `getToHitModifiers` lists, for the
+weapon attack to append. Missile attacks take the stance's missile to-hit and nothing else, as his
+missile branch zeroes the rest. Blind fighting goes to the Situation Mods as `combat.martialBlind`,
+since it only offsets their blindness penalty. Immoveable Stance's "No Defense" is
+`combat.martialDefense.noDefense`.
+
+**Stored in his shape.** `system.martial` holds his comma-separated lists: the discipline, what is
+learned beyond it, Lore values, stances learned and mastered, and what is in play (stance, moves
+made, Lore values made). Derived in `_prepareMartialArts`, after the skills (whose chances it reads)
+and before `_prepareSituation` (which reads its blind fighting). Nothing applies without Martial
+Knowledge held and past its title; a stance must be learned to be held, a move known to be made.
+
+**The Combat tab** has a Martial Arts heading that opens into a panel -- the dropdown the user asked
+for: discipline and stance as form fields, moves as chips (the die rolls it, and made it stays in
+play; the name toggles it by hand, his tickable success box), every subskill with its chance and a
+roll, Martial Lore values, the learning rolls, and his lists as text fields for Custom picks and
+Game Master fixes. What the panel shows is built by `module/martial-view.mjs`, called by the sheet
+and by `tools/martial-preview.html` alike, so there is no private builder copied into a harness to
+drift. A martial attack posts a card carrying the weapon card's own flag, so Apply Damage and Spend
+Seconds are attack.mjs's buttons and the damage runs through the one pipeline; its damage type is
+the book's, since his sheet has none. A Scissor Strike is two cards, doubled when both blows land
+and the skill is made.
+
+**Not built, deliberately:** the missing-limb checks (the port does not track lost limbs); stance
+bonuses to other skills and saves, which his sheet prints and never applies; a Lore value's speed,
+which his table does not have; and creatures, whose sheet in his Roll20 has the same section -- the
+rules take a state, not a character, so a creature can use them, but no creature UI exists.
+
+**Verified:** `tools/martial-test.html` 150 checks (tables against his dictionaries and the errata,
+every correction, every move, stance and Lore value, the attack modifiers for weapon, missile and
+martial attacks, damage, touch, failed moves, all four learning rolls, and the character model end
+to end); combat, derivation, creature and availability unchanged; `tools/martial-preview.html` renders
+the real Combat tab and martial card against a real Martial Artist at title 6 (14 checks). **Not
+verified:** anything needing a running Foundry V14 -- the dropdowns saving, the panel's open state
+surviving a re-render, the dialogs, `Roll#evaluate({ maximize })`, and the new schema reaching the
+database.

@@ -1662,3 +1662,90 @@ situational to-hit, damage and multiplier when a melee attack reads missile modi
 way round), but the line that would clear the special words is commented out, so a missile panel's
 "Max" or "+1 per Die" would reach a sword blow. The port clears them too. See `docs/DECISIONS.md`,
 "Situation Mods".
+
+## 56. Martial arts: where your code and your own martial prose disagree
+
+**Status:** open · **Severity:** mixed -- several make a move or stance do something other than its
+own description, two stop a whole feature working
+
+Found 2026-09-22 porting Martial Knowledge and Martial Lore (`module/combat/martial-arts.mjs`). Your
+code is followed wherever it is consistent with itself. Where your CODE and your OWN dictionary prose
+for the same thing disagree, and the Player's Guide sides with the prose, the port takes the prose
+as what you meant; each such place is listed so you can say otherwise, and each is one line to put
+back (`MARTIAL_MOVE_CORRECTIONS`, `MARTIAL_STANCE_CORRECTIONS`, `MARTIAL_SKILLMOD_CORRECTIONS`).
+
+**Where the port follows your prose over your code**
+
+1. **Flying adds +1 damage in `handleMartialModifierSet`** (`MKModDamage+1`, sheet-worker.js:68179).
+   Your move text says "To hit +4, Dam x2"; the book "doubles damage rolled". It reads as Jump's line
+   copied. The port gives +4 and x2 only.
+2. **Spinning is +4 to hit in your code** (68198), "+2" in your move text and "by 2" in the book.
+   The port gives +2. If you retuned Spinning on purpose, this is the one to tell me about.
+3. **Double Attack says "-1 Sec Martial Attack"** (68219); your move table's speed is "+1", its text
+   "Adds 1 second to each attack", and the book agrees. The port adds a second.
+4. **Drunken fighting writes "+1 Die Dam" / "+2 Die Dam"** (68986, 68998) -- an extra die. Your stance
+   text says "+1 per die of damage" (+2 mastered), and Mysteries of the Planes p.167 agrees. The port
+   adds per die.
+5. **Flow as water's "+1 second to offensive actions" is never applied**: every reader of the stance
+   text (`handleGrappleMoveChange`, `setAdjustmentsForLoreWeaponSpeed`, line 82793) looks only for
+   "-1 second" and "-2 seconds". The port applies +1.
+6. **Immoveable Stance's modifier is +5** in `martialmovevalueslist`, but its rating is 17, which by
+   your subskill rule is -5 against Martial Knowledge's 16 -- and the book prints "Rating 17 / -5%".
+   The port uses -5. (Jump is also off the rule, 14 giving +10 where the table says +20, but the book
+   prints +20 too, so Jump is left as you have it.)
+7. **Martial Lore values are rolled against Martial KNOWLEDGE** (`handleMLSkillRoll`, 68651, calls
+   `storeTempSkillChanceAndMessage("Martial Knowledge")`), but all twelve modifiers are worked from
+   Martial Lore's rating of 18. The handler looks copied from the move roll above it. The port rolls
+   them against Martial Lore.
+
+**Slips that stop something working, where the intent is plain**
+
+8. **A made move never registers.** `handleMoveSkillRoll` writes `martialN_move_success: "fix"` on
+   success (68082); `handleMartialModifierSet` only counts `"on"`. So SET after a successful Jump
+   adds nothing unless the box is ticked by hand. The port puts a made move in play directly.
+9. **The fifth Martial Lore value reads the fifth MOVE's success** (`successList` in
+   `handleMartialLoreModifierSet`, 68280: `values.martial5_move_success`).
+10. **100% Martial Lore never keeps a blind character's defence.** `setMartialLoreDisplayValues`
+    writes "Full Defensive Mod"; `setBodyHeaderValues` (102808) tests for "Full Defense Mod". Your
+    `handleMeleeSet` uses the right spelling. The port keeps the defence, per the book.
+11. **Spinning's "+2 per Die" never reaches a martial attack**: `getMartialDamageDetails` tests
+    "+2 Per Die" (capital P). Your weapon path uses lower case and does apply it. The port applies it
+    to both.
+12. **Martial attack slot 2 never gets its martial damage bonus**: its button passes
+    `values.martial_arts_mod_damag` (20348), which is always undefined.
+13. **Custom discipline: one box adds all three Torso holds.** `setMartialKnowArts` tests
+    `martial_hold5_check` for Torso, Torso(1 Arm) and Torso(2 Arms), and never reads hold6 or hold7,
+    though your sheet has a box for each. The port takes each hold on its own.
+14. **"Already known?" matches by substring**: `tempMKHoldsList.includes("Arm")` is true for someone
+    who knows only Torso(1 Arm), so they can never learn the Arm hold with Martial Lore. The port
+    matches whole names.
+
+**Things your sheet prints but never applies, which the port does, because the book says to**
+
+15. Jump's "+1 Die Dam" reaches martial attacks only; the book: "This can be applied to weapon
+    attacks as well as martial attacks." Tension's doubling reaches weapons only; the book: "a
+    stronger weapon or martial attack". Snap's "-1 Sec, No STR Mod" is never read at all.
+16. **Tension in two hands**: your weapon path tests two hands first and never reaches Tension, so a
+    two-handed Tension attack doubles Strength. The book's note: "tripled (not quadrupled) when using
+    the weapon with two hands during a Tension Attack". The port trebles.
+
+**Where the book says more than your sheet, and your sheet is followed**
+
+- Martial Lore's blind fighting: the book gives +2 to hit, +1 damage and +5% skills per 25%; your
+  sheet gives +1 to hit per 25% and nothing else.
+- The book says Flying "replaces" Jump; your sheet lets both apply at once.
+- The book says no offensive manoeuvre is possible in Immoveable Stance; your sheet only takes the
+  defence away.
+- A martial fumble goes straight to the critical fumble table on a failed Agility save, with no
+  80/20 split first -- yours, and kept.
+
+**Questions your sheet leaves open (not guessed at)**
+
+- A Martial Lore value has no speed column. The book gives some (Flip 2 seconds, Feather Block +1,
+  Slam +2) and not others. None is shown until you say.
+- Stances carry skill and save bonuses in their text ("Dodge, Feint and Sidestep +30%", "+20% to all
+  AGL Saves", resistances). Your sheet prints them and applies none; so does the port. Should any be
+  automatic?
+- The missing-limb checks (`racial_standard_disabilities` "All manipulator limbs lost" and the rest)
+  are not ported, because the port does not track lost limbs yet. One of them tests a hold named
+  "Leg Block" (67446), which is a block; "Leg" is presumably meant.
