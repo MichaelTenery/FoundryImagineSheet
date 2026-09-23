@@ -50,10 +50,15 @@ const LORE_PACKS = {
 			if (!tmpdef || typeof tmpsystem.getCommonSkillChance != "function") { return 0; }
 			return tmpsystem.getCommonSkillChance(tmpdef.attr1, tmpdef.attr2, tmpdef.skillRating);
 		};
+		// A skill's TRAINED chance: its total less what a held martial stance and blind fighting add
+		// for now (stanceBonus, blindBonus), as _prepareAdvancement reads it. What a character starts
+		// knowing should not depend on the stance they happen to be in when the button is pressed.
+		var tmptrained = (tmpitem) => (parseInt(tmpitem.system?.totalChance) || 0)
+			- (parseInt(tmpitem.system?.stanceBonus) || 0) - (parseInt(tmpitem.system?.blindBonus) || 0);
 		var tmpheldchance = (tmpname) => {
 			var tmpheld = tmpskillitems.filter(tmpitem => tmpitem.name == tmpname);
 			if (!tmpheld.length) { return null; }
-			return Math.max(...tmpheld.map(tmpitem => parseInt(tmpitem.system?.totalChance) || 0));
+			return Math.max(...tmpheld.map(tmptrained));
 		};
 
 		var tmpracial = tmpskillitems.filter(tmpitem => tmpitem.system?.category == "racial");
@@ -81,7 +86,7 @@ const LORE_PACKS = {
 			noIntake: (tmpsystem.identity?.race?.disabilities ?? []).includes("No Intake"),
 			herbValues: tmpcontent?.herbValues ?? {},
 			casting: findBestCastingSkill(
-				tmpracial.map(tmpitem => ({ name: tmpitem.name, chance: parseInt(tmpitem.system?.totalChance) || 0 })),
+				tmpracial.map(tmpitem => ({ name: tmpitem.name, chance: tmptrained(tmpitem) })),
 				tmpclasscasting),
 			affinity: parseInt(tmpsystem.characteristics?.affinity?.value) || 0,
 			fortune: parseInt(tmpsystem.characteristics?.fortune?.value) || 0

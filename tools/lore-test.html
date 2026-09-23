@@ -225,6 +225,10 @@ check("Herb Lore's common chance from its definition", tmpinput.herbCommonChance
 check("a racial casting skill at 0 does not win; the class's, not yet reached, at its base chance",
 	tmpinput.casting, { name: "Scroll Knowledge", chance: 25 });
 check("alignment, Affinity and Fortune read off the model", [tmpinput.alignment, tmpinput.affinity, tmpinput.fortune], ["Neutral Good", 42, 17]);
+var tmpstanced = { ...tmpactor, items: [{ type: "skill", name: "Arcane Pact",
+	system: { category: "racial", totalChance: 40, stanceBonus: 20, blindBonus: 10 } }, ...tmpactor.items.slice(1)] };
+check("a stance's and blind fighting's bonuses are not trained chance: Arcane Pact reads 40 less 30",
+	S.buildStartingLoreInput(tmpstanced, tmpcontent).casting, { name: "Arcane Pact", chance: 10 });
 
 // --- making the items ------------------------------------------------------------------------------
 var tmpdocs = {

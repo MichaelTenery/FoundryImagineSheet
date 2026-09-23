@@ -178,7 +178,7 @@ they run in any browser. As of 2026-09-22 the figures are:
 | Importer (retired documents) | `tools/importer-test.html` | 9 |
 | Changelog window | `tools/changelog-test.html` | 24 |
 | Martial arts | `tools/martial-test.html` | 179 |
-| Magic & Lore (rules, starting lore, the tab's view, poison on a victim) | `tools/lore-test.html` | 117 |
+| Magic & Lore (rules, starting lore, the tab's view, poison on a victim) | `tools/lore-test.html` | 118 |
 | Window chrome (every item sheet scrolls) | `tools/window-test.html` | 27 |
 | Round clock (rules, view, the combat document through a whole fight) | `tools/round-test.html` | 87 |
 | Manual-content loader (Python) | `python tools/extract/test_manual_content.py` | 122 |
