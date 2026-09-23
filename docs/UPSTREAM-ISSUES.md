@@ -1680,7 +1680,8 @@ back (`MARTIAL_MOVE_CORRECTIONS`, `MARTIAL_STANCE_CORRECTIONS`, `MARTIAL_SKILLMO
    Your move text says "To hit +4, Dam x2"; the book "doubles damage rolled". It reads as Jump's line
    copied. The port gives +4 and x2 only.
 2. **Spinning is +4 to hit in your code** (68198), "+2" in your move text and "by 2" in the book.
-   The port gives +2. If you retuned Spinning on purpose, this is the one to tell me about.
+   The port gives +2. **Ruled by the user 2026-09-22: +2, the book's figure** -- so this one is
+   decided on our side; tell us only if the +4 was a deliberate change you want kept.
 3. **Double Attack says "-1 Sec Martial Attack"** (68219); your move table's speed is "+1", its text
    "Adds 1 second to each attack", and the book agrees. The port adds a second.
 4. **Drunken fighting writes "+1 Die Dam" / "+2 Die Dam"** (68986, 68998) -- an extra die. Your stance

@@ -4470,3 +4470,13 @@ manual-content test the four packs and the kind-keyed override (122); availabili
 character generation 83 unchanged; 63 modules parse. **Not verified:** anything needing a running
 Foundry V14 -- the tab's buttons writing to items, the dialogs, the picker's learn roll, the
 generator giving lore after it creates the actor, and the importer building the four new compendia.
+
+## Spinning is +2 to hit, by the user's ruling (2026-09-22)
+
+The martial arts pass found Spinning at +4 to hit in his `handleMartialModifierSet`
+(sheet-worker.js:68198) but "+2" in his own move text and "by 2" in the Player's Guide, and built +2.
+Asked, the user ruled **the book's +2**. Nothing in the code changed -- `MARTIAL_MOVE_CORRECTIONS`
+already carried it -- but it is now a ruling rather than a reading, recorded at the correction and at
+`UPSTREAM-ISSUES.md` item 56.2 so it is not reverted to his +4. The other four martial questions
+(Martial Lore value speeds, stance skill and save bonuses, Martial Lore blind fighting, creature
+martial arts) are still open with the user.

@@ -125,6 +125,7 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 	//   Flying        his code adds +1 damage beside the x2. The prose says "To hit +4, Dam x2" and
 	//                 the book "doubles damage rolled"; the +1 is Jump's line, copied. Not added.
 	//   Spinning      his code adds +4 to hit. The prose says "To hit +2" and the book "by 2".
+	//                 SETTLED by the user 2026-09-22: +2, the book's figure. Not to be reverted to +4.
 	//   Double Attack his code says "-1 Sec Martial Attack". His own table's speed is "+1", its
 	//                 prose "Adds 1 second to each attack", and the book "Adds one second".
 	//
