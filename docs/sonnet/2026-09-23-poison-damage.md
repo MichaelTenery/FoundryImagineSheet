@@ -5,25 +5,25 @@ counted in `totalWounds`; each interval lands at the end of the interval after t
 coating is one dose spent by the first hit that does actual flesh damage; an Envenomed blade holds 5
 and delivers one per thrust of 10+ (Mysteries of the Planes p.175); gases cannot coat.
 
-## 1. Show and edit overall wounds on both sheets
+## 1. Show and edit overall wounds on both sheets -- DONE 2026-09-23 (released in 0.18.0)
 
 `templates/actor/tab-combat.hbs` and `tab-creature-combat.hbs` list per-area wounds (inputs named
 `system.body.wounds.<area>`) and total wounds / shock. Add one row, "Overall (poison)", with a number
 input named `system.body.overallWounds`, so the table can heal it. **Done when** both sheets show it,
 typing in it changes the total, and the sheet preview renders it.
 
-## 2. Test the model's inclusion
+## 2. Test the model's inclusion -- DONE 2026-09-23 (released in 0.18.0)
 
 Add to `tools/derive-test.html` and `tools/creature-test.html` a check that `body.overallWounds` of 7
 adds 7 to `totalWounds` and can tip `inShock`, beside their existing "total wounds are summed" checks.
 
-## 3. Document the fields
+## 3. Document the fields -- DONE 2026-09-23 (released in 0.18.0)
 
 `docs/DATA-MODEL.md`: `body.overallWounds` (both actors) and the weapon's `system.coating`
 { name, poisonType, poisonPotency, form, doses } -- wording from the field comments in
 `module/data/actor-character.mjs` and `module/data/item-weapon.mjs`.
 
-## 4. Changelog text (with the next release)
+## 4. Changelog text (with the next release) -- DONE 2026-09-23 (released in 0.18.0)
 
 > **Poison hurts.** A poison card has an Apply button for each victim its damage reaches: the damage
 > goes on overall Endurance, counting toward shock, as each interval of its duration ends. **Poisoned

@@ -17,7 +17,14 @@
 import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../creature-tables.mjs";
 import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
+import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
+         learnMartialStance, masterMartialStance, learnMartialSubskill,
+         learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
+import { parseMartialList, getStanceSkillBonus } from "../combat/martial-arts.mjs";
+import { buildMartialPanel } from "../martial-view.mjs";
+import { getActorSheetClock } from "../apps/round-clock.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -61,7 +68,23 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			rollCreatureSkill: ImagineCreatureSheet.#onRollCreatureSkill,
 			rollCreatureAttack: ImagineCreatureSheet.#onRollCreatureAttack,
 			setAttackHand: ImagineCreatureSheet.#onSetAttackHand,
-			usePower: ImagineCreatureSheet.#onUsePower
+			usePower: ImagineCreatureSheet.#onUsePower,
+			openSituation: ImagineCreatureSheet.#onOpenSituation,
+			clearSituation: ImagineCreatureSheet.#onClearSituation,
+			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class -- the
+			// same panel, rolls and handlers the character sheet has.
+			toggleMartialPanel: ImagineCreatureSheet.#onToggleMartialPanel,
+			rollMartialAttack: ImagineCreatureSheet.#onRollMartialAttack,
+			rollMartialSubskill: ImagineCreatureSheet.#onRollMartialSubskill,
+			rollMartialMove: ImagineCreatureSheet.#onRollMartialMove,
+			toggleMartialMove: ImagineCreatureSheet.#onToggleMartialMove,
+			rollMartialLoreValue: ImagineCreatureSheet.#onRollMartialLoreValue,
+			toggleMartialLoreValue: ImagineCreatureSheet.#onToggleMartialLoreValue,
+			clearMartialMoves: ImagineCreatureSheet.#onClearMartialMoves,
+			learnMartialStance: ImagineCreatureSheet.#onLearnMartialStance,
+			masterMartialStance: ImagineCreatureSheet.#onMasterMartialStance,
+			learnMartialSubskill: ImagineCreatureSheet.#onLearnMartialSubskill,
+			learnMartialLoreValue: ImagineCreatureSheet.#onLearnMartialLoreValue
 		}
 	};
 
@@ -112,6 +135,19 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 		tmpcontext.handednessChoices =
 			ImagineCreatureSheet.#buildHandednessChoices(this.document.system.identity.handedness);
+
+		// The Situation Mods bar, one line -- his creature page carries the same bar.
+		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
+
+		// The martial arts panel, the same partial and view the character's Combat tab uses.
+		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
+		await loadMartialTemplates();
+
+		// @MARKER ROUND CLOCK
+		// The round clock on the Combat tab, as the character sheet shows it: live in the combat on
+		// show, the off hand's plain allowance otherwise. See the character sheet's note.
+		tmpcontext.roundClock = getActorSheetClock(this.document);
+		this._imagineClockShown = tmpcontext.roundClock.inCombat;
 
 		return tmpcontext;
 	}
@@ -315,7 +351,10 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		var tmpskill = this.document.system.skills?.[tmpindex];
 		if (!tmpskill) { return; }
 
-		var tmpchance = parseInt(tmpskill.chance) || 0;
+		// A held martial stance's bonus to this skill (the user's ruling of 2026-09-22). A creature's
+		// chance is its entered figure, so the bonus is added here rather than derived onto it.
+		var tmpstancebonus = getStanceSkillBonus(this.document.system.martial?.state?.bonuses, tmpskill.name, []);
+		var tmpchance = (parseInt(tmpskill.chance) || 0) + tmpstancebonus;
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpmargin = tmpchance - tmproll.total;
 
@@ -328,7 +367,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${tmpskill.name} &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${tmpskill.name} &mdash; ${tmpchance}%${tmpstancebonus ? ` (stance +${tmpstancebonus})` : ""} &mdash; <strong>${tmpoutcome}</strong>`
 		});
 	}
 
@@ -341,6 +380,19 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			return;
 		}
 		await game.imagine.rollCreatureAttack(this.document, tmpitem);
+	}
+
+	// This is the function which opens the Situation Mods window, reached through game.imagine
+	// as the attack roll is.
+	static async #onOpenSituation(event, target) {
+		event.preventDefault();
+		game.imagine?.situationMods(this.document);
+	}
+
+	// This is the function which clears every Situation Mod -- his "Clear all modifiers".
+	static async #onClearSituation(event, target) {
+		event.preventDefault();
+		await this.document.update({ "system.combat.situation.kind": "", "system.combat.situation.selected": [] });
 	}
 
 	// This is the function which sets which limb an attack comes from -- or clears it back to
@@ -387,5 +439,60 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			</div>`
 		});
 	}
+
+	//==============================================================================================
+	// @MARKER MARTIAL ARTS
+	//==============================================================================================
+	// The same martial arts panel the character's Combat tab has, for a creature that holds Martial
+	// Knowledge -- his creature sheet carries the same section. The rolls in martial-attack.mjs read
+	// only what both actor types have (system.martial, the attack chart, Agility's save and missile
+	// modifier, Strength's melee figures), so they are called unchanged. The panel's open state is the
+	// sheet's own, as it is on the character's.
+	static async #onToggleMartialPanel(event, target) {
+		event.preventDefault();
+		this._martialOpen = !this._martialOpen;
+		this.render({ parts: ["combat"] });
+	}
+
+	static async #onRollMartialAttack(event, target) {
+		await rollMartialAttack(this.document, target.dataset.name);
+	}
+
+	static async #onRollMartialSubskill(event, target) {
+		await rollMartialSubskill(this.document, target.dataset.family, target.dataset.name, event);
+	}
+
+	static async #onRollMartialMove(event, target) {
+		await rollMartialMove(this.document, target.dataset.name, event);
+	}
+
+	static async #onRollMartialLoreValue(event, target) {
+		await rollMartialLoreValue(this.document, target.dataset.name, event);
+	}
+
+	// This is the function which marks a move made or clears it by hand -- the Game Master's way of
+	// saying "that happened".
+	static async #onToggleMartialMove(event, target) {
+		var tmplist = parseMartialList(this.document.system.martial?.activeMoves);
+		var tmpname = target.dataset.name;
+		tmplist = tmplist.includes(tmpname) ? tmplist.filter(n => n != tmpname) : [...tmplist, tmpname];
+		await this.document.update({ "system.martial.activeMoves": tmplist.join(",") });
+	}
+
+	static async #onToggleMartialLoreValue(event, target) {
+		var tmplist = parseMartialList(this.document.system.martial?.activeLoreValues);
+		var tmpname = target.dataset.name;
+		tmplist = tmplist.includes(tmpname) ? tmplist.filter(n => n != tmpname) : [...tmplist, tmpname];
+		await this.document.update({ "system.martial.activeLoreValues": tmplist.join(",") });
+	}
+
+	static async #onClearMartialMoves(event, target) {
+		await this.document.update({ "system.martial.activeMoves": "", "system.martial.activeLoreValues": "" });
+	}
+
+	static async #onLearnMartialStance(event, target) { await learnMartialStance(this.document); }
+	static async #onMasterMartialStance(event, target) { await masterMartialStance(this.document); }
+	static async #onLearnMartialSubskill(event, target) { await learnMartialSubskill(this.document); }
+	static async #onLearnMartialLoreValue(event, target) { await learnMartialLoreValue(this.document); }
 }
 // @END (CODE)

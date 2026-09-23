@@ -21,7 +21,7 @@ Poison: `resolvePoisonOnVictim` in `module/lore-rules.mjs`, `usePoison` in `modu
 Run `tools/weapon-mods-test.html` (69) and `tools/lore-test.html` (117) after any of these, served
 with `Cache-Control: no-store`, plus `tools/syntax-check.html` (71 modules) and `tools/combat-test.html`.
 
-## 1. Mirror the Combat tab row in the sheet preview
+## 1. Mirror the Combat tab row in the sheet preview -- DONE 2026-09-23 (released in 0.18.0)
 
 `tools/sheet-preview.html` builds its own `weaponRows` (around line 267) as a copy of
 `#buildWeaponRows` in `module/sheets/actor-character-sheet.mjs`. Bring it level: run each weapon's
@@ -31,7 +31,7 @@ weapon a quality, a condition, a customization and a temporary Blessed so the ro
 **Done when** the preview's Combat tab shows the tags, the wand button and the changed damage/speed
 with the tooltip, and every suite still passes.
 
-## 2. Document the new weapon fields
+## 2. Document the new weapon fields -- DONE 2026-09-23 (released in 0.18.0)
 
 `docs/DATA-MODEL.md` (weapon section) and, if it lists weapon fields, `docs/ADDING-CONTENT.md`:
 `system.condition` (his conditions; "" is Undamaged), `system.custom` (prefix, suffix, blessed,
@@ -42,7 +42,7 @@ removed). Say that none of it changes the stored damage/speed -- `getCustomizedW
 figures out at use. Take the wording from the field comments in `module/data/item-weapon.mjs`.
 **Done when** both docs name every field above.
 
-## 3. Show condition and customization on the weapon's item sheet
+## 3. Show condition and customization on the weapon's item sheet -- DONE 2026-09-23 (released in 0.18.0)
 
 The weapon item sheet (`templates/item/` -- find the weapon template via `module/sheets/item-sheet.mjs`)
 shows none of the new fields. Add a read-only "Customized" line listing `getWeaponCustomTags(system,
@@ -51,14 +51,14 @@ window, which is opened from the actor. **Done when** a customized weapon's own 
 and `tools/window-test.html` still finds 13 item sheets and passes. Add the case to
 `tools/item-preview.html` if it renders weapons.
 
-## 4. The window in the window test
+## 4. The window in the window test -- DONE 2026-09-23 (released in 0.18.0)
 
 If `tools/window-test.html` checks ApplicationV2 windows besides the item sheets (it checks that each
 scrolls), add `ImagineWeaponMods` the same way: its scrollable part is `.weapon-mods-body`.
 **Done when** it is listed and passes, or the note here is struck because the test only covers item
 sheets.
 
-## 5. Release (only when the user asks, and only when the tree is quiet)
+## 5. Release (only when the user asks, and only when the tree is quiet) -- DONE 2026-09-23 (released in 0.18.0)
 
 This pass did not bump the version or build `dist/`: other sessions had uncommitted work in the tree.
 When the user asks, it goes in the same release as the Magic & Lore tab and the round clock (see

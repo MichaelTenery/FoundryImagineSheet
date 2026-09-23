@@ -29,6 +29,9 @@ import {
 } from "../creature-tables.mjs";
 
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { MAGIC_KINDS, CONSUMABLE_KINDS, LORE_KINDS, POISON_FORMS } from "../lore-rules.mjs";
+import { POISON_TYPES, POISON_POTENCIES } from "../lore-tables.mjs";
+import { getWeaponCustomTags } from "../weapon-custom-rules.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -266,6 +269,11 @@ export class ImagineWeaponSheet extends ImagineItemSheet {
 				mod: parseInt(tmpsystem[tmpmode.key]?.mod) || 0
 			}))
 		};
+		// Read-only: what has been done to this weapon since it left this sheet. Editing any of it
+		// stays in the weapon mods window (apps/weapon-mods.mjs), opened from the actor -- this line
+		// only shows the tags his Customize panel would print, so a customized weapon's own sheet
+		// does not look untouched.
+		tmpcontext.customTags = getWeaponCustomTags(tmpsystem, game.time?.worldTime ?? 0);
 		return tmpcontext;
 	}
 }
@@ -578,6 +586,126 @@ export class ImagineRaceSheet extends ImagineItemSheet {
 		tmpbreeds.splice(tmpindex, 1);
 		await this.document.update({ "system.famorian.breeds": tmpbreeds });
 	}
+}
+
+// @MARKER MAGIC AND LORE SHEETS
+// The four item types of the Magic & Lore tab. What a player does with them -- take a dose, tick
+// memorized, roll to use -- happens on the character's own tab; these are for reading an entry
+// whole and for authoring homebrew, which is why every column of his is an editable field.
+
+	// This is the function which builds the kind dropdown for a consumable or lore sheet, each
+	// option carrying his label and the switch it answers to.
+	function buildKindChoices(tmpkinds, tmpcurrent) {
+		return tmpkinds.map(tmpkind => ({ value: tmpkind, label: MAGIC_KINDS[tmpkind]?.label ?? tmpkind,
+		                                  selected: tmpkind == tmpcurrent }));
+	}
+
+	// This is the function which keeps an item's subsystem in step with its kind when the kind is
+	// changed on the sheet. The subsystem is stored so a compendium index can be filtered by it, and
+	// a stored copy of something derived must be written whenever what it derives from is.
+	function syncSubsystem(tmpdata) {
+		var tmpkind = tmpdata?.system?.kind;
+		if (tmpkind && MAGIC_KINDS[tmpkind]) { tmpdata.system.subsystem = MAGIC_KINDS[tmpkind].subsystem; }
+		return tmpdata;
+	}
+
+export class ImagineConsumableSheet extends ImagineItemSheet {
+
+	static DEFAULT_OPTIONS = {
+		classes: ["imagine", "sheet", "item", "consumable"],
+		position: { width: 560, height: 560 }
+	};
+
+	static PARTS = {
+		header: { template: "systems/imagine-rpg/templates/item/item-header.hbs" },
+		body:   { template: "systems/imagine-rpg/templates/item/item-consumable.hbs", scrollable: [""] }
+	};
+
+	async _prepareContext(options) {
+		var tmpcontext = await super._prepareContext(options);
+		var tmpkind = this.document.system.kind;
+		tmpcontext.config = {
+			kinds: buildKindChoices(CONSUMABLE_KINDS, tmpkind),
+			forms: POISON_FORMS.map(tmpform => ({ value: tmpform, selected: tmpform == this.document.system.form })),
+			poisonTypes: Object.keys(POISON_TYPES).map(tmptype => ({ value: tmptype, selected: tmptype == this.document.system.poisonType })),
+			poisonPotencies: Object.keys(POISON_POTENCIES).map(tmpp => ({ value: tmpp, selected: tmpp == this.document.system.poisonPotency }))
+		};
+		// Which of his columns this kind has, so the sheet shows those and not the other four kinds'.
+		tmpcontext.isHerb = tmpkind == "herb";
+		tmpcontext.isCharm = tmpkind == "charm";
+		tmpcontext.isPoison = tmpkind == "poison";
+		tmpcontext.hasValue = ["herb", "potion", "elixir"].includes(tmpkind);
+		return tmpcontext;
+	}
+
+	_processFormData(event, form, formData) {
+		return syncSubsystem(super._processFormData(event, form, formData));
+	}
+}
+
+
+export class ImagineLoreSheet extends ImagineItemSheet {
+
+	static DEFAULT_OPTIONS = {
+		classes: ["imagine", "sheet", "item", "lore"],
+		position: { width: 560, height: 580 }
+	};
+
+	static PARTS = {
+		header: { template: "systems/imagine-rpg/templates/item/item-header.hbs" },
+		body:   { template: "systems/imagine-rpg/templates/item/item-lore.hbs", scrollable: [""] }
+	};
+
+	async _prepareContext(options) {
+		var tmpcontext = await super._prepareContext(options);
+		var tmpkind = this.document.system.kind;
+		var tmpdef = MAGIC_KINDS[tmpkind] ?? {};
+		tmpcontext.config = {
+			kinds: buildKindChoices(LORE_KINDS, tmpkind),
+			forms: POISON_FORMS.map(tmpform => ({ value: tmpform, selected: tmpform == this.document.system.form }))
+		};
+		tmpcontext.learnSkill = tmpdef.learn || "";
+		tmpcontext.useSkill = tmpdef.use || "";
+		tmpcontext.isRecipe = tmpkind == "potionrecipe" || tmpkind == "poisonrecipe";
+		tmpcontext.isPoisonRecipe = tmpkind == "poisonrecipe";
+		tmpcontext.isRune = tmpkind == "rune";
+		tmpcontext.isHymn = tmpkind == "hymn";
+		tmpcontext.hasComponent = ["candlelore", "empathymagic", "sympathymagic"].includes(tmpkind);
+		tmpcontext.isEvoke = tmpkind == "evoke";
+		return tmpcontext;
+	}
+
+	_processFormData(event, form, formData) {
+		return syncSubsystem(super._processFormData(event, form, formData));
+	}
+}
+
+
+export class ImagineSpellSheet extends ImagineItemSheet {
+
+	static DEFAULT_OPTIONS = {
+		classes: ["imagine", "sheet", "item", "spell"],
+		position: { width: 600, height: 600 }
+	};
+
+	static PARTS = {
+		header: { template: "systems/imagine-rpg/templates/item/item-header.hbs" },
+		body:   { template: "systems/imagine-rpg/templates/item/item-spell.hbs", scrollable: [""] }
+	};
+}
+
+
+export class ImagineInvocationSheet extends ImagineItemSheet {
+
+	static DEFAULT_OPTIONS = {
+		classes: ["imagine", "sheet", "item", "invocation"],
+		position: { width: 600, height: 600 }
+	};
+
+	static PARTS = {
+		header: { template: "systems/imagine-rpg/templates/item/item-header.hbs" },
+		body:   { template: "systems/imagine-rpg/templates/item/item-invocation.hbs", scrollable: [""] }
+	};
 }
 
 // @MARKER ADD NEW item sheet classes HERE

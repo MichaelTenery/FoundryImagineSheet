@@ -12,7 +12,11 @@
       "Race": "Imagine Race Sheet",
       "Equipment": "Imagine Equipment Sheet",
       "Weapon": "Imagine Weapon Sheet",
-      "Skill": "Imagine Skill Sheet"
+      "Skill": "Imagine Skill Sheet",
+      "Consumable": "Imagine Consumable Sheet",
+      "Lore": "Imagine Lore Sheet",
+      "Spell": "Imagine Spell Sheet",
+      "Invocation": "Imagine Invocation Sheet"
     },
     "Tab": {
       "attributes": "Attributes",
@@ -20,6 +24,7 @@
       "equipment": "Equipment",
       "combat": "Combat",
       "description": "Description",
+      "magic": "Magic & Lore",
       "stats": "Stats",
       "traits": "Traits"
     },
@@ -52,7 +57,11 @@
       "equipment": "Equipment",
       "creatureAttack": "Creature Attack",
       "power": "Power",
-      "trait": "Trait"
+      "trait": "Trait",
+      "consumable": "Consumable",
+      "lore": "Lore",
+      "spell": "Spell",
+      "invocation": "Invocation"
     }
   }
 }

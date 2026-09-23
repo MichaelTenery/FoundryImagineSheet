@@ -19,7 +19,8 @@ import {
 	getAttackSkillForTitle, getBodyChart, getAreaEndurance, getStrongestMaterial,
 	getInitiativeModifier, getAreaArmor, getAreaShield, getNextAttackSkill, hasLore, parseLoreList,
 	getMovementBase, resolveMovementRate, resolveSpecialMovement, specialMovementReplacesOther,
-	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement
+	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement,
+	getSecondWeaponSlots, resolveSituationalMods
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
@@ -29,6 +30,7 @@ import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions
          checkClassSkillTitle } from "../class-rules.mjs";
 import { checkClassQualification } from "../chargen-rules.mjs";
 import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../advancement-rules.mjs";
+import { MARTIAL_DISCIPLINE_NAMES, getStanceSkillBonus, deriveMartialArts } from "../combat/martial-arts.mjs";
 
 const fields = foundry.data.fields;
 
@@ -188,7 +190,11 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				bodyType:    new fields.StringField({ required: true, initial: "" }),  // "" = the race's
 				wounds:      new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
 				armorDamage: new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
-				hide:        new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
+				hide:        new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				// Damage to OVERALL Endurance, which lands on no one area -- a poison's, by the
+				// user's ruling (Master's Manual p.103: "apply to overall Endurance"). It counts in
+				// totalWounds, and so toward shock.
+				overallWounds: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
 				// DERIVED: areas (each with its Endurance, wounds, armour and state), shock,
 				// totalWounds, inShock. See _prepareBody.
 			}),
@@ -294,6 +300,14 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				initiativeMisc: new fields.NumberField({ required: true, integer: true, initial: 0 }),
 				skillMisc:      new fields.NumberField({ required: true, integer: true, initial: 0 }),
 
+				// @MARKER SPEED SECONDS
+				// Extra seconds of action every round from a Speed potion, spell, rune or glyph -- his
+				// tmp_speed_seconds, the "Speed Seconds" box among his combat modifiers. Set by hand until
+				// those effects are built. Each splits one of the round's first seconds in two on the
+				// round clock (module/combat/round-rules.mjs); ten at most, with any the initiative
+				// roll itself earned below -10.
+				speedSeconds:   new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 10 }),
+
 				// The attack chart a GME fights on. A GME earns no chart by title -- his sheet has the
 				// player pick one outright (gme_all_attack_skills_select, Beginner by default) -- so it
 				// is stored. Read only while the character holds a non-classed class.
@@ -366,7 +380,66 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				// weapon thrown from the hand -- which is his shape (multi_missile_know_list /
 				// multi_missile_lore_list).
 				multiMissileKnowList: new fields.StringField({ required: true, initial: "" }),
-				multiMissileLoreList: new fields.StringField({ required: true, initial: "" })
+				multiMissileLoreList: new fields.StringField({ required: true, initial: "" }),
+
+				// The weapons this character fights with in the off hand under Second Weapon
+				// Knowledge or Lore, by simplified name -- his second_know_list / second_lore_list.
+				// A weapon only takes the discipline's benefit when it is named here; see
+				// getSecondWeaponFlags in combat-rules.mjs.
+				secondWeaponKnowList: new fields.StringField({ required: true, initial: "" }),
+				secondWeaponLoreList: new fields.StringField({ required: true, initial: "" }),
+
+				// @MARKER SITUATION MODS
+				// What the Situation Mods window has ticked, which every attack of that kind reads
+				// until it is cleared -- his situational_mod_* bar. Stored, because it outlives any
+				// one attack and because the character's own defence changes with it while others
+				// attack them. Totalled by resolveSituationalMods in combat-rules.mjs.
+				situation: new fields.SchemaField({
+					// blank: true outright -- Foundry sets it false the moment choices are given, which
+					// is what failed the first real import (see commit 3374e19).
+					kind:     new fields.StringField({ required: true, blank: true, initial: "", choices: ["", "melee", "missile"] }),
+					selected: new fields.ArrayField(new fields.StringField({ required: true, blank: false })),
+					// The weapon whose skills modifier a roll for Critical, Perfect Shot and the rest
+					// is made with -- his sit_weapon_slot_melee / sit_weapon_slot_missile.
+					weaponId: new fields.StringField({ required: true, initial: "" })
+				})
+			}),
+
+			// @MARKER MARTIAL ARTS
+			// What a martial artist KNOWS and what they have IN PLAY, kept as his sheet keeps them:
+			// comma-separated strings of names (martial_know_attacks, martial_lore_list,
+			// martial_stance_list and the rest), so a text field can write one back and his lists
+			// read across unchanged. Everything worked out from them -- the rows with their chances
+			// and times, what a stance or a made move does -- is derived in _prepareMartialArts.
+			//
+			// The discipline is chosen once, when Martial Knowledge is acquired, and brings its own
+			// list of subskills (MARTIAL_DISCIPLINES). The learned* strings hold what is known
+			// BEYOND it: a Custom discipline's picks, and anything added later with Martial Lore.
+			martial: new fields.SchemaField({
+				discipline:       new fields.StringField({ required: true, blank: true, initial: "",
+					choices: ["", ...MARTIAL_DISCIPLINE_NAMES] }),
+				learnedAttacks:   new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedBlocks:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedHolds:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedMoves:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedThrows:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				// The twelve Martial Lore values learned, his martial_lore_list.
+				loreValues:       new fields.StringField({ required: true, blank: true, initial: "" }),
+				// Stances learned with Martial Knowledge, and those mastered with Martial Lore -- his
+				// martial_stance_list and martial_mastered_stances_list.
+				stances:          new fields.StringField({ required: true, blank: true, initial: "" }),
+				masteredStances:  new fields.StringField({ required: true, blank: true, initial: "" }),
+				// In play. Only one stance at a time (Mysteries of the Planes p.167). A move or Lore
+				// value is here once its skill roll has been made, and stays until cleared -- his
+				// martialN_move_success boxes and the SET/CLEAR buttons beside them.
+				activeStance:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeMoves:      new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeLoreValues: new fields.StringField({ required: true, blank: true, initial: "" }),
+				// The two things a stance's bonuses depend on that only the player can say: VIT saves
+				// failed for intoxication (the Drunken stance works from 1 to 3, 5 mastered), and
+				// whether a hold or movement effect is being resisted now (Calm in the storm).
+				intoxication:     new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				resistingHold:    new fields.BooleanField({ required: true, initial: false })
 			}),
 
 			// @MARKER NOTES
@@ -594,7 +667,16 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this._prepareSkillSlots();
 		this._prepareSkills();
 		this._prepareSkillSlotStatus();
+		// Martial arts after the skills, whose chances it reads, and before both the off-hand
+		// skills and the Situation Mods: a held stance adds to skills (the Drunken stance's
+		// "+10% to combat skills" reaches Second Weapon Knowledge, which is typed Combat), and the
+		// Situation Mods read the blind fighting it sets in combat.martialBlind.
+		this._prepareMartialArts();
 		this._prepareOffhandSkills();
+		// Late, so that anything martial arts derives before it (blind fighting, a stance held) is
+		// already in place when the situational figures are totalled. It changes defensiveAdjust,
+		// which nothing between _prepareCombat and here reads.
+		this._prepareSituation();
 		// After the skills: the Arch Mortal screen reads five class skills' chances, and those
 		// are not worked out until _prepareSkills has run.
 		this._prepareAdvancement();
@@ -732,6 +814,15 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.combat.hasSecondWeaponKnowledge = tmpknow2nd.reached;
 		this.combat.hasSecondWeaponLore = tmplore2nd.reached;
 
+		// Which weapons each discipline is held in, and how many more may be named. One weapon
+		// per title held in the discipline -- see getSecondWeaponSlots.
+		this.combat.secondWeaponKnowNames = parseLoreList(this.combat.secondWeaponKnowList);
+		this.combat.secondWeaponLoreNames = parseLoreList(this.combat.secondWeaponLoreList);
+		this.combat.secondWeaponKnowSlots = getSecondWeaponSlots(tmpknow2nd.title, tmpknow2nd.when,
+			this.combat.secondWeaponKnowNames);
+		this.combat.secondWeaponLoreSlots = getSecondWeaponSlots(tmplore2nd.title, tmplore2nd.when,
+			this.combat.secondWeaponLoreNames);
+
 		// Multiple Missile Lore, the last of the family. Title eligibility only, as above; the
 		// combos themselves are named launcher/missile pairs and the mechanics that read them are
 		// not built yet. Its Knowledge half has no title gate in his sheet at all.
@@ -823,8 +914,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 
 		this.body.type = tmpbodytype;
 		this.body.areas = tmpareas;
-		this.body.totalWounds = tmptotal;
-		this.body.inShock = (this.body.shock != 0) && (tmptotal > this.body.shock);
+		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
+		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
+		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
 	}
 
 	// This is the function which totals carried weight and works out how encumbered the
@@ -1018,9 +1110,12 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		if (this.parent?.items) {
 			for (const tmpitem of this.parent.items) {
 				if (tmpitem.type != "skill") { continue; }
-				// A skill held twice counts at its best, the same rule the skill roll uses.
-				tmpchances[tmpitem.name] = Math.max(parseInt(tmpitem.system.totalChance) || 0,
-				                                    parseInt(tmpchances[tmpitem.name]) || 0);
+				// A skill held twice counts at its best, the same rule the skill roll uses. A martial
+				// stance's bonus is taken back out: qualifying reads the skill as trained, not as
+				// boosted by whichever stance happens to be held (see _prepareMartialArts).
+				var tmptrained = (parseInt(tmpitem.system.totalChance) || 0) - (parseInt(tmpitem.system.stanceBonus) || 0)
+				               - (parseInt(tmpitem.system.blindBonus) || 0);
+				tmpchances[tmpitem.name] = Math.max(tmptrained, parseInt(tmpchances[tmpitem.name]) || 0);
 			}
 		}
 
@@ -1521,10 +1616,42 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// off the actor with no eligibility test in front of it.
 		this.combat.multiMissileKnowChance = this._getSkillChance("Multiple Missile Knowledge");
 
-		// How many of the round's ten seconds may go to off-hand actions -- a cap, not a pool;
-		// nothing here tracks how much of it a round has already spent. See getOffhandSecondsCap.
+		// How many of the round's ten seconds may go to off-hand actions. This is the allowance; what
+		// a round has spent of it is on the combatant's round clock (module/combat/round-rules.mjs),
+		// which also takes off what a late initiative costs. See getOffhandSecondsCap.
 		this.combat.offhandSecondsCap = getOffhandSecondsCap(
 			this.physical.handedness, this.combat.secondWeaponLoreChance);
+	}
+
+	// This is the function which totals the Situation Mods the character has set, and lays their
+	// defence onto the character's own.
+	//
+	// The defence is the character's and stands whatever they attack with -- Furious Attack leaves
+	// them easier to hit (+4) for as long as it is set. "No Defense" (blind, cannot see the target,
+	// a critically failed Critical) takes the adjustment away from anyone attacking them; that is
+	// read where the attack is made, as the target's noDefense.
+	//
+	// Martial arts feeds blind fighting in through combat.martialBlind, { blindFighting,
+	// fullDefense, inStance }, when it has set one; until then nothing is passed.
+	_prepareSituation() {
+		var tmpsituation = this.combat.situation ?? {};
+		this.combat.situational = resolveSituationalMods(tmpsituation.kind, tmpsituation.selected,
+			this.combat.martialBlind ?? null);
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + this.combat.situational.defense;
+		// His defensive_total is "No Defense" if the situational, martial or stance specials say so
+		// (sheet-worker.js:102805) -- Immoveable Stance does -- so martial arts' own is folded in.
+		this.combat.noDefense = this.combat.situational.noDefense || !!this.combat.martialDefense?.noDefense;
+
+		// Martial Lore's "+5% to combat skills" per level while fighting blind (the book's figure, by
+		// the user's ruling of 2026-09-22), laid on every skill typed Combat for as long as the blind
+		// Situation Mods are set. Kept as blindBonus and reset every time, as stanceBonus is.
+		var tmpblindskills = parseInt(this.combat.situational.blindSkills) || 0;
+		for (const tmpitem of this.parent?.items ?? []) {
+			if (tmpitem.type != "skill") { continue; }
+			var tmpadd = (tmpblindskills && (tmpitem.system.types ?? []).includes("Combat")) ? tmpblindskills : 0;
+			tmpitem.system.blindBonus = tmpadd;
+			if (tmpadd) { tmpitem.system.totalChance = (parseInt(tmpitem.system.totalChance) || 0) + tmpadd; }
+		}
 	}
 
 	// This is the function which reads one named skill's resolved chance off the actor, for the
@@ -1537,6 +1664,97 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		if (!tmpactor || !tmpactor.items) { return 0; }
 		var tmpskill = tmpactor.items.find(i => i.type == "skill" && i.name == tmpname);
 		return tmpskill ? (parseInt(tmpskill.system.totalChance) || 0) : 0;
+	}
+
+	// @MARKER MARTIAL ARTS
+	// This is the function which works out the character's martial arts: which subskills they know
+	// and at what chance, the stance they hold, the moves and Martial Lore values they have made, and
+	// what all of that does to the rest of their combat figures. The rules are in
+	// module/combat/martial-arts.mjs; this only gathers the inputs and lays the results out.
+	//
+	// Its own step, run straight after the skills, whose chances it reads, and BEFORE both
+	// _prepareOffhandSkills (a held stance adds to skills, and the Drunken stance's combat-skill
+	// bonus reaches Second Weapon Knowledge) and _prepareSituation, which reads combat.martialBlind
+	// -- his handleMeleeSet takes the better of the stance's and Martial Lore's blind fighting when
+	// it totals the situational modifiers.
+	//
+	// Three figures are CHARACTER-WIDE and are folded straight into the combat block, so that
+	// everything already reading them follows without being told: a stance's defensive change and a
+	// made Flip into defensiveAdjust (read by every attack against the character), a stance's
+	// initiative into initiativeMod, and a stance's change to "offensive actions starting speed"
+	// into weaponSpeedMod (every weapon's time, never under its minimum). Immoveable Stance's "No
+	// Defense" is combat.martialDefense.noDefense; the attack against this character reads it.
+	//
+	// Nothing applies without Martial Knowledge. A stance or move written on a character who does
+	// not hold the skill -- dragged off, or never acquired -- is shown and does nothing.
+	_prepareMartialArts() {
+		var tmpmartial = this.martial ?? {};
+		this.martial = tmpmartial;
+
+		var tmpknow = this._getMartialSkill("Martial Knowledge");
+		var tmplore = this._getMartialSkill("Martial Lore");
+		tmpmartial.hasKnowledge = tmpknow.held;
+		tmpmartial.hasLore = tmplore.held;
+		tmpmartial.knowChance = tmpknow.chance;
+		tmpmartial.loreChance = tmplore.chance;
+
+		// Everything the panel and the attacks read -- known, in play, the state and the rows -- worked
+		// out by deriveMartialArts, which the creature model calls too. The weapon speed modifier goes in
+		// BEFORE the stance's seconds, which the rows add themselves.
+		Object.assign(tmpmartial, deriveMartialArts(tmpmartial, {
+			know: tmpknow, lore: tmplore, weaponSpeedMod: this.combat.weaponSpeedMod }));
+
+		// Character-wide, folded into what everything else already reads. See the note above.
+		var tmpstate = tmpmartial.state;
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + tmpstate.defense.adjust;
+		this.combat.initiativeMod = (parseInt(this.combat.initiativeMod) || 0) + tmpstate.initiative;
+		this.combat.weaponSpeedMod = (parseInt(this.combat.weaponSpeedMod) || 0) + tmpstate.seconds;
+		this.combat.martialDefense = tmpstate.defense;
+		this.combat.martialBlind = tmpstate.blind;
+
+		// The stance's bonuses to other figures, applied while it is held (the user's ruling of
+		// 2026-09-22; his sheet only prints them). A skill's total takes it and records it as
+		// stanceBonus, so what it came from can be shown and the Arch Mortal screen can take it back
+		// out; saves and resistances take it straight. See getStanceBonuses.
+		this._applyStanceBonuses(tmpstate.bonuses);
+	}
+
+	// This is the function which lays a held stance's bonuses onto the character's skills, saves and
+	// resistances. Every skill item is visited, including a second copy of the same skill, since a
+	// skill roll uses the best copy. The bonus a skill took is kept as stanceBonus.
+	//
+	// The skills are visited EVERY time, stance or none, because stanceBonus lives on the item
+	// between derivations -- left alone, a stance dropped would leave its old figure behind for the
+	// Arch Mortal screen to take out of a total that no longer has it in.
+	_applyStanceBonuses(tmpbonuses) {
+		var tmpactor = this.parent;
+		for (const tmpitem of tmpactor?.items ?? []) {
+			if (tmpitem.type != "skill") { continue; }
+			var tmpadd = getStanceSkillBonus(tmpbonuses, tmpitem.name, tmpitem.system.types);
+			tmpitem.system.stanceBonus = tmpadd;
+			if (tmpadd) { tmpitem.system.totalChance = (parseInt(tmpitem.system.totalChance) || 0) + tmpadd; }
+		}
+		if (!tmpbonuses || !tmpbonuses.active) { return; }
+		for (const [tmpkey, tmpvalue] of Object.entries(tmpbonuses.saves ?? {})) {
+			if (this.attributes[tmpkey]) { this.attributes[tmpkey].save = (parseInt(this.attributes[tmpkey].save) || 0) + tmpvalue; }
+		}
+		// An immune resistance has no figure (value null) and stays immune.
+		for (const [tmpname, tmpresist] of Object.entries(this.resistances ?? {})) {
+			if (tmpresist?.value === null || tmpresist?.value === undefined) { continue; }
+			var tmpresistadd = (parseInt(tmpbonuses.resistances?.[tmpname]) || 0) + (parseInt(tmpbonuses.allResistances) || 0);
+			if (tmpresistadd) { tmpresist.value = tmpresist.value + tmpresistadd; }
+		}
+	}
+
+	// This is the function which reads Martial Knowledge or Martial Lore off the character: whether
+	// it is held and usable, and its chance. A class skill held before its title is reached is
+	// refused on the roll (his handleHighTitleClassSkillRoll), and his checkForClassSkill finds no
+	// such skill then either, so it reads as not held.
+	_getMartialSkill(tmpname) {
+		var tmpactor = this.parent;
+		var tmpskill = tmpactor?.items?.find(i => i.type == "skill" && i.name == tmpname);
+		if (!tmpskill || tmpskill.system.usableByTitle === false) { return { held: false, chance: 0 }; }
+		return { held: true, chance: parseInt(tmpskill.system.totalChance) || 0 };
 	}
 
 	// This is the function which gives the chance for a skill the character does NOT hold,

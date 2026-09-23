@@ -18,7 +18,7 @@ Do not reopen it.**
   check that its Combat tab shows the line and a Defence 8 lower. `tools/sheet-preview.html`
   already does exactly this for the character; copy that.
 
-## 2. Changelog text for the next release
+## 2. Changelog text for the next release -- DONE 2026-09-23 (released in 0.18.0)
 
 - **What:** a CHANGELOG.md section for whichever version ships this. No version was cut in this
   pass, and `system.json` and `dist/` were left alone, because releasing is the user's call.
@@ -30,7 +30,7 @@ Do not reopen it.**
      Before this they never applied.
 - Keep the standing "not verified in a running V14" caveat.
 
-## 3. Weapon item sheet: stop showing the removed booleans (check only)
+## 3. Weapon item sheet: stop showing the removed booleans (check only) -- DONE 2026-09-23 (released in 0.18.0)
 
 - **What:** `secondWeaponKnowledge`/`secondWeaponLore` were removed from `item-weapon.mjs`. A grep
   found no template or preview that used them. Re-run

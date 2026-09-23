@@ -136,15 +136,75 @@ export default class ImagineWeaponData extends foundry.abstract.TypeDataModel {
 			hand: new fields.StringField({ required: true, initial: "right",
 			          choices: ["right", "left", "both"] }),
 
-			// @MARKER SECOND-WEAPON LORE
-			// His per-weapon flags weaponN_2weapknow and weaponN_2weaplore. Unlike the hand, these
-			// ARE properties of this weapon in this wielder's hands -- lore is held in a particular
-			// weapon, exactly as the five lore types already ported are.
+			// @MARKER CUSTOMIZATION
+			// His Equipment tab's CUSTOMIZE ITEMS panel (customizeItem, sheet-worker.js:78903), which
+			// writes each customization into the item's NAME as a bracketed tag -- "+2 {Long Sword}
+			// [Sharpness] [Base Aura:10]" -- for his attack to read back out. Kept as fields here,
+			// so the weapon keeps its own name and still matches the lore lists by it. What each does
+			// is in module/weapon-custom-rules.mjs; the window that sets them is apps/weapon-mods.mjs.
+			// The magical plus itself is magicBonus, above; "Blessed" is the flag below.
 			//
-			// Lore removes the off-hand penalty entirely; Knowledge buys it down. The tiers do not
-			// stack -- his handlePhysicalAttacks tests Lore first and stops there.
-			secondWeaponKnowledge: new fields.BooleanField({ required: true, initial: false }),
-			secondWeaponLore:      new fields.BooleanField({ required: true, initial: false }),
+			// condition is his wear: blank for Undamaged, as his panel treats it.
+			condition: new fields.StringField({ required: true, blank: true, initial: "",
+			               choices: ["", "Restored", "Repaired", "Worn", "Lightly Damaged", "Damaged", "Heavily Damaged"] }),
+			custom: new fields.SchemaField({
+				// Shown before and after the name, never written into it (see above).
+				prefix:          new fields.StringField({ required: true, initial: "" }),
+				suffix:          new fields.StringField({ required: true, initial: "" }),
+				// His "Blessed" magical choice, made permanent by the blesser's point of Will Force.
+				blessed:         new fields.BooleanField({ required: true, initial: false }),
+				// What the magical and divine abilities are worked from: +1 per 5 of each.
+				baseAura:        new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				basePiety:       new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				magicAbilities:  new fields.ArrayField(new fields.StringField(), { initial: [] }),
+				divineAbilities: new fields.ArrayField(new fields.StringField(), { initial: [] }),
+				runes:           new fields.ArrayField(new fields.SchemaField({
+				                     name:  new fields.StringField({ required: true, initial: "" }),
+				                     level: new fields.NumberField({ required: true, integer: true, initial: 1, min: 0 })
+				                 }), { initial: [] }),
+				energyType:      new fields.StringField({ required: true, initial: "" }),
+				energyDice:      new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				// Physical work: Serrated, Silvering, Envenomed and the rest (checkWeaponCustomization).
+				customizations:  new fields.ArrayField(new fields.StringField(), { initial: [] }),
+				// Any spell or invocation imbued -- his "All Magical Effects" and "All Divine Effects".
+				magicalEffects:  new fields.ArrayField(new fields.StringField(), { initial: [] }),
+				divineEffects:   new fields.ArrayField(new fields.StringField(), { initial: [] })
+			}),
+
+			// @MARKER TEMPORARY EFFECTS
+			// Something done to the weapon for a while: Bless (Player's Guide, Holy Weapon, a day) or
+			// a Game Master's own. until is the world time it ends at, 0 for "until taken off"; the
+			// attack ignores one whose time has passed, and the window lists it to be removed.
+			tempEffects: new fields.ArrayField(new fields.SchemaField({
+				id:     new fields.StringField({ required: true, initial: "" }),
+				name:   new fields.StringField({ required: true, initial: "" }),
+				kind:   new fields.StringField({ required: true, initial: "custom" }),
+				toHit:  new fields.NumberField({ required: true, integer: true, initial: 0 }),
+				damage: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+				notes:  new fields.StringField({ required: true, initial: "" }),
+				until:  new fields.NumberField({ required: true, initial: 0 }),
+				lasts:  new fields.StringField({ required: true, initial: "" })
+			}), { initial: [] }),
+
+			// @MARKER POISON COATING
+			// A poison put on the weapon -- a dose spent from the Magic & Lore tab's poison USE ("Coat
+			// a weapon"). His sheet has no such thing; the rules are the books' and are in
+			// lore-rules.mjs (POISON ON A WEAPON): a plain coating is one dose, delivered by the first
+			// hit that does actual flesh damage; an Envenomed blade's hilt holds up to 5 doses, one
+			// delivered by each thrust that does 10 or more (Mysteries of the Planes p.175). doses 0 is
+			// no coating. poisonType and poisonPotency are the poison's, as a poison item carries them.
+			coating: new fields.SchemaField({
+				name:          new fields.StringField({ required: true, initial: "" }),
+				poisonType:    new fields.StringField({ required: true, initial: "" }),
+				poisonPotency: new fields.StringField({ required: true, initial: "" }),
+				form:          new fields.StringField({ required: true, initial: "" }),
+				doses:         new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
+			}),
+
+			// Second Weapon Knowledge and Lore are NOT stored here. His per-weapon flags
+			// (weaponN_2weapknow / weaponN_2weaplore) were only ever set from the character's own
+			// lists of weapon names, so the lists live on the character and the flags are worked
+			// out from them -- see getSecondWeaponFlags in combat-rules.mjs.
 
 			// @MARKER PROVENANCE
 			cost:        new fields.StringField({ required: true, initial: "" }),

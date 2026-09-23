@@ -15,10 +15,24 @@
 import { rollWeaponAttack } from "../combat/attack.mjs";
 import { chooseBestArmor } from "../equip-rules.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
-import { getWeaponSpeed, getLoreModifiers, isOffhandWeapon } from "../combat/combat-rules.mjs";
+import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
+         getSecondWeaponFlags } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import ImagineItemPicker from "../apps/item-picker.mjs";
+import { buildMagicPanel } from "../magic-view.mjs";
+import { useConsumable, addDose, toggleMemorized, useLore, brewRecipe, addPoison,
+         postMagic } from "../magic-actions.mjs";
+import { provideStartingLore } from "../starting-lore.mjs";
+import { getWeaponCustomTags, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
+import ImagineWeaponMods from "../apps/weapon-mods.mjs";
+import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
+         learnMartialStance, masterMartialStance, learnMartialSubskill,
+         learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
+import { parseMartialList } from "../combat/martial-arts.mjs";
+import { buildMartialPanel } from "../martial-view.mjs";
+import { getActorSheetClock } from "../apps/round-clock.mjs";
 import {
 	resolveSkillOutcome, pickBestSkillRoll, canTransferSlot, canSacrificeSlot,
 	SLOT_TRANSFERS, SLOT_SACRIFICE_DICE, SACRIFICEABLE_SLOTS
@@ -62,6 +76,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		window: { resizable: true },
 		form: { submitOnChange: true },
 		actions: {
+			// The Magic & Lore tab, all in the @MARKER MAGIC AND LORE block below; what each does is
+			// in module/magic-actions.mjs.
+			addMagic: ImagineCharacterSheet.#onAddMagic,
+			addOtherMagic: ImagineCharacterSheet.#onAddOtherMagic,
+			useConsumable: ImagineCharacterSheet.#onUseConsumable,
+			addDose: ImagineCharacterSheet.#onAddDose,
+			toggleMemorized: ImagineCharacterSheet.#onToggleMemorized,
+			useLore: ImagineCharacterSheet.#onUseLore,
+			brewRecipe: ImagineCharacterSheet.#onBrewRecipe,
+			postMagic: ImagineCharacterSheet.#onPostMagic,
+			provideStartingLore: ImagineCharacterSheet.#onProvideStartingLore,
+			openWeaponMods: ImagineCharacterSheet.#onOpenWeaponMods,
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
 			rollResistance: ImagineCharacterSheet.#onRollResistance,
 			rollSkill: ImagineCharacterSheet.#onRollSkill,
@@ -70,6 +96,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			rollUntrainedSkill: ImagineCharacterSheet.#onRollUntrainedSkill,
 			stepClassTitle: ImagineCharacterSheet.#onStepClassTitle,
 			openLevelUp: ImagineCharacterSheet.#onOpenLevelUp,
+			openSituation: ImagineCharacterSheet.#onOpenSituation,
+			clearSituation: ImagineCharacterSheet.#onClearSituation,
 			transferSlot: ImagineCharacterSheet.#onTransferSlot,
 			sacrificeSlot: ImagineCharacterSheet.#onSacrificeSlot,
 			addLanguage: ImagineCharacterSheet.#onAddLanguage,
@@ -79,7 +107,20 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			deleteItem: ImagineCharacterSheet.#onDeleteItem,
 				removeAllArms: ImagineCharacterSheet.#onRemoveAllArms,
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
-				rollHandedness: ImagineCharacterSheet.#onRollHandedness
+				rollHandedness: ImagineCharacterSheet.#onRollHandedness,
+			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class.
+			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
+			rollMartialAttack: ImagineCharacterSheet.#onRollMartialAttack,
+			rollMartialSubskill: ImagineCharacterSheet.#onRollMartialSubskill,
+			rollMartialMove: ImagineCharacterSheet.#onRollMartialMove,
+			toggleMartialMove: ImagineCharacterSheet.#onToggleMartialMove,
+			rollMartialLoreValue: ImagineCharacterSheet.#onRollMartialLoreValue,
+			toggleMartialLoreValue: ImagineCharacterSheet.#onToggleMartialLoreValue,
+			clearMartialMoves: ImagineCharacterSheet.#onClearMartialMoves,
+			learnMartialStance: ImagineCharacterSheet.#onLearnMartialStance,
+			masterMartialStance: ImagineCharacterSheet.#onMasterMartialStance,
+			learnMartialSubskill: ImagineCharacterSheet.#onLearnMartialSubskill,
+			learnMartialLoreValue: ImagineCharacterSheet.#onLearnMartialLoreValue
 		}
 	};
 
@@ -92,7 +133,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		skills:      { template: "systems/imagine-rpg/templates/actor/tab-skills.hbs", scrollable: [""] },
 		combat:      { template: "systems/imagine-rpg/templates/actor/tab-combat.hbs", scrollable: [""] },
 		equipment:   { template: "systems/imagine-rpg/templates/actor/tab-equipment.hbs", scrollable: [""] },
-		description: { template: "systems/imagine-rpg/templates/actor/tab-description.hbs", scrollable: [""] }
+		description: { template: "systems/imagine-rpg/templates/actor/tab-description.hbs", scrollable: [""] },
+		magic:       { template: "systems/imagine-rpg/templates/actor/tab-magic.hbs", scrollable: [""] }
 	};
 
 	static TABS = {
@@ -102,7 +144,9 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				{ id: "skills",      icon: "fa-solid fa-list-check" },
 				{ id: "combat",      icon: "fa-solid fa-khanda" },
 				{ id: "equipment",   icon: "fa-solid fa-sack" },
-				{ id: "description", icon: "fa-solid fa-scroll" }
+				{ id: "description", icon: "fa-solid fa-scroll" },
+				// His Magic/Lore tab ("e", sheet-magiclore): consumables, lores, spells, invocations.
+				{ id: "magic",       icon: "fa-solid fa-hat-wizard" }
 			],
 			initial: "attributes",
 			labelPrefix: "IMAGINE.Tab"
@@ -133,10 +177,26 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.chosenAttackSkillChoices = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert", "Master"]
 			.map(tmpskill => ({ value: tmpskill, label: tmpskill,
 			                    selected: tmpskill == this.document.system.combat.chosenAttackSkill }));
+		// The Magic & Lore tab, worked out in module/magic-view.mjs. The magic switches decide which
+		// of its sections exist at all.
+		tmpcontext.magic = buildMagicPanel(this.document, game.imagine?.getAvailabilityRules?.() ?? null, game.user?.isGM);
 		tmpcontext.lore = ImagineCharacterSheet.#buildLorePanel(this.document.system);
+		// The Situation Mods bar, one line, as his combat page shows it.
+		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
 		tmpcontext.languages = ImagineCharacterSheet.#buildLanguageRows(this.document.system);
 		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
+		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
+		// The martial panel is a partial; see loadMartialTemplates.
+		await loadMartialTemplates();
+
+		// @MARKER ROUND CLOCK
+		// The round clock beside the Off-Hand Seconds box, read-only: "3 of 5 left this round" and
+		// where the main hand stands while the character is in the combat on show, the plain allowance
+		// otherwise. _imagineClockShown is what lets the combat tracker redraw this tab when a clock
+		// changes (refreshActorSheetClocks in module/apps/round-clock.mjs).
+		tmpcontext.roundClock = getActorSheetClock(this.document);
+		this._imagineClockShown = tmpcontext.roundClock.inCombat;
 
 		return tmpcontext;
 	}
@@ -241,19 +301,34 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpmultiknow = tmpknowchance > 0;
 		var tmpmultilore = !!tmpsystem.combat.hasMultiMissileLore;
 
+		// Second Weapon Knowledge and Lore. Both wait on a class title, and each is held in the
+		// weapons named on its own list -- one more weapon for every title held in it.
+		var tmpsecondknow = !!tmpsystem.combat.hasSecondWeaponKnowledge;
+		var tmpsecondlore = !!tmpsystem.combat.hasSecondWeaponLore;
+
 		var tmpkinds = [];
 		if (tmpweapon) { tmpkinds.push("Weapon"); }
 		if (tmpmissile) { tmpkinds.push("Missile"); }
 		if (tmpprojectile) { tmpkinds.push("Projectile"); }
 		if (tmpmultiknow || tmpmultilore) { tmpkinds.push("Multiple Missile"); }
+		if (tmpsecondknow || tmpsecondlore) { tmpkinds.push("Second Weapon"); }
 
 		return {
-			show: tmpweapon || tmpmissile || tmpprojectile || tmpmultiknow || tmpmultilore,
+			show: tmpweapon || tmpmissile || tmpprojectile || tmpmultiknow || tmpmultilore
+			   || tmpsecondknow || tmpsecondlore,
 			hasWeapon: tmpweapon,
 			hasMissile: tmpmissile,
 			hasProjectile: tmpprojectile,
 			hasMultiKnow: tmpmultiknow,
 			hasMultiLore: tmpmultilore,
+			hasSecondKnow: tmpsecondknow,
+			hasSecondLore: tmpsecondlore,
+			secondKnowText: tmpsystem.combat.secondWeaponKnowList ?? "",
+			secondLoreText: tmpsystem.combat.secondWeaponLoreList ?? "",
+			secondKnowChance: parseInt(tmpsystem.combat.secondWeaponKnowChance) || 0,
+			secondKnowLevels: Math.floor((parseInt(tmpsystem.combat.secondWeaponKnowChance) || 0) / 20),
+			secondKnowSlots: parseInt(tmpsystem.combat.secondWeaponKnowSlots) || 0,
+			secondLoreSlots: parseInt(tmpsystem.combat.secondWeaponLoreSlots) || 0,
 			label: tmpkinds.join(", "),
 			weaponText: tmpsystem.combat.weaponLoreList ?? "",
 			missileText: tmpsystem.combat.missileLoreList ?? "",
@@ -357,7 +432,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpspeedmod = tmpactor.system.combat.weaponSpeedMod;
 		for (const tmpitem of tmpactor.items) {
 			if (tmpitem.type != "weapon") { continue; }
-			var tmpw = tmpitem.system;
+			// As his combat sheet carries it: customizations, quality, condition and plus worked in.
+			var tmpw = getCustomizedWeapon(tmpitem.system);
 			if (tmpw.location != "equipped" && tmpw.location != "carried") { continue; }
 			var tmpmodes = [];
 			for (const tmpmode of ["thrust", "cut", "smash", "missile"]) {
@@ -377,6 +453,20 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				missileLoreList: tmpactor.system.combat.missileLoreNames
 			});
 
+			// What the off hand costs with this weapon, after whichever of Second Weapon
+			// Knowledge or Lore the character holds in it -- the same figures the attack uses.
+			var tmpcombat = tmpactor.system.combat;
+			var tmpsecond = getSecondWeaponFlags({
+				weaponName: tmpitem.name,
+				hasSecondWeaponKnowledge: tmpcombat.hasSecondWeaponKnowledge,
+				hasSecondWeaponLore: tmpcombat.hasSecondWeaponLore,
+				secondWeaponKnowList: tmpcombat.secondWeaponKnowNames,
+				secondWeaponLoreList: tmpcombat.secondWeaponLoreNames
+			});
+			var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond },
+				tmpactor.system.attributes?.agl?.rating, tmpactor.system.physical?.handedness,
+				tmpcombat.secondWeaponKnowChance);
+
 			tmprows.push({
 				id: tmpitem.id,
 				name: tmpitem.name,
@@ -392,10 +482,26 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				// The flag is derived rather than stored, so it follows a change of handedness
 				// without anything having to be re-tagged.
 				hand: tmpw.hand || "right",
-				offhand: isOffhandWeapon(tmpw.hand, tmpactor.system.physical?.handedness)
+				offhand: tmpoffhand.offhand,
+				offhandTier: tmpoffhand.tier,
+				offhandTip: ImagineCharacterSheet.#describeOffhand(tmpoffhand),
+
+				// What has been done to it -- his Customize panel's tags, and anything on it for now --
+				// and its name as his panel prints it, prefix and suffix and all.
+				customTags: getWeaponCustomTags(tmpw, game.time?.worldTime ?? 0),
+				displayName: getWeaponDisplayName(tmpitem.name, tmpw),
+				listingTip: tmpw.listingChanges?.length ? "Changed by what has been done to it: " + tmpw.listingChanges.join("; ") : ""
 			});
 		}
 		return tmprows;
+	}
+
+	// This is the function which words an off-hand weapon's cost for its tooltip.
+	static #describeOffhand(tmpoffhand) {
+		if (!tmpoffhand.offhand) { return ""; }
+		if (tmpoffhand.tier == "lore") { return "Off hand, Second Weapon Lore: no penalty"; }
+		var tmpwho = (tmpoffhand.tier == "knowledge") ? "Off hand, Second Weapon Knowledge" : "Off hand";
+		return `${tmpwho}: attack ${tmpoffhand.melee}, damage ${tmpoffhand.damage}, skills ${tmpoffhand.skill}%`;
 	}
 
 	// @MARKER ACTION HANDLERS
@@ -600,6 +706,92 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		if (tmpconfirmed) { await tmpitem.delete(); }
 	}
 
+	// @MARKER MAGIC AND LORE
+	// The Magic & Lore tab's buttons. Each finds its item and hands it on; the work is in
+	// module/magic-actions.mjs, the rules in module/lore-rules.mjs.
+
+	// This is the function which opens the picker on one kind -- a herb, a ballad, a spell. A poison
+	// is not picked: his poisons are built from a type and a potency, so it has its own small form.
+	static async #onAddMagic(event, target) {
+		event.preventDefault();
+		var tmpwhat = target.dataset.what;
+		if (tmpwhat == "poison" || tmpwhat == "poisonrecipe") {
+			await addPoison(this.document, tmpwhat == "poisonrecipe");
+			return;
+		}
+		new ImagineItemPicker(this.document, tmpwhat).render(true);
+	}
+
+	// This is the function behind "Add other lore": the same, for the kind chosen in the dropdown
+	// beside the button.
+	static async #onAddOtherMagic(event, target) {
+		event.preventDefault();
+		var tmpselect = target.closest(".magic-other")?.querySelector("select");
+		if (!tmpselect?.value) { return; }
+		target.dataset.what = tmpselect.value;
+		await ImagineCharacterSheet.#onAddMagic.call(this, event, target);
+	}
+
+	// This is the function which finds the item a Magic & Lore row's button belongs to.
+	#magicItem(target) {
+		return this.document.items.get(target.closest("[data-item-id]")?.dataset.itemId ?? target.dataset.itemId);
+	}
+
+	static async #onUseConsumable(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await useConsumable(this.document, tmpitem); }
+	}
+
+	static async #onAddDose(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await addDose(this.document, tmpitem); }
+	}
+
+	static async #onToggleMemorized(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await toggleMemorized(this.document, tmpitem); }
+	}
+
+	static async #onUseLore(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await useLore(this.document, tmpitem, event); }
+	}
+
+	static async #onBrewRecipe(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await brewRecipe(this.document, tmpitem, event); }
+	}
+
+	static async #onPostMagic(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await postMagic(this.document, tmpitem); }
+	}
+
+	// This is the function behind the Game Master's "Provide starting lore" -- his "If unchecked GM
+	// can provide after generation". Asked first, since it rolls and adds, and running it on a
+	// character who already had it gives them more (never the same entry twice, but more doses).
+	static async #onProvideStartingLore(event, target) {
+		event.preventDefault();
+		if (!game.user?.isGM) { return; }
+		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
+			window: { title: "Provide starting lore" },
+			content: `<p>Roll ${this.document.name}'s starting lore, as his character creation does? One entry for
+				every lore skill held, stocks of herbs, potions and poisons, and starting spells for a caster.</p>
+				<p class="hint">Nothing already known is added twice; doses of anything already carried are added to it.</p>`,
+			rejectClose: false,
+			modal: true
+		});
+		if (tmpconfirmed) { await provideStartingLore(this.document); }
+	}
+
+	// This is the function behind a weapon row's wand: the weapon mods window -- Bless it for now, or
+	// customize it for good as his panel does. module/apps/weapon-mods.mjs.
+	static async #onOpenWeaponMods(event, target) {
+		event.preventDefault();
+		var tmpweapon = this.document.items.get(target.dataset.itemId);
+		if (tmpweapon?.type == "weapon") { new ImagineWeaponMods(this.document, tmpweapon).render(true); }
+	}
+
 	// This is the function which TAKES OFF every weapon and every piece of armour, shields
 	// included, leaving them carried.
 	//
@@ -673,6 +865,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	static async #onOpenLevelUp(event, target) {
 		event.preventDefault();
 		game.imagine.levelUp(this.document);
+	}
+
+	// This is the function which opens the Situation Mods window from the Combat tab's bar.
+	static async #onOpenSituation(event, target) {
+		event.preventDefault();
+		game.imagine.situationMods(this.document);
+	}
+
+	// This is the function which clears every Situation Mod -- his "Clear all modifiers".
+	static async #onClearSituation(event, target) {
+		event.preventDefault();
+		await this.document.update({ "system.combat.situation.kind": "", "system.combat.situation.selected": [] });
 	}
 
 	// This is the function which advances or steps back one class's own title.
@@ -833,5 +1037,73 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			flavor: `Gave up a ${tmpcategory} skill slot &mdash; ${tmpskill.name} gains the bonus`
 		});
 	}
+
+	//==============================================================================================
+	// @MARKER MARTIAL ARTS
+	//==============================================================================================
+	// The Combat tab's martial arts panel: one heading that opens into the discipline, the stance,
+	// the moves and every subskill. What it shows is laid out by module/martial-view.mjs (so the
+	// preview renders the same thing), from what _prepareMartialArts derived; the rolls are in
+	// module/combat/martial-attack.mjs, the rules in module/combat/martial-arts.mjs. The handlers are
+	// kept together here so the panel's behaviour is one block to read.
+
+	// This is the function which opens or closes the panel. Held on the sheet itself rather than
+	// the actor -- it is how this window is laid out, not a fact about the character -- so it
+	// survives the re-render every roll and every choice causes.
+	static async #onToggleMartialPanel(event, target) {
+		event.preventDefault();
+		this._martialOpen = !this._martialOpen;
+		this.render({ parts: ["combat"] });
+	}
+
+	// This is the function which makes a martial attack.
+	static async #onRollMartialAttack(event, target) {
+		await rollMartialAttack(this.document, target.dataset.name);
+	}
+
+	// This is the function which rolls a block, a hold or a throw.
+	static async #onRollMartialSubskill(event, target) {
+		await rollMartialSubskill(this.document, target.dataset.family, target.dataset.name, event);
+	}
+
+	// This is the function which rolls a move; made, it goes into play.
+	static async #onRollMartialMove(event, target) {
+		await rollMartialMove(this.document, target.dataset.name, event);
+	}
+
+	// This is the function which rolls a Martial Lore value; made, it goes into play.
+	static async #onRollMartialLoreValue(event, target) {
+		await rollMartialLoreValue(this.document, target.dataset.name, event);
+	}
+
+	// This is the function which marks a move made or clears it by hand. His sheet's success box
+	// could be ticked directly too; it is the Game Master's way of saying "that happened".
+	static async #onToggleMartialMove(event, target) {
+		var tmplist = parseMartialList(this.document.system.martial?.activeMoves);
+		var tmpname = target.dataset.name;
+		tmplist = tmplist.includes(tmpname) ? tmplist.filter(n => n != tmpname) : [...tmplist, tmpname];
+		await this.document.update({ "system.martial.activeMoves": tmplist.join(",") });
+	}
+
+	// This is the function which marks a Martial Lore value made or clears it by hand.
+	static async #onToggleMartialLoreValue(event, target) {
+		var tmplist = parseMartialList(this.document.system.martial?.activeLoreValues);
+		var tmpname = target.dataset.name;
+		tmplist = tmplist.includes(tmpname) ? tmplist.filter(n => n != tmpname) : [...tmplist, tmpname];
+		await this.document.update({ "system.martial.activeLoreValues": tmplist.join(",") });
+	}
+
+	// This is the function which clears every move and Martial Lore value made -- his CLEAR buttons
+	// beside SET (handleMartialModifierClear and handleMartialLoreModifierClear). The stance is
+	// left alone; it is changed from its own dropdown.
+	static async #onClearMartialMoves(event, target) {
+		await this.document.update({ "system.martial.activeMoves": "", "system.martial.activeLoreValues": "" });
+	}
+
+	// These are the functions which learn something new, each one roll.
+	static async #onLearnMartialStance(event, target) { await learnMartialStance(this.document); }
+	static async #onMasterMartialStance(event, target) { await masterMartialStance(this.document); }
+	static async #onLearnMartialSubskill(event, target) { await learnMartialSubskill(this.document); }
+	static async #onLearnMartialLoreValue(event, target) { await learnMartialLoreValue(this.document); }
 }
 // @END (CODE)

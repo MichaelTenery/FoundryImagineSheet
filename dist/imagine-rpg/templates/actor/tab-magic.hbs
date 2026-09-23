@@ -1,0 +1,227 @@
+{{!--
+	Magic & Lore tab -- his Magic/Lore tab ("e", sheet-magiclore): consumables carried as doses,
+	the lores the character knows, spells and invocations. Worked out by module/magic-view.mjs;
+	the buttons are module/magic-actions.mjs.
+
+	A lore's group shows when the character holds the skill that learns or uses it, or already knows
+	an entry of it -- anything else is under "Add other lore". A kind whose magic switch is off is
+	not shown at all. Shift-click a Use or Brew for his MOD buttons' situational modifier.
+--}}
+<section class="tab imagine-magic{{#if tab.active}} active{{/if}}" data-tab="magic" data-group="primary">
+
+	{{#if magic.magicOff}}
+	<p class="empty">All magic is switched off in this campaign (Game Settings &rarr; Content Availability).</p>
+	{{else}}
+
+	{{!-- Memorization: (goal + 1) x Knowledge's points, against the ratings of what is ticked. His
+	      recalculation complains when there is too much; this line turns red instead. --}}
+	<div class="slot-summary magic-summary">
+		<span class="slot {{#if magic.memorization.over}}alarm{{/if}}"
+			data-tooltip="(goal + 1) &times; {{magic.memorization.perGoal}} from Knowledge. A memorized lore costs its rating; a spell or invocation its level.">
+			<label>Memorized</label> {{magic.memorization.used}} / {{magic.memorization.total}} points
+			<span class="sub">{{magic.memorization.count}} item(s)</span></span>
+		{{#if magic.memorization.over}}<span class="alarm">Too much memorized: forget a few things.</span>{{/if}}
+		{{#if magic.isGM}}
+		<button type="button" data-action="provideStartingLore"
+			data-tooltip="His 'Provide random lore': an entry for every lore skill held, stocks of herbs, potions and poisons, starting spells for a caster">
+			<i class="fa-solid fa-dice"></i> Provide starting lore</button>
+		{{/if}}
+	</div>
+
+	{{!-- @MARKER CONSUMABLES --}}
+	{{#if magic.consumables.show}}
+	<details class="skill-group magic-group" data-sync open>
+		<summary>Consumables <span class="count">{{magic.consumables.rows.length}}</span></summary>
+		<div class="gear-add">
+			{{#each magic.consumables.add as |a|}}
+			<button type="button" data-action="addMagic" data-what="{{a.what}}">Add {{a.label}}</button>
+			{{/each}}
+		</div>
+		{{#if magic.consumables.noIntake}}<p class="muted">This race takes nothing in, so only charms can be added.</p>{{/if}}
+		{{#if magic.consumables.rows.length}}
+		<table class="skill-table magic-table">
+			<thead><tr>
+				<th class="col-name">Name</th><th class="col-num">Kind</th><th class="col-num">Doses</th>
+				<th class="col-detail">Details</th><th class="col-roll"></th><th class="col-row-actions"></th>
+			</tr></thead>
+			<tbody>
+				{{#each magic.consumables.rows as |r|}}
+				<tr data-item-id="{{r.id}}" data-tooltip="{{r.tooltip}}">
+					<td class="col-name">{{r.name}}</td>
+					<td class="col-num muted">{{r.kindLabel}}</td>
+					<td class="col-num">{{#if r.isCharm}}&mdash;{{else}}{{r.doses}}{{/if}}</td>
+					<td class="col-detail muted">{{r.detail}}</td>
+					<td class="col-roll">
+						<button type="button" data-action="useConsumable" {{#unless r.canUse}}disabled{{/unless}}
+							data-tooltip="Take one {{#if r.isCharm}}use{{else}}dose{{/if}}">Use</button>
+					</td>
+					<td class="col-row-actions">
+						{{#unless r.isCharm}}<button type="button" class="row-button" data-action="addDose" data-tooltip="One more dose">+</button>{{/unless}}
+						<button type="button" class="row-button" data-action="openItem" data-item-id="{{r.id}}" data-tooltip="Open">&#9998;</button>
+						<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{r.id}}" data-tooltip="Remove">&times;</button>
+					</td>
+				</tr>
+				{{/each}}
+			</tbody>
+		</table>
+		{{else}}
+		<p class="empty">Nothing carried. Herbs, potions and poisons given at creation land here.</p>
+		{{/if}}
+	</details>
+	{{/if}}
+
+	{{!-- @MARKER LORE --}}
+	{{#each magic.loreGroups as |g|}}
+	<details class="skill-group magic-group" data-sync open>
+		<summary>{{g.heading}} <span class="count">{{g.rows.length}}</span>
+			<span class="magic-skill">
+				{{#if g.learn}}{{g.learn.name}} {{#if g.learn.held}}{{g.learn.chance}}%{{else}}<span class="muted">not held</span>{{/if}}{{/if}}
+				{{#if g.use}} &middot; {{g.use.name}} {{#if g.use.held}}{{g.use.chance}}%{{else}}<span class="muted">not held</span>{{/if}}{{/if}}
+				{{#if g.rollSkill.held}} &middot; <span class="muted">practitioner title {{g.rollSkill.practitionerTitle}}</span>{{/if}}
+			</span></summary>
+		<div class="gear-add">
+			{{#if g.isPoisonRecipe}}
+			<button type="button" data-action="addMagic" data-what="poisonrecipe">Add a poison recipe</button>
+			{{else}}
+			<button type="button" data-action="addMagic" data-what="{{g.addWhat}}">{{g.addLabel}}</button>
+			{{/if}}
+		</div>
+		{{#if g.rows.length}}
+		<table class="skill-table magic-table">
+			<thead><tr>
+				<th class="col-name">Name</th>
+				{{#unless g.isEvoke}}<th class="col-num" data-tooltip="Memorization cost">Rating</th><th class="col-num">Mod</th>{{/unless}}
+				<th class="col-detail">{{#if g.isRecipe}}Details{{else}}{{#if g.isEvoke}}What it does{{else}}Start / lasts{{/if}}{{/if}}</th>
+				{{#unless g.isEvoke}}<th class="col-num" data-tooltip="Memorized">Mem</th>{{/unless}}
+				<th class="col-roll"></th><th class="col-row-actions"></th>
+			</tr></thead>
+			<tbody>
+				{{#each g.rows as |r|}}
+				<tr data-item-id="{{r.id}}" data-tooltip="{{r.tooltip}}">
+					<td class="col-name">{{r.name}}</td>
+					{{#unless g.isEvoke}}
+					<td class="col-num muted">{{r.rating}}</td>
+					<td class="col-num muted">{{r.modifier}}</td>
+					{{/unless}}
+					<td class="col-detail muted">{{#if g.isEvoke}}{{r.tooltip}}{{else}}{{r.timing}}{{#if r.extra}} &middot; {{r.extra}}{{/if}}{{/if}}</td>
+					{{#unless g.isEvoke}}
+					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.memorized}}on{{/if}}" data-action="toggleMemorized"
+						data-tooltip="{{#if r.memorized}}Memorized: click to forget{{else}}Known, not memorized: click to memorize{{/if}}">
+						{{#if r.memorized}}&#9679;{{else}}&#9675;{{/if}}</button></td>
+					{{/unless}}
+					<td class="col-roll">
+						{{#if g.isRecipe}}
+						<button type="button" data-action="brewRecipe" data-tooltip="Brew a batch (Shift: add a modifier)">Brew</button>
+						{{else}}
+						<button type="button" data-action="useLore" data-tooltip="Roll to use it (Shift: add a modifier)">Use</button>
+						{{/if}}
+					</td>
+					<td class="col-row-actions">
+						<button type="button" class="row-button" data-action="openItem" data-item-id="{{r.id}}" data-tooltip="Open">&#9998;</button>
+						<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{r.id}}" data-tooltip="Remove">&times;</button>
+					</td>
+				</tr>
+				{{/each}}
+			</tbody>
+		</table>
+		{{else}}
+		<p class="empty">None known yet.</p>
+		{{/if}}
+	</details>
+	{{/each}}
+
+	{{!-- @MARKER SPELLS --}}
+	{{#if magic.spells.show}}
+	<details class="skill-group magic-group" data-sync open>
+		<summary>Spells <span class="count">{{magic.spells.rows.length}}</span>
+			{{#if magic.spells.casting}}<span class="magic-skill">{{magic.spells.casting.name}} {{magic.spells.casting.chance}}%</span>{{/if}}</summary>
+		<div class="gear-add">
+			<button type="button" data-action="addMagic" data-what="spell">Add a spell</button>
+		</div>
+		{{#if magic.spells.rows.length}}
+		<table class="skill-table magic-table">
+			<thead><tr>
+				<th class="col-name">Spell</th><th class="col-num">Level</th><th class="col-detail">Cast / range / lasts</th>
+				<th class="col-num">Mem</th><th class="col-roll"></th><th class="col-row-actions"></th>
+			</tr></thead>
+			<tbody>
+				{{#each magic.spells.rows as |r|}}
+				<tr data-item-id="{{r.id}}" data-tooltip="{{r.tooltip}}">
+					<td class="col-name">{{r.name}}</td>
+					<td class="col-num muted">{{r.level}}</td>
+					<td class="col-detail muted">{{r.castTime}} &middot; {{r.range}} &middot; {{r.duration}}</td>
+					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.memorized}}on{{/if}}" data-action="toggleMemorized"
+						data-tooltip="Memorizing takes {{r.memTime}}">{{#if r.memorized}}&#9679;{{else}}&#9675;{{/if}}</button></td>
+					<td class="col-roll"><button type="button" data-action="postMagic" data-tooltip="Read it out to chat">Show</button></td>
+					<td class="col-row-actions">
+						<button type="button" class="row-button" data-action="openItem" data-item-id="{{r.id}}" data-tooltip="Open">&#9998;</button>
+						<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{r.id}}" data-tooltip="Remove">&times;</button>
+					</td>
+				</tr>
+				{{/each}}
+			</tbody>
+		</table>
+		{{else}}
+		<p class="empty">No spells known.</p>
+		{{/if}}
+		<p class="muted">Casting &mdash; Aura Control, spell lore, the fail chance &mdash; belongs to the magic phase still to come.
+			Until then a spell is known, memorized at its level, and read out.</p>
+	</details>
+	{{/if}}
+
+	{{!-- @MARKER INVOCATIONS --}}
+	{{#if magic.invocations.show}}
+	<details class="skill-group magic-group" data-sync open>
+		<summary>Invocations <span class="count">{{magic.invocations.rows.length}}</span>
+			{{#if magic.invocations.knowledge}}<span class="magic-skill">{{magic.invocations.knowledge.name}} {{magic.invocations.knowledge.chance}}%</span>{{/if}}</summary>
+		<div class="gear-add">
+			<button type="button" data-action="addMagic" data-what="invocation">Add an invocation</button>
+		</div>
+		{{#if magic.invocations.rows.length}}
+		<table class="skill-table magic-table">
+			<thead><tr>
+				<th class="col-name">Invocation</th><th class="col-num">Level</th><th class="col-detail">Align / invoke / lasts</th>
+				<th class="col-num">Mem</th><th class="col-roll"></th><th class="col-row-actions"></th>
+			</tr></thead>
+			<tbody>
+				{{#each magic.invocations.rows as |r|}}
+				<tr data-item-id="{{r.id}}" data-tooltip="{{r.tooltip}}">
+					<td class="col-name">{{r.name}}</td>
+					<td class="col-num muted">{{r.level}}</td>
+					<td class="col-detail muted">{{r.alignment}} &middot; {{r.invokeTime}} &middot; {{r.duration}}</td>
+					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.memorized}}on{{/if}}" data-action="toggleMemorized"
+						data-tooltip="Prayer time {{r.prayerTime}}">{{#if r.memorized}}&#9679;{{else}}&#9675;{{/if}}</button></td>
+					<td class="col-roll"><button type="button" data-action="postMagic" data-tooltip="Read it out to chat">Show</button></td>
+					<td class="col-row-actions">
+						<button type="button" class="row-button" data-action="openItem" data-item-id="{{r.id}}" data-tooltip="Open">&#9998;</button>
+						<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{r.id}}" data-tooltip="Remove">&times;</button>
+					</td>
+				</tr>
+				{{/each}}
+			</tbody>
+		</table>
+		{{else}}
+		<p class="empty">No invocations known.</p>
+		{{/if}}
+	</details>
+	{{/if}}
+
+	{{!-- Anything the character has no skill for, still addable: a Game Master handing out a scroll
+	      of runes, a found spellbook, a hymn taught by a temple. --}}
+	{{#if magic.otherLore.length}}
+	<div class="magic-other">
+		<label>Add other lore
+			<select>
+				{{#each magic.otherLore as |o|}}<option value="{{o.what}}">{{o.label}}</option>{{/each}}
+			</select></label>
+		<button type="button" data-action="addOtherMagic">Add</button>
+	</div>
+	{{/if}}
+
+	{{#if magic.nothingYet}}
+	<p class="muted">This character holds no lore skill and carries nothing magical yet.
+		{{#if magic.isGM}}"Provide starting lore" gives what his character creation would have.{{/if}}</p>
+	{{/if}}
+
+	{{/if}}
+</section>

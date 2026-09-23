@@ -53,7 +53,7 @@ rather than a copy. A creature's natural attack takes the martial melee to-hit o
 - **Done looks like:** a creature holding Martial Knowledge shows the panel and its attacks take the
   stance; a creature-test case proves it.
 
-## 3. CHANGELOG entry for the next release
+## 3. CHANGELOG entry for the next release -- DONE 2026-09-23 (released in 0.18.0)
 
 - **What:** one short entry in the existing voice. No version was cut in this pass.
 - **Files:** `CHANGELOG.md` only (plus `system.json`/`dist/` if the user asks for a release).
@@ -72,7 +72,7 @@ Kept for the record:
   shown.
 - **Files:** `templates/chat/attack-card.hbs`, `module/combat/attack.mjs`.
 
-## 5. Parse-check and build lists
+## 5. Parse-check and build lists -- DONE 2026-09-23 (released in 0.18.0)
 
 - **What:** `tools/syntax-check.html` lists the three new modules already. Run
   `python tools/build_system.py` and confirm it reports every module covered and finds

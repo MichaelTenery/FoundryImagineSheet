@@ -18,13 +18,19 @@
 import {
 	MELEE_MODES, MODE_DAMAGE_TYPES,
 	resolveAttack, resolveFumble, getToHitModifiers, resolveOffhandPenalties,
-	getWeaponDamageDice, getStrengthDamageMod, combineDamageMultipliers,
+	getWeaponDamageDice, combineDamageMultipliers,
 	resolveAreaDamage, applyAreaDamage, applyPainThreshold, absorbDamage, blowLands,
 	applyMagicalReductions, getWeaveValue, isEndured, isRebounded, getAreaArmorSlot,
 	getLoreModifiers, getProjectileLoreDamage, getWeaponSpeed,
-	resolveMultiMissile, MULTI_MISSILE_MODES
+	resolveMultiMissile, MULTI_MISSILE_MODES, getSecondWeaponFlags,
+	getSituationalForAttack, getSituationalNotes, getNumberOfDice
 } from "./combat-rules.mjs";
 import { ARMOR_BLOCKING } from "../combat-tables.mjs";
+import { getWeaponAttackExtras, resolveWeaponSpecials, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
+import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } from "./martial-arts.mjs";
+import { getActionHand } from "./round-rules.mjs";
+import { resolveCoatingDelivery, isEnvenomed } from "../lore-rules.mjs";
+import { postPoisonOnVictims, registerPoisonCardListeners } from "../magic-actions.mjs";
 
 const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Missile" };
 
@@ -56,10 +62,30 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 
 // @MARKER ATTACK DIALOG
 
+	// This is the function which describes the attacker's standing Situation Mods for the attack
+	// dialog, so the player can see what the roll will read without opening the window.
+	function describeSituation(tmpsituation) {
+		if (!tmpsituation?.kind || !(tmpsituation.labels ?? []).length) { return ""; }
+		var tmpkind = tmpsituation.kind == "missile" ? "missile" : "melee";
+		var tmpfigures = [];
+		if (tmpsituation.attack) { tmpfigures.push(`${tmpsituation.attack > 0 ? "+" : ""}${tmpsituation.attack} to hit`); }
+		if (tmpsituation.damage) { tmpfigures.push(`${tmpsituation.damage > 0 ? "+" : ""}${tmpsituation.damage} damage`); }
+		if (tmpsituation.multi > 1) { tmpfigures.push(`x${tmpsituation.multi} damage`); }
+		for (const tmpword of tmpsituation.special ?? []) { tmpfigures.push(tmpword.replace("`", "'")); }
+		return `<div class="form-group situation-summary"><label>Situation Mods</label>
+			<p class="hint">Set for <strong>${tmpkind}</strong> attacks, and only those: ${esc(tmpsituation.labels.join(", "))}
+			${tmpfigures.length ? `&mdash; ${esc(tmpfigures.join(", "))}` : ""}. Change them from the Combat tab.</p></div>`;
+	}
+
 	// This is the function which asks how the attack is being made: which mode, where it is aimed,
 	// whether it is a called shot, and any situational modifier. Returns null if cancelled.
-	async function askAttackOptions(tmpweapon, tmptarget) {
-		var tmpmodes = ["thrust", "cut", "smash", "missile"].filter(m => tmpweapon.system[m]?.available);
+	//
+	// The Situation Mods the attacker has set are shown, and fill in the called shot and the
+	// firing mode they imply; the player can still change either here.
+	async function askAttackOptions(tmpweapon, tmptarget, tmpsituation) {
+		// A Dulled weapon smashes only -- his listing changes; see getCustomizedWeapon.
+		var tmpcustomized = getCustomizedWeapon(tmpweapon.system);
+		var tmpmodes = ["thrust", "cut", "smash", "missile"].filter(m => tmpcustomized[m]?.available);
 		if (!tmpmodes.length) {
 			ui.notifications.warn(`${tmpweapon.name} has no attack modes.`);
 			return null;
@@ -70,6 +96,12 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 			? tmpareas.map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join("")
 			: `<option value="">(no target selected)</option>`;
 
+		var tmpcalled = (tmpsituation?.special ?? []).includes("Called Shot");
+		var tmpfiring = tmpsituation?.multiMissile ?? "";
+		// A target who cannot defend -- blind, or unable to see this attacker -- has lost their
+		// defensive adjustment, so the box starts unticked for them.
+		var tmptargetnodef = !!tmptarget?.actor?.system?.combat?.noDefense;
+
 		var tmpcontent = `
 			<div class="imagine-attack-dialog">
 				<div class="form-group"><label>Attack</label>
@@ -77,24 +109,28 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 						`<option value="${m}">${MODE_LABELS[m]} (${tmpweapon.system[m].mod >= 0 ? "+" : ""}${tmpweapon.system[m].mod})</option>`).join("")}
 					</select></div>
 				<div class="form-group"><label>Aimed at</label><select name="aim">${tmpaim}</select></div>
+				${describeSituation(tmpsituation)}
 				${tmpweapon.system.missile?.available ? `<div class="form-group"><label>Firing</label>
 					<select name="multiMissile">
 						<option value="">One at a time</option>
 						${Object.entries(MULTI_MISSILE_MODES).map(([k, m]) =>
-							`<option value="${k}">${m.label} (${m.attack} to hit${m.damage ? `, ${m.damage} damage` : ""})</option>`).join("")}
+							`<option value="${k}" ${k == tmpfiring ? "selected" : ""}>${m.label} (${m.attack} to hit${m.damage ? `, ${m.damage} damage` : ""})</option>`).join("")}
 					</select>
 					<p class="hint">Double and triple missile fire is only allowed at point blank or short
 					range. Multiple Missile Knowledge or Lore for this launcher and missile pays the
 					penalty down or removes it.</p></div>` : ""}
-				<div class="form-group"><label>Situational modifier</label>
-					<input type="number" name="situational" value="0"></div>
+				<div class="form-group"><label>Other modifier</label>
+					<input type="number" name="situational" value="0">
+					<p class="hint">Anything the Situation Mods do not list.</p></div>
 				<div class="form-group"><label>Called shot</label>
-					<input type="checkbox" name="calledShot">
+					<input type="checkbox" name="calledShot" ${tmpcalled ? "checked" : ""}>
 					<p class="hint">Needs an unmodified roll of 21 minus your attack skill level, takes one more
 					second and does half damage whether it lands or not.</p></div>
 				${tmptarget ? `<div class="form-group"><label>Target is avoiding the blow</label>
-					<input type="checkbox" name="useDefense" checked>
-					<p class="hint">Applies ${esc(tmptarget.name)}'s defensive adjustment. Untick if they
+					<input type="checkbox" name="useDefense" ${tmptargetnodef ? "" : "checked"}>
+					<p class="hint">${tmptargetnodef
+						? `${esc(tmptarget.name)} has No Defense from their own Situation Mods.`
+						: `Applies ${esc(tmptarget.name)}'s defensive adjustment.`} Untick if they
 					are held, surprised or otherwise cannot move.</p></div>` : ""}
 			</div>`;
 
@@ -130,12 +166,35 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		ui.notifications.info("Several tokens are targeted; attacking without a target's defence. Target one to include it.");
 	}
 
-	var tmpoptions = await askAttackOptions(tmpweapon, tmptarget);
+	var tmpoptions = await askAttackOptions(tmpweapon, tmptarget, tmpactor.system.combat.situational);
 	if (!tmpoptions) { return null; }
 
 	var tmpsys = tmpactor.system;
-	var tmpw = tmpweapon.system;
+	// The weapon as his combat sheet carries it: its customizations, quality, condition and plus
+	// already worked into its damage, speed and modes (his setEquippedWeaponInCombatSheet). The
+	// stored figures are left as they are. See getCustomizedWeapon.
+	var tmpw = getCustomizedWeapon(tmpweapon.system);
 	var tmpmode = tmpoptions.mode;
+
+	// The Situation Mods, cut to this kind of attack: set for missile, a sword blow reads none of
+	// them. See getSituationalForAttack.
+	var tmpsitmods = getSituationalForAttack(tmpsys.combat.situational, tmpmode);
+
+	// Desperate Defense: "No Attack" while it is set. His attack roll stops here with a message.
+	if (tmpsitmods.noAttack) {
+		ui.notifications.warn(`${tmpactor.name} is in Desperate Defense and cannot attack. Clear it from the Situation Mods first.`);
+		return null;
+	}
+
+	// Martial arts: the stance held and the moves made count on a weapon attack too, as his
+	// handlePhysicalAttacks reads martial_arts_mod_* and martial_stance_mod_* beside the rest. A
+	// missile attack takes only the stance's missile to-hit. The stance's defence, initiative and
+	// speed are already in the character's standing figures, so they are not added again here.
+	var tmpmartial = getMartialAttackModifiers(tmpsys.martial?.state, { mode: tmpmode, martialAttack: false });
+	if (tmpmartial.noAttack) {
+		ui.notifications.warn(`${tmpactor.name} cannot attack: ${tmpmartial.noAttackReason}. Clear it from the Martial Arts panel first.`);
+		return null;
+	}
 
 	// Weapon or Missile Lore, if this character has it. It is worth a flat set of figures for
 	// every weapon of the right kind, and a larger set INSTEAD for a weapon specifically lored.
@@ -154,7 +213,17 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	// character is simply never off-hand. Applies to missile attacks as well as melee -- see the
 	// note in getToHitModifiers. The Knowledge chance is already gated by title eligibility on
 	// the actor (0 if the class has not reached it), so it is passed through as-is.
-	var tmpoffhand = resolveOffhandPenalties(tmpw, tmpsys.attributes.agl.rating,
+	//
+	// Which discipline this weapon is held under comes from the character's two lists of weapon
+	// names, not from the weapon -- his per-weapon flags were only ever set from those lists.
+	var tmpsecond = getSecondWeaponFlags({
+		weaponName: tmpweapon.name,
+		hasSecondWeaponKnowledge: tmpsys.combat.hasSecondWeaponKnowledge,
+		hasSecondWeaponLore: tmpsys.combat.hasSecondWeaponLore,
+		secondWeaponKnowList: tmpsys.combat.secondWeaponKnowNames,
+		secondWeaponLoreList: tmpsys.combat.secondWeaponLoreNames
+	});
+	var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond }, tmpsys.attributes.agl.rating,
 		tmpsys.physical?.handedness, tmpsys.combat.secondWeaponKnowChance);
 
 	// Firing more than one missile at a time, and what the two multi-missile skills pay back of
@@ -179,11 +248,26 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 			missileMisc: tmpsys.combat.missileMisc
 		},
 		target: (tmptarget && tmpoptions.useDefense) ? { defensiveAdjust: tmptarget.actor?.system?.combat?.defensiveAdjust } : null,
+		situation: tmpsitmods.attack,
 		situational: tmpoptions.situational,
 		lore: tmplore.attack,
 		offhand: tmpoffhand.melee,
 		multiMissile: tmpmissiles.attack
 	});
+	// The martial entries go onto the same list, labelled as his card labels them ("Stance",
+	// "Martial"), so the chat card shows them by name with everything else.
+	tmpmods.list.push(...tmpmartial.list);
+	tmpmods.total = tmpmods.total + tmpmartial.total;
+
+	// What has been done to the weapon: a rune of its attack's kind, Blessed (for now or for good),
+	// and the Game Master's own temporary effects. The magical plus is already "Magic" above. See
+	// module/weapon-custom-rules.mjs and the weapon mods window.
+	var tmpcustom = getWeaponAttackExtras({ system: tmpw, mode: tmpmode, alignment: tmpsys.identity?.alignment,
+		worldTime: game.time?.worldTime ?? 0 });
+	for (const tmpentry of tmpcustom.toHit) {
+		tmpmods.list.push(tmpentry);
+		tmpmods.total = tmpmods.total + tmpentry.value;
+	}
 
 	var tmpd20 = await new Roll("1d20").evaluate();
 	var tmpresult = resolveAttack({
@@ -199,6 +283,8 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	var tmpspeed = getWeaponSpeed(tmpw.speed, tmpw.minSpeed,
 		tmpsys.combat.weaponSpeedMod + tmplore.speed);
 	if (tmpoptions.calledShot) { tmpspeed = tmpspeed + 1; }
+	// A move made takes its own time on top (a Spin, a Jump); a stance's is already in the speed.
+	tmpspeed = tmpspeed + tmpmartial.seconds;
 
 	// A fumble
 	var tmpfumble = null;
@@ -222,10 +308,17 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	var tmpdamage = null;
 	var tmprolls = [tmpd20];
 	if (tmpresult.isHit) {
-		var tmpdice = getWeaponDamageDice(tmpw, tmpmode);
+		// A martial move or stance can add whole dice (a Jump, the Drunken stance), which then count
+		// for everything worked out per die below. A flat-damage weapon takes none -- see addMartialDice.
+		var tmpdice = addMartialDice(getWeaponDamageDice(tmpw, tmpmode), tmpmartial.damage.extraDice);
 		// Held in both hands is what doubles a Strength bonus, and that is now read off the weapon's
-		// hand rather than a separate twoHanded boolean which could contradict it.
-		var tmpstrmod = getStrengthDamageMod(tmpsys.combat.meleeDamage, tmpmode, tmpw.hand == "both");
+		// hand rather than a separate twoHanded boolean which could contradict it. A martial move can
+		// change that -- Tension doubles it (triples it two-handed) -- and with no move made this is
+		// getStrengthDamageMod exactly. Melee only either way; see getWeaponMartialStrength.
+		var tmpstrmod = getWeaponMartialStrength(tmpsys.combat.meleeDamage, tmpmode,
+			tmpmartial.damage.strength, tmpw.hand == "both");
+		// The martial damage: flat, and per die of what this attack actually rolls.
+		var tmpmartialdamage = tmpmartial.damage.flat + (tmpmartial.damage.perDie * getNumberOfDice(tmpdice));
 		var tmpmagic = parseInt(tmpw.magicBonus) || 0;
 		var tmpmisc = MELEE_MODES.includes(tmpmode) ? (parseInt(tmpsys.combat.damageMisc) || 0) : 0;
 
@@ -238,15 +331,45 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 			projectileLoreList: tmpsys.combat.projectileLoreNames
 		});
 
+		// The Situation Mods' damage: a flat figure, plus or minus one per die at point blank or
+		// extreme range (so a flat-damage weapon gets nothing from either, like Projectile Lore).
+		var tmpsitdamage = tmpsitmods.damage + (tmpsitmods.perDie * getNumberOfDice(tmpdice));
+
+		// Maximum damage -- a Focused Attack, a Perfect Shot, an immobile target -- rolls every die
+		// at its highest, which is his getMaxValueFromDiceString. The flat additions still add.
+		// The weapon's own: a rune's dice (its level in d6, plus its level) and Blessed's or a
+		// temporary effect's flat figure.
+		var tmpcustomdamage = tmpcustom.damage.reduce((tmpsum, tmpentry) => tmpsum + tmpentry.value, 0);
 		var tmpdmgroll = await new Roll(
-			`${tmpdice} + @str + @magic + @misc + @lore + @projlore + @offhand + @missiles`,
+			`${tmpdice}${tmpcustom.runeDice ? " + " + tmpcustom.runeDice : ""} + @str + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial + @custom`,
 			{ str: tmpstrmod, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
 			  projlore: tmpprojlore.damage, offhand: tmpoffhand.damage,
-			  missiles: tmpmissiles.damage }).evaluate();
+			  missiles: tmpmissiles.damage, situation: tmpsitdamage, martial: tmpmartialdamage, custom: tmpcustomdamage })
+			.evaluate({ maximize: tmpsitmods.maxDamage });
 		tmprolls.push(tmpdmgroll);
 
-		var tmpmulti = combineDamageMultipliers(tmpoptions.calledShot ? [0.5] : []);
-		var tmpeach = Math.max(0, parseInt(tmpdmgroll.total * tmpmulti) || 0);
+		// What the weapon does once it has hit -- his setMagicDamageDetails: a magical ability of this
+		// attack's kind adds its dice and may double the blow on a high natural roll; Foe Strike,
+		// energy, Bane and the divine abilities are written out for the table. See resolveWeaponSpecials.
+		var tmpspecials = resolveWeaponSpecials({ system: tmpw, mode: tmpmode, natural: tmpd20.total,
+			baseDice: getWeaponDamageDice(tmpw, tmpmode), maximize: tmpsitmods.maxDamage },
+			(tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1);
+
+		// Multipliers. The Situation Mods' own is already his additive total (two x2s are x3);
+		// a called shot and a critically failed Perfect Shot each halve it. combineDamageMultipliers
+		// holds the whole at x3.
+		var tmpmultipliers = [];
+		if (tmpsitmods.multi != 1) { tmpmultipliers.push(tmpsitmods.multi); }
+		// A martial multiplier (a Flying kick, a stance's) joins it. His code adds the two where
+		// this multiplies them, but either way the x3 cap is reached with any two, so they agree.
+		if (tmpmartial.damage.multiplier != 1) { tmpmultipliers.push(tmpmartial.damage.multiplier); }
+		if (tmpoptions.calledShot) { tmpmultipliers.push(0.5); }
+		if (tmpsitmods.halfDamage) { tmpmultipliers.push(0.5); }
+		// A magical ability's natural-roll double -- his "triple" when the blow was already doubled,
+		// which the additive combining gives by itself (two x2s are x3).
+		if (tmpspecials.doubles) { tmpmultipliers.push(2); }
+		var tmpmulti = combineDamageMultipliers(tmpmultipliers);
+		var tmpeach = Math.max(0, parseInt((tmpdmgroll.total + tmpspecials.extraDamage) * tmpmulti) || 0);
 
 		// Two or three projectiles are ONE roll, and the others land on the same target for the
 		// same damage again -- "2nd projectile hits the same target for the same damage"
@@ -263,8 +386,14 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 			loreSpecific: tmplore.specific,
 			projectileLore: tmpprojlore.damage, projectileLorePerDie: tmpprojlore.perDie,
 			multiMissile: tmpmissiles.damage, multiMissileTier: tmpmissiles.tier,
+			offhand: tmpoffhand.damage, offhandTier: tmpoffhand.tier,
+			situation: tmpsitdamage, maximized: tmpsitmods.maxDamage,
+			situationMulti: tmpsitmods.multi, halfDamage: tmpsitmods.halfDamage,
+			martial: tmpmartialdamage, martialMulti: tmpmartial.damage.multiplier,
+			runeDice: tmpcustom.runeDice, custom: tmpcustomdamage, special: tmpspecials.extraDamage,
+			specialDoubles: tmpspecials.doubles,
 			shots: tmpmissiles.shots, perShot: tmpeach,
-			rolled: tmpdmgroll.total, multiplier: tmpmulti, total: tmptotal,
+			rolled: tmpdmgroll.total + tmpspecials.extraDamage, multiplier: tmpmulti, total: tmptotal,
 			type: MODE_DAMAGE_TYPES[tmpmode]
 		};
 	}
@@ -280,8 +409,26 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		result: tmpresult,
 		mods: tmpmods,
 		speed: tmpspeed,
+		// Which of the attacker's two clocks the swing runs on: a weapon in the off hand spends the
+		// off hand's own seconds, not the round's (Player's Guide p.178; module/combat/round-rules.mjs).
+		hand: getActionHand(tmpw.hand, tmpsys.physical?.handedness),
 		fumble: tmpfumble,
 		damage: tmpdamage,
+		// What the Situation Mods set, and the words among them that are for the table to act
+		// on rather than arithmetic -- a random hit location, half reload time, and the like.
+		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special) },
+		// The stance's and moves' own prose, for the table -- what his card printed beside them.
+		martialNotes: tmpmartial.special,
+		// What the weapon's customization does on a hit, written out for the table (Foe Strike,
+		// energy, Bane, the divine abilities), and the name as his panel would print it.
+		weaponSpecials: tmpdamage ? tmpspecials.lines : [],
+		weaponDisplay: getWeaponDisplayName(tmpweapon.name, tmpw),
+		// The weapon itself, so a hit can find its poison coating when the damage is applied, and the
+		// coating as it stood when the blow was struck, for the card (lore-rules.mjs, POISON ON A WEAPON).
+		weaponId: tmpweapon.id,
+		coating: (parseInt(tmpweapon.system.coating?.doses) || 0) > 0
+			? { name: tmpweapon.system.coating.name, doses: tmpweapon.system.coating.doses, envenomed: isEnvenomed(tmpweapon.system) }
+			: null,
 		// Once set, the Apply Damage button stops offering itself, so a hit cannot be applied twice.
 		applied: false
 	};
@@ -473,6 +620,28 @@ export async function applyAttackDamage(tmpmessage) {
 	if (tmpmagical.damage != tmpfelt) {
 		tmpnotes.push(`Magical protection takes ${tmpfelt - tmpmagical.damage} before armour.`);
 	}
+
+	// @MARKER POISONED WEAPON
+	// A coated weapon's poison goes in with a hit that reaches the flesh -- or, from an Envenomed
+	// blade, a thrust of 10 or more (resolveCoatingDelivery). It is read off the weapon as it is now,
+	// so a coating another hit already spent is not spent twice. Spending it needs the right to
+	// change the attacker's weapon, as applying the damage needs the right to change the target.
+	var tmpdelivery = null;
+	var tmpcoatedweapon = null;
+	if (tmpattack.coating && tmpattack.weaponId) {
+		var tmpattacker = await fromUuid(tmpattack.attackerUuid);
+		tmpcoatedweapon = tmpattacker?.items?.get(tmpattack.weaponId) ?? null;
+		if (tmpcoatedweapon) {
+			tmpdelivery = resolveCoatingDelivery({ coating: tmpcoatedweapon.system.coating, envenomed: isEnvenomed(tmpcoatedweapon.system),
+				mode: tmpattack.mode, fleshDamage: tmpabsorbed.damage });
+			if (tmpdelivery.delivers && !tmpcoatedweapon.isOwner) {
+				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} would go in, but you cannot change that weapon. Ask the Game Master to apply this hit.`);
+				tmpdelivery = null;
+			} else if (!tmpdelivery.delivers && tmpdelivery.reason != "not poisoned") {
+				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} is not delivered: ${esc(tmpdelivery.reason)}.`);
+			}
+		}
+	}
 	if (tmpfelt != tmpraw) {
 		tmpnotes.push(`Pain threshold ${tmpthreshold > 0 ? "+" : ""}${tmpthreshold}`
 			+ `${tmpsys.combat.highPainThreshold ? " and a high pain threshold" : ""}`
@@ -494,12 +663,36 @@ export async function applyAttackDamage(tmpmessage) {
 	// damage the mark cannot be written, and the button stays live -- so the Game Master should
 	// be the one applying damage from other people's attacks.
 	if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
+
+	// The poison delivered: the target rolls their Poison Resistance on its own card, as a poison used
+	// from the tab does, and a dose comes off the weapon -- the coating gone with its last one.
+	if (tmpdelivery?.delivers) {
+		var tmpcoat = tmpcoatedweapon.system.coating;
+		await tmpcoatedweapon.update({ "system.coating": tmpdelivery.remaining > 0 ? { ...tmpcoat, doses: tmpdelivery.remaining }
+			: { name: "", poisonType: "", poisonPotency: "", form: "", doses: 0 } });
+		await postPoisonOnVictims({
+			speaker: tmpcoatedweapon.parent,
+			flavor: `The poison on <strong>${esc(tmpcoatedweapon.name)}</strong> goes in: <strong>${esc(tmpcoat.name)}</strong>`
+				+ (tmpcoat.form ? ` (${esc(tmpcoat.form)})` : ""),
+			poison: { poisonType: tmpcoat.poisonType, poisonPotency: tmpcoat.poisonPotency },
+			victims: [tmptargetactor], modifier: 0,
+			footer: tmpdelivery.remaining > 0 ? `${tmpdelivery.remaining} dose(s) left in the hilt.` : "The coating is spent."
+		});
+	}
 }
 
-// This is the function which spends the attack's seconds for the attacker, if they are fighting.
+// This is the function which spends the attack's seconds for the attacker, if they are fighting:
+// on the round clock, against the hand the attack was made with, and named for the weapon so the
+// clock can say what the seconds went on. Once spent, the card says so and the button stops
+// offering itself -- a second click would charge the same swing twice. A slip is taken back from
+// the clock itself (its undo button), not from here.
 export async function spendAttackTime(tmpmessage) {
 	var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
 	if (!tmpattack || !game.combat) { return; }
+	if (tmpattack.spent) {
+		ui.notifications.info("These seconds have already been spent.");
+		return;
+	}
 	var tmpactor = await fromUuid(tmpattack.attackerUuid);
 	var tmpcombatant = findCombatant(tmpactor);
 	if (!tmpcombatant) {
@@ -507,17 +700,26 @@ export async function spendAttackTime(tmpmessage) {
 		return;
 	}
 	if (!tmpcombatant.isOwner) { return; }
-	await game.combat.spendSeconds(tmpcombatant, tmpattack.speed);
+	var tmpresult = await game.combat.spendSeconds(tmpcombatant, tmpattack.speed,
+		{ hand: tmpattack.hand ?? "main", label: tmpattack.weapon ?? "" });
+	if (tmpresult && tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.spent", true); }
 }
 
 // This is the function which wires the chat card's buttons whenever an attack card is shown.
 export function registerAttackCardListeners() {
+	// A poisoned weapon's hit posts a poison card, whose Apply buttons are wired here too.
+	registerPoisonCardListeners();
 	Hooks.on("renderChatMessageHTML", function (tmpmessage, tmphtml) {
-		if (!tmpmessage.getFlag("imagine-rpg", "attack")) { return; }
+		var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
+		if (!tmpattack) { return; }
 		tmphtml.querySelector("[data-imagine-action='applyDamage']")
 			?.addEventListener("click", () => applyAttackDamage(tmpmessage));
-		tmphtml.querySelector("[data-imagine-action='spendTime']")
-			?.addEventListener("click", () => spendAttackTime(tmpmessage));
+		var tmpspend = tmphtml.querySelector("[data-imagine-action='spendTime']");
+		if (tmpspend && tmpattack.spent) {
+			tmpspend.disabled = true;
+			tmpspend.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${parseInt(tmpattack.speed) || 0}s spent`;
+		}
+		tmpspend?.addEventListener("click", () => spendAttackTime(tmpmessage));
 	});
 }
 // @END (CODE)

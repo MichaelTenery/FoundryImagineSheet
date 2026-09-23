@@ -52,6 +52,8 @@
 				<td class="col-num muted">{{item.system.weight}}</td>
 				<td class="col-num muted">{{item.system.location}}</td>
 				<td class="col-row-actions">
+					{{#if (eq item.type "weapon")}}<button type="button" class="row-button" data-action="openWeaponMods"
+						data-item-id="{{item.id}}" data-tooltip="Weapon mods: bless it, or customize it"><i class="fa-solid fa-wand-magic-sparkles"></i></button>{{/if}}
 					<button type="button" class="row-button" data-action="openItem"
 						data-item-id="{{item.id}}" data-tooltip="Edit this item">&#9998;</button>
 					<button type="button" class="row-button" data-action="deleteItem"

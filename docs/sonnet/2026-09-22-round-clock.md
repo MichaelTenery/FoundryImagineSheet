@@ -26,7 +26,7 @@ settled. Do not reopen it.**
   runs into the next.
 - The round is announced over, never advanced automatically.
 
-## 1. Release it
+## 1. Release it -- DONE 2026-09-23 (released in 0.18.0)
 
 - **What:** version bump, CHANGELOG entry, `dist/` build, commit. Not done in this pass because the
   Magic & Lore tab (also unreleased) and a weapon-mods pass by another session were in the same
@@ -45,7 +45,7 @@ settled. Do not reopen it.**
 
   and `build_system.py` reporting no unchecked modules and no version warning.
 
-## 2. Document the fields in DATA-MODEL.md
+## 2. Document the fields in DATA-MODEL.md -- DONE 2026-09-23 (released in 0.18.0)
 
 - **What:** `docs/DATA-MODEL.md` §3 (character schema) and the creature section do not mention
   `combat.speedSeconds` (both types, integer 0-10, his `tmp_speed_seconds`), the creature's derived

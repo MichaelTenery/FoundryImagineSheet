@@ -1,0 +1,49 @@
+{{!--
+	Spell body. One root element, as every PART must be.
+
+	Every column of his spellslist, as text where he wrote a formula ("5 sec./AUR"). Casting is the
+	deferred magic phase's; this is the spell as the book gives it, and whether it is memorized.
+--}}
+<section class="imagine-item-body spell">
+
+	<div class="panel-row">
+		<div class="panel">
+			<h3>The spell</h3>
+			<ul class="band-list">
+				<li><label>Level</label>
+					<span><input type="number" name="system.level" value="{{system.level}}" min="0"></span></li>
+				<li><label>Magic name</label>
+					<span><input type="text" name="system.magicName" value="{{system.magicName}}"></span></li>
+				<li><label>Aspects</label>
+					<span><input type="text" name="system.spellTypes" value="{{system.spellTypes}}"></span></li>
+				<li><label>Save</label>
+					<span><input type="text" name="system.save" value="{{system.save}}"></span></li>
+				<li><label>Fail</label>
+					<span><input type="text" name="system.fail" value="{{system.fail}}"></span></li>
+				<li><label>Memorized</label>
+					<span><input type="checkbox" name="system.memorized" {{#if system.memorized}}checked{{/if}}></span></li>
+			</ul>
+		</div>
+
+		<div class="panel">
+			<h3>Casting</h3>
+			<ul class="band-list">
+				<li><label>Memorize in</label>
+					<span><input type="text" name="system.memTime" value="{{system.memTime}}"></span></li>
+				<li><label>Cast in</label>
+					<span><input type="text" name="system.castTime" value="{{system.castTime}}"></span></li>
+				<li><label>Range</label>
+					<span><input type="text" name="system.range" value="{{system.range}}"></span></li>
+				<li><label>Area</label>
+					<span><input type="text" name="system.area" value="{{system.area}}"></span></li>
+				<li><label>Duration</label>
+					<span><input type="text" name="system.duration" value="{{system.duration}}"></span></li>
+				<li><label>Distance</label>
+					<span><input type="text" name="system.distance" value="{{system.distance}}"></span></li>
+			</ul>
+		</div>
+	</div>
+
+	<h3 class="section-head">Description</h3>
+	<textarea name="system.description" rows="8">{{system.description}}</textarea>
+</section>

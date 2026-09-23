@@ -9,7 +9,7 @@ in `module/magic-view.mjs`, its buttons in `module/magic-actions.mjs`, starting 
 Run `tools/lore-test.html` (103) and `tools/window-test.html` (27) after any of these, served with
 `Cache-Control: no-store`, and `python tools/extract/test_manual_content.py` (122) after 3.
 
-## 1. Release it (when the user asks, and only when the working tree is quiet)
+## 1. Release it (when the user asks, and only when the working tree is quiet) -- DONE 2026-09-23 (released in 0.18.0)
 
 This pass did NOT bump the version or rebuild `dist/`: another session had uncommitted work in the
 tree, and `tools/build_system.py` packs the working tree. When the user asks for a release:
@@ -43,7 +43,7 @@ tree, and `tools/build_system.py` packs the working tree. When the user asks for
 - Then `python tools/build_system.py` (it warns if the version was not bumped), and commit
   `system.json`, `CHANGELOG.md` and `dist/` together.
 
-## 2. Show the tab in the main sheet preview
+## 2. Show the tab in the main sheet preview -- DONE 2026-09-23 (released in 0.18.0)
 
 `tools/sheet-preview.html` renders five tabs and not the sixth. Add a `<button data-t="magic">` to
 the tab strip, `"magic"` to the tab loop, and `magic: V.buildMagicPanel({ items: allItems, system:
@@ -51,7 +51,7 @@ character }, game.imagine.getAvailabilityRules(), true)` to `ctx` (import `../mo
 as `V`). Its Warrior holds no lore, so it shows the empty state, which is worth seeing. Keep it small:
 `tools/magic-preview.html` is the preview of a full tab.
 
-## 3. `docs/ADDING-CONTENT.md`: the four new packs
+## 3. `docs/ADDING-CONTENT.md`: the four new packs -- DONE 2026-09-23 (released in 0.18.0)
 
 It still says there are nine packs. Add consumables, lore, spells and invocations, and say the one
 new rule: in consumables and lore, names repeat between kinds, so every manual entry should give
@@ -61,20 +61,20 @@ are not listed, they are built); lore `ballad candlelore empathymagic glyph hymn
 potionrecipe ritual rune song sympathymagic evoke`. A new entry needs `subsystem` too; the value for
 each kind is in `MAGIC_KINDS`, or `MAGIC_SUBSYSTEM_OF` in build_documents.py.
 
-## 4. `tools/item-preview.html`: the four new item sheets
+## 4. `tools/item-preview.html`: the four new item sheets -- DONE 2026-09-23 (released in 0.18.0)
 
 It previews the other item sheets against real content; add the consumable (use a poison from
 `makePoisonSystem`, the fullest consumable), lore (a candle ritual, which has a component, and a
 potion recipe, which shows the recipe panel), spell and invocation. The contexts to mirror are
 `buildConsumableContext` and `buildLoreContext` in `tools/window-test.html`.
 
-## 5. `docs/DATA-MODEL.md`: the four item types
+## 5. `docs/DATA-MODEL.md`: the four item types -- DONE 2026-09-23 (released in 0.18.0)
 
 Add a short section per type from the schema comments in `module/data/item-consumable.mjs`,
 `item-lore.mjs`, `item-spell.mjs` and `item-invocation.mjs`. The code is the source; the doc
 follows it (standing rule, DECISIONS 2026-09-12).
 
-## 6. Attribution of the four magic packs (a little judgement, mostly mechanical)
+## 6. Attribution of the four magic packs (a little judgement, mostly mechanical) -- DONE 2026-09-23 (released in 0.18.0)
 
 All 2,486 are `sourcebook: "XXX"` because `apply_sources` matches by name and names collide across
 kinds. What is decided: attribution for these packs must key on kind as well as name, and nothing is

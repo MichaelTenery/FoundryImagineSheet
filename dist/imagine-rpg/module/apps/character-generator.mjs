@@ -20,6 +20,7 @@ import { getFamorianBreed, rollEvokeBudget } from "../famorian-rules.mjs";
 import { STEPS, newGeneratorState, deriveGenerator, checkStep, buildGeneratorView, choicesFromState,
 	colourChoices } from "../chargen-view.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { provideStartingLore } from "../starting-lore.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
@@ -110,6 +111,7 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			if (tmpkey in tmpdata) { tmpstate[tmpkey] = tmpdata[tmpkey] === true; }
 		}
 		if ("clothingStyle" in tmpdata) { tmpstate.clothingStyle = tmpdata.clothingStyle ?? "western"; }
+		if ("randomLore" in tmpdata) { tmpstate.randomLore = tmpdata.randomLore === true; }
 		if ("startingKit" in tmpdata) {
 			for (const tmpkey of ["byCulture", "byStatus", "bySkills"]) {
 				if (tmpkey in tmpdata.startingKit) {
@@ -422,6 +424,18 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		try {
 			var tmpactor = await Actor.create({ ...tmpassembled.actor, items: tmpassembled.items });
 			ui.notifications.info(`${tmpactor.name} is created.`);
+			// His "Provide random lore", run on the character as created, because it reads what the
+			// character model works out -- a skill's chance, Affinity, Fortune -- and there is no
+			// working that out before the actor exists. module/starting-lore.mjs.
+			// Its own try: a failure here is not a failure to create, and must not be reported as one.
+			if (this.#state.randomLore) {
+				try { await provideStartingLore(tmpactor); }
+				catch (tmperr) {
+					console.error("Imagine RPG | starting lore failed", tmperr);
+					ui.notifications.warn(`${tmpactor.name} is created, but the starting lore could not be given (see the console). `
+						+ "The Game Master can give it from the Magic & Lore tab.");
+				}
+			}
 			this.close();
 			tmpactor.sheet.render(true);
 		} catch (err) {

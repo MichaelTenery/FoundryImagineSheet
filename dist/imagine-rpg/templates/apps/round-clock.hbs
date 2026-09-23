@@ -1,0 +1,78 @@
+{{!-- The Mr. Initiative window: his round-timing chart (Master's Manual pp.98-100) for every
+      combatant at once, in turn order. See module/apps/round-clock.mjs; the view is built by
+      buildRoundView in module/round-view.mjs, and each bar is the shared "imagine-clock-bar". --}}
+<div class="round-clock">
+	<header class="round-clock-head">
+		<span class="round-number">{{#if round}}Round {{round}}{{else}}Not started{{/if}}</span>
+		<span class="round-now{{#if over}} over{{/if}}">{{nowText}}</span>
+		{{!-- His chart's Surprise row: seconds gained by surprising, spent before initiative is rolled. --}}
+		{{#if canSurprise}}
+		<button type="button" data-action="giveSurprise" data-tooltip="Give chosen combatants 1d4+1 seconds of unanswered action before initiative is rolled">
+			<i class="fa-solid fa-user-ninja" inert></i> Surprise&hellip;</button>
+		{{#if surprise}}<button type="button" data-action="endSurprise" data-tooltip="End the surprise: an action still under way carries into the round, and unspent surprise seconds are gone">
+			<i class="fa-solid fa-flag-checkered" inert></i> End surprise</button>{{/if}}
+		{{/if}}
+		{{#if isGM}}{{#if round}}
+		<button type="button" data-action="nextRound"><i class="fa-solid fa-forward-step" inert></i> Next round</button>
+		{{/if}}{{/if}}
+	</header>
+
+	{{#if rows.length}}
+	<div class="round-clock-body">
+		<div class="clock-chart">
+			<div class="clock-chart-row clock-chart-head">
+				<span class="clock-name">Combatant</span>
+				<span class="clock-split" data-tooltip="Split Second: a roll below 1 orders the first second, lowest first">Split</span>
+				<div class="imagine-clock-bar head">
+					{{#each headers}}<div class="clock-second{{#if now}} now{{/if}}">{{label}}</div>{{/each}}
+				</div>
+				<span class="clock-off" data-tooltip="Off-hand seconds left this round, of the off hand's allowance">Off hand</span>
+				<span class="clock-speed" data-tooltip="Extra seconds from a Speed potion, spell, rune or glyph. Each splits one of the first seconds in two.">Speed</span>
+				<span class="clock-carrycol" data-tooltip="What runs over into next round, and whether it is carried">Carry</span>
+			</div>
+
+			{{#each rows}}
+			<div class="clock-chart-row{{#if current}} current{{/if}}{{#if done}} done{{/if}}{{#if surprise}} surprise{{/if}}" data-combatant-id="{{id}}">
+				<span class="clock-name">{{#if img}}<img src="{{img}}" alt="">{{/if}}<span>{{name}}</span></span>
+				<span class="clock-split">{{#if surprise}}<i class="fa-solid fa-user-ninja" data-tooltip="Surprise: seconds before initiative is rolled" inert></i>{{else}}{{split}}{{/if}}</span>
+				{{#if ready}}{{> imagine-clock-bar}}{{else}}<span class="clock-unrolled">{{status}}</span>{{/if}}
+				<span class="clock-off{{#if offhand.over}} over{{/if}}">{{#if offhand}}<span class="pips" data-tooltip="{{offhand.title}}">{{#each offhand.pips}}<i class="pip {{state}}"></i>{{/each}}</span>
+					{{offhand.text}}{{/if}}</span>
+				<span class="clock-speed">{{#if canEditSpeed}}<input type="number" name="speedSeconds" min="0" max="10" value="{{speedSeconds}}"
+					aria-label="Speed seconds">{{else}}{{speedSeconds}}{{/if}}</span>
+				<span class="clock-carrycol">{{#if carry}}{{#if canSpend}}<button type="button" class="clock-button clock-carry{{#if carry.elected}} active{{/if}}"
+					data-action="imagineToggleCarry" aria-pressed="{{#if carry.elected}}true{{else}}false{{/if}}" data-tooltip="{{carry.title}}">
+					{{#if carry.elected}}{{carry.text}}{{else}}no{{/if}}</button>{{else}}{{#if carry.elected}}{{carry.text}}{{else}}no{{/if}}{{/if}}{{/if}}</span>
+				{{#if ready}}
+				<div class="clock-detail">
+					<span class="clock-status">{{status}}</span>
+					{{#if offhand.overText}}<span class="clock-over">{{offhand.overText}}</span>{{/if}}
+					{{#if carriedIn}}<span class="clock-carried">{{carriedIn}}</span>{{/if}}
+					{{#if log.length}}<span class="clock-log">{{#each log}}{{this}}{{#unless @last}} · {{/unless}}{{/each}}</span>{{/if}}
+					{{#if canSpend}}<span class="clock-controls">
+						<button type="button" class="clock-button" data-action="imagineUndoSeconds" {{#unless canUndo}}disabled{{/unless}}
+							data-tooltip="Take back the last seconds spent" aria-label="Take back the last seconds spent"><i class="fa-solid fa-rotate-left" inert></i></button>
+						<button type="button" class="clock-button" data-action="imagineSpendSeconds" data-seconds="1"
+							data-tooltip="Spend one second: holding, passing, a quick action">+1</button>
+						<button type="button" class="clock-button" data-action="imagineSpendSeconds" data-seconds="ask"
+							data-tooltip="Spend seconds: how many, which hand, and on what">+&hellip;</button>
+					</span>{{/if}}
+				</div>
+				{{/if}}
+			</div>
+			{{/each}}
+		</div>
+	</div>
+	<p class="round-clock-key">
+		<span><i class="clock-cell lost"></i> lost to initiative</span>
+		<span><i class="clock-cell carried"></i> finishing last round's action</span>
+		<span><i class="clock-cell spent"></i><i class="clock-cell spent alt"></i> spent</span>
+		<span><i class="clock-cell free now"></i> acts now</span>
+		<span><i class="clock-cell free extra"></i> extra second</span>
+		{{#if surprise}}<span><i class="clock-cell over"></i> surprise action running into the round</span>{{/if}}
+	</p>
+	{{else}}
+	<p class="round-clock-empty">No combat is running. Start one from the Combat tracker, and the chart fills in as
+		initiative is rolled.</p>
+	{{/if}}
+</div>

@@ -294,6 +294,11 @@
 		<h3>Items</h3>
 		<p>{{#each review.items as |it|}}<span class="race-chip">{{it.name}}{{#if it.category}} ({{it.category}}){{/if}}</span>{{/each}}</p>
 		{{#if review.issues.length}}<h3>To note</h3>{{#each review.issues as |i|}}<p class="alarm">{{i}}</p>{{/each}}{{/if}}
+		{{!-- @MARKER STARTING LORE -- his own tick, in his own words, on his last step. --}}
+		<h3>Lore</h3>
+		<label class="row check"><input type="checkbox" name="randomLore" {{#if state.randomLore}}checked{{/if}}>
+			Provide random lore for starting spells, all relevant skills, and related consumables.
+			<span class="muted">If unchecked, the Game Master can provide it after, from the Magic &amp; Lore tab.</span></label>
 	{{/if}}
 
 	</section>

@@ -30,8 +30,10 @@ import ImagineCharacterData from "./actor-character.mjs";
 import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../creature-tables.mjs";
 import {
 	getBodyChart, parseBodyChart, getAreaEndurance, getStrongestMaterial,
-	getInitiativeModifier, getNextAttackSkill, getAreaArmor, getAreaShield, resolveEncumbrance
+	getInitiativeModifier, getNextAttackSkill, getAreaArmor, getAreaShield, resolveEncumbrance,
+	resolveSituationalMods, getOffhandSecondsCap
 } from "../combat/combat-rules.mjs";
+import { MARTIAL_DISCIPLINE_NAMES, deriveMartialArts } from "../combat/martial-arts.mjs";
 
 const fields = foundry.data.fields;
 
@@ -182,7 +184,10 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				bodyChart: new fields.StringField({ required: true, initial: "", label: "Body Chart" }),
 				hide:      new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, label: "Hide" }),
 				wounds:      new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
-				armorDamage: new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 }))
+				armorDamage: new fields.TypedObjectField(new fields.NumberField({ integer: true, min: 0 })),
+				// Damage to OVERALL Endurance, on no one area -- a poison's (Master's Manual p.103). It
+				// counts in totalWounds and so toward shock, as the character's does.
+				overallWounds: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
 				// DERIVED: areas, shock, totalWounds, inShock. See _prepareBody.
 			}),
 
@@ -238,6 +243,14 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				initiativeMisc: new fields.NumberField({ required: true, integer: true, initial: 0 }),
 				skillMisc:      new fields.NumberField({ required: true, integer: true, initial: 0 }),
 
+				// @MARKER SPEED SECONDS
+				// Extra seconds of action every round from a Speed potion, spell, rune or glyph -- his
+				// tmp_speed_seconds, the "Speed Seconds" box among his combat modifiers. Set by hand until
+				// those effects are built. Each splits one of the round's first seconds in two on the
+				// round clock (module/combat/round-rules.mjs); ten at most, with any the initiative
+				// roll itself earned below -10.
+				speedSeconds:   new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 10 }),
+
 				// @MARKER PAIN THRESHOLD
 				// A SIGNED modifier on every point of damage coming in, applied before armour
 				// and before anything magical takes its share. His own note beside the field
@@ -274,7 +287,40 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 
 				// Invulnerability scales rather than subtracts: a weapon with no magical plus
 				// does nothing at all, +1/+2 a quarter, +3/+4 a half, +5 and better full damage.
-				invulnerable: new fields.BooleanField({ required: true, initial: false })
+				invulnerable: new fields.BooleanField({ required: true, initial: false }),
+
+				// @MARKER SITUATION MODS
+				// The same Situation Mods a character has -- his creature combat page carries the
+				// same bar and the same two panels (change_situation_mods2). See the character model.
+				situation: new fields.SchemaField({
+					// blank: true outright -- see the character model.
+					kind:     new fields.StringField({ required: true, blank: true, initial: "", choices: ["", "melee", "missile"] }),
+					selected: new fields.ArrayField(new fields.StringField({ required: true, blank: false })),
+					weaponId: new fields.StringField({ required: true, initial: "" })
+				})
+			}),
+
+			// @MARKER MARTIAL ARTS
+			// The same martial section a character has: his creature sheet carries it too, reading
+			// Martial Knowledge and Martial Lore off the creature's own skill list
+			// (getCreatureSkillChance, sheet-worker.js). The same fields and names as the character's,
+			// so the one panel partial serves both. See the character model for what each holds.
+			martial: new fields.SchemaField({
+				discipline:       new fields.StringField({ required: true, blank: true, initial: "",
+					choices: ["", ...MARTIAL_DISCIPLINE_NAMES] }),
+				learnedAttacks:   new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedBlocks:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedHolds:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedMoves:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				learnedThrows:    new fields.StringField({ required: true, blank: true, initial: "" }),
+				loreValues:       new fields.StringField({ required: true, blank: true, initial: "" }),
+				stances:          new fields.StringField({ required: true, blank: true, initial: "" }),
+				masteredStances:  new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeStance:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeMoves:      new fields.StringField({ required: true, blank: true, initial: "" }),
+				activeLoreValues: new fields.StringField({ required: true, blank: true, initial: "" }),
+				intoxication:     new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+				resistingHold:    new fields.BooleanField({ required: true, initial: false })
 			}),
 
 			// @MARKER NOTES
@@ -313,6 +359,10 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this._prepareResistances();
 		this._prepareEncumbrance();
 		this._prepareCombat();
+		// Martial arts after the standing combat figures it adds to, and before the Situation Mods,
+		// which read the blind fighting it sets -- the character's order.
+		this._prepareMartialArts();
+		this._prepareSituation();
 		this._prepareBody();
 		this._prepareAvailability();
 
@@ -515,6 +565,11 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		var tmpisambidextrous = tmpabilities.includes("Ambidextrous") || tmpabilities.includes("Omnidextrous");
 		this.combat.offhandHandedness = tmpisambidextrous ? "Ambidextrous" : (this.identity.handedness || "");
 
+		// How many of the round's seconds its off hand has, as a character's: five, or ten for the
+		// ambidextrous. A creature holds no Second Weapon Lore to add to it. The round clock spends
+		// it (module/combat/round-rules.mjs).
+		this.combat.offhandSecondsCap = getOffhandSecondsCap(this.combat.offhandHandedness, 0);
+
 		// The Lore chart, one step better, for a creature that has the skill for it.
 		var tmpskilltext = this.skills.map(s => String(s.name ?? "")).join(",");
 		this.combat.hasWeaponLore = tmpskilltext.includes("Weapon Lore");
@@ -537,6 +592,71 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this.combat.meleeDamage   = parseInt(tmpstrmods.meleeDamage) || 0;
 		this.combat.missileAttack = parseInt(tmpaglmods.missileAttack) || 0;
 		this.combat.armorSkillPenalty = tmparmorskills;
+	}
+
+	// @MARKER MARTIAL ARTS
+	// This is the function which works out the creature's martial arts, the same as a character's
+	// (deriveMartialArts) but for where the two skills come from: a creature's flat stat-block
+	// percentages, as his creature branch reads them (getCreatureSkillChance -- set2ndWeaponKnowSheet
+	// and its siblings treat a creature holding the skill at all as having acquired it, with no title
+	// to reach). A stance's defence, initiative and speed fold into the creature's standing figures as
+	// a character's do; its bonuses land on saves and resistances here and on a skill when it is
+	// rolled, since a creature's skill chances are the entered figures themselves and cannot carry a
+	// derived bonus without the sheet writing it back.
+	_prepareMartialArts() {
+		var tmpmartial = this.martial ?? {};
+		this.martial = tmpmartial;
+		var tmpknowchance = this._getCreatureSkillChance("Martial Knowledge");
+		var tmplorechance = this._getCreatureSkillChance("Martial Lore");
+		var tmpknow = { held: tmpknowchance > 0, chance: tmpknowchance };
+		var tmplore = { held: tmplorechance > 0, chance: tmplorechance };
+		tmpmartial.hasKnowledge = tmpknow.held;
+		tmpmartial.hasLore = tmplore.held;
+		tmpmartial.knowChance = tmpknow.chance;
+		tmpmartial.loreChance = tmplore.chance;
+
+		Object.assign(tmpmartial, deriveMartialArts(tmpmartial, {
+			know: tmpknow, lore: tmplore, weaponSpeedMod: this.combat.weaponSpeedMod }));
+
+		var tmpstate = tmpmartial.state;
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + tmpstate.defense.adjust;
+		this.combat.initiativeMod = (parseInt(this.combat.initiativeMod) || 0) + tmpstate.initiative;
+		this.combat.weaponSpeedMod = (parseInt(this.combat.weaponSpeedMod) || 0) + tmpstate.seconds;
+		this.combat.martialDefense = tmpstate.defense;
+		this.combat.martialBlind = tmpstate.blind;
+
+		// A held stance's saves and resistances (the user's ruling of 2026-09-22). An immune
+		// resistance has no figure and stays immune.
+		var tmpbonuses = tmpstate.bonuses;
+		if (tmpbonuses?.active) {
+			for (const [tmpkey, tmpvalue] of Object.entries(tmpbonuses.saves ?? {})) {
+				if (this.attributes[tmpkey]) { this.attributes[tmpkey].save = (parseInt(this.attributes[tmpkey].save) || 0) + tmpvalue; }
+			}
+			for (const [tmpname, tmpresist] of Object.entries(this.resistances ?? {})) {
+				if (tmpresist?.value === null || tmpresist?.value === undefined) { continue; }
+				var tmpresistadd = (parseInt(tmpbonuses.resistances?.[tmpname]) || 0) + (parseInt(tmpbonuses.allResistances) || 0);
+				if (tmpresistadd) { tmpresist.value = tmpresist.value + tmpresistadd; }
+			}
+		}
+	}
+
+	// This is the function which reads one skill's chance off the creature's stat block, 0 if it has
+	// no such skill -- his getCreatureSkillChance.
+	_getCreatureSkillChance(tmpname) {
+		var tmpskill = (this.skills ?? []).find(tmpentry => String(tmpentry.name ?? "").trim() == tmpname);
+		return tmpskill ? (parseInt(tmpskill.chance) || 0) : 0;
+	}
+
+	// This is the function which totals the Situation Mods the creature has set. Their defence is
+	// the creature's own and stands whatever it attacks with; "No Defense" takes the adjustment away
+	// from anyone attacking it. Martial arts hands in blind fighting through combat.martialBlind, and
+	// Immoveable Stance's No Defense is folded in, as for a character.
+	_prepareSituation() {
+		var tmpsituation = this.combat.situation ?? {};
+		this.combat.situational = resolveSituationalMods(tmpsituation.kind, tmpsituation.selected,
+			this.combat.martialBlind ?? null);
+		this.combat.defensiveAdjust = (parseInt(this.combat.defensiveAdjust) || 0) + this.combat.situational.defense;
+		this.combat.noDefense = this.combat.situational.noDefense || !!this.combat.martialDefense?.noDefense;
 	}
 
 	// This is the function which lays out the creature's body: every area of its chart, with its
@@ -610,8 +730,9 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 
 		this.body.type = this.body.bodyType;
 		this.body.areas = tmpareas;
-		this.body.totalWounds = tmptotal;
-		this.body.inShock = (this.body.shock != 0) && (tmptotal > this.body.shock);
+		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
+		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
+		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
 	}
 
 	// This is the function which totals what the creature is carrying and how encumbered it is.

@@ -1,0 +1,56 @@
+{{!--
+	Martial attack chat card. The weapon attack card's layout, with the one thing a martial attack
+	has that a weapon's does not: the Martial Knowledge skill roll beside the roll to hit. A hit whose
+	skill roll failed still lands, for half damage -- Player's Guide p.95, and his
+	getMartialDamageDetails. The flag this card is posted with is the weapon card's, in the same
+	shape, so Apply Damage and Spend Seconds are the weapon card's own buttons.
+--}}
+<div class="imagine-chat attack-card martial-card">
+	<header>
+		<strong>{{actorName}}</strong> — {{attackName}}
+		{{#if targetName}}<span class="target">vs {{targetName}}</span>{{/if}}
+	</header>
+
+	<div class="skill-line">Martial Knowledge {{skill.chance}}%: rolled {{skill.roll}} —
+		<strong>{{skill.outcome}}</strong>{{#unless skill.made}} <span class="muted">(half damage if it lands)</span>{{/unless}}</div>
+
+	<div class="attack-line">
+		<span class="natural">d20: {{result.natural}}</span>
+		{{#each mods.list as |m|}}<span class="mod">{{m.label}} {{#if (gt m.value 0)}}+{{/if}}{{m.value}}</span>{{/each}}
+		<span class="final">= {{result.final}}</span>
+		<span class="skill">as {{result.skill}}</span>
+	</div>
+
+	{{#if aim}}<div class="aim">Aimed at: {{aim}}</div>{{/if}}
+
+	<div class="zone zone-{{#if result.isHit}}hit{{else}}miss{{/if}}">
+		{{#if result.isFumble}}FUMBLE{{else}}{{result.zone}}{{/if}}
+		{{#if result.calledShotDeclared}}
+			— Called shot: {{#if result.isCalledShot}}<strong>made</strong>{{else}}missed{{/if}}
+		{{/if}}
+	</div>
+
+	{{#if fumble}}<p class="fumble">{{fumble.text}}</p>{{/if}}
+
+	{{#if damage}}
+	<div class="damage">
+		<span class="total">{{damage.total}}</span> {{damage.type}} damage
+		<span class="breakdown">({{damage.dice}} = {{damage.rolled}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.flat}} {{#if (gt damage.flat 0)}}+{{/if}}{{damage.flat}} martial/situation{{/if}}{{#if damage.perDie}} {{#if (gt damage.perDie 0)}}+{{/if}}{{damage.perDie}} per die{{/if}}{{#if (gt damage.multiplier 1)}} &times;{{damage.multiplier}}{{/if}}{{#if damage.halved}}, halved{{/if}})</span>
+		{{#if doubled}}<span class="breakdown">Both blows landed and the skill was made: damage doubled.</span>{{/if}}
+	</div>
+	{{/if}}
+
+	{{#if special.length}}
+	<ul class="martial-notes">{{#each special as |s|}}<li>{{s}}</li>{{/each}}</ul>
+	{{/if}}
+
+	<footer>
+		<span class="speed">{{speed}} seconds</span>
+		{{#if damage}}{{#unless applied}}
+			<button type="button" data-imagine-action="applyDamage"><i class="fa-solid fa-droplet"></i> Apply damage</button>
+		{{/unless}}{{/if}}
+		{{#if inCombat}}
+			<button type="button" data-imagine-action="spendTime"><i class="fa-solid fa-stopwatch"></i> Spend {{speed}}s</button>
+		{{/if}}
+	</footer>
+</div>

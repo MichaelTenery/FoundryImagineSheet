@@ -21,20 +21,45 @@
 		<div class="char-box"><label>Initiative</label>
 			<span class="value">d10 {{#if (gte system.combat.initiativeMod 0)}}+{{/if}}{{system.combat.initiativeMod}}</span>
 			<span class="sub">lower acts first</span></div>
+		{{!-- Includes the Situation Mods' own defence; "No Defense" takes it away altogether. --}}
 		<div class="char-box"><label>Defence</label>
-			<span class="value">{{#if (gt system.combat.defensiveAdjust 0)}}+{{/if}}{{system.combat.defensiveAdjust}}</span>
-			<span class="sub">to attackers' rolls</span></div>
+			{{#if system.combat.noDefense}}<span class="value alarm">None</span>
+			<span class="sub">No Defense, from Situation Mods</span>
+			{{else}}<span class="value">{{#if (gt system.combat.defensiveAdjust 0)}}+{{/if}}{{system.combat.defensiveAdjust}}</span>
+			<span class="sub">to attackers' rolls</span>{{/if}}</div>
 		<div class="char-box"><label>Weapon Speed</label>
 			<span class="value">{{#if (gt system.combat.weaponSpeedMod 0)}}+{{/if}}{{system.combat.weaponSpeedMod}}</span>
 			<span class="sub">seconds per swing</span></div>
-		{{!-- 5 of the round's 10 seconds by default, more for Second Weapon Lore, unlimited for
-		      Ambidextrous. A cap, not a pool -- nothing here tracks what a round has spent of it. --}}
-		<div class="char-box"><label>Off-Hand Seconds</label>
+		{{!-- 5 of the round's 10 seconds by default, more for Second Weapon Lore, all 10 for
+		      Ambidextrous. Out of combat, the allowance. In the combat on show, the round clock's
+		      figures, read-only (roundClock, buildSheetClockView in module/round-view.mjs): what the
+		      off hand has left of it, and where the main hand stands. The buttons that spend time are
+		      in the combat tracker and the Mr. Initiative window. --}}
+		<div class="char-box round-clock-box"><label>Off-Hand Seconds</label>
+			{{#if roundClock.inCombat}}
+			<span class="value{{#if roundClock.over}} alarm{{/if}}">{{roundClock.offhand}}</span>
+			<span class="sub">{{roundClock.offhandSub}}</span>
+			<span class="sub clock-status">{{roundClock.status}}</span>
+			{{else}}
 			<span class="value">{{system.combat.offhandSecondsCap}}</span>
-			<span class="sub">{{#if (eq system.physical.handedness "Ambidextrous")}}both hands, unlimited{{else}}of the round{{/if}}</span></div>
+			<span class="sub">{{#if (eq system.physical.handedness "Ambidextrous")}}both hands, all ten{{else}}of the round{{/if}}</span>
+			{{/if}}</div>
+		{{!-- His tmp_speed_seconds: extra seconds every round from a Speed potion, spell, rune or
+		      glyph, entered by hand until those effects are built. Each splits one of the round's
+		      first seconds in two, and a sped combatant acts first (module/combat/round-rules.mjs). --}}
+		<div class="char-box"><label>Speed Seconds</label>
+			<span class="value"><input type="number" class="speed-input" min="0" max="10"
+				name="system.combat.speedSeconds" value="{{system.combat.speedSeconds}}"></span>
+			<span class="sub">extra each round</span></div>
 		<div class="char-box"><label>Shock</label>
 			<span class="value {{#if system.body.inShock}}alarm{{/if}}">{{system.body.totalWounds}} / {{system.body.shock}}</span>
 			<span class="sub">{{#if system.body.inShock}}IN SHOCK{{else}}total wounds{{/if}}</span></div>
+		{{!-- Wounds to overall Endurance rather than to one area -- a poison's, applied from its card.
+		      Counted in the total above; editable so they can be healed. --}}
+		<div class="char-box"><label>Overall Wounds</label>
+			<span class="value"><input type="number" class="pain-input" min="0"
+				name="system.body.overallWounds" value="{{system.body.overallWounds}}"></span>
+			<span class="sub">poison and the like</span></div>
 		{{!-- A SIGNED modifier on incoming damage, applied before armour sees the blow. His own
 		      note reads "reduces or adds to all incoming damage (-/+)", so a negative number is
 		      a tougher target. --}}
@@ -48,6 +73,15 @@
 			<span class="value"><input type="number" class="pain-input" min="0"
 				name="system.combat.damageAbsorb" value="{{system.combat.damageAbsorb}}"></span>
 			<span class="sub">pool, spent as used</span></div>
+	</div>
+
+	{{!-- His "SITUATION MODS" bar: what every attack of one kind reads until it is cleared, and the
+	      button that opens the melee and missile panels. --}}
+	<div class="situation-bar">
+		<strong>Situation Mods:</strong>
+		{{#if situationLine}}<span class="situation-line">{{situationLine}}</span>{{else}}<span class="muted">none set</span>{{/if}}
+		<button type="button" data-action="openSituation"><i class="fa-solid fa-sliders"></i> Melee / Missile Mods</button>
+		{{#if situationLine}}<button type="button" data-action="clearSituation" data-tooltip="Clear all modifiers"><i class="fa-solid fa-eraser"></i></button>{{/if}}
 	</div>
 
 	{{!-- Everything here comes off a blow BEFORE any worn armour blocks it, in his order. Each is
@@ -94,6 +128,23 @@
 				placeholder="Long Bow/Arrow">
 			<span class="muted">removes the penalty entirely for these</span></label>
 		{{/if}}
+
+		{{!-- Second Weapon Knowledge and Lore are held weapon by weapon, one more for every title
+		      held in the discipline. A weapon fights off-handed without penalty (Lore) or with
+		      the penalty bought down (Knowledge) only when it is named here. --}}
+		{{#if lore.hasSecondKnow}}
+		<label>Second Weapon Knowledge in
+			<input type="text" name="system.combat.secondWeaponKnowList" value="{{lore.secondKnowText}}"
+				placeholder="Dagger, Short Sword">
+			<span class="muted">{{lore.secondKnowChance}}% &mdash; {{lore.secondKnowLevels}} level(s) off the off-hand
+			penalty; {{lore.secondKnowSlots}} more weapon(s) may be named</span></label>
+		{{/if}}
+		{{#if lore.hasSecondLore}}
+		<label>Second Weapon Lore in
+			<input type="text" name="system.combat.secondWeaponLoreList" value="{{lore.secondLoreText}}"
+				placeholder="Dagger">
+			<span class="muted">no off-hand penalty for these; {{lore.secondLoreSlots}} more weapon(s) may be named</span></label>
+		{{/if}}
 	</div>
 	{{/if}}
 	<h3 class="section-head">Magical Protection <span class="muted">taken off before armour</span></h3>
@@ -132,9 +183,13 @@
 		<tbody>
 			{{#each weapons as |w|}}
 			<tr>
-				<td class="col-name">{{w.name}}{{#unless w.equipped}} <span class="muted">(carried)</span>{{/unless}}
-					{{#if w.lore}} <span class="lore-tag" data-tooltip="Attack +{{w.lore.attack}}, damage +{{w.lore.damage}}, speed {{w.lore.speed}}, skills +{{w.lore.skills}}%">{{#if w.lore.specific}}Lore{{else}}lore{{/if}}</span>{{/if}}</td>
-				<td class="col-num">{{w.damage}}</td>
+				<td class="col-name">{{#if w.displayName}}{{w.displayName}}{{else}}{{w.name}}{{/if}}{{#unless w.equipped}} <span class="muted">(carried)</span>{{/unless}}
+					{{#if w.lore}} <span class="lore-tag" data-tooltip="Attack +{{w.lore.attack}}, damage +{{w.lore.damage}}, speed {{w.lore.speed}}, skills +{{w.lore.skills}}%">{{#if w.lore.specific}}Lore{{else}}lore{{/if}}</span>{{/if}}
+					{{!-- What has been done to it, for now and for good, and the window to do more. --}}
+					{{#if w.customTags.length}} <span class="weapon-custom-tags muted">{{#each w.customTags as |t|}}{{t}}{{#unless @last}} &middot; {{/unless}}{{/each}}</span>{{/if}}
+					<button type="button" class="row-button" data-action="openWeaponMods" data-item-id="{{w.id}}"
+						data-tooltip="Weapon mods: bless it, or customize it as his panel does"><i class="fa-solid fa-wand-magic-sparkles"></i></button></td>
+				<td class="col-num" {{#if w.listingTip}}data-tooltip="{{w.listingTip}}"{{/if}}>{{w.damage}}</td>
 				<td class="col-num">{{w.speed}}{{#if w.reload}} <span class="muted">/ reload {{w.reload}}</span>{{/if}}</td>
 				{{!-- Which hand it is in. Off-handedness is derived from this against the
 				      character's handedness below, so an Ambidextrous character never shows the
@@ -151,7 +206,9 @@
 							data-action="setWeaponHand" data-item-id="{{w.id}}" data-hand="both"
 							data-tooltip="Both hands - doubles a Strength damage bonus">2H</button>
 					</span>
-					{{#if w.offhand}} <span class="offhand-tag" data-tooltip="In the off hand: attack, damage and skill penalties by Agility unless Second Weapon Knowledge or Lore applies">off</span>{{/if}}
+					{{!-- The tier is worked out from the character's Second Weapon lists, the same way
+					      the attack works it out, so what the tag says is what the roll will use. --}}
+					{{#if w.offhand}} <span class="offhand-tag" data-tooltip="{{w.offhandTip}}">off{{#if (eq w.offhandTier "knowledge")}} &middot; know{{else if (eq w.offhandTier "lore")}} &middot; lore{{/if}}</span>{{/if}}
 				</td>
 				<td>
 					{{#if w.modes.length}}
@@ -167,6 +224,9 @@
 	{{else}}
 	<p class="empty">No weapons ready. Equip or carry one from the Equipment tab.</p>
 	{{/if}}
+
+	{{!-- @MARKER MARTIAL ARTS -- the panel is a partial shared with the creature's Combat tab. --}}
+	{{> imagine-martial-panel}}
 
 	{{!-- Handedness decides which side of the body a shield covers: a shield is held in the off
 	      hand, so a right-hander is shielded down the left. Anything but "Left" reads as

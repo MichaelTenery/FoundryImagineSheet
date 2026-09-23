@@ -18,6 +18,66 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.18.0 — 2026-09-23
+
+**Melee and missile modifiers.** The Combat tab has a Situation Mods bar and a **Melee / Missile
+Mods** button that opens the original sheet's two panels: position, the target's state, visibility,
+cover, size, aiming and range, each worth what his sheet made it worth. They stay set until cleared,
+every attack of that kind reads them, and they move your own Defence too -- Furious Attack makes you
+easier to hit, and being blind takes your defence away. Critical, Focused Attack, Surprise Attack,
+Brace, Perfect Shot and Quick Load are rolled from the window, as on his sheet. Creatures have the
+same bar.
+
+**Second Weapon Knowledge and Lore now work.** Name the weapons you hold them in on the Combat tab's
+Lore panel (one more for every title held in the skill). Before this they never applied.
+
+**Martial arts.** Open the Martial Arts heading on the Combat tab to choose a discipline and a stance,
+make moves, and roll martial attacks, blocks, holds and throws; Martial Lore adds its own values. A
+stance changes your Defence, initiative and speed at once, and now also gives the skill, save and
+resistance bonuses its description lists -- with a box for failed intoxication saves (the Drunken
+stance) and a tick for resisting a hold (Calm in the storm). A weapon attack takes your stance and
+moves too. Martial Lore's blind fighting follows the book: +2 to hit, +1 damage and +5% combat skills
+for each 25%. Creatures with Martial Knowledge have the same panel.
+
+**A Magic & Lore tab.** Every character sheet has a sixth tab. Herbs, potions, elixirs, charms and
+poisons are carried as doses, and Use takes one. Each lore the character holds (ballads, candle
+rituals, empathy and sympathy magic, glyphs, hymns, poems, rituals, runes, songs, poison and potion
+recipes, evokes) has its own group with the skill that learns it and the skill that uses it, and Use
+and Brew rolls on his rules (Shift-click for a modifier). Memorization points are counted against
+Knowledge. Spells and invocations can be known, memorized and read out; casting them is still to come.
+What a lore's use actually does is not worked out yet -- a successful use shows the entry and the
+Game Master applies it.
+
+**2,486 new compendium entries**, from his own tables: herbs, potions, elixirs, charms, lore
+entries, spells and invocations. Spells, invocations and four kinds of lore now carry their
+sourcebook, from his Master Index. Run `game.imagine.importContent()` to bring them in.
+
+**Starting lore.** New characters get what his sheet's "Provide random lore" gives: an entry for every
+lore skill, starting herbs, potions and poisons, and starting spells for a caster. It is a tick on the
+generator's last step. For an older character, the Game Master has a "Provide starting lore" button
+on the Magic & Lore tab.
+
+**Poison.** Use on a poison asks who takes it, rolls each victim's Poison Resistance, and posts when
+it takes effect and for how long. Its damage now has an Apply button: it goes on overall Endurance,
+counting toward shock, shown as Overall Wounds on the Combat tab. A poison can also **coat a weapon**;
+the next hit that draws blood delivers it. An Envenomed blade holds up to five doses.
+
+**Weapon mods.** Every weapon row has a wand button. Bless a weapon for a day, or add your own
+temporary effect with a to-hit, a damage and how long it lasts. Below that is the whole of the
+original sheet's Customize panel -- condition, quality, prefix and suffix, the magical plus or
+Blessed, magical and divine abilities, runes, energy, physical customizations, and weight -- applied
+to the weapon or to a customized copy. Customization does what it did on his sheet: a Chain Weapon
+rolls a die more and is two seconds slower, a Gravity rune makes a weapon heavier and slower, a Rune
+of Strengthen adds to its strength, and runes, Blessed and the magical abilities count in the attack.
+
+**Each combatant's seconds, round by round.** Every row of the combat tracker shows that combatant's
+ten seconds -- lost to a late initiative, spent, and left -- with buttons to spend and undo. The
+stopwatch at the top of the tracker opens **Mr. Initiative**, the Master's Manual's round chart. An
+action that runs past the tenth second carries into the next round; the off hand has its own seconds;
+Speed seconds (a box on the Combat tab) put the character first. The Combat tab shows the same clock
+while you are in the fight. The Game Master can give chosen combatants **surprise** -- 1d4+1 seconds
+of unanswered action before round 1.
+
 ## 0.17.0 — 2026-09-22
 
 **This window.** After an update, everyone now sees what changed, once, the first time they load

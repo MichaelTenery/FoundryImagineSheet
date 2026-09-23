@@ -613,4 +613,218 @@ export const MOVEMENT_BASE = [
 	[30, 30, { walk: [12.0, 120.0, 12.0], jog: [24.0, 240.0, 24.0], run: [36.0, 360.0, 36.0], jumpStand: 15.0, jumpUp: 7.0 }],
 ];
 
+// @MARKER MARTIAL ARTS
+// From his eight martial arts dictionaries (getMartialKnowAttackValues and siblings,
+// sheet-worker.js:100674-100838), the four preset disciplines (setMartialKnowArts, 98801),
+// and the three handlers that turn a successful roll into numbers: handleStanceOn (68794),
+// handleMartialModifierSet (68113) and handleMartialLoreModifierSet (68276).
+//
+// Every subskill is rolled against its PARENT skill's chance plus skillMod -- Player's Guide
+// p.93, "Subskills": the difference between the parent's rating and the subskill's, x5%.
+// Martial Knowledge is rating 16, Martial Lore 18, both read from his skilldict.
+// Rows whose skillMod does NOT fit that rule, kept as he wrote them:
+//     MARTIAL_MOVES Jump: rating 14 gives +10, his table says +20
+//     MARTIAL_MOVES Immoveable Stance: rating 17 gives -5, his table says +5
+//
+// A move's or throw's speed is kept as his text beside the number: a leading sign means it is
+// ADDED to the attack it is combined with (Spinning "+2", Snap "-1"), not a time of its own.
+
+// MARTIAL_ATTACKS -- from martialattackvalueslist, rolled against Martial Knowledge.
+//                     rating skillMod speed minSpeed damage special
+export const MARTIAL_ATTACKS = {
+	"Martial Punch":     { rating: 10, skillMod: 30, speed: 3, minSpeed: 2, damage: "2d4", special: "None" },
+	"Martial Kick":      { rating: 12, skillMod: 20, speed: 4, minSpeed: 2, damage: "2d6", special: "None" },
+	"Elbow Smash":       { rating: 11, skillMod: 25, speed: 3, minSpeed: 2, damage: "2d4+2", special: "None" },
+	"Knee Smash":        { rating: 13, skillMod: 15, speed: 4, minSpeed: 2, damage: "2d6+2", special: "None" },
+	"Head Butt":         { rating: 12, skillMod: 20, speed: 3, minSpeed: 2, damage: "1d6+2", special: "None" },
+	"Heel Strike":       { rating: 14, skillMod: 10, speed: 3, minSpeed: 2, damage: "2d4+4", special: "None" },
+	"Rake":              { rating: 15, skillMod: 5, speed: 3, minSpeed: 2, damage: "3d4+1", special: "vs. 6 armor or less,Attacker takes 1d4 dam vs. metal armor." },
+	"Finger Punch":      { rating: 15, skillMod: 5, speed: 2, minSpeed: 1, damage: "1d4+2", special: "vs. 6 armor or less,Attacker takes 1d4 dam vs. metal armor." },
+	"Counter Punch":     { rating: 12, skillMod: 20, speed: 3, minSpeed: 2, damage: "3d4+3", special: "vs. a melee attack." },
+	"Counter Kick":      { rating: 14, skillMod: 10, speed: 4, minSpeed: 2, damage: "3d6+3", special: "vs. a melee attack." },
+	"Scissor Strike":    { rating: 15, skillMod: 5, speed: 3, minSpeed: 2, damage: "2d4", special: "vs. attack from fist/weapon under 1'). 2 attacks: 1 to arm, 1 to forearm. If hits/skill successful x2 damage to both." },
+};
+
+// MARTIAL_BLOCKS -- from martialblockvalueslist, rolled against Martial Knowledge.
+//                     rating skillMod speed special
+export const MARTIAL_BLOCKS = {
+	"Arm Block":         { rating: 10, skillMod: 30, speed: 1, special: "If success, attack is blocked by arm or forearm and damage is reduced to 1/2." },
+	"Leg Block":         { rating: 12, skillMod: 20, speed: 1, special: "If success, attack is blocked by thigh or shin and damage is reduced to 1/2." },
+	"Body Block":        { rating: 14, skillMod: 10, speed: 1, special: "If success, attack is blocked by a torso and damage is reduced to 1/2." },
+};
+
+// MARTIAL_HOLDS -- from martialholdvalueslist, rolled against Martial Knowledge.
+//                     rating skillMod speed special
+export const MARTIAL_HOLDS = {
+	"Half Neck":         { rating: 18, skillMod: -10, speed: 3, special: "If success, incapacitates the head, neck and one arm. Escape requires skill versus roll vs AGL or STR Save (once per 3 sec)." },
+	"Full Neck":         { rating: 20, skillMod: -20, speed: 5, special: "If success, incapacitates the head, neck and both arms. Escape requires skill versus roll vs AGL Save (once per 5 sec)." },
+	"Arm":               { rating: 16, skillMod: 0, speed: 3, special: "If success, incapacitates one arm. Escape requires skill versus roll vs Half AGL Save (once per 3 sec)." },
+	"Leg":               { rating: 17, skillMod: -5, speed: 4, special: "If success, incapacitates one leg. Escape requires skill versus roll vs Half AGL Save (once per 4 sec)." },
+	"Torso":             { rating: 18, skillMod: -10, speed: 5, special: "If success, incapacitates one torso. Escape requires skill versus roll vs Quarter AGL Save (once per 5 sec)." },
+	"Torso(1 Arm)":      { rating: 20, skillMod: -20, speed: 5, special: "If success, incapacitates one torso and one arm. Escape requires skill versus roll vs Quarter AGL Save (once per 5 sec)." },
+	"Torso(2 Arms)":     { rating: 22, skillMod: -30, speed: 5, special: "If success, incapacitates one torso and both arms. Escape requires skill versus roll vs Quarter AGL Save (once per 5 sec)." },
+};
+
+// MARTIAL_MOVES -- from martialmovevalueslist, rolled against Martial Knowledge.
+//                     rating skillMod speed speedText special
+export const MARTIAL_MOVES = {
+	"Jump":              { rating: 14, skillMod: 20, speed: 1, speedText: "1", special: "Requires 5'. If success, jumping as if +2 AGL. To hit +2, Dam +1, +1 die. Cannot be combined with Spinning. Fail make AGL Save to remain standing." },
+	"Flying":            { rating: 16, skillMod: 0, speed: 2, speedText: "2", special: "Requires 10'. If success, jumping as if +2 AGL. To hit +4, Dam x2. Cannot be combined with Spinning. Fail make AGL Save to remain standing." },
+	"Immoveable Stance": { rating: 17, skillMod: 5, speed: 3, speedText: "3", special: "If success, amount skill roll is made by, added to any STR Saves. No Defense." },
+	"Spinning":          { rating: 15, skillMod: 5, speed: 2, speedText: "+2", special: "If success, To hit +2, +2 Dam per die. Cannot be combined with Jump or Flying. Fail make AGL Save or lose 1-3 seconds." },
+	"Sweep":             { rating: 14, skillMod: 10, speed: 2, speedText: "2", special: "After successful Martial Kick. If success, opponent makes an AGL Save or falls prone." },
+	"Snap":              { rating: 13, skillMod: 15, speed: -1, speedText: "-1", special: "If success, 1 second is reduced from another martial attack (minimum 1), but no STR modifier applies to that attack." },
+	"Tension":           { rating: 15, skillMod: 5, speed: 2, speedText: "2", special: "If success, doubles STR bonus/or halves a STR penalty on an other attack." },
+	"Double Attack":     { rating: 13, skillMod: 15, speed: 1, speedText: "+1", special: "If success, allows combo of 2 standard martial attacks(Punch/Kick) at once. Adds 1 second to each attack. Cannot attack with both legs unless prone." },
+};
+
+// MARTIAL_THROWS -- from martialthrowvalueslist, rolled against Martial Knowledge.
+//                     rating skillMod speed speedText damage special
+export const MARTIAL_THROWS = {
+	"Arm Throw":         { rating: 16, skillMod: 0, speed: 3, speedText: "3", damage: "1d6", special: "Contest of STR Save vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Arm Hold." },
+	"Leg Throw":         { rating: 17, skillMod: -5, speed: 4, speedText: "4", damage: "1d4", special: "Contest of STR Save(-20%) vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Leg Hold." },
+	"Shoulder Throw":    { rating: 18, skillMod: -10, speed: 3, speedText: "3", damage: "1d8", special: "Contest of STR Save(+20%) vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Neck Hold." },
+	"Body Throw":        { rating: 19, skillMod: -15, speed: 5, speedText: "5", damage: "1d8", special: "Contest of STR Save(+30%) vs. opponent's AGL Save or knocked prone. 2nd AGL save to transition into Arm Hold." },
+	"Spin Throw":        { rating: 18, skillMod: -10, speed: 1, speedText: "+1", damage: "+2", special: "Does not require touch before using. Add to another throw. Opponent is -20% to Agility Save. Removes hold chance as the opponent is thrown." },
+};
+
+// MARTIAL_LORE_VALUES -- from martiallorevalueslist, rolled against Martial Lore.
+//                     type rating skillMod special
+export const MARTIAL_LORE_VALUES = {
+	"Combined Attack":   { type: "Attack", rating: 17, skillMod: 5, special: "Allows any two martial attacks with any two limbs. Speed for both is the longer of the two attacks." },
+	"Stunning Head Blow": { type: "Attack", rating: 15, skillMod: 15, special: "Two martial punches to either side of the head. Doubles chance of unconsciousness per point of physical damage (from 2% to 4%)" },
+	"Eye Gouge":         { type: "Attack", rating: 16, skillMod: 10, special: "Two simultaneous Finger Punches if either are successful then an Eye Gouge is made for each. Success equals equals permanent eye loss." },
+	"Death Strike":      { type: "Attack", rating: 20, skillMod: -10, special: "vs. 6 or less armor. Attacker must be within 2' of target height. Rake against the neck or Hell Strike to the nose. Causes immediate death if success." },
+	"Feather Block":     { type: "Block", rating: 14, skillMod: 20, special: "Combined with any other block, +1 second. If successful all damage is mitigated." },
+	"Crushing Hold":     { type: "Hold", rating: 16, skillMod: 10, special: "Combined with any other hold. Does 3d6 crushing damage per 5 seconds to held areas." },
+	"Punch Throw":       { type: "Throw", rating: 19, skillMod: -5, special: "Martial Punch to the upper body combined with a Leg Throw. Must make Martial Punch first to roll this skill in place of the Leg Throw." },
+	"Kick Throw":        { type: "Throw", rating: 20, skillMod: -10, special: "Martial Kick to the lower body combined with a Arm, Shoulder or Body Throw. Must make Martial Kick first to roll this skill in place of the Throw." },
+	"Slam":              { type: "Throw", rating: 21, skillMod: -15, special: "Added to any Throw (except leg). Make a STR Save with skill roll. If both are successful, 1d6 damage per 5 full points of STR. +2 seconds to throw used." },
+	"Martial Disarm":    { type: "Throw", rating: 20, skillMod: -10, special: "Disarm an opponent as a contest of this skill roll versus the oppenent's AGL Save. If made by quarter and opponent loses AGL Save the weapon can be taken instead of disarm." },
+	"Flip":              { type: "Move", rating: 18, skillMod: 0, special: "Cannot attack. If successful -4 to be hit. Fail requires AGL Save to land on their feet." },
+	"Wall Jump":         { type: "Move", rating: 15, skillMod: 15, special: "Combined with jump or flying move, adds +2 more AGL for jump moves." },
+};
+
+// The rating each family of subskill is measured against, read from his skilldict.
+export const MARTIAL_PARENT_RATINGS = {"knowledge": 16, "lore": 18};
+
+// The five stances, in prose: the learned form (Martial Knowledge) and the mastered one
+// (Martial Lore). From martialknowstancevalueslist and martiallorestancevalueslist.
+export const MARTIAL_STANCES = {
+	"See without eyes":  { knowledge: "If cannot see opponent, penalites are reduced to -4 melee. Gain full defensive modifer against their attacks. Ignores distortion spell effects. Does not apply if target is silenced.",
+	                       lore: "If cannot see opponent, penalites are reduced to -2 melee. Gain full defensive modifer against their attacks. Rear/Side bonus against while in theis stance. Ignores distortion spell effects. Does not apply if target is silenced." },
+	"Flow as water":     { knowledge: "-6 Defensive modifier. Dodge, Feint and Sidestep are +30%. Offensive actions are -2 to hit, and speed is +1 second.",
+	                       lore: "-8 Defensive modifier. Dodge, Feint and Sidestep are +50%. Offensive actions are -1 to hit." },
+	"Strike as wind":    { knowledge: "+3 Melee/Missile to hit, Starting weapon speeds are -1 second. Initiative is -2, Critical, Focused Attack, Perfect Shot are +20%.",
+	                       lore: "+4 Melee/Missile to hit, Starting weapon speeds are -2 seconds. Initiative is -4, Critical, Focused Attack, Perfect Shot are +50%." },
+	"Calm in the storm": { knowledge: "+25% resistances effects which hold or affect movement. +10% Control Resistance. Parries, Disarm and Trap Weapon are +10%, AGL Saves are +20%.",
+	                       lore: "+50% resistances effects which hold or affect movement. +20% Control Resistance. Parries, Disarm and Trap Weapon are +25%, AGL Saves are +40%." },
+	"Drunken fighting":  { knowledge: "+2 to hit and +1 per die of damage after failing 1 VIT Save for intoxication. +10% to combat skills and Martial Knowledge attacks. If more than 3 VIT Saves for intoxication all modifers are lost.",
+	                       lore: "+4 to hit and +2 per die of damage after failing 1 VIT Save for intoxication. +20% to combat skills and Martial Knowledge attacks. If more than 5 VIT Saves for intoxication all modifers are lost." },
+};
+
+// What each stance actually DOES, read from the two live branches of each case in his
+// handleStanceOn (sheet-worker.js:68794). His third branch per case cannot run and is not read.
+//   mod_melee / mod_missile / mod_damage     added to to-hit and damage
+//   mod_damage_multi                        a damage multiplier (1 = none)
+//   mod_defensive                           added to the defensive adjustment (+ is WORSE)
+//   blind_fighting                          what the -8 for fighting blind becomes easier by
+//   blind_defense                           "Full Defensive Mod" keeps defence when blind
+//   mod_special                             his prose; initiative and speed are read out of it
+export const MARTIAL_STANCE_MODS = {
+	"See without eyes": {
+		knowledge: {"mod_melee": 0, "mod_missile": 0, "mod_damage": 0, "mod_damage_multi": 1, "mod_defensive": 0, "blind_fighting": 4, "blind_defense": "Full Defensive Mod", "mod_special": "Ignores Distortion(spell) effects. Does not apply to silenced opponents."},
+		lore:      {"mod_melee": 0, "mod_damage": 0, "mod_missile": 0, "mod_damage_multi": 1, "mod_defensive": 0, "blind_fighting": 6, "blind_defense": "Full Defensive Mod", "mod_special": "Ignores Distortion(spell) effects. Side/Rear modifiers no longer apply against while in this stance. Does not apply to silenced opponents."},
+	},
+	"Flow as water": {
+		knowledge: {"mod_melee": -2, "mod_damage": -2, "mod_missile": -2, "mod_damage_multi": 1, "mod_defensive": -6, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "Dodge, Feint and Sidestep are +30% to skill rolls. +1 second to offensive actions starting speed."},
+		lore:      {"mod_melee": -1, "mod_damage": -1, "mod_missile": -1, "mod_damage_multi": 1, "mod_defensive": -8, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "Dodge, Feint and Sidestep are +50% to skill rolls."},
+	},
+	"Strike as wind": {
+		knowledge: {"mod_melee": 3, "mod_damage": 3, "mod_missile": 3, "mod_damage_multi": 1, "mod_defensive": 2, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "Initiative -2. Critical, Focused Attack, and Perfect Shot are +20% to skill rolls. -1 second to offensive actions starting speed."},
+		lore:      {"mod_melee": 4, "mod_damage": 4, "mod_missile": 4, "mod_damage_multi": 1, "mod_defensive": 1, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "Initiative -4. Critical, Focused Attack, and Perfect Shot are +50% to skill rolls. -2 seconds to offensive actions starting speed."},
+	},
+	"Calm in the storm": {
+		knowledge: {"mod_melee": 0, "mod_damage": 0, "mod_missile": 0, "mod_damage_multi": 1, "mod_defensive": 0, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "+25% Resistances vs. hold/movement effects. +10% to Control Resist. Parries, Disarm and Trap Weapon skills are at +10%. +20% to all AGL Saves."},
+		lore:      {"mod_melee": 0, "mod_damage": 0, "mod_missile": 0, "mod_damage_multi": 1, "mod_defensive": 0, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "+50% Resistances vs. hold/movement effects. +20% to Control Resist. Parries, Disarm and Trap Weapon skills are at +25%. +40% to all AGL Saves."},
+	},
+	"Drunken fighting": {
+		knowledge: {"mod_melee": 2, "mod_damage": 0, "mod_missile": 2, "mod_damage_multi": 1, "mod_defensive": 0, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "+1 Die Dam. +10% to combat skills, martial know/lore skill attack rolls. (modifers are after failing 1 VIT Save for intoxication but not more than 3)"},
+		lore:      {"mod_melee": 4, "mod_damage": 0, "mod_missile": 4, "mod_damage_multi": 1, "mod_defensive": 0, "blind_fighting": -8, "blind_defense": "No Defensive Mod", "mod_special": "+2 Die Dam. +20% to combat skills, martial know/lore skill attack rolls. (modifers are after failing 1 VIT Save for intoxication but not more than 5)"},
+	},
+};
+
+// What a SUCCESSFUL move adds to the attacks after it, from the success branch of each case in
+// his handleMartialModifierSet (sheet-worker.js:68113). defensive null means the move does not
+// touch it. comboGate: "spinning" -- void if Spinning was also made; "jumpOrFly" -- void if
+// Jump or Flying was. Martial Lore lifts both. THESE ARE HIS CODE'S NUMBERS; where they
+// disagree with his own move prose, martial-arts.mjs says which is followed and why.
+//                        melee damage multiplier defensive special comboGate
+export const MARTIAL_MOVE_MODS = {
+	"Jump":              { melee: 2, damage: 1, multiplier: 1, defensive: null, special: "Jump at +2 AGL,+1 Die Dam", comboGate: "spinning" },
+	"Flying":            { melee: 4, damage: 1, multiplier: 2, defensive: null, special: "Jump at +2 AGL", comboGate: "spinning" },
+	"Immoveable Stance": { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "No Defense,+Skill Roll to STR Saves", comboGate: "" },
+	"Spinning":          { melee: 4, damage: 0, multiplier: 1, defensive: null, special: "+2 per Die", comboGate: "jumpOrFly" },
+	"Snap":              { melee: 0, damage: 0, multiplier: 1, defensive: null, special: "-1 Sec Martial Attack,No STR Mod", comboGate: "" },
+	"Tension":           { melee: 0, damage: 0, multiplier: 1, defensive: null, special: "STR Dam bonus x2/STR penalty halved", comboGate: "" },
+	"Double Attack":     { melee: 0, damage: 0, multiplier: 1, defensive: null, special: "-1 Sec Martial Attack,2 Martial Attacks at once", comboGate: "" },
+};
+
+// What a successful Martial Lore value adds, from handleMartialLoreModifierSet
+// (sheet-worker.js:68276). Only Flip changes a number. dynamic marks a line his code finishes
+// with a roll made at that moment.
+//                        melee damage multiplier defensive special dynamic
+export const MARTIAL_LORE_MODS = {
+	"Combined Attack":   { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Combine any 2 martial attacks with different limbs", dynamic: false },
+	"Stunning Head Blow": { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "4% target unconciousness/per head damage", dynamic: false },
+	"Eye Gouge":         { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Loss of eye for each hit finger punch hit", dynamic: false },
+	"Death Strike":      { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Target death if Neck Rake or Head Heel Strike with 6 or less armor", dynamic: false },
+	"Feather Block":     { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "0 damage for next block", dynamic: false },
+	"Crushing Hold":     { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Next Hold does 3d6=", dynamic: true },
+	"Punch Throw":       { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Next Martial Punch to the upper body becomes a Leg Throw", dynamic: false },
+	"Kick Throw":        { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Next Martial Kick to the lower body becomes a Arm, Shoulder or Body Throw", dynamic: false },
+	"Slam":              { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Next Throw takes +2 seconds but adds 3d6=", dynamic: true },
+	"Martial Disarm":    { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "Target must make an AGL Save at -", dynamic: true },
+	"Flip":              { melee: 0, damage: 0, multiplier: 1, defensive: -4, special: "No Attack", dynamic: false },
+	"Wall Jump":         { melee: 0, damage: 0, multiplier: 1, defensive: 0, special: "+2 more AGL for other jump moves", dynamic: false },
+};
+
+// The four preset disciplines, from setMartialKnowArts (sheet-worker.js:98801). Custom is not a
+// list -- it is whatever the player picks -- so it has no entry here.
+export const MARTIAL_DISCIPLINES = {
+	"Offensive": {
+		attacks: ["Martial Punch", "Martial Kick", "Elbow Smash", "Knee Smash", "Head Butt", "Heel Strike", "Rake", "Finger Punch"],
+		blocks:  ["Arm Block", "Leg Block"],
+		holds:   [],
+		moves:   ["Jump", "Spinning", "Sweep", "Tension", "Double Attack"],
+		throws:  ["Arm Throw"],
+	},
+	"Defensive": {
+		attacks: ["Martial Punch", "Martial Kick", "Counter Punch", "Counter Kick", "Scissor Strike"],
+		blocks:  ["Arm Block", "Leg Block", "Body Block"],
+		holds:   ["Half Neck", "Full Neck", "Arm", "Leg"],
+		moves:   ["Jump", "Immoveable Stance", "Spinning", "Sweep"],
+		throws:  ["Arm Throw", "Leg Throw", "Shoulder Throw", "Body Throw"],
+	},
+	"Balanced": {
+		attacks: ["Martial Punch", "Martial Kick", "Elbow Smash", "Knee Smash", "Heel Strike"],
+		blocks:  ["Arm Block", "Leg Block"],
+		holds:   ["Half Neck", "Arm", "Leg"],
+		moves:   ["Jump", "Flying", "Spinning", "Sweep", "Snap"],
+		throws:  ["Arm Throw", "Leg Throw"],
+	},
+	"Contact": {
+		attacks: ["Martial Punch", "Elbow Smash", "Knee Smash", "Head Butt"],
+		blocks:  ["Arm Block", "Leg Block"],
+		holds:   ["Half Neck", "Full Neck", "Arm", "Leg", "Torso", "Torso(1 Arm)", "Torso(2 Arms)"],
+		moves:   ["Jump", "Flying", "Spinning", "Sweep"],
+		throws:  ["Arm Throw", "Leg Throw", "Shoulder Throw", "Body Throw", "Spin Throw"],
+	},
+};
+
+// Martial Lore's blind fighting, from setMartialLoreDisplayValues (sheet-worker.js:100338): one
+// point off the penalty for fighting blind per percentPerLevel of the skill, and the
+// defensive adjustment kept when blind from fullDefenseAt.
+export const MARTIAL_LORE_BLIND = {"percentPerLevel": 25, "fullDefenseAt": 100};
+
 // @END (CODE)

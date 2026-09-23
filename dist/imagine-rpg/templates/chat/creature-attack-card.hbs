@@ -27,6 +27,8 @@
 	{{/if}}
 
 	{{#if aim}}<div class="aim">Aimed at: {{aim}}</div>{{/if}}
+	{{#if situation.labels.length}}<div class="situation">Situation: {{#each situation.labels as |l|}}{{l}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
+	{{#if situation.notes.length}}<div class="situation-notes">{{#each situation.notes as |n|}}<strong>{{n}}</strong>{{#unless @last}} &middot; {{/unless}}{{/each}}</div>{{/if}}
 
 	<div class="zone zone-{{#if result.isHit}}hit{{else}}miss{{/if}}">
 		{{#if result.isFumble}}FUMBLE{{else}}{{result.zone}}{{/if}}
@@ -43,7 +45,8 @@
 	<div class="damage">
 		<span class="total">{{damage.total}}</span> {{damage.type}} damage
 		<span class="breakdown">({{damage.dice}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}
-		= {{damage.rolled}}{{#if (lt damage.multiplier 1)}}, halved for the called shot{{/if}})</span>
+		{{#if damage.maximized}}, every die at its highest{{/if}}
+		= {{damage.rolled}}{{#if (gt damage.situationMulti 1)}}, x{{damage.situationMulti}} situational{{/if}}{{#if (lt damage.multiplier 1)}}, halved{{/if}})</span>
 	</div>
 	{{/if}}
 

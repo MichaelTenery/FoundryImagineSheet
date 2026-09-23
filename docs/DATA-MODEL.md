@@ -124,6 +124,9 @@ system:
                     enduranceMax (derived: endurance x race chart multiplier),
                     damage, effect,
                     layers: { armor[], clothing[], shield[] } } ]
+    overallWounds number            # wounds to overall Endurance, not to one area -- a poison's,
+                                    # applied from its card; counted in totalWounds (and shock).
+                                    # Both actor types. Editable on the Combat tab so it can heal.
 
   movement:   walk/jog/run/special: { hourly, tenSec, oneSec }
               travelHours, restHours, jumpStand, jumpUp
@@ -208,6 +211,16 @@ combat and combatant that keep it), `combat/combat-tracker.mjs` (the tracker row
 `combat.speedSeconds`, `combat.offhandSecondsCap` and handedness off an actor to feed the clock; a
 creature's handedness for this purpose is `combat.offhandHandedness`, a character's is
 `physical.handedness`.
+
+Beside it, `flags.imagine-rpg.surprise` -- his chart's Surprise row -- is its own flag so rolling
+initiative never touches it:
+
+```
+{ seconds (1-5), spent: [{ seconds, hand, label }], carryOver }
+```
+
+null or 0 seconds is no surprise. Read by `getCombatantSurprise` in `combat/combat-document.mjs`;
+given and ended by the Game Master from the Mr. Initiative window.
 
 ### Body areas are dynamic and race-owned
 The JS builds the body from the race (`buildCharacterBody(race)`) into a repeating section, supports authoring **custom body areas** (`new_bodyarea_name/_type/_end`), and `body_transform_selection` swaps `body_type` wholesale — the fish-tail transform being a worked example.
@@ -415,6 +428,9 @@ weapon Item system:
     magicalEffects[]         string   # a spell imbued
     divineEffects[]          string   # an invocation imbued
   tempEffects[]   { id, name, kind, toHit, damage, notes, until, lasts }
+  coating         { name, poisonType, poisonPotency, form, doses } or empty -- a poison put on the
+                  weapon from its Use; a qualifying hit spends a dose and rolls the target's Poison
+                  Resistance (resolvePoisonOnVictim). An Envenomed blade holds up to five.
                  # something done to the weapon for a while -- Bless (a day) or a Game Master's
                  # own. until is the world-time it ends at, 0 meaning "until removed"; an attack
                  # ignores one whose time has passed.
