@@ -1674,3 +1674,16 @@ input.source-unknown {
 .imagine.weapon-mods .empty { color: var(--imagine-muted); padding: 4px 0; }
 .imagine.sheet .weapon-custom-tags { font-size: 10px; margin-left: 4px; }
 .imagine-chat .weapon-specials p, .weapon-specials p { margin: 3px 0; font-size: 11px; }
+
+/* ---- The version badge in every Imagine window's title bar (module/sheet-theme.mjs) ---------- */
+.imagine .window-header .imagine-version {
+	flex: 0 0 auto;
+	margin: 0 6px;
+	padding: 0 5px;
+	font-size: 10px;
+	line-height: 16px;
+	border-radius: 3px;
+	opacity: 0.75;
+	border: 1px solid currentColor;
+	white-space: nowrap;
+}

@@ -18,6 +18,12 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.18.1 — 2026-09-23
+
+**The version on every window.** Each Imagine sheet and window shows the system's version in its
+title bar, so which build is running is always in view. Turn it off in Configure Settings, "Show the
+system version on windows" (each player chooses for themselves).
+
 ## 0.18.0 — 2026-09-23
 
 **Melee and missile modifiers.** The Combat tab has a Situation Mods bar and a **Melee / Missile

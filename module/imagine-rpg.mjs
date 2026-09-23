@@ -345,6 +345,20 @@ Hooks.once("init", function () {
 		onChange: refreshOpenWindows
 	});
 
+	// @MARKER VERSION BADGE
+	// The system's version in the title bar of every Imagine window, so which build is running is
+	// always in view. Per player; on by default. See module/sheet-theme.mjs.
+	game.settings.register("imagine-rpg", "showVersion", {
+		name: "Show the system version on windows",
+		hint: "Puts the Imagine system's version (v0.18.0 and so on) in the title bar of every Imagine "
+		    + "sheet and window. Turn it off to hide it.",
+		scope: "client",
+		config: true,
+		type: Boolean,
+		default: true,
+		onChange: refreshOpenWindows
+	});
+
 	// @MARKER HANDEDNESS
 	// Handedness is ROLLED, not chosen, because that is what his sheet does: determineHandedness
 	// (sheet-worker.js:49200) rolls d100 the moment a race is applied -- 1-75 right, 76-95 left,

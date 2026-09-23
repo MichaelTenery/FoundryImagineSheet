@@ -51,6 +51,45 @@ export function applySheetTheme(tmpelement) {
 	for (const tmpclass of ALL_THEME_CLASSES) {
 		tmpelement.classList.toggle(tmpclass, tmpwanted.includes(tmpclass));
 	}
+	applyVersionBadge(tmpelement);
+}
+
+// @MARKER VERSION BADGE
+// The system's version in every Imagine window's title bar -- "v0.18.0" -- so which build a table
+// is actually running is in front of everyone without opening Foundry's setup screen. On
+// 2026-09-20 a fixed import error was reported twice from a stale install with nothing on screen to
+// tell the builds apart; this is the same answer as the console line at init, made visible. A
+// client setting, on by default, turns it off. Put on here because every Imagine window already
+// calls applySheetTheme from _onRender, so each redraw keeps it -- and removes it when turned off.
+
+// This is the function which reads the setting, on unless it says otherwise. Guarded for the same
+// reasons getSheetTheme is.
+export function getShowVersion() {
+	try {
+		return game?.settings?.get("imagine-rpg", "showVersion") ?? true;
+	} catch (tmperror) {
+		return true;
+	}
+}
+
+// This is the function which puts the badge in one window's header, or takes it out.
+export function applyVersionBadge(tmpelement) {
+	var tmpheader = tmpelement?.querySelector?.(".window-header");
+	if (!tmpheader) { return; }
+	var tmpbadge = tmpheader.querySelector(".imagine-version");
+	var tmpversion = game?.system?.version ?? "";
+	if (!getShowVersion() || !tmpversion) {
+		tmpbadge?.remove();
+		return;
+	}
+	if (!tmpbadge) {
+		tmpbadge = document.createElement("span");
+		tmpbadge.className = "imagine-version";
+		var tmptitle = tmpheader.querySelector(".window-title");
+		if (tmptitle) { tmptitle.after(tmpbadge); } else { tmpheader.prepend(tmpbadge); }
+	}
+	tmpbadge.textContent = `v${tmpversion}`;
+	tmpbadge.dataset.tooltip = `Imagine Role Playing System ${tmpversion}`;
 }
 
 // This is the function which repaints everything already on screen, for the setting's onChange.
