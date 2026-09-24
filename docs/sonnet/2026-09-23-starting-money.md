@@ -55,7 +55,7 @@ races too, from a second constant beside the first.
 Nixie and nowhere for a Human(Civilized:Village). Two checks in `tools/starting-money-test.html`
 cover the two lists.
 
-## 3. (STILL OPEN, on a task chip) The character sheet's own Fortune (and Perception, Affinity) is short
+## 3. (DONE 2026-09-23, derived from the title and class text; DECISIONS) The character sheet's own Fortune (and Perception, Affinity) is short
 
 **Not a money task, found in passing,** and offered to the user as its own chip. His
 `changeCharacteristics` (30279-30348) adds a title bonus (+1 Perception, +2 Affinity, +1 Fortune per

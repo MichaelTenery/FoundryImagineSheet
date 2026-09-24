@@ -172,7 +172,7 @@ they run in any browser. As of 2026-09-22 the figures are:
 | suite | file | checks |
 |---|---|---|
 | Combat rules | `tools/combat-test.html` | 520 |
-| Derivation (character model) | `tools/derive-test.html` | 508 |
+| Derivation (character model) | `tools/derive-test.html` | 517 |
 | Creature derivation | `tools/creature-test.html` | 158 |
 | Advancement rules | `tools/advancement-test.html` | 101 |
 | Character generation | `tools/chargen-test.html` | 83 |

@@ -18,6 +18,13 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.19.1 — 2026-09-23
+
+**Perception, Affinity and Fortune are no longer short.** They now take his per-title bonus (+1
+Perception, +2 Affinity, +1 Fortune for every title, the first included) and a class's "+5%"
+modifier, as does Endurance's "+5 Endurance". A new Mage's Fortune goes up by 6. Nothing to do: every
+character, old or new, is corrected the next time its sheet opens.
+
 ## 0.19.0 — 2026-09-23
 
 **New characters start with money.** The character generator rolls it by itself when you reach

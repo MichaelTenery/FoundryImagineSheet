@@ -5081,3 +5081,19 @@ ways, the created actor's wealth, the Review line, one apparent class). `tools/c
 89, unchanged. `tools/syntax-check.html` clean. The Details step was drawn from the real template with a
 rolled Mage: Gold 72 and the one-line account under it. **Not verified:** the window in a running V14,
 including the chat card.
+
+## Perception, Affinity and Fortune take their title and class bonuses, worked out (2026-09-23)
+
+Found while building starting money: his `changeCharacteristics` (30279-30348) adds +1 Perception,
++2 Affinity and +1 Fortune per title (from the first; a GME's title 0 gets none, 8145-8158), and 5
+for a class's "+5 Endurance" / "+5% Perception" / "+5% Affinity" / "+5% Fortune". The port added
+neither: `titleBonus` was only ever written for Endurance, and the Active Effects `item-class.mjs`
+said would carry `classMods` were never made. A title-1 Mage's Fortune read 6 short.
+
+**Worked out, not stored**, by the user's go-ahead on the recommended option: the title term is
+`title x rate` each time the character is prepared, and the class term is read off the class text his
+way. Storing and raising them, as his `class_title_*` fields do, would have needed a migration for
+every character already made, and a stored copy can drift from the title. Endurance keeps its stored
+`titleBonus`, because that one is rolled. Shown on the model as `titleAdd` and `classMod`.
+`derive-test` 517 (+7). This also makes the sheet's Fortune agree with the one the generator's
+money roll uses (`getStartingFortune`).

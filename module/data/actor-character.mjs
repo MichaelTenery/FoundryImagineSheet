@@ -1327,6 +1327,38 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this._setCharacteristic("affinity",   tmpattribs.app.value, tmpattribs.chm.value, tmpattribs.soc.value);
 		this._setCharacteristic("fortune",    tmpattribs.aur.value, tmpattribs.pty.value, tmpattribs.wil.value);
 
+		// @MARKER TITLE AND CLASS CHARACTERISTIC BONUSES
+		// The two terms of his changeCharacteristics (sheet-worker.js:30279-30348) that were never
+		// written here, so a title-1 Mage's Fortune read 6 short of his.
+		//
+		//     characteristic  per title   class modifier     his lines
+		//     Endurance       (stored)    "+5 Endurance"     30288
+		//     Perception      +1          "+5% Perception"   30306, 8156
+		//     Affinity        +2          "+5% Affinity"     30324, 8157
+		//     Fortune         +1          "+5% Fortune"      30342, 8158
+		//
+		// WORKED OUT from the title every time rather than stored and raised, as his class_title_*
+		// fields are: nothing on this port ever wrote them, so every character already made would
+		// need a migration, and a derived figure cannot drift from the title it comes from. Endurance
+		// keeps its stored titleBonus, because that one is ROLLED each title and cannot be derived.
+		// A GME has title 0 and so no title bonus, as his 8145 has it. The class modifiers are read
+		// off the class text his way, since the Active Effects item-class.mjs promised were never made.
+		var tmptitle = parseInt(this.identity?.title) || 0;
+		var tmpclassmods = this.classItems.flatMap(tmpclass => tmpclass.system.classMods ?? []);
+		var tmpextras = {
+			// characteristic   per title   class modifier text
+			endurance:  [0, "+5 Endurance"],
+			perception: [1, "+5% Perception"],
+			affinity:   [2, "+5% Affinity"],
+			fortune:    [1, "+5% Fortune"]
+		};
+		for (const [tmpname, [tmppertitle, tmpmodtext]] of Object.entries(tmpextras)) {
+			var tmpchar = this.characteristics[tmpname];
+			tmpchar.titleAdd = tmppertitle * tmptitle;
+			tmpchar.classMod = tmpclassmods.includes(tmpmodtext) ? 5 : 0;
+			tmpchar.value = tmpchar.value + tmpchar.titleAdd + tmpchar.classMod;
+		}
+
 		this.body.shock = this.characteristics.endurance.value * 3;
 	}
 

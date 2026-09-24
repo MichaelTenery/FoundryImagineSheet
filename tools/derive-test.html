@@ -1969,6 +1969,32 @@ check("...and a Formless with a valid host still raises none",
 	[hostedFormless.identity.formlessIssue, hostedFormless.identity.raceName.includes("Dwarf(Mountain)")],
 	["", true]);
 
+// --- title and class characteristic bonuses (his changeCharacteristics, 30279-30348) ----------------
+// All attributes 12, so every characteristic's base is 12.
+const mageLike = (mods, nonClassed = false) => ({ type: "class", name: "Mage",
+	system: { classType: "Primary class", attackSkillList: "", classMods: mods, nonClassed,
+	          advancement: { titles: [], goalAttr1: "", goalAttr2: "" } }, getTitleName() { return ""; } });
+const flat = Object.fromEntries(["str","agl","vit","int","wis","knw","app","chm","soc","aur","pty","wil"].map(k => [k, 12]));
+const mage1 = makeCharacter(flat, 1, [mageLike(["+30% to core skills", "+5% Fortune"])]);
+check("a title-1 Mage's Fortune is 12 + 1 for the title + 5 for the class, as the generator's money roll uses",
+	mage1.characteristics.fortune.value, 18);
+check("Perception +1 and Affinity +2 at title 1",
+	[mage1.characteristics.perception.value, mage1.characteristics.affinity.value], [13, 14]);
+const title10 = makeCharacter(flat, 10, [mageLike([])]);
+check("per title: Perception +10, Affinity +20, Fortune +10 at title 10",
+	[title10.characteristics.perception.value, title10.characteristics.affinity.value, title10.characteristics.fortune.value],
+	[22, 32, 22]);
+check("Endurance takes no derived title bonus -- its own is rolled and stored",
+	title10.characteristics.endurance.value, 12);
+check("'+5 Endurance', '+5% Perception' and '+5% Affinity' each add 5",
+	(() => { const c = makeCharacter(flat, 1, [mageLike(["+5 Endurance", "+5% Perception", "+5% Affinity"])]);
+	         return [c.characteristics.endurance.value, c.characteristics.perception.value, c.characteristics.affinity.value]; })(),
+	[17, 18, 19]);
+check("a GME, title 0, gets no title bonus",
+	makeCharacter(flat, 0, [mageLike([], true)]).characteristics.fortune.value, 12);
+check("Shock follows the class's Endurance bonus",
+	makeCharacter(flat, 1, [mageLike(["+5 Endurance"])]).body.shock, 51);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =
