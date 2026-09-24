@@ -93,14 +93,18 @@
 		<div class="char-box">
 			<label>Perception</label>
 			<span class="value">{{system.characteristics.perception.value}}%</span>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="perception" data-tooltip="Roll Perception">Roll</button>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="perception" data-double="true" data-tooltip="Roll at double Perception">Dbl</button>
 		</div>
 		<div class="char-box">
 			<label>Affinity</label>
 			<span class="value">{{system.characteristics.affinity.value}}%</span>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="affinity" data-tooltip="Roll Affinity">Roll</button>
 		</div>
 		<div class="char-box">
 			<label>Fortune</label>
 			<span class="value">{{system.characteristics.fortune.value}}%</span>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="fortune" data-tooltip="Roll Fortune">Roll</button>
 		</div>
 	</div>
 </header>

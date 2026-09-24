@@ -91,6 +91,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			openWeaponMods: ImagineCharacterSheet.#onOpenWeaponMods,
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
 			rollResistance: ImagineCharacterSheet.#onRollResistance,
+			rollCharacteristic: ImagineCharacterSheet.#onRollCharacteristic,
 			rollSkill: ImagineCharacterSheet.#onRollSkill,
 			rollWeaponAttack: ImagineCharacterSheet.#onRollWeaponAttack,
 			setWeaponHand: ImagineCharacterSheet.#onSetWeaponHand,
@@ -576,6 +577,49 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
 			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+		});
+	}
+
+	// @MARKER CHARACTERISTIC ROLL
+	// Bug report 0.18.1:1 (Blocker): the header showed Perception, Affinity and Fortune and gave no
+	// way to roll them. His sheet has ROLL buttons for all three plus a DBL for Perception
+	// (clicked:roll_perception and its siblings, sheet HTML ~99967). Endurance has none, there or here.
+	//
+	// The three-way result is the bug report's, which is newer than his handlers and goes further:
+	// his Perception and Affinity are pass/fail only, and his Fortune tests the misfortune band
+	// BEFORE the fortune band, so a chance over 50% could call a low roll misfortunate. Here the
+	// chance is tested first, as the report orders it:
+	//     roll <= chance                 -> the good result
+	//     roll >  100 - (single chance)  -> the bad result
+	//     anything else                  -> the neither result
+	// Double Perception doubles only the chance; the Inattentive band stays 100 minus the SINGLE
+	// chance, as the report writes it.
+	static CHARACTERISTIC_RESULTS = {
+		//  key                good                  bad                neither
+		perception:     [ "Perceived",          "Inattentive",     "Nothing Perceived" ],
+		affinity:       [ "Affinity ensues",    "Enmity ensues",   "Neither Affinity or Enmity" ],
+		fortune:        [ "Fortunate",          "Misfortunate",    "Neither fortunate nor misfortunate" ]
+	};
+
+	static async #onRollCharacteristic(event, target) {
+		var tmpkey = target.dataset.characteristic;
+		var tmpresults = ImagineCharacterSheet.CHARACTERISTIC_RESULTS[tmpkey];
+		if (!tmpresults) { return; }
+
+		var tmpdouble = target.dataset.double === "true";
+		var tmpbase = parseInt(this.document.system.characteristics[tmpkey]?.value) || 0;
+		var tmpchance = tmpdouble ? tmpbase * 2 : tmpbase;
+
+		var tmproll = await new Roll("1d100").evaluate();
+		var tmpoutcome = tmpresults[2];
+		if (tmproll.total <= tmpchance)           { tmpoutcome = tmpresults[0]; }
+		else if (tmproll.total > 100 - tmpbase)   { tmpoutcome = tmpresults[1]; }
+
+		var tmplabel = tmpkey.charAt(0).toUpperCase() + tmpkey.slice(1);
+		if (tmpdouble) { tmplabel = "Double " + tmplabel; }
+		await tmproll.toMessage({
+			speaker: ChatMessage.getSpeaker({ actor: this.document }),
+			flavor: `${tmplabel} Check &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
 		});
 	}
 
