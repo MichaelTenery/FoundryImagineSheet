@@ -197,6 +197,18 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 		return { list: tmplist, total: tmptotal };
 	}
 
+	// This is the function which says whether an attack has any damage to roll at all. Nothing entered
+	// and "0" are the same thing, as they are in his handleCreatureAttack: its touch branch rolls only
+	// when the damage is neither "" nor "0" (sheet-worker.js:179775), and its other branch turns "" into
+	// "0" (179920) before adding the standing damage to it. Stat blocks write "0" for a gaze or a breath
+	// that does no damage of its own, and hand entry follows them, so "0" must not be read as "0 plus
+	// the creature's Strength and weight". Anything else -- dice, a flat figure, even words -- is damage;
+	// whether it can be ROLLED is the attack's own question (Roll.validate in creature-attack.mjs).
+	export function hasCreatureAttackDamage(tmpdamage) {
+		var tmptext = String(tmpdamage ?? "").trim();
+		return !/^0*$/.test(tmptext);
+	}
+
 	// This is the function which totals the flat additions to a creature's damage, each with the
 	// label the chat card shows.
 	//
@@ -231,7 +243,7 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 	//
 	//   tmpinput = {
 	//       resolve      the attack type's resolve ("chart", "auto", "touch"), getCreatureAttackBehaviour
-	//       strength     combat.meleeDamage, signed
+	//       strength     combat.meleeDamage, already floored at 0 for a creature
 	//       weight       combat.weightDamage, already floored at 0
 	//       lore         combat.loreDamage
 	//       damageMisc   combat.damageMisc, his temporary damage modifier
@@ -275,20 +287,40 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 	//
 	// CORRECTED 2026-09-23. The port used to give a natural attack the martial MELEE to-hit and nothing
 	// else, on a reading of his handleCreatureAttack that said it took "no damage, no missile". It takes
-	// all of it:
+	// more than that, but not everything a weapon does:
+	//
 	//   to hit    a missile-kind attack (his test: the type names Missile, Glob or Bolt) adds
 	//             martial_arts_mod_missile and martial_stance_mod_missile (sheet-worker.js:179761-179762);
 	//             every other type the two melee figures (179768-179769). Here that is what
 	//             getMartialAttackModifiers lists for a missile mode (the stance's missile figure) and
 	//             for a melee one (the moves and the stance's melee figure).
-	//   damage    every attack but a Touch adds the moves', Lore values' and stance's damage
-	//             (179927-179929) WHATEVER ITS KIND -- a spat glob too -- the stance's "+1/+2 Die Dam"
-	//             (179932-179945), the moves' extra dice and damage per die (tmp_extra_dice,
-	//             tmp_extra_per_die, 179961-179968), and the martial multiplier (180003-180010). So the
-	//             damage is always read at a melee mode. The one stance with "Die Dam", Drunken
-	//             fighting, is read as damage PER die rather than an extra die, as it already is on a
-	//             character's weapon (MARTIAL_STANCE_CORRECTIONS in martial-arts.mjs: his own prose
-	//             and Mysteries of the Planes p.167 say per die).
+	//   damage    every attack but a Touch adds the moves', Lore values' and stance's FLAT damage
+	//             (martial_arts_mod_damage, martial_lore_mod_damage, martial_stance_mod_damage,
+	//             179927-179929) WHATEVER ITS KIND -- a spat glob too; the held stance's "+1/+2 Die Dam",
+	//             read from martial_stance_mod_special alone (179932-179945); and the moves' multiplier,
+	//             martial_arts_mod_damage_multi -- a Flying move's x2 (180003-180010). So the damage is
+	//             always read at a melee mode. The one stance with "Die Dam", Drunken fighting, is read
+	//             as damage PER die rather than an extra die, as it already is on a character's weapon
+	//             (MARTIAL_STANCE_CORRECTIONS in martial-arts.mjs: his own prose and Mysteries of the
+	//             Planes p.167 say per die).
+	//
+	// What it does NOT add is a MOVE's extra die or damage per die. Jump writes "+1 Die Dam" and Spinning
+	// "+2 per Die" into martial_arts_mod_special (68167, 68198), and his creature path never reads that
+	// attribute's text -- only the stance's. His weapon path (64999-65002) and his martial attacks
+	// (66742-66769) do read it, which is why a character's weapon and every martial attack take them;
+	// a creature's bite, under his code, does not. His code is followed: a creature that Jumps gets
+	// Jump's +2 to hit and +1 damage and no extra die, and a Spinning one its to-hit and no damage per
+	// die. (The port does give a character's WEAPON Jump's die, on the book's word that it "can be
+	// applied to weapon attacks as well as martial attacks" -- MARTIAL_MOVE_CORRECTIONS. A natural attack
+	// is neither, so that reason does not reach it. Provisional, 2026-09-23: see docs/DECISIONS.md, and
+	// asked of him in docs/UPSTREAM-ISSUES.md of that date.)
+	//
+	// (The tmp_extra_dice and tmp_extra_per_die his damage block ALSO reads, at 179961-179968, are not
+	// the moves at all: his own comment there is "Add dice for temporary modifiers". They are the Game
+	// Master's "Extra Damage Dice" and "Extra Damage per Die" on the modifiers page, set by
+	// setExtraCombatDamageModifiers (124608) and by Hymn: Courage (140537). The port has neither on
+	// either actor yet.)
+	//
 	// A Touch rolls d20 plus Agility alone and its bare dice (179773-179779), so it takes none of it.
 	// A Flip in progress forbids any attack, a touch included.
 	//
@@ -306,11 +338,27 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 			? getMartialAttackModifiers(tmpstate, { mode: "missile", martialAttack: false })
 			: tmpmelee;
 		tmpout.list = tmpkind.list;
-		tmpout.special = tmpkind.special;
+		tmpout.special = [...tmpkind.special];
+
+		// The dice come from the held stance alone (resolveMartialState has already emptied a Drunken
+		// stance outside its window); the flat damage and the multiplier are the moves' and stance's
+		// together, as getMartialAttackModifiers adds them.
+		var tmpstance = tmpstate?.stance;
+		var tmpmoves = tmpstate?.moves;
 		tmpout.damage = {
-			flat: tmpmelee.damage.flat, extraDice: tmpmelee.damage.extraDice,
-			perDie: tmpmelee.damage.perDie, multiplier: tmpmelee.damage.multiplier
+			flat:       tmpmelee.damage.flat,
+			extraDice:  tmpstance ? (parseInt(tmpstance.extraDice) || 0) : 0,
+			perDie:     tmpstance ? (parseInt(tmpstance.perDie) || 0) : 0,
+			multiplier: tmpmelee.damage.multiplier
 		};
+
+		// Said on the card, so the table is not left wondering where Jump's die went.
+		var tmpleftout = [];
+		if (parseInt(tmpmoves?.extraDice) || 0) { tmpleftout.push("a move's extra die"); }
+		if (parseInt(tmpmoves?.perDie) || 0) { tmpleftout.push("a move's damage per die"); }
+		if (tmpleftout.length) {
+			tmpout.special.push(`Not on a natural attack: ${tmpleftout.join(" or ")} (his creature attack reads only the stance's dice).`);
+		}
 		return tmpout;
 	}
 

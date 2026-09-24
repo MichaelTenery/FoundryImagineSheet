@@ -24,6 +24,7 @@
 import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS, CREATURE_SIZES,
          BODY_AREA_TYPES } from "../creature-tables.mjs";
 import { resolveCharacteristicRoll, readBodyChartRows, serializeBodyChart, getStockBodyChart,
+         getNewBodyAreaName, getDuplicateBodyAreaNames,
          BODY_AREA_MULTIPLIERS, moveListEntry, removeListEntry } from "../creature-sheet-rules.mjs";
 import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
@@ -298,9 +299,13 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	static #buildBodyChart(tmpsystem) {
 		var tmpstored = String(tmpsystem.body?.bodyChart ?? "").trim();
 		var tmpbodytype = tmpsystem.body?.bodyType || "Humanoid";
+		var tmprows = readBodyChartRows(tmpstored);
 		return {
 			own: !!tmpstored,
-			rows: readBodyChartRows(tmpstored).map((tmprow, tmpindex) => ({ ...tmprow, index: tmpindex })),
+			rows: tmprows.map((tmprow, tmpindex) => ({ ...tmprow, index: tmpindex })),
+			// Names two or more areas share, warned about under the editor: the body tells such areas apart
+			// only by their order ("Name (2)", parseBodyChart), so their wounds follow their places.
+			duplicates: getDuplicateBodyAreaNames(tmprows),
 			hasStock: !!getStockBodyChart(tmpbodytype),
 			isCustom: tmpbodytype == "Custom"
 		};
@@ -642,6 +647,22 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// Building and changing a creature on its own sheet. Each handler writes one field or one item;
 	// the list arithmetic is in creature-sheet-rules.mjs.
 
+	// This is the function which saves whatever has been typed into the sheet and not saved yet, before
+	// a list handler reads its list back from the creature and writes the whole list again -- the
+	// character sheet's #saveFormFirst, for the same reason (its language rows, bug sweep 2026-09-23).
+	//
+	// The sheet submits on change, but Foundry does not wait for that save (ApplicationV2._onChangeForm
+	// calls _onSubmitForm without awaiting it), and the creature's stored data only changes when the
+	// server answers. Type a skill's name and click Add: the change event sends the name as the field
+	// loses focus, the click reads the OLD list a moment later and sends it back with the new row, and
+	// the server applies the two in order -- so the name just typed disappears. Awaiting a submit of
+	// the whole form first (ApplicationV2#submit) means the list read afterwards already holds it. A
+	// form that will not save (a value the model refuses) is left to say so on its own change; the
+	// button still does what it was pressed for, as the character's does.
+	static async #saveFormFirst(tmpsheet) {
+		try { await tmpsheet.submit(); } catch (tmperr) { console.warn("imagine-rpg | the sheet could not be saved first", tmperr); }
+	}
+
 	// This is the function which puts a new attack, power or trait on the creature and opens its sheet,
 	// because a blank "New Attack" is not what anyone wanted -- its sheet is where it becomes a Bite.
 	// data-type is the item type (creatureAttack, power, trait) and data-category a trait's kind
@@ -670,6 +691,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// creature skills are (repeating_creatureskills). The row's inputs name it.
 	static async #onAddSkill(event, target) {
 		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
 		var tmpskills = [...(this.document.system._source?.skills ?? this.document.system.skills ?? [])];
 		tmpskills.push({ name: "", chance: 0 });
 		await this.document.update({ "system.skills": tmpskills });
@@ -677,6 +699,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 	static async #onRemoveSkill(event, target) {
 		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
 		var tmpskills = removeListEntry(this.document.system._source?.skills ?? this.document.system.skills,
 			target.dataset.skillIndex);
 		await this.document.update({ "system.skills": tmpskills });
@@ -686,6 +709,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// Gallop, Scurry, Slither, Fly, etc." with three rates each (HTML 81003-81007).
 	static async #onAddMovement(event, target) {
 		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
 		var tmpmodes = [...(this.document.system._source?.movement?.modes ?? this.document.system.movement?.modes ?? [])];
 		tmpmodes.push({ name: "", hourly: 0, tenSec: 0, oneSec: 0 });
 		await this.document.update({ "system.movement.modes": tmpmodes });
@@ -693,6 +717,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 	static async #onRemoveMovement(event, target) {
 		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
 		var tmpmodes = removeListEntry(this.document.system._source?.movement?.modes ?? this.document.system.movement?.modes,
 			target.dataset.index);
 		await this.document.update({ "system.movement.modes": tmpmodes });
@@ -701,6 +726,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// Up is -1, down is +1: the order is his "slowest first, special modes last".
 	static async #onMoveMovement(event, target) {
 		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
 		var tmpmodes = moveListEntry(this.document.system._source?.movement?.modes ?? this.document.system.movement?.modes,
 			target.dataset.index, target.dataset.offset);
 		await this.document.update({ "system.movement.modes": tmpmodes });
@@ -733,17 +759,22 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 	// Adding and removing an area of the creature's own chart: his ADD and REMOVE buttons on the custom
 	// body builder (22296 onward). A new area goes on the end -- his note reads "add custom body areas
-	// in order (head to feet)" -- and a Limb at x1 is the commonest thing to add.
+	// in order (head to feet)" -- and a Limb at x1 is the commonest thing to add. It is given a name no
+	// other area has ("New Area", "New Area 2", ...), because wounds are kept by area name and a repeated
+	// name is told apart only by its place in the list (getNewBodyAreaName).
 	static async #onAddBodyArea(event, target) {
 		event.preventDefault();
-		var tmprows = readBodyChartRows(this.document.system.body?.bodyChart);
-		tmprows.push({ name: "New Area", type: "Limb", multiplier: "x1" });
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmprows = readBodyChartRows(this.document.system._source?.body?.bodyChart ?? this.document.system.body?.bodyChart);
+		tmprows.push({ name: getNewBodyAreaName(tmprows), type: "Limb", multiplier: "x1" });
 		await this.document.update({ "system.body.bodyChart": serializeBodyChart(tmprows) });
 	}
 
 	static async #onRemoveBodyArea(event, target) {
 		event.preventDefault();
-		var tmprows = removeListEntry(readBodyChartRows(this.document.system.body?.bodyChart), target.dataset.index);
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmprows = removeListEntry(readBodyChartRows(this.document.system._source?.body?.bodyChart ?? this.document.system.body?.bodyChart),
+			target.dataset.index);
 		await this.document.update({ "system.body.bodyChart": serializeBodyChart(tmprows) });
 	}
 

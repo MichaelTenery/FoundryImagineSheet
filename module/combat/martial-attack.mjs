@@ -253,16 +253,20 @@ export async function rollMartialAttack(tmpactor, tmpname) {
 			tmprolls.push(tmpdmgroll);
 			tmpcardrolls.push(tmpdmgroll);
 			var tmpstr = getMartialStrengthDamage(tmpsys.combat.meleeDamage, tmpmods.damage.strength, false);
+			// Body weight, his combat_mod_dam_weight, which getMartialDamageDetails adds beside Strength
+			// (sheet-worker.js:66807-66811): signed for a character, never below 0 for a creature (82173).
+			// Either actor type's own weight, through the one table.
+			var tmpweight = CombatRules.getWeightDamageAdjust(tmpsys.physical?.weight, tmpactor.type == "creature");
 			var tmpmultipliers = [tmpmods.damage.multiplier, tmpsit.multi];
 			if (tmpdoubled) { tmpmultipliers.push(2); }
 			var tmpresolved = resolveMartialAttackDamage({
-				rolled: tmpdmgroll.total, dice: tmpdice, strength: tmpstr,
+				rolled: tmpdmgroll.total, dice: tmpdice, strength: tmpstr, weight: tmpweight,
 				flat: tmpmods.damage.flat + tmpsit.damage, perDie: tmpmods.damage.perDie + tmpsit.perDie,
 				multipliers: tmpmultipliers, skillMade: tmpskill.made,
 				halve: (tmpoptions.calledShot && !tmpentry.result.isCalledShot) || tmpsit.halfDamage
 			});
 			tmpdamage = {
-				dice: tmpdice, rolled: tmpdmgroll.total, str: tmpstr,
+				dice: tmpdice, rolled: tmpdmgroll.total, str: tmpstr, weight: tmpweight,
 				flat: tmpmods.damage.flat + tmpsit.damage, perDie: tmpresolved.perDie,
 				multiplier: tmpresolved.multiplier, halved: tmpresolved.halved, total: tmpresolved.total,
 				type: tmprow.damageType || "Smashing",

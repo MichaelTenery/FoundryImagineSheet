@@ -666,11 +666,35 @@ check("every label, in order, on anything else", C.getCreatureDamageMods({ resol
 	weight: 12, lore: 4, damageMisc: 2, martial: 3, offhand: -2, situation: 6, situational: 1 }).list.map(m => m.label),
 	["STR", "Weight", "Lore", "Damage Other", "Martial", "Off Hand", "Situational", "Modifier"]);
 
-// A small creature: his formula keeps its NEGATIVE Strength figure, and floors only the weight (the
-// provisional D3 -- the books print "Damage +0" for such creatures, which is a question for him).
+// An attack with no damage does none: nothing entered and "0" alike, as his touch branch (179775) and
+// his other branch's "" -> "0" (179920) treat them. A "0" gaze must not roll "0 + Strength + weight".
+check("a blank damage is no damage", C.hasCreatureAttackDamage(""), false);
+check("...and so is \"0\", as stat blocks write it for a gaze or a breath", C.hasCreatureAttackDamage("0"), false);
+check("...with stray spaces too", C.hasCreatureAttackDamage(" 0 "), false);
+check("...and a missing field", C.hasCreatureAttackDamage(undefined), false);
+check("dice are damage", C.hasCreatureAttackDamage("6d6"), true);
+check("a flat 1 is damage", C.hasCreatureAttackDamage("1"), true);
+check("\"10\" is damage (only a string of noughts is none)", C.hasCreatureAttackDamage("10"), true);
+
+// A small creature: his changeAttribs floors a creature's Strength to-hit and damage at 0
+// (sheet-worker.js:29694-29697, "low STR is already factored into creature melee damage modifiers"), as
+// setCombatModifierValues floors its weight. The bestiaries agree -- a Strength 7 badger is printed
+// "Melee +0, Damage +0" where the Strength table gives -2 and -4.
 const badger = makeCreature({ ratings: { str: 7 }, level: 1, weight: 25 });
-check("a Strength 7, 25 lb creature: STR -4, weight 0 (not -4), standing damage -4",
-	[badger.combat.meleeDamage, badger.combat.weightDamage, badger.combat.damageBonus], [-4, 0, -4]);
+check("a Strength 7, 25 lb creature: STR 0 (not -4), weight 0 (not -4), standing damage 0",
+	[badger.combat.meleeDamage, badger.combat.weightDamage, badger.combat.damageBonus], [0, 0, 0]);
+check("...and its Strength melee to-hit is 0, not the table's -2", badger.combat.meleeAttack, 0);
+const CFG = await import("../module/config-tables.mjs");
+check("...on the Stats tab too, where Strength's own modifiers read 0 -- and the shared table row keeps its -2 and -4",
+	[badger.attributes.str.mods.meleeAttack, badger.attributes.str.mods.meleeDamage,
+	 CFG.ATTRIBUTE_TABLES.str[7].meleeAttack, CFG.ATTRIBUTE_TABLES.str[7].meleeDamage], [0, 0, -2, -4]);
+check("a Strength 0 creature's figures stop at 0 too (the table's -8 and -12)",
+	[makeCreature({ ratings: { str: 0 }, level: 1, weight: 25 }).combat.meleeAttack,
+	 makeCreature({ ratings: { str: 0 }, level: 1, weight: 25 }).combat.meleeDamage], [0, 0]);
+check("a strong creature's figures are the table's in full (Strength 19: +2 to hit, +5 damage)",
+	[buffalo.combat.meleeAttack, buffalo.combat.meleeDamage], [2, 5]);
+check("the floor is on the parts, not the whole: a -3 temporary modifier still takes a weak creature below 0",
+	makeCreature({ ratings: { str: 7 }, level: 1, weight: 25, damageMisc: -3 }).combat.damageBonus, -3);
 check("the temporary damage modifier is in the standing figure",
 	makeCreature({ ratings: { str: 19 }, level: 1, weight: 1200, damageMisc: 3 }).combat.damageBonus, 20);
 
@@ -695,22 +719,40 @@ check("the lore to-hit is listed by name",
 // --- martial arts on a natural attack: to hit by kind, damage whatever the kind, nothing on a touch ----
 // The monk above: Strike as wind held, Jump made. His handleCreatureAttack reads the missile figures
 // for a missile-kind attack (179761-179762) and the melee ones otherwise (179768-179769), and adds the
-// martial damage to everything but a touch (179927-179945).
+// flat martial damage to everything but a touch (179927-179929). Its extra dice come from the STANCE's
+// special alone (179932-179945): a move's "+1 Die Dam" or "+2 per Die" sits in martial_arts_mod_special,
+// which that path never reads. (tmp_extra_dice at 179961 is the Game Master's temporary modifier, not a
+// move.)
+const M = await import("../module/combat/martial-arts.mjs");
 const monkMelee = C.getCreatureMartialModifiers(monk.martial.state, C.getCreatureAttackBehaviour("Melee"));
 check("a melee attack takes the stance's melee +3 and Jump's +2",
 	monkMelee.list, [{ label: "Stance (Strike as wind)", value: 3 }, { label: "Martial Moves", value: 2 }]);
-check("...and the martial damage: the stance's 3 and Jump's 1, and Jump's extra die",
-	[monkMelee.damage.flat, monkMelee.damage.extraDice], [4, 1]);
+check("...and the flat martial damage, the stance's 3 and Jump's 1 -- but not Jump's extra die",
+	[monkMelee.damage.flat, monkMelee.damage.extraDice, monkMelee.damage.perDie], [4, 0, 0]);
+check("...which the card says it left out",
+	monkMelee.special.some(s => s.startsWith("Not on a natural attack: a move's extra die")), true);
 const monkGlob = C.getCreatureMartialModifiers(monk.martial.state, C.getCreatureAttackBehaviour("Glob"));
 check("a glob takes the stance's MISSILE figure only, no moves",
 	monkGlob.list, [{ label: "Stance (Strike as wind)", value: 3 }]);
-check("...but the martial damage all the same -- his damage block does not ask the kind",
-	[monkGlob.damage.flat, monkGlob.damage.extraDice], [4, 1]);
+check("...but the flat martial damage all the same -- his damage block does not ask the kind",
+	[monkGlob.damage.flat, monkGlob.damage.extraDice], [4, 0]);
 const monkTouch = C.getCreatureMartialModifiers(monk.martial.state, C.getCreatureAttackBehaviour("Touch"));
 check("a touch takes nothing from martial arts", [monkTouch.list, monkTouch.damage],
 	[[], { flat: 0, extraDice: 0, perDie: 0, multiplier: 1 }]);
-check("Jump's extra die goes on the attack's own dice", R.getNumberOfDice(
-	(await import("../module/combat/martial-arts.mjs")).addMartialDice("6d6", monkMelee.damage.extraDice)), 7);
+check("under Jump, a natural attack rolls its own dice: 6d6 stays 6d6",
+	R.getNumberOfDice(M.addMartialDice("6d6", monkMelee.damage.extraDice)), 6);
+check("...where a character's weapon under the same Jump takes the die (the book's word, MARTIAL_MOVE_CORRECTIONS)",
+	M.getMartialAttackModifiers(monk.martial.state, { mode: "smash", martialAttack: false }).damage.extraDice, 1);
+const spinState = M.resolveMartialState({ stance: "", activeMoves: "Spinning", hasLore: false });
+check("Spinning's +2 per die does not reach a natural attack",
+	C.getCreatureMartialModifiers(spinState, C.getCreatureAttackBehaviour("Melee")).damage.perDie, 0);
+check("...though it reaches a weapon", M.getMartialAttackModifiers(spinState, { mode: "smash" }).damage.perDie, 2);
+const flyState = M.resolveMartialState({ stance: "", activeMoves: "Flying", hasLore: false });
+check("a Flying move's x2 does reach a natural attack -- martial_arts_mod_damage_multi (180003-180010)",
+	C.getCreatureMartialModifiers(flyState, C.getCreatureAttackBehaviour("Melee")).damage.multiplier, 2);
+const drunkState = M.resolveMartialState({ stance: "Drunken fighting", mastered: "", activeMoves: "", intoxication: 1 });
+check("the held stance's dice do: Drunken fighting's +1 per die (read per die, as on a weapon)",
+	C.getCreatureMartialModifiers(drunkState, C.getCreatureAttackBehaviour("Melee")).damage.perDie, 1);
 check("no martial arts at all is no martial anything",
 	C.getCreatureMartialModifiers(undefined, C.getCreatureAttackBehaviour("Melee")),
 	{ noAttack: false, noAttackReason: "", list: [], special: [], damage: { flat: 0, extraDice: 0, perDie: 0, multiplier: 1 } });
@@ -771,8 +813,22 @@ check("Fortune reads fortunate / misfortunate / neither",
 	["Fortunate", "Neither fortunate nor misfortunate", "Misfortunate"]);
 check("Affinity's words", S.resolveCharacteristicRoll("affinity", 30, 10, false, 0).outcome, "Affinity ensues");
 check("a characteristic it does not know gives nothing", S.resolveCharacteristicRoll("endurance", 30, 10), null);
-check("the same words as the character sheet's table",
-	Object.keys(S.CHARACTERISTIC_RESULTS), ["perception", "affinity", "fortune"]);
+// The words themselves, as literals -- a changed word in the table fails here.
+check("the three answers of each roll, word for word", S.CHARACTERISTIC_RESULTS, {
+	perception: ["Perceived", "Inattentive", "Nothing Perceived"],
+	affinity:   ["Affinity ensues", "Enmity ensues", "Neither Affinity or Enmity"],
+	fortune:    ["Fortunate", "Misfortunate", "Neither fortunate nor misfortunate"] });
+// The character sheet still keeps its own copy (ImagineCharacterSheet.CHARACTERISTIC_RESULTS) until the
+// Sonnet note's item 3 makes it call resolveCharacteristicRoll. The sheet class cannot be imported without
+// Foundry, so its table is read out of the source text and compared, which keeps the two copies from
+// drifting apart in the meantime.
+const charSheetText = await (await fetch("../module/sheets/actor-character-sheet.mjs")).text();
+const charTableText = (charSheetText.match(/static CHARACTERISTIC_RESULTS = \{([\s\S]*?)\};/) ?? [])[1] ?? "";
+const charTable = {};
+for (const [, key, row] of charTableText.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {
+	charTable[key] = [...row.matchAll(/"([^"]*)"/g)].map(m => m[1]);
+}
+check("the same words as the character sheet's own table, read from its source", charTable, S.CHARACTERISTIC_RESULTS);
 
 // --- the body chart, as rows and back -----------------------------------------------------------------
 // Every stock chart must come back from rows exactly as it went in, so opening the editor never
@@ -799,6 +855,31 @@ check("Custom has no stock chart to copy", [S.getStockBodyChart("Custom"), S.get
 const ownChart = makeCreature({ bodyType: "Custom", endurance: 20,
 	bodyChart: S.serializeBodyChart([{ name: "Core", type: "Vital", multiplier: "x2" }, { name: "Pseudopod", type: "Limb", multiplier: "x1/2" }]) });
 check("a chart built in the editor is the creature's body", ownChart.body.areas.map(a => [a.name, a.endurance]), [["Core", 40], ["Pseudopod", 10]]);
+
+// Area names. Wounds are kept by name, and a repeated name is told apart only by its place ("Name (2)",
+// parseBodyChart), so the editor's Add gives each new area a name of its own, and a name two areas share
+// is warned about -- never renamed, since his own Segmented Worm repeats two.
+const coreRows = [{ name: "Core" }, { name: "New Area" }, { name: "New Area 2" }];
+check("a new area is called New Area while no area has that name", S.getNewBodyAreaName([{ name: "Core" }]), "New Area");
+check("...then New Area 2, 3 and on -- the first free number", S.getNewBodyAreaName(coreRows), "New Area 3");
+check("clicking Add twice gives two different names", (() => {
+	const rows = [{ name: "Core" }];
+	rows.push({ name: S.getNewBodyAreaName(rows) });
+	rows.push({ name: S.getNewBodyAreaName(rows) });
+	return rows.map(r => r.name);
+})(), ["Core", "New Area", "New Area 2"]);
+check("a name shared by two areas is found, once, as it will be written",
+	S.getDuplicateBodyAreaNames([{ name: "Tentacle" }, { name: "Tentacle." }, { name: "Tentacle" }, { name: "Maw" }]), ["Tentacle"]);
+check("his Segmented Worm repeats Left Foot12 and Right Foot12, and is left as it is",
+	S.getDuplicateBodyAreaNames(S.readBodyChartRows(T.BODY_CHARTS["Segmented Worm"])), ["Left Foot12", "Right Foot12"]);
+check("no stock chart but the worm has a shared name",
+	Object.entries(T.BODY_CHARTS).filter(([type, chart]) => S.getDuplicateBodyAreaNames(S.readBodyChartRows(chart)).length).map(([type]) => type),
+	["Segmented Worm"]);
+const twinChart = makeCreature({ bodyType: "Custom", endurance: 20,
+	bodyChart: "Core(Vital:x1),Tentacle(Limb:x1/2),Tentacle(Limb:x1/2)", wounds: { Tentacle: 4 } });
+check("two areas of one name are two areas, the second 'Tentacle (2)', each counted once in the total",
+	[twinChart.body.areas.map(a => [a.name, a.wounds]), twinChart.body.totalWounds],
+	[[["Core", 0], ["Tentacle", 4], ["Tentacle (2)", 0]], 4]);
 
 // --- list rows: movement modes up, down and out ---------------------------------------------------------
 const modes = ["Walk", "Run", "Fly"];

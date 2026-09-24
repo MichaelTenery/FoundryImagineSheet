@@ -17,7 +17,7 @@ import { resolveAttack, resolveFumble, resolveOffhandPenalties, combineDamageMul
 import {
 	getCreatureAttackBehaviour, getAreaAttackSize, resolveTouchAttack,
 	getCreatureToHitModifiers, getCreatureDamageMods, getTriggeredEffects, getCreatureAttackSeconds,
-	getCreatureMartialModifiers } from "./creature-rules.mjs";
+	getCreatureMartialModifiers, hasCreatureAttackDamage } from "./creature-rules.mjs";
 import { getActionHand } from "./round-rules.mjs";
 import { findActorCombatant } from "./combat-document.mjs";
 
@@ -246,22 +246,26 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	// does not halve it, though his character path and the book both do -- recorded in
 	// docs/UPSTREAM-ISSUES.md item 15 -- and the two actor types are kept consistent here.
 	//
-	// An attack with no damage entered does none, whatever its modifiers. His code turns a blank damage
-	// into "0" and still adds combat_mod_damage to it (179919-179925), so a creature's damage-less gaze
-	// would do its Strength and weight in damage -- +17 for a buffalo's stare. That cannot be meant, and
-	// the port has never done it; it is part of the question put to him about which attacks the
-	// standing damage belongs on (docs/UPSTREAM-ISSUES.md, 2026-09-23).
+	// An attack with no damage -- nothing entered, or "0" -- does none, whatever its modifiers
+	// (hasCreatureAttackDamage). His code treats the two alike: its touch branch rolls only when the
+	// damage is neither "" nor "0" (179775), and its other branch turns "" into "0" (179920). It then
+	// still adds combat_mod_damage to that "0" (179919-179925), so a creature's damage-less gaze would do
+	// its Strength and weight in damage -- +17 for a buffalo's stare. That cannot be meant, and the port
+	// has never done it; it is part of the question put to him about which attacks the standing damage
+	// belongs on (docs/UPSTREAM-ISSUES.md, 2026-09-23).
 	var tmpdamage = null;
+	var tmphasdamage = hasCreatureAttackDamage(tmpa.damage);
 	// A damage that is not dice ("2d6 poison", "special") is not handed to Roll, which would throw
 	// after the attack was rolled and post nothing; the card says the table settles it. Tested on the
 	// damage as entered, before any martial die is added to it.
 	var tmpdicenote = "";
-	if (tmpresult.isHit && tmpa.damage && !Roll.validate(tmpa.damage)) {
+	if (tmpresult.isHit && tmphasdamage && !Roll.validate(tmpa.damage)) {
 		tmpdicenote = `The damage "${tmpa.damage}" is not a dice roll; the table settles it.`;
 	}
-	if (tmpresult.isHit && tmpa.damage && !tmpdicenote) {
-		// A stance's or a move's extra dice (his "+1 Die Dam"), which then count for everything worked
-		// out per die below. A flat damage figure takes none -- see addMartialDice.
+	if (tmpresult.isHit && tmphasdamage && !tmpdicenote) {
+		// The held stance's extra dice (his "+1 Die Dam" in martial_stance_mod_special -- never a move's,
+		// see getCreatureMartialModifiers), which then count for everything worked out per die below. A
+		// flat damage figure takes none -- see addMartialDice.
 		var tmpdice = addMartialDice(tmpa.damage, tmpmartialdamage.extraDice);
 		var tmpdammods = getCreatureDamageMods({
 			resolve: tmpbehaviour.resolve,

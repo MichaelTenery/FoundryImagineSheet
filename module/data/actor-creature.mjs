@@ -435,6 +435,32 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 			var tmptable = ATTRIBUTE_TABLES[tmpkey];
 			tmpattrib.mods = (tmptable && tmptable[tmpattrib.value]) ? tmptable[tmpattrib.value] : {};
 		}
+
+		// Strength's melee to-hit and melee damage, NEVER BELOW 0 for a creature -- his changeAttribs
+		// (sheet-worker.js:29694-29697), which floors them as it sets str_melee_attack and
+		// str_melee_damage themselves, so his creature page shows the 0 as well:
+		//
+		//     tmpSTRtoHitMelee=setIntLowBounds(tmpSTRtoHitMelee, 0);   // low STR is already factored into
+		//                                                               // creature to hit melee modifiers.
+		//     tmpSTRMeleeDamage=setIntLowBounds(tmpSTRMeleeDamage, 0); // low STR is already factored into
+		//                                                               // creature melee damage modifiers.
+		//
+		// A weak creature's bite is already small on its stat block; the Strength table's penalty would
+		// count its weakness twice. The bestiaries print the same: a badger of Strength 7 is "Melee +0,
+		// Damage +0" (Aspects of the Wild), where the table gives -2 and -4. His test there reads the worker
+		// global tmpCreatureType, which changeAttribs fetches creature_type for but never assigns
+		// (29648) -- other creature handlers set it -- and his comments leave no doubt what it is for
+		// (recorded for him in docs/UPSTREAM-ISSUES.md, 2026-09-23, so the variable can be set there).
+		// Everything built on these takes the floor with them: combat.meleeAttack and meleeDamage, so the
+		// natural attack's to-hit and damage, and a creature's martial attacks (martial-attack.mjs reads the
+		// same two). A copy is floored, never the shared table row. A character keeps the table's signed
+		// figures (actor-character.mjs).
+		var tmpstrrow = this.attributes.str?.mods;
+		if (tmpstrrow) {
+			this.attributes.str.mods = { ...tmpstrrow,
+				meleeAttack: Math.max(0, parseInt(tmpstrrow.meleeAttack) || 0),
+				meleeDamage: Math.max(0, parseInt(tmpstrrow.meleeDamage) || 0) };
+		}
 	}
 
 	// This is the function which works out the four characteristics.
@@ -607,6 +633,8 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this.combat.weaponSpeedMod = (parseInt(tmpstrmods.weaponSpeed) || 0)
 		                           + (parseInt(tmpaglmods.weaponSpeed) || 0) + tmparmorspeed;
 
+		// Strength's two melee figures, already floored at 0 for a creature (_prepareAttributes, his
+		// changeAttribs at sheet-worker.js:29694-29697).
 		this.combat.meleeAttack   = parseInt(tmpstrmods.meleeAttack) || 0;
 		this.combat.meleeDamage   = parseInt(tmpstrmods.meleeDamage) || 0;
 		this.combat.missileAttack = parseInt(tmpaglmods.missileAttack) || 0;
@@ -616,7 +644,8 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		// The creature's standing damage figure, his combat_mod_damage (setCombatModifierValues,
 		// sheet-worker.js:82167, the damage lines at 82309-82322):
 		//
-		//     Strength's melee damage   off the Strength table, SIGNED -- STR 7 is -4
+		//     Strength's melee damage   off the Strength table, floored at 0 for a creature (29697,
+		//                               _prepareAttributes)
 		//     body weight               getWeightDamageAdjust, floored at 0 for a creature (82173)
 		//     Weapon Lore               +4 while the creature holds the skill (82262-82290)
 		//     the temporary modifier    combat.damageMisc, his tmp_damage_mod
@@ -624,12 +653,12 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		// His handleCreatureAttack adds it to every natural attack but a Touch (179920-179929). Before
 		// 2026-09-23 the port gave a creature none of it, on a misreading that "the dice on the stat block
 		// are the whole of it" -- the books' own stat lines print "Damage +17" for a 1,200 lb buffalo of
-		// Strength 19, which is 5 + 12. See the CORRECTION in docs/DECISIONS.md of that date.
+		// Strength 19, which is 5 + 12. See the CORRECTION in docs/DECISIONS.md, 2026-09-23.
 		//
-		// A small creature's NEGATIVE Strength figure is kept, as his formula keeps it: only the weight
-		// part has his floor. The books print "Damage +0" for such creatures, which suggests a floor he
-		// did not write; that is a question for him (docs/UPSTREAM-ISSUES.md, 2026-09-23), and until he
-		// answers the sheet is followed -- the provisional D3 of the creature audit.
+		// Both of the first two parts stop at 0, so a weak, light creature's attack does its dice and no
+		// less, until a temporary modifier says otherwise. (The creature audit's D3 once read his
+		// formula as keeping a NEGATIVE Strength figure -- Badger, Strength 7, -4. It missed the floor at
+		// 29694-29697, which _prepareAttributes now applies. Corrected 2026-09-23 before it shipped.)
 		this.combat.weightDamage = getWeightDamageAdjust(this.physical?.weight, true);
 
 		// Weapon Lore and Missile Lore, held at all, are worth the general figures (LORE_GENERAL): +2 to

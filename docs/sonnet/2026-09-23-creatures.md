@@ -5,23 +5,34 @@ on the creature side. The rules are in `module/creature-sheet-rules.mjs` (new),
 `module/combat/creature-rules.mjs` (`getCreatureDamageMods`, `getCreatureMartialModifiers`) and
 `module/combat/combat-rules.mjs` (`getWeightDamageAdjust`, `getShockBar`). The sheet is
 `module/sheets/actor-creature-sheet.mjs` (@MARKER AUTHORING). Tests are in `tools/creature-test.html`
-(223). See `docs/DECISIONS.md`, "Creatures can be built on their sheet, and hit as hard as his sheet
-says (2026-09-23)".
+(249) and `tools/martial-test.html` (188). See `docs/DECISIONS.md`, "Creatures can be built on their
+sheet, and hit as hard as his sheet says (2026-09-23)".
 
 **Already decided, do not re-open.** Each of these is provisional until the user confirms, but a Sonnet
 pass should build on it as it stands:
 - D2. Strength, body weight, Weapon Lore's +4 and the temporary modifier go on every natural attack
   except a Touch. That includes breath, gaze and area attacks, as `handleCreatureAttack` does. An attack
-  with no damage entered does no damage.
-- D3. A small creature's negative Strength figure stands. Only the weight part is floored at 0.
+  with no damage, either blank or "0", does no damage (`hasCreatureAttackDamage`).
+- D3 (corrected in review, 2026-09-23). A creature's Strength melee to-hit and melee damage are **floored
+  at 0**, as its weight is. His `changeAttribs` does it (sheet-worker.js:29694-29697), and the books agree:
+  the Strength 7 badger is printed "Melee +0, Damage +0". The first reading, that the negative figure
+  stands, missed those lines. A character keeps the signed figures.
 - D4. The errata hide cap is a sheet warning. `body.hide` is never clamped in derivation.
 - D6. `identity.size` uses the Master's Manual p.295 list (`CREATURE_SIZES`). Blank means not given.
 - D7. The sheet is edited in place. His Configurator stage-then-Finish flow is not ported.
 - D9. The token bar is `body.shockBar`, which is Shock minus total wounds, on both actor types.
-- Martial arts on a natural attack: the to-hit follows the attack's kind, the damage applies whatever
-  the kind, and a Touch gets nothing. This corrects DECISIONS 2026-09-22.
+- Martial arts on a natural attack: the to-hit follows the attack's kind, and the flat damage, the
+  moves' multiplier and the held STANCE's dice apply whatever the kind. A MOVE's extra die (Jump) or damage
+  per die (Spinning) does not reach a natural attack: his creature path reads only
+  `martial_stance_mod_special` for dice. A Touch gets nothing. This corrects DECISIONS 2026-09-22.
+- Martial attacks (a Martial Punch) add body weight beside Strength on both actor types, as his
+  `getMartialDamageDetails` does: signed for a character, floored for a creature.
 - A creature's Weapon Lore and Missile Lore give the general figures if the creature holds the skill by
   its exact name at level 1 or higher.
+- The body chart editor's Add names each new area uniquely ("New Area", "New Area 2"), and the sheet
+  warns about a name two areas share. It never renames one: his Segmented Worm repeats two names.
+- Every list handler on the creature sheet saves the form first (`#saveFormFirst`, the character sheet's
+  pattern), so a name typed and then Add clicked is not lost.
 
 ## 1. The character's melee weapon damage gains the signed body-weight term
 
@@ -38,6 +49,10 @@ is tested against his `getWeightDamageAdj` at every pound from 0 to 12,000.
 **Done looks like.** Two checks in `tools/combat-test.html`: a 60 lb Midfolk's melee damage carries -2,
 and its missile damage carries 0. Light characters (Fairy -4, Midfolk -2, Elf -1) hit a little softer
 and heavy ones harder, as the Player's Guide p.179 table says. Add a CHANGELOG line.
+
+**Already done for martial attacks.** `resolveMartialAttackDamage` takes a `weight` input, and
+`martial-attack.mjs` passes `getWeightDamageAdjust(physical.weight, actor.type == "creature")`. The weapon
+path is the only one left.
 
 ## 2. The Modifiers panel on the character sheet (G13, character side)
 
@@ -63,7 +78,9 @@ ROLL). Make the character's `#onRollCharacteristic` call `resolveCharacteristicR
 table. While there, add the shift-click modifier the creature's buttons have (his `+mod` buttons).
 
 **Done looks like.** Nothing in the character's chat output changes except the optional modifier
-wording. `grep CHARACTERISTIC_RESULTS module` finds one definition.
+wording. `grep CHARACTERISTIC_RESULTS module` finds one definition. Then delete the creature-test check
+"the same words as the character sheet's own table, read from its source": it reads the character
+sheet's source text to keep the two copies alike only until there is one.
 
 ## 4. A "Paste list" for creature skills
 
@@ -125,5 +142,14 @@ These need judgement or a decision first, so do not pick them up as Sonnet work:
 - Body-area rolls (G14), grappling (G15), and race-to-creature conversion (G16).
 - The size rules the new field could drive (Master's Manual p.127: Bear Hug, Smash, Squish).
 - Clamping the hide cap on imported data (D4's second half belongs to the importer).
-- Whether a creature's martial ATTACKS (`rollMartialAttack`, a Martial Punch) should also take the weight
-  term. His `getMartialDamageDetails` was not checked for it in this pass.
+- The Game Master's temporary **Extra Damage Dice** and **Extra Damage per Die** (his `tmp_extra_dice` and
+  `tmp_extra_per_die`, HTML 56600-56601 and 91911-91912). Every one of his attack paths reads them,
+  the creature's at 179961-179968, and Hymn: Courage raises the per-die one (140537-140546). Neither actor
+  has them in the port. This is not mechanical, because his own code has two slips here:
+  `setExtraCombatDamageModifiers` reads the per-die INPUT from `tmp_extra_dice_input` (124615), and his
+  martial damage multiplies the per-die figure by the die's SIDES, not the number of dice (66758, 66956).
+  Both are asked of him in UPSTREAM-ISSUES.
+- Renaming a body area starts its wound count again. The sheet says so under the editor. Carrying the
+  wounds across a rename would need `_processFormData` to match old rows to new. A repeated name is
+  also keyed by its place ("Tentacle (2)", `parseBodyChart`), so removing the first shifts the rest.
+  Decide how before building it.

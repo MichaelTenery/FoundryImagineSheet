@@ -1724,6 +1724,8 @@ input.source-unknown {
 .imagine.sheet .body-chart-editor .col-row-actions { width: 1%; white-space: nowrap; text-align: right; }
 .imagine.sheet .body-chart-editor input[type="text"],
 .imagine.sheet .body-chart-editor select { width: 100%; box-sizing: border-box; height: 22px; }
+.imagine.sheet .body-chart-warning,
+.imagine.sheet .body-chart-note { margin: 2px 0 6px; font-size: 11px; }
 .imagine.sheet .creature-modifiers-toggle {
 	width: auto; padding: 0 6px; border: none; background: none;
 	font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit;

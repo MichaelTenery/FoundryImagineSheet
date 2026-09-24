@@ -23,7 +23,7 @@
 		<div class="char-box"><label>Initiative</label>
 			<span class="value">d10 {{#if (gte system.combat.initiativeMod 0)}}+{{/if}}{{system.combat.initiativeMod}}</span>
 			<span class="sub">lower acts first</span></div>
-		{{!-- His combat_mod_damage, which every natural attack but a Touch adds: Strength (signed),
+		{{!-- His combat_mod_damage, which every natural attack but a Touch adds: Strength (never below 0),
 		      body weight (never below 0 for a creature), Weapon Lore's +4 and the Game Master's
 		      modifier. The bestiaries print the same figure as "Damage +N" in a stat line. --}}
 		<div class="char-box"><label>Damage</label>
@@ -257,6 +257,15 @@
 			{{/each}}
 		</tbody>
 	</table>
+	{{!-- Wounds are kept by area NAME (system.body.wounds.<name>). A repeated name is read as a second
+	      area, "Name (2)" (parseBodyChart), whose wounds follow its place in the list rather than the
+	      area; and a renamed area starts its count again. Warned about, as the hide cap is, and never
+	      renamed for the Game Master: his own Segmented Worm chart repeats two names. --}}
+	{{#if bodyChart.duplicates.length}}
+	<p class="alarm body-chart-warning">More than one area is called {{#each bodyChart.duplicates as |n|}}<strong>{{n}}</strong>{{#unless @last}}, {{/unless}}{{/each}}:
+		the body tells them apart as "(2)", "(3)" by their order, so removing or renaming one moves the others' wounds. Give each area its own name.</p>
+	{{/if}}
+	<p class="muted body-chart-note">Wounds are kept by area name: renaming an area starts its count again.</p>
 	{{/if}}
 	<table class="body-table">
 		<thead>

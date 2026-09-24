@@ -35,7 +35,7 @@
 	{{#if damage}}
 	<div class="damage">
 		<span class="total">{{damage.total}}</span> {{damage.type}} damage
-		<span class="breakdown">({{damage.dice}} = {{damage.rolled}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.flat}} {{#if (gt damage.flat 0)}}+{{/if}}{{damage.flat}} martial/situation{{/if}}{{#if damage.perDie}} {{#if (gt damage.perDie 0)}}+{{/if}}{{damage.perDie}} per die{{/if}}{{#if (gt damage.multiplier 1)}} &times;{{damage.multiplier}}{{/if}}{{#if damage.halved}}, halved{{/if}})</span>
+		<span class="breakdown">({{damage.dice}} = {{damage.rolled}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.weight}} {{#if (gt damage.weight 0)}}+{{/if}}{{damage.weight}} weight{{/if}}{{#if damage.flat}} {{#if (gt damage.flat 0)}}+{{/if}}{{damage.flat}} martial/situation{{/if}}{{#if damage.perDie}} {{#if (gt damage.perDie 0)}}+{{/if}}{{damage.perDie}} per die{{/if}}{{#if (gt damage.multiplier 1)}} &times;{{damage.multiplier}}{{/if}}{{#if damage.halved}}, halved{{/if}})</span>
 		{{#if doubled}}<span class="breakdown">Both blows landed and the skill was made: damage doubled.</span>{{/if}}
 	</div>
 	{{/if}}

@@ -50,7 +50,8 @@ import { BODY_AREA_TYPES, HIDE_CAP, HIDE_CAP_EXEMPT_TYPES, HIDE_CAP_EXEMPT_SIZES
 	//
 	// Double Perception doubles only the chance -- his roll_creature_per_dbl (24530), "if (chance>0)
 	// { chance=chance*2; }" -- and the bad band stays 100 minus the SINGLE chance, as the character's
-	// does. A modifier (his Affinity and Fortune "+mod" buttons, 24571 and 24619, a shift-click here) is
+	// does. (The character sheet doubles without the "above 0" test. The answer cannot differ: a chance
+	// of 0 or less is never rolled under, doubled or not.) A modifier (his Affinity and Fortune "+mod" buttons, 24571 and 24619, a shift-click here) is
 	// added to the single chance before anything else, as his "chance=chance+tempmod" is, so it moves
 	// the bad band too.
 	//
@@ -190,13 +191,53 @@ import { BODY_AREA_TYPES, HIDE_CAP, HIDE_CAP_EXEMPT_TYPES, HIDE_CAP_EXEMPT_SIZES
 	export function serializeBodyChart(tmpRows) {
 		var tmpParts = [];
 		for (const tmpRow of tmpRows ?? []) {
-			var tmpName = String(tmpRow?.name ?? "").replace(/[,().]/g, " ").replace(/\s+/g, " ").trim();
+			var tmpName = cleanBodyAreaName(tmpRow?.name);
 			if (!tmpName) { continue; }
 			var tmpKind = BODY_AREA_TYPES.includes(tmpRow?.type) ? tmpRow.type : "Limb";
 			var tmpMulti = BODY_AREA_MULTIPLIERS.some(([tmpLabel]) => tmpLabel == tmpRow?.multiplier) ? tmpRow.multiplier : "x1";
 			tmpParts.push(`${tmpName}(${tmpKind}:${tmpMulti})`);
 		}
 		return tmpParts.join(",");
+	}
+
+	// This is the function which cleans one area's name the way serializeBodyChart writes it: no comma,
+	// bracket or full stop, single spaces, trimmed.
+	function cleanBodyAreaName(tmpName) {
+		return String(tmpName ?? "").replace(/[,().]/g, " ").replace(/\s+/g, " ").trim();
+	}
+
+	// This is the function which gives a name for a new area that no area of the chart has yet: "New
+	// Area", then "New Area 2", "New Area 3" and on. The port keeps each area's wounds BY NAME
+	// (system.body.wounds.<name>), and parseBodyChart tells a repeated name apart only by its place --
+	// "New Area", "New Area (2)" -- so two areas added under one name are two areas whose wound records
+	// move if the first is removed or renamed. His builder keeps each area in its own repeating row and
+	// never had the problem.
+	export function getNewBodyAreaName(tmpRows, tmpStem) {
+		var tmpBase = cleanBodyAreaName(tmpStem) || "New Area";
+		var tmpTaken = new Set((tmpRows ?? []).map(tmpRow => cleanBodyAreaName(tmpRow?.name)));
+		if (!tmpTaken.has(tmpBase)) { return tmpBase; }
+		var tmpNumber = 2;
+		while (tmpTaken.has(`${tmpBase} ${tmpNumber}`)) { tmpNumber = tmpNumber + 1; }
+		return `${tmpBase} ${tmpNumber}`;
+	}
+
+	// This is the function which lists the names more than one row of a chart carries, once each and as
+	// they will be written -- for the sheet to warn about, as it warns about the hide cap. The body reads
+	// them as separate areas, the second "Name (2)" and so on (parseBodyChart), each with its own wounds;
+	// but those records are keyed by place, so removing or renaming the first moves the rest's wounds
+	// onto the wrong area. Nothing is renamed for the Game Master: his own Segmented Worm chart repeats
+	// "Left Foot12" and "Right Foot12", and a round trip through the editor must leave his charts as
+	// they are.
+	export function getDuplicateBodyAreaNames(tmpRows) {
+		var tmpSeen = new Set();
+		var tmpDuplicates = [];
+		for (const tmpRow of tmpRows ?? []) {
+			var tmpName = cleanBodyAreaName(tmpRow?.name);
+			if (!tmpName) { continue; }
+			if (tmpSeen.has(tmpName) && !tmpDuplicates.includes(tmpName)) { tmpDuplicates.push(tmpName); }
+			tmpSeen.add(tmpName);
+		}
+		return tmpDuplicates;
 	}
 
 	// This is the function which gives the stock chart string for a body type -- what his Configurator

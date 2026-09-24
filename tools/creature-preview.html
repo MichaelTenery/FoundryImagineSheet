@@ -203,7 +203,8 @@ const skillRows = creature.skills.map((s, i) => ({ index: i, name: s.name, chanc
 // Kept in sync with #buildMovementRows, #buildBodyChart and #buildModifierRows in actor-creature-sheet.mjs.
 const movementRows = creature.movement.modes.map((m, i, all) => ({ index: i, ...m, first: i == 0, last: i == all.length - 1 }));
 const bodyChart = { own: !!creature.body.bodyChart, hasStock: true, isCustom: false,
-	rows: S.readBodyChartRows(creature.body.bodyChart).map((r, i) => ({ ...r, index: i })) };
+	rows: S.readBodyChartRows(creature.body.bodyChart).map((r, i) => ({ ...r, index: i })),
+	duplicates: S.getDuplicateBodyAreaNames(S.readBodyChartRows(creature.body.bodyChart)) };
 const modifiers = {
 	attributes: Object.keys(ratings).map(k => ({ key: k, label: k, permMod: 0, tempMod: k == "str" ? 1 : 0 })),
 	characteristics: ["endurance", "perception", "affinity", "fortune"].map(k => ({ key: k, label: k, tempMod: 0 })),
