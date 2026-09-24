@@ -6174,3 +6174,18 @@ Two sessions built magic casting at the same time. The one the user asked for is
 - The changed templates compile and render.
 
 **Not verified:** anything needing a running Foundry V14.
+
+## His comments on casting (2026-09-24)
+
+He read a summary of the magic work and sent notes. Two lines in it confused him. They were notes on merging the two magic branches, not rules questions: "the Aura and Piety fields ... rather than adding duplicates" meant the parallel branch's stored fields, and "the creature-damage branch may conflict" meant a git merge conflict with `wip/creatures`. **Lesson: anything that may reach him is written in rules terms, with no git or field-name vocabulary.** Both were settled by the reconcile before he saw them.
+
+What he said, and whether the port already agrees:
+- **Aura is chosen per cast, up to Aura Control; Aura Reach allows 1 over.** Agrees. Cast asks "Aura to put in" and refuses more than Aura Control, +2 for a mastered spell (his useSpell). Aura Reach is spell tuning, not built yet (`docs/sonnet/2026-09-24-casting.md` item 4). His useSpell gives it +1 Aura on an Aura save, with a Fortune roll for the burnt Aura.
+- **An invocation always goes off at Piety Control, never below.** Agrees. Invoke asks no amount; it uses Piety Control plus his "Piety Level Modifier (Raiment, etc.)" box, as his useInvocation does.
+- **Spell damage and creature damage "use different methods" and do not conflict.** Agrees. What a spell does is his doSpellAction, and a creature's damage is his creature code. They share only the port's own last step, putting a hit onto the target (`applyBlowToActor`), which his sheet left to the table.
+- **Magic switches split by type of magic.** Confirms the 21 switches.
+- **Sleep fills the pool, Drain subtracts, Regen weighs the time against the regeneration rate.** Agrees. Sleep also takes a day from every memorized spell, as his subtractDayFromAllSpells does.
+- **"Refill adds."** His sheet's REFILL gives a full pool. Whether he means that or an amount typed in is asked as UPSTREAM 104. Meanwhile the button keeps his sheet's behaviour and is relabelled from "Reset pool" to his word, Refill.
+- **Casting is a pool (Aura, Aura Control, Aura Pool), not Vancian slots.** That is how it is built.
+
+No rule changed.

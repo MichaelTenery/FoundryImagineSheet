@@ -2059,7 +2059,7 @@ it is one line in `getAuraControl` (module/casting-rules.mjs).
 minutes and per minute. Your slowest rate, "1/per Hour" (practitioner title 0), has no branch, so eight
 hours of rest regenerate nothing and the message says "Not enough time passed". **What the port does:**
 counts it, one point an hour times the rate's number, which is what the rate says
-(`regenAuraByTime`). The Reset pool button does what a full night's rest does either way.
+(`regenAuraByTime`). The Refill button does what a full night's rest does either way.
 
 ## 73. Raging and Continuous Chaos never cast a spell of two words
 
@@ -2571,3 +2571,16 @@ So a class that starts invoking above title 1 jumps by twice its figure on the n
 **Where:** sheet-worker.js:161955 and 161962. The over-Aura-Control lines print (tmpAC-tempSpellAura), so a caster with Aura Control 5 who puts in 8 is told "Reduce 8 by -3".
 
 **What the port does:** prints the Aura put in less the Aura Control ("Reduce 8 by 3"), as his sentence evidently means (casting-rules.mjs performSpellCast, overControl). Reported as a plain slip; nothing else changes.
+
+## 104. Refill: back to full, or a chosen amount added?
+
+**Status:** open · **Severity:** question; which of two ways one pool button works
+
+**Where:**
+- His comment, 2026-09-24: *"Sleep resets it to full. Refill adds. Drain subtracts. Regen is based on the time amount chosen versus their regeneration rate."*
+- The sheet's REFILL (Aura Pool) button, `act_reset_aurapool` (sheet HTML 26099), calls resetAuraPoolMessaged (sheet-worker.js:160935). That sets the pool to full and clears `drained_aura`. It does the same to the pool as Sleep's resetAuraPool (160916), but no spell loses a day.
+- The only box beside the buttons is "Aura to Drain" (`set_aura`), which only DRAIN reads. addAuraPoolByAmount (160985) exists but only REGEN calls it.
+
+**What the port does:** follows the sheet. Refill (renamed from "Reset pool" to his word, 2026-09-24) gives a full pool and costs no spell day (casting-actions.mjs resetAuraPool).
+
+**Question:** does "Refill adds" mean what the sheet does (Aura added back until the pool is full), or should Refill add an amount typed into a box, the reverse of Drain? If it should add an amount, the port asks for it the way Drain does, and the pool stops at full.
