@@ -33,7 +33,7 @@ import { BODY_AREA_TYPES, HIDE_CAP, HIDE_CAP_EXEMPT_TYPES, HIDE_CAP_EXEMPT_SIZES
 	//
 	// His creature handlers are thinner: Perception and Affinity are pass/fail ("perceived? = true"),
 	// and only Fortune has a third band -- "misfortunate" over 100 minus the chance, "unfortunate"
-	// between (24592-24610). The bug report's three bands are a superset of his, and the two sheets
+	// between (24593-24617). The bug report's three bands are a superset of his, and the two sheets
 	// are kept alike rather than letting a creature's Perception mean something different.
 	//                    good                  bad                neither
 	export const CHARACTERISTIC_RESULTS = {
@@ -50,14 +50,15 @@ import { BODY_AREA_TYPES, HIDE_CAP, HIDE_CAP_EXEMPT_TYPES, HIDE_CAP_EXEMPT_SIZES
 	//
 	// Double Perception doubles only the chance -- his roll_creature_per_dbl (24530), "if (chance>0)
 	// { chance=chance*2; }" -- and the bad band stays 100 minus the SINGLE chance, as the character's
-	// does. A modifier (his Affinity and Fortune "+mod" buttons, 24553 and 24613, a shift-click here) is
+	// does. A modifier (his Affinity and Fortune "+mod" buttons, 24571 and 24619, a shift-click here) is
 	// added to the single chance before anything else, as his "chance=chance+tempmod" is, so it moves
 	// the bad band too.
 	//
 	// His Fortune "+mod" also reads the chance as TEXT and adds the modifier to it -- "16" plus 5 is
-	// "165" -- and then holds it to 1-99, so his modified Fortune roll is almost always at 99. That is
-	// plainly a slip (docs/UPSTREAM-ISSUES.md, 2026-09-23); the modifier is added as a number here and
-	// not held to 1-99, as none of his other characteristic rolls are.
+	// "165", Roll20 handing attribute values back as text (24625) -- and then holds it to 1-99, so
+	// his modified Fortune roll is almost always at 99. That is plainly a slip
+	// (docs/UPSTREAM-ISSUES.md, 2026-09-23); the modifier is added as a number here and not held to
+	// 1-99, as none of his other characteristic rolls are.
 	//
 	// Returns { key, chance, single, roll, outcome, good, bad, label } or null for a key it does not know.
 	export function resolveCharacteristicRoll(tmpKey, tmpBase, tmpRoll, tmpDouble, tmpModifier) {
