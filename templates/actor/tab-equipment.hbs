@@ -26,6 +26,13 @@
 		<div class="wealth-line"><strong>Gems:</strong> {{#each wealthPanel.gems as |g|}}<span class="race-chip">{{g}}</span>{{else}}<span class="muted">none</span>{{/each}}</div>
 		<div class="wealth-line"><strong>Jewelry/Other:</strong> {{#each wealthPanel.jewelry as |j|}}<span class="race-chip">{{j}}</span>{{else}}<span class="muted">none</span>{{/each}}</div>
 		<div class="wealth-line"><strong>Special:</strong> {{#if system.wealth.special}}{{system.wealth.special}}{{else}}<span class="muted">none</span>{{/if}}</div>
+		{{!-- For a character the generator never made -- see canRollStartingMoney. Gone once rolled. --}}
+		{{#if wealthPanel.canRollStart}}
+		<div class="wealth-line"><button type="button" data-action="rollStartingMoney"
+			data-tooltip="Roll this character's starting money from its Social Class, as the character generator does. Once only."><i class="fa-solid fa-coins"></i> Roll starting money</button></div>
+		{{else if wealthPanel.startRecord}}
+		<div class="wealth-line muted">Starting money: {{wealthPanel.startRecord}}</div>
+		{{/if}}
 
 		<div class="wealth-update">
 			<strong>Update Coins:</strong> Type

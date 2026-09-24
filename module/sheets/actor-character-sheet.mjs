@@ -15,6 +15,7 @@
 import { rollWeaponAttack } from "../combat/attack.mjs";
 import { chooseBestArmor } from "../equip-rules.mjs";
 import { GEM_TYPES, COIN_TYPES, getWealthInGold, changeCoins, changeValuables } from "../wealth-rules.mjs";
+import { canRollStartingMoney, getCharacterMoneyInputs, rollStartingMoney, describeStartingMoney } from "../starting-money.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
 import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
          getSecondWeaponFlags } from "../combat/combat-rules.mjs";
@@ -110,6 +111,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				removeAllArms: ImagineCharacterSheet.#onRemoveAllArms,
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
 				changeWealth: ImagineCharacterSheet.#onChangeWealth,
+				rollStartingMoney: ImagineCharacterSheet.#onRollStartingMoney,
 				rollHandedness: ImagineCharacterSheet.#onRollHandedness,
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class.
 			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
@@ -193,7 +195,11 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			coinTypes: COIN_TYPES.map(([tmplabel]) => tmplabel),
 			gemTypes: GEM_TYPES,
 			gems: (this.document.system.wealth.gems || "").split(",").map(tmpentry => tmpentry.trim()).filter(tmpentry => tmpentry),
-			jewelry: (this.document.system.wealth.jewelry || "").split(",").map(tmpentry => tmpentry.trim()).filter(tmpentry => tmpentry)
+			jewelry: (this.document.system.wealth.jewelry || "").split(",").map(tmpentry => tmpentry.trim()).filter(tmpentry => tmpentry),
+			// "Roll starting money", for a character the generator never made -- canRollStartingMoney.
+			canRollStart: canRollStartingMoney(this.document.system.wealth,
+				this.document.getFlag?.("imagine-rpg", "startingMoney"), game.user?.isGM),
+			startRecord: this.document.getFlag?.("imagine-rpg", "startingMoney") ?? ""
 		};
 		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
@@ -879,6 +885,34 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// gems or the jewelry row (data-kind, data-mode). The row's inputs carry no name, so typing in
 	// them never writes to the character; they are read here, cleared, and the result goes to chat in
 	// his words, as his buttons post theirs.
+	// @MARKER ROLL STARTING MONEY
+	// This is the function which rolls starting money on the sheet, for a character the generator never
+	// made -- the generator's own roll, from this character's final Social Class and the Fortune it had
+	// on its first day (module/starting-money.mjs @MARKER ROLL ON THE SHEET). Checked again here and not
+	// only in the template, since a player's stale window could still show the button.
+	static async #onRollStartingMoney(event, target) {
+		event.preventDefault();
+		var tmpactor = this.document;
+		if (!canRollStartingMoney(tmpactor.system.wealth, tmpactor.getFlag("imagine-rpg", "startingMoney"), game.user?.isGM)) {
+			ui.notifications.warn(`${tmpactor.name} already has money, or has already rolled it. Ask the Game Master.`);
+			return;
+		}
+		var tmpinputs = getCharacterMoneyInputs(tmpactor.system, tmpactor.items.filter(tmpitem => tmpitem.type == "class").map(tmpitem => tmpitem.system));
+		var tmpmoney = rollStartingMoney(tmpinputs.social, tmpinputs.fortune,
+			(tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1);
+		var tmpsummary = describeStartingMoney(tmpmoney);
+		await tmpactor.update({
+			"system.wealth.copper": tmpmoney.copper, "system.wealth.silver": tmpmoney.silver,
+			"system.wealth.gold": tmpmoney.gold, "system.wealth.platinum": tmpmoney.platinum,
+			"flags.imagine-rpg.startingMoney": tmpsummary
+		});
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+			flavor: `${tmpactor.name} counts their coins`,
+			content: `<div>${tmpsummary}</div>`
+		});
+	}
+
 	static async #onChangeWealth(event, target) {
 		event.preventDefault();
 		var tmprow = target.closest(".wealth-update");

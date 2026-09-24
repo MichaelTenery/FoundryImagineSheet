@@ -442,7 +442,13 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		var tmpderived = deriveGenerator(this.#state, this.#content, ImagineCharacterGenerator.#isAvailable);
 		var tmpassembled = assembleCharacter(choicesFromState(this.#state, tmpderived), this.#content, ImagineCharacterGenerator.#die);
 		try {
-			var tmpactor = await Actor.create({ ...tmpassembled.actor, items: tmpassembled.items });
+			// The starting money's record, so the sheet's own "Roll starting money" (for characters the
+			// generator never made) is not offered to this one as well. Gear by culture is a record too:
+			// it was taken INSTEAD of coins.
+			var tmpmoneyrecord = this.#state.startingKit?.byCulture ? "Gear by culture, taken instead of coins."
+				: (this.#state.startingMoney ? describeStartingMoney(this.#state.startingMoney) : "Entered in the character generator.");
+			var tmpactor = await Actor.create({ ...tmpassembled.actor, items: tmpassembled.items,
+				flags: { "imagine-rpg": { startingMoney: tmpmoneyrecord } } });
 			ui.notifications.info(`${tmpactor.name} is created.`);
 			// His "Provide random lore", run on the character as created, because it reads what the
 			// character model works out -- a skill's chance, Affinity, Fortune -- and there is no

@@ -14,6 +14,8 @@
 
 import { rollWeaponAttack } from "../combat/attack.mjs";
 import { chooseBestArmor } from "../equip-rules.mjs";
+import { GEM_TYPES, COIN_TYPES, getWealthInGold, changeCoins, changeValuables } from "../wealth-rules.mjs";
+import { canRollStartingMoney, getCharacterMoneyInputs, rollStartingMoney, describeStartingMoney } from "../starting-money.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
 import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
          getSecondWeaponFlags } from "../combat/combat-rules.mjs";
@@ -90,6 +92,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			openWeaponMods: ImagineCharacterSheet.#onOpenWeaponMods,
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
 			rollResistance: ImagineCharacterSheet.#onRollResistance,
+			rollCharacteristic: ImagineCharacterSheet.#onRollCharacteristic,
 			rollSkill: ImagineCharacterSheet.#onRollSkill,
 			rollWeaponAttack: ImagineCharacterSheet.#onRollWeaponAttack,
 			setWeaponHand: ImagineCharacterSheet.#onSetWeaponHand,
@@ -107,6 +110,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			deleteItem: ImagineCharacterSheet.#onDeleteItem,
 				removeAllArms: ImagineCharacterSheet.#onRemoveAllArms,
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
+				changeWealth: ImagineCharacterSheet.#onChangeWealth,
+				rollStartingMoney: ImagineCharacterSheet.#onRollStartingMoney,
 				rollHandedness: ImagineCharacterSheet.#onRollHandedness,
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class.
 			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
@@ -184,6 +189,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		// The Situation Mods bar, one line, as his combat page shows it.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
 		tmpcontext.languages = ImagineCharacterSheet.#buildLanguageRows(this.document.system);
+		// @MARKER WEALTH -- his Loose Equipment money panel, on the Equipment tab. module/wealth-rules.mjs.
+		tmpcontext.wealthPanel = {
+			inGold: getWealthInGold(this.document.system.wealth),
+			coinTypes: COIN_TYPES.map(([tmplabel]) => tmplabel),
+			gemTypes: GEM_TYPES,
+			gems: (this.document.system.wealth.gems || "").split(",").map(tmpentry => tmpentry.trim()).filter(tmpentry => tmpentry),
+			jewelry: (this.document.system.wealth.jewelry || "").split(",").map(tmpentry => tmpentry.trim()).filter(tmpentry => tmpentry),
+			// "Roll starting money", for a character the generator never made -- canRollStartingMoney.
+			canRollStart: canRollStartingMoney(this.document.system.wealth,
+				this.document.getFlag?.("imagine-rpg", "startingMoney"), game.user?.isGM),
+			startRecord: this.document.getFlag?.("imagine-rpg", "startingMoney") ?? ""
+		};
 		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
@@ -569,6 +586,49 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		});
 	}
 
+	// @MARKER CHARACTERISTIC ROLL
+	// Bug report 0.18.1:1 (Blocker): the header showed Perception, Affinity and Fortune and gave no
+	// way to roll them. His sheet has ROLL buttons for all three plus a DBL for Perception
+	// (clicked:roll_perception and its siblings, sheet HTML ~99967). Endurance has none, there or here.
+	//
+	// The three-way result is the bug report's, which is newer than his handlers and goes further:
+	// his Perception and Affinity are pass/fail only, and his Fortune tests the misfortune band
+	// BEFORE the fortune band, so a chance over 50% could call a low roll misfortunate. Here the
+	// chance is tested first, as the report orders it:
+	//     roll <= chance                 -> the good result
+	//     roll >  100 - (single chance)  -> the bad result
+	//     anything else                  -> the neither result
+	// Double Perception doubles only the chance; the Inattentive band stays 100 minus the SINGLE
+	// chance, as the report writes it.
+	static CHARACTERISTIC_RESULTS = {
+		//  key                good                  bad                neither
+		perception:     [ "Perceived",          "Inattentive",     "Nothing Perceived" ],
+		affinity:       [ "Affinity ensues",    "Enmity ensues",   "Neither Affinity or Enmity" ],
+		fortune:        [ "Fortunate",          "Misfortunate",    "Neither fortunate nor misfortunate" ]
+	};
+
+	static async #onRollCharacteristic(event, target) {
+		var tmpkey = target.dataset.characteristic;
+		var tmpresults = ImagineCharacterSheet.CHARACTERISTIC_RESULTS[tmpkey];
+		if (!tmpresults) { return; }
+
+		var tmpdouble = target.dataset.double === "true";
+		var tmpbase = parseInt(this.document.system.characteristics[tmpkey]?.value) || 0;
+		var tmpchance = tmpdouble ? tmpbase * 2 : tmpbase;
+
+		var tmproll = await new Roll("1d100").evaluate();
+		var tmpoutcome = tmpresults[2];
+		if (tmproll.total <= tmpchance)           { tmpoutcome = tmpresults[0]; }
+		else if (tmproll.total > 100 - tmpbase)   { tmpoutcome = tmpresults[1]; }
+
+		var tmplabel = tmpkey.charAt(0).toUpperCase() + tmpkey.slice(1);
+		if (tmpdouble) { tmplabel = "Double " + tmplabel; }
+		await tmproll.toMessage({
+			speaker: ChatMessage.getSpeaker({ actor: this.document }),
+			flavor: `${tmplabel} Check &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+		});
+	}
+
 	// @MARKER RESISTANCE ROLL
 	// Daryl's 0.11.1 Blocker: the Attributes tab showed the five resistance figures and gave no
 	// way to roll any of them. The rule itself is in module/resistance-rules.mjs, beside a note on
@@ -820,6 +880,69 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// This is the function which puts the character in the best armour they own: the strongest
 	// legal set under the layering rules (see module/equip-rules.mjs). Armour already worn but not in
 	// that set is taken off, to carried. Shields and weapons are not touched.
+	// @MARKER WEALTH
+	// This is the function which runs one of his six money buttons: ADD or SUBTRACT on the coins, the
+	// gems or the jewelry row (data-kind, data-mode). The row's inputs carry no name, so typing in
+	// them never writes to the character; they are read here, cleared, and the result goes to chat in
+	// his words, as his buttons post theirs.
+	// @MARKER ROLL STARTING MONEY
+	// This is the function which rolls starting money on the sheet, for a character the generator never
+	// made -- the generator's own roll, from this character's final Social Class and the Fortune it had
+	// on its first day (module/starting-money.mjs @MARKER ROLL ON THE SHEET). Checked again here and not
+	// only in the template, since a player's stale window could still show the button.
+	static async #onRollStartingMoney(event, target) {
+		event.preventDefault();
+		var tmpactor = this.document;
+		if (!canRollStartingMoney(tmpactor.system.wealth, tmpactor.getFlag("imagine-rpg", "startingMoney"), game.user?.isGM)) {
+			ui.notifications.warn(`${tmpactor.name} already has money, or has already rolled it. Ask the Game Master.`);
+			return;
+		}
+		var tmpinputs = getCharacterMoneyInputs(tmpactor.system, tmpactor.items.filter(tmpitem => tmpitem.type == "class").map(tmpitem => tmpitem.system));
+		var tmpmoney = rollStartingMoney(tmpinputs.social, tmpinputs.fortune,
+			(tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1);
+		var tmpsummary = describeStartingMoney(tmpmoney);
+		await tmpactor.update({
+			"system.wealth.copper": tmpmoney.copper, "system.wealth.silver": tmpmoney.silver,
+			"system.wealth.gold": tmpmoney.gold, "system.wealth.platinum": tmpmoney.platinum,
+			"flags.imagine-rpg.startingMoney": tmpsummary
+		});
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+			flavor: `${tmpactor.name} counts their coins`,
+			content: `<div>${tmpsummary}</div>`
+		});
+	}
+
+	static async #onChangeWealth(event, target) {
+		event.preventDefault();
+		var tmprow = target.closest(".wealth-update");
+		var tmpread = (tmpfield) => tmprow?.querySelector(`[data-wealth="${tmpfield}"]`)?.value ?? "";
+		var tmpadd = target.dataset.mode == "add";
+		var tmpwealth = this.document.system.wealth;
+		var tmpresult;
+		var tmpupdate = {};
+		var tmptitle = "";
+		if (target.dataset.kind == "coins") {
+			tmptitle = tmpadd ? "Adding Coins" : "Subtracting Coins";
+			tmpresult = changeCoins(tmpwealth, tmpread("type"), tmpread("count"), tmpadd);
+			for (const [tmpkey, tmpvalue] of Object.entries(tmpresult.update)) { tmpupdate["system.wealth." + tmpkey] = tmpvalue; }
+		} else {
+			var tmpgems = target.dataset.kind == "gems";
+			tmptitle = tmpgems ? (tmpadd ? "Adding Gem(s)" : "Subtracting Gem(s)")
+				: (tmpadd ? "Adding Jewelry or other valuables" : "Subtracting Jewelry or other valuables");
+			tmpresult = changeValuables(tmpgems ? tmpwealth.gems : tmpwealth.jewelry, tmpread("name"), tmpread("count"),
+				tmpread("value"), tmpadd, tmpgems ? "gems" : "item(s)");
+			if (tmpresult.ok) { tmpupdate[tmpgems ? "system.wealth.gems" : "system.wealth.jewelry"] = tmpresult.list; }
+		}
+		if (tmpresult.ok) { await this.document.update(tmpupdate); }
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: this.document }),
+			flavor: tmptitle,
+			content: `<div>${tmpresult.message}</div>`
+		});
+		if (!tmpresult.ok) { ui.notifications.warn(tmpresult.message); }
+	}
+
 	static async #onEquipBestArmor(event, target) {
 		event.preventDefault();
 		var tmparmor = this.document.items.filter(tmpitem => tmpitem.type == "armor" && !tmpitem.system.isShield);

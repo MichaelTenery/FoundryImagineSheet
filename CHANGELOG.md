@@ -18,6 +18,24 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.19.2 — 2026-09-23
+
+**Characters the generator never made can roll their starting money on the sheet.** Reported on
+0.19.1: only the Create Character window rolled money, so a character made before 0.19, or made
+blank with Foundry's own Create Actor button, still had none. The Equipment tab now has a **Roll
+starting money** button, shown only while the purse is completely empty. It rolls exactly as the
+generator does, from the character's Social Class and first-day Fortune, and posts the roll to chat.
+A player gets one roll; the Game Master can roll again for any empty purse. Characters made in the
+generator never see it.
+
+**His money panel is on the Equipment tab.** Wealth (in Gold), the four coins, gems, jewelry and
+special, with his Update Coins, Update Gems and Update Jewelry/Other rows: pick, enter a number (and a
+value each), then Add or Subtract. Each change goes to chat in his words, and you cannot take more
+than the character has. Wealth in gold is his own sum: platinum x10, gold, silver /10, copper /100,
+plus every gem and jewelry line at count x value. The Description tab still edits the same fields.
+
+**Perception, Affinity and Fortune have roll buttons** in the sheet header, like Endurance.
+
 ## 0.19.1 — 2026-09-23
 
 **Perception, Affinity and Fortune are no longer short.** They now take his per-title bonus (+1

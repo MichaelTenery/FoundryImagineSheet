@@ -194,6 +194,23 @@ check("the kit is handed the money's apparent class", V.getKitSocialClass(s3, de
 check("...and the character's real class once the money roll no longer belongs to it",
 	(() => { s3.manualBase.soc = 12; return V.getKitSocialClass(s3, derive(s3)); })(), 12);
 
+// --- rolling on the sheet, for a character the generator never made ------------------------------
+const emptyPurse = { copper: 0, silver: 0, gold: 0, platinum: 0, gems: "", jewelry: "", special: "" };
+check("an empty purse with no record may roll, for a player", M.canRollStartingMoney(emptyPurse, undefined, false), true);
+check("once rolled, a player may not roll again, even with the purse emptied",
+	M.canRollStartingMoney(emptyPurse, "Social class 9: ...", false), false);
+check("a Game Master may, to put a mistake right", M.canRollStartingMoney(emptyPurse, "Social class 9: ...", true), true);
+check("nobody rolls starting money onto a purse that has anything in it -- a copper, or a gem",
+	[M.canRollStartingMoney({ ...emptyPurse, copper: 1 }, undefined, true), M.canRollStartingMoney({ ...emptyPurse, gems: "1 Opal w/20" }, undefined, false)],
+	[false, false]);
+check("a 'special' note alone does not count as money", M.canRollStartingMoney({ ...emptyPurse, special: "owed a favour" }, undefined, false), true);
+const sheetSystem = { attributes: { soc: { value: 12 }, aur: { value: 13 }, pty: { value: 14 }, wil: { value: 15 } },
+	characteristics: { fortune: { raceMod: -5 } } };
+check("an existing character: its Social Class, and its first-day Fortune -- 14 + 1 + 5 (Mage) - 5 (race)",
+	M.getCharacterMoneyInputs(sheetSystem, [{ classMods: ["+5% Fortune"], nonClassed: false }]), { social: 12, fortune: 15 });
+check("...a GME has no first title", M.getCharacterMoneyInputs(sheetSystem, [{ classMods: [], nonClassed: true }]).fortune, 9);
+check("...and a character with no class yet still gets the first title", M.getCharacterMoneyInputs(sheetSystem, []).fortune, 10);
+
 // His two race hints: gear instead of coins, and fairy-sized coins. Keyed on his race name, so a
 // split form (Fairy(Winged)) reads its parent's.
 const hintsFor = (race) => { const s = makeState(); s.race1 = race; const v = V.buildGeneratorView(s, content, () => true);

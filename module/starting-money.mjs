@@ -206,6 +206,39 @@ import { getApparentSocialClass } from "./starting-kit.mjs";
 		return tmpParts.join(" — ") + `. Starts with ${tmpMoney.amount} ${tmpAbbrev}.`;
 	}
 
+	// @MARKER ROLL ON THE SHEET
+	// This is the function which says whether a character sheet may offer "Roll starting money".
+	//
+	// For a character the generator never made: one made before 0.19.0, when nothing rolled money, or
+	// made blank with Foundry's own Create Actor button. His sheet does its whole creation on the sheet
+	// itself, money included, so a player expects the sheet to do it. Reported 2026-09-23 on 0.19.1.
+	//
+	// Only while the purse is EMPTY -- no coins, gems or jewelry -- since the roll is starting money and
+	// not income. A player may roll only once: the roll leaves its record on the actor
+	// (flags.imagine-rpg.startingMoney, which the generator writes too), and after that the button is
+	// gone for them, for the same reason the generator has no re-roll button. A Game Master may roll
+	// for any empty purse, record or not, which is how a mistaken roll is put right.
+	export function canRollStartingMoney(tmpWealth, tmpRecord, tmpIsGM) {
+		var tmpEmpty = !(parseInt(tmpWealth?.copper) || parseInt(tmpWealth?.silver) || parseInt(tmpWealth?.gold)
+			|| parseInt(tmpWealth?.platinum) || ("" + (tmpWealth?.gems ?? "")).trim() || ("" + (tmpWealth?.jewelry ?? "")).trim());
+		if (!tmpEmpty) { return false; }
+		return !!tmpIsGM || !tmpRecord;
+	}
+
+	// This is the function which works out the starting money inputs for a character that already
+	// exists: its final Social Class, and the Fortune it had the day it was made (getStartingFortune --
+	// first title only, whatever title it has reached since, as the roll is for the day it started).
+	export function getCharacterMoneyInputs(tmpSystem, tmpClassSystems) {
+		var tmpAttrs = tmpSystem?.attributes ?? {};
+		var tmpClassMods = (tmpClassSystems ?? []).flatMap(tmpClass => tmpClass?.classMods ?? []);
+		var tmpNonClassed = (tmpClassSystems ?? []).some(tmpClass => tmpClass?.nonClassed);
+		return {
+			social: parseInt(tmpAttrs.soc?.value) || 0,
+			fortune: getStartingFortune(tmpAttrs.aur?.value, tmpAttrs.pty?.value, tmpAttrs.wil?.value,
+				tmpSystem?.characteristics?.fortune?.raceMod, tmpClassMods, tmpNonClassed)
+		};
+	}
+
 	// @MARKER GEAR INSTEAD OF COINS
 	// The races his setMoneyEquipmentByRace (sheet-worker.js:73467) sends to wilderness gear rather
 	// than to setCoins. On this port Gear by culture stays off unless ticked (DECISIONS 2026-09-20), so

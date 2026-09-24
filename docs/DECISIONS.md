@@ -5113,3 +5113,19 @@ there is read the same way. The Equipment tab shows them; the Description tab st
 **One departure:** his match for an existing entry is a substring test, so taking "Ruby w/50" could
 hit "3 Ruby w/500". Here the name and value are compared exactly. A comma in a jewelry name is turned
 into a space, since the comma separates entries. `tools/wealth-test.html` 22.
+
+## Starting money can be rolled on the sheet, once (2026-09-23)
+
+Reported on 0.19.1 at a real table: "still not generating currency". The served 0.19.1 archive was
+checked and does contain the generator's roll; what it cannot do is reach a character the generator
+never made -- one made before 0.19.0, or a blank one from Foundry's Create Actor button. His own sheet
+does all of creation on the sheet, money included, so a player expects the sheet to roll it.
+
+The Equipment tab's wealth panel now offers **Roll starting money** (`canRollStartingMoney`,
+`getCharacterMoneyInputs` in `module/starting-money.mjs`): the generator's own roll, from the final
+Social Class and the Fortune of the character's FIRST day (first title only, whatever it has reached
+since). Offered only while the purse is empty -- coins, gems and jewelry; a Special note does not
+count -- and only once for a player: the roll is recorded in `flags.imagine-rpg.startingMoney`, which
+the generator now writes on every character it makes (the roll's line, or "Gear by culture, taken
+instead of coins"). The Game Master may roll for any empty purse, which is how a wrong roll is put
+right. The no-re-roll rule is the generator's, for the generator's reason. starting-money-test 59.
