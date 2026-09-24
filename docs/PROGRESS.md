@@ -176,7 +176,7 @@ they run in any browser. As of 2026-09-22 the figures are:
 | Creature derivation | `tools/creature-test.html` | 158 |
 | Advancement rules | `tools/advancement-test.html` | 101 |
 | Character generation | `tools/chargen-test.html` | 83 |
-| Starting money (rules, and the generator rolling it) | `tools/starting-money-test.html` | 44 |
+| Starting money (rules, and the generator rolling it) | `tools/starting-money-test.html` | 51 |
 | Content availability | `tools/availability-test.html` | 46 |
 | Level-up walk (real writing code) | `tools/levelup-walk.html` | 37 |
 | Equip rules | `tools/equip-test.html` | 21 |

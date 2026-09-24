@@ -18,7 +18,17 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
-## Unreleased
+## 0.19.0 — 2026-09-23
+
+**New characters start with money.** The character generator rolls it by itself when you reach
+Details, from the Social Class, as his sheet does: a Fortune roll for anyone below Noble that can
+double their money or better, and a Noble's family paid the book's x5 or x10. The coins fill the four
+fields, a line under them says how the roll went, and the roll goes to chat. There is no re-roll
+button, the same as handedness. If you go back and change the Social Class or the attributes behind
+Fortune, it rolls again. The Game Master can still change the fields. Ticking "Gear by culture" now
+really takes the gear instead of the coins, and unticking it brings the coins back. Races his sheet
+gives wilderness gear by default (a Barbaric Human, a Troll…) say so, and the small folk are told
+their coins are gem wafers.
 
 **Races with natural weapons now have them on the sheet.** A Saurian starts with Saurian Claws,
 Saurian Bite and Saurian Tail Slap in its Weapons section, equipped and rolled like any other weapon.

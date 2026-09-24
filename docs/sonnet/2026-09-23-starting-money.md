@@ -17,6 +17,8 @@ judgement. Every rules question it touches has already been ruled on.
 
 ## 1. Release it
 
+**DONE 2026-09-23** as 0.19.0, with the natural weapons.
+
 **What to do.** Bump `system.json` to the next patch version, add a `CHANGELOG.md` entry in the voice
 of the 0.18.2 one ("**New characters start with money.** …": rolled by itself on Details, the one-line
 account and the chat card, Gear by culture takes their place, a Game Master can still edit the four
@@ -31,6 +33,8 @@ passes (it compares `tools/syntax-check.html`'s list against `module/`; `startin
 listed), and the changelog entry names the version.
 
 ## 2. Say which races his sheet gives gear instead of coins
+
+**DONE 2026-09-23.** `GEAR_INSTEAD_OF_COINS_RACES`, `FAIRY_COIN_RACES`; starting-money-test 51.
 
 **What to do.** His `setMoneyEquipmentByRace` (sheet-worker.js:73467) gives most races coins, and gives
 a few wilderness gear by default: Chetahl, Dwarf(Mountain), Gnome, Goblin(Forest), Goblin(Mountain),
@@ -51,7 +55,7 @@ races too, from a second constant beside the first.
 Nixie and nowhere for a Human(Civilized:Village). Two checks in `tools/starting-money-test.html`
 cover the two lists.
 
-## 3. The character sheet's own Fortune (and Perception, Affinity) is short
+## 3. (STILL OPEN, on a task chip) The character sheet's own Fortune (and Perception, Affinity) is short
 
 **Not a money task, found in passing,** and offered to the user as its own chip. His
 `changeCharacteristics` (30279-30348) adds a title bonus (+1 Perception, +2 Affinity, +1 Fortune per

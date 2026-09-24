@@ -22,7 +22,8 @@ import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePh
 	readFormlessPair, combineFormless } from "./race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget } from "./famorian-rules.mjs";
 import { buildStartingKit } from "./starting-kit.mjs";
-import { getStartingFortune, rollStartingMoney, describeStartingMoney } from "./starting-money.mjs";
+import { getStartingFortune, rollStartingMoney, describeStartingMoney,
+	GEAR_INSTEAD_OF_COINS_RACES, FAIRY_COIN_RACES, FAIRY_COIN_NOTE } from "./starting-money.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
 	checkClassQualification, getStartingClassSkills, assembleCharacter
@@ -454,6 +455,10 @@ import {
 		tmpView.moneyByCulture = !!tmpWanted.byCulture;
 		tmpView.startingMoney = tmpState.startingMoney
 			? { summary: describeStartingMoney(tmpState.startingMoney) } : null;
+		// His name for the first race (a split form reads its sourceRace), for his two race hints.
+		var tmpMoneyRace = tmpD.race1 ? (tmpD.race1.system?.sourceRace || tmpD.race1.name) : "";
+		tmpView.moneyGearRace = GEAR_INSTEAD_OF_COINS_RACES.includes(tmpMoneyRace) ? tmpMoneyRace : "";
+		tmpView.moneyFairyNote = FAIRY_COIN_RACES.includes(tmpMoneyRace) ? FAIRY_COIN_NOTE : "";
 		tmpView.ages = tmpD.race?.ages ?? null;
 		// @MARKER COLOURING
 		// The colours a member of this race is found in. Offered as choices with anything already

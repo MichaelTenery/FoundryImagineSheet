@@ -260,6 +260,9 @@
 		      the roll itself is in chat. With Gear by culture ticked the fields are not shown at all,
 		      since that kit is taken instead of coins and anything typed here would be ignored. --}}
 		<h3>Money</h3>
+		{{#if moneyGearRace}}{{#unless moneyByCulture}}<p class="muted">His sheet gives a {{moneyGearRace}} wilderness gear
+			instead of coins: tick Gear by culture below to take it.</p>{{/unless}}{{/if}}
+		{{#if moneyFairyNote}}<p class="muted">{{moneyFairyNote}}</p>{{/if}}
 		{{#if moneyByCulture}}
 		<p class="muted">Gear by culture is ticked below, and it is taken <em>instead of</em> starting coins:
 			this character starts with none. Untick it to have the coins back.</p>

@@ -287,6 +287,18 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 			disabilities: new fields.ArrayField(new fields.StringField()),
 			immunities:   new fields.ArrayField(new fields.StringField()),
 
+			// @MARKER NATURAL WEAPONS
+			// The natural weapons a member of this race is born with, by name -- documents in the
+			// weapons pack ("Saurian Claws"), from his setRacialNaturalAttacks (sheet-worker.js:100946).
+			// A character gets them as ordinary weapons when the race is given to them, and may
+			// delete any they do not want. physique is "slight" or "ordinary" for the one attack his
+			// switch gives to only one physique (the Apocritara's Stinger), and blank for the rest.
+			naturalWeapons: new fields.ArrayField(new fields.SchemaField({
+				name:     new fields.StringField({ required: true, initial: "" }),
+				physique: new fields.StringField({ required: true, blank: true, initial: "",
+				              choices: ["", "slight", "ordinary"] })
+			}), { initial: [] }),
+
 			// @MARKER MIXED RACES
 			// The races this one can have children with, from racefertiledict -- the list his
 			// Half Race picker offers as the second race. Empty means it cannot breed outside itself.

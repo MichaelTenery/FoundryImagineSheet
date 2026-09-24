@@ -194,6 +194,21 @@ check("the kit is handed the money's apparent class", V.getKitSocialClass(s3, de
 check("...and the character's real class once the money roll no longer belongs to it",
 	(() => { s3.manualBase.soc = 12; return V.getKitSocialClass(s3, derive(s3)); })(), 12);
 
+// His two race hints: gear instead of coins, and fairy-sized coins. Keyed on his race name, so a
+// split form (Fairy(Winged)) reads its parent's.
+const hintsFor = (race) => { const s = makeState(); s.race1 = race; const v = V.buildGeneratorView(s, content, () => true);
+	return [v.moneyGearRace, !!v.moneyFairyNote]; };
+check("his thirteen gear-instead-of-coins races are all real race names",
+	M.GEAR_INSTEAD_OF_COINS_RACES.filter(r => !races.some(d => (d.system.sourceRace || d.name) == r)), []);
+check("...and so are his seven fairy-coin races",
+	M.FAIRY_COIN_RACES.filter(r => !races.some(d => (d.system.sourceRace || d.name) == r)), []);
+check("a Barbaric Human is told of its wilderness gear, and pays in ordinary coin",
+	hintsFor("Human(Barbaric)"), ["Human(Barbaric)", false]);
+check("a Nixie pays in gem wafers and has no gear hint", hintsFor("Nixie"), ["", true]);
+check("a winged Fairy reads its parent's row", hintsFor("Fairy(Winged)"), ["", true]);
+check("a Gnome gets both", hintsFor("Gnome"), ["Gnome", true]);
+check("a village Human gets neither", hintsFor("Human(Civilized:Village)"), ["", false]);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =
