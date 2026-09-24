@@ -4,6 +4,11 @@
 	The attributes work exactly as a character's -- rating in, save and table modifiers out. What
 	differs is everything in the panels below: a creature's Endurance, Hide, Shock and all five
 	resistances are figures its stat block states, so they are inputs here rather than readouts.
+
+	The movement modes are the creature's own list, edited in place (his Configurator's movement
+	rows, HTML 81003-81007); the jumps are worked out from Agility, as his setCreatureMovementValues
+	does, with his two jump modifiers beside them. The Modifiers panel at the foot holds every manual
+	adjustment the schema carries -- his GM Tools' temporary modifiers.
 --}}
 <section class="tab imagine-creature-stats{{#if tab.active}} active{{/if}}" data-tab="stats" data-group="primary">
 
@@ -57,8 +62,16 @@
 				<li><label class="muted">Shock immune</label>
 					<span><input type="checkbox" name="system.characteristics.shock.immune"
 						{{#if system.characteristics.shock.immune}}checked{{/if}}></span></li>
+				{{!-- His Configurator's tame bonus (HTML 80983), added straight to Affinity. --}}
+				<li><label>Tame bonus</label>
+					<span><input type="number" name="system.tameBonus" value="{{system.tameBonus}}"></span></li>
 			</ul>
 			<p class="muted">Shock left at 0 becomes Endurance &times; 3.</p>
+			{{#if system.body.hideOverCap}}
+			<p class="alarm">Hide {{system.body.hide}} is over his errata's cap of {{system.body.hideMax}}
+				(5 per level, level 0 as 1). Plants, magical plants and Titanic creatures are exempt.
+				The figure is kept as entered; lower it, or set the size or type if it is exempt.</p>
+			{{/if}}
 		</div>
 
 		<div class="panel">
@@ -78,22 +91,39 @@
 		</div>
 
 		<div class="panel">
-			<h3>Movement</h3>
-			{{#if system.movement.modes.length}}
-			<table class="move-table">
-				<thead><tr><th></th><th>Hour</th><th>10 sec</th><th>1 sec</th></tr></thead>
+			<h3>Movement
+				<button type="button" class="add-language" data-action="addMovement" data-tooltip="Add a movement mode">
+					<i class="fa-solid fa-plus"></i> Add</button>
+			</h3>
+			{{#if movementRows.length}}
+			<table class="edit-move-table">
+				<thead><tr><th>Mode</th><th>Hour</th><th>10 sec</th><th>1 sec</th><th></th></tr></thead>
 				<tbody>
-					{{#each system.movement.modes as |m|}}
-					<tr><td>{{m.name}}</td><td>{{m.hourly}}</td><td>{{m.tenSec}}</td><td>{{m.oneSec}}</td></tr>
+					{{#each movementRows as |m|}}
+					<tr>
+						<td><input type="text" name="system.movement.modes.{{m.index}}.name" value="{{m.name}}" placeholder="Walk"></td>
+						<td><input type="number" step="any" name="system.movement.modes.{{m.index}}.hourly" value="{{m.hourly}}"></td>
+						<td><input type="number" step="any" name="system.movement.modes.{{m.index}}.tenSec" value="{{m.tenSec}}"></td>
+						<td><input type="number" step="any" name="system.movement.modes.{{m.index}}.oneSec" value="{{m.oneSec}}"></td>
+						<td class="col-row-actions">
+							{{#unless m.first}}<button type="button" class="row-button" data-action="moveMovement" data-index="{{m.index}}" data-offset="-1" data-tooltip="Move up">&uarr;</button>{{/unless}}
+							{{#unless m.last}}<button type="button" class="row-button" data-action="moveMovement" data-index="{{m.index}}" data-offset="1" data-tooltip="Move down">&darr;</button>{{/unless}}
+							<button type="button" class="row-button" data-action="removeMovement" data-index="{{m.index}}" data-tooltip="Remove this mode">&times;</button>
+						</td>
+					</tr>
 					{{/each}}
 				</tbody>
 			</table>
+			<p class="muted">Slowest first, special modes (fly, swim, burrow) last.</p>
 			{{else}}
-			<p class="empty">No movement recorded.</p>
+			<p class="empty">No movement recorded. Add a mode for each way it moves.</p>
 			{{/if}}
+			{{!-- Worked out from Agility (his switch, sheet-worker.js:178893-179003), plus the modifier. --}}
 			<ul class="band-list">
-				<li><label>Standing jump</label> <span>{{system.movement.jumpStand}}</span></li>
-				<li><label>Jump up</label> <span>{{system.movement.jumpUp}}</span></li>
+				<li><label>Standing jump</label> <span>{{system.movement.jumpStand}}'
+					<span class="muted">(Agility {{system.movement.jumpStandBase}}')</span></span></li>
+				<li><label>Jump up</label> <span>{{system.movement.jumpUp}}'
+					<span class="muted">(Agility {{system.movement.jumpUpBase}}')</span></span></li>
 			</ul>
 		</div>
 
@@ -114,9 +144,90 @@
 			{{#if system.encumbrance.penalty}}
 			<p class="muted">{{system.encumbrance.penalty}}</p>
 			{{/if}}
+			{{!-- Body weight is also a damage modifier (Player's Guide p.179), floored at 0 for a
+			      creature; see the Damage box on the Combat tab. --}}
+			{{#if system.combat.weightDamage}}
+			<p class="muted">Its weight adds +{{system.combat.weightDamage}} to its damage.</p>
+			{{/if}}
 		</div>
 	</div>
 
+	{{!-- @MARKER MODIFIERS PANEL
+	      Every manual adjustment the creature's schema carries, none of which any template showed before
+	      2026-09-23. Closed by default; its state is the sheet's own (toggleModifiers). --}}
+	<h3 class="section-head">
+		<button type="button" class="creature-modifiers-toggle" data-action="toggleModifiers">
+			<i class="fa-solid {{#if modifiersOpen}}fa-caret-down{{else}}fa-caret-right{{/if}}"></i> Modifiers</button>
+		<span class="muted">temporary and permanent adjustments, the Game Master's</span>
+	</h3>
+	{{#if modifiersOpen}}
+	<div class="panel-row creature-modifiers">
+		<div class="panel">
+			<h3>Attributes</h3>
+			<table class="modifier-table">
+				<thead><tr><th></th><th class="col-num">Perm</th><th class="col-num">Temp</th></tr></thead>
+				<tbody>
+					{{#each modifiers.attributes as |a|}}
+					<tr><td>{{a.label}}</td>
+						<td class="col-num"><input type="number" name="system.attributes.{{a.key}}.permMod" value="{{a.permMod}}"></td>
+						<td class="col-num"><input type="number" name="system.attributes.{{a.key}}.tempMod" value="{{a.tempMod}}"></td></tr>
+					{{/each}}
+				</tbody>
+			</table>
+			<p class="muted">Moves the attribute's value and save. Perception, Affinity and Fortune read the
+				ratings, as his formulas do, so these do not move them.</p>
+		</div>
+		<div class="panel">
+			<h3>Characteristics</h3>
+			<table class="modifier-table">
+				<tbody>
+					{{#each modifiers.characteristics as |c|}}
+					<tr><td>{{c.label}}</td>
+						<td class="col-num"><input type="number" name="system.characteristics.{{c.key}}.tempMod" value="{{c.tempMod}}"></td></tr>
+					{{/each}}
+				</tbody>
+			</table>
+			<h3>Resistances</h3>
+			<table class="modifier-table">
+				<thead><tr><th></th><th class="col-num">Perm</th><th class="col-num">Temp</th></tr></thead>
+				<tbody>
+					{{#each modifiers.resistances as |r|}}
+					<tr><td>{{r.label}}</td>
+						<td class="col-num"><input type="number" name="system.resistances.{{r.key}}.permMod" value="{{r.permMod}}"></td>
+						<td class="col-num"><input type="number" name="system.resistances.{{r.key}}.tempMod" value="{{r.tempMod}}"></td></tr>
+					{{/each}}
+				</tbody>
+			</table>
+		</div>
+		<div class="panel">
+			<h3>Combat</h3>
+			<table class="modifier-table">
+				<tbody>
+					{{#each modifiers.combat as |m|}}
+					<tr><td data-tooltip="{{m.note}}">{{m.label}}</td>
+						<td class="col-num"><input type="number" name="system.combat.{{m.key}}" value="{{m.value}}"></td></tr>
+					{{/each}}
+				</tbody>
+			</table>
+			<h3>Jumps</h3>
+			<table class="modifier-table">
+				<tbody>
+					<tr><td>Standing jump (ft)</td>
+						<td class="col-num"><input type="number" step="any" name="system.movement.jumpStandMod" value="{{system.movement.jumpStandMod}}"></td></tr>
+					<tr><td>Jump up (ft)</td>
+						<td class="col-num"><input type="number" step="any" name="system.movement.jumpUpMod" value="{{system.movement.jumpUpMod}}"></td></tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	{{/if}}
+
 	<h3 class="section-head">Notes</h3>
 	<textarea name="system.notes" rows="3">{{system.notes}}</textarea>
+	<div class="panel-row">
+		<label class="creature-note">Experience note
+			<input type="text" name="system.identity.expNote" value="{{system.identity.expNote}}"></label>
+	</div>
+	<h3 class="section-head">Description</h3>
+	<textarea name="system.biography" rows="5">{{system.biography}}</textarea>
 </section>

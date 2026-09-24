@@ -7,24 +7,204 @@
 // function takes values and returns values, dice results included, which the caller rolls and
 // passes in. Line numbers against docs/reference/sheet-worker.js are given with each rule.
 //
-// Two things live here that the chance formula in the character model does not cover: what
-// happens when the same skill is held more than once, and the slot economy the Player's Guide
-// calls "slot tricks" -- trading skill slots between categories, or giving one up for a bonus.
+// Three things live here that the chance formula in the character model does not cover: how a
+// percentile roll is READ (his eight skill results, his attribute save, and his situational
+// rolls, which are three different readers in his sheet), what happens when the same skill is
+// held more than once, and the slot economy the Player's Guide calls "slot tricks" -- trading
+// skill slots between categories, or giving one up for a bonus.
 //==================================================================================================================
 
 
-// @MARKER DUPLICATE SKILLS
+// @MARKER SKILL ROLL RESULTS
 
-	// The four outcomes of a percentile skill roll, best first. His sheet prints the same four
-	// words; the +/-20% margin that separates a critical from an ordinary result is the Player's
-	// Guide's (p.94), not his, since his skill roll template only reports the number.
+	// His eight results for a skill roll, best first, from handleSkillRollDetails
+	// (sheet-worker.js:29426-29456). EVERY skill roll on his sheet goes through that one function --
+	// the race, social, class, high-title and common skill rolls (63940-64331), the common social
+	// skill (3614), a creature's skill (175374), the martial knowledge and lore rolls (66168-68725)
+	// and the weapon, shield and body parries (65364, 70808, 70997) -- 25 calls in all, and every
+	// one of them reads "Succeeded?" off the same split: the first five results pass and the last
+	// three fail (3616-3620, and the same two lines after each call).
+	//
+	// An earlier pass wrote here that "his skill roll template only reports the number" and ported
+	// four results off the Player's Guide instead. That was wrong -- the function above was missed.
+	// The four-result reader below it (resolveSkillOutcome) is kept for the one place that is not
+	// a skill roll of his: the situational Critical / Focused Attack / Surprise rolls.
+	//
+	//   made          the roll succeeded -- his `pass`
+	//   critical      a critical success: made by 21 or more (roll < chance - 20)
+	//   byHalf        made by half: rolled at or under half the chance, rounded UP (see below)
+	//   criticalFail  missed by 21 or more (roll > chance + 20)
+	//   line          the sheet-worker.js line that writes it
+	//
+	//                                          made   critical  byHalf  criticalFail  line
+	//                                          -----  --------  ------  ------------  -----
+	export const SKILL_ROLL_RESULTS = {
+		"Grandmaster":                       { made: true,  critical: false, byHalf: false, criticalFail: false, line: 29435 },
+		"Critical Success and made by half": { made: true,  critical: true,  byHalf: true,  criticalFail: false, line: 29444 },
+		"Critical Success":                  { made: true,  critical: true,  byHalf: false, criticalFail: false, line: 29446 },
+		"Made by half":                      { made: true,  critical: false, byHalf: true,  criticalFail: false, line: 29450 },
+		"Success":                           { made: true,  critical: false, byHalf: false, criticalFail: false, line: 29452 },
+		"Failure":                           { made: false, critical: false, byHalf: false, criticalFail: false, line: 29441 },
+		"Rolled 100":                        { made: false, critical: false, byHalf: false, criticalFail: false, line: 29437 },
+		"Critical Failure":                  { made: false, critical: false, byHalf: false, criticalFail: true,  line: 29439 }
+	};
+
+	// The eight in order, best first, for ranking one against another (pickBestSkillRoll).
+	//
+	// His function has no ranking -- it returns one word and his handlers only ask pass or fail --
+	// so the order is ours, and only the order WITHIN a side matters. Grandmaster heads it because
+	// it is the one result that cannot be taken away; a critical beats an ordinary success, and
+	// made-by-half beats a plain success. "Rolled 100" sits between an ordinary failure and a
+	// critical one: it fails outright but is not a critical failure in his code (a chance of 60
+	// rolling 100 reads "Rolled 100", never "Critical Failure", because that test comes first).
+	export const SKILL_ROLL_ORDER = Object.keys(SKILL_ROLL_RESULTS);
+
+	// This is the function which reads one skill roll the way his handleSkillRollDetails does
+	// (sheet-worker.js:29426). Tested in this order, first match wins, exactly as his if-chain:
+	//
+	//     chance over 199        Grandmaster -- "Grandmasters don't have to roll. They always succeed."
+	//     rolled 100             Rolled 100  -- "always a failure (unless you are a grandmaster)"
+	//     roll > chance + 20     Critical Failure
+	//     roll > chance          Failure
+	//     roll < chance - 20     Critical Success, and made by half as well if roll <= half
+	//     otherwise              Success, or Made by half if roll <= half
+	//
+	// HALF ROUNDS UP here: parseInt((chance+1)/2), so a 35% skill is made by half on 18 or under.
+	// An attribute SAVE rounds its half DOWN, with a floor of 1 (divideWithMin, 25595) -- see
+	// resolveAttributeSave below. The two are his, written differently, and are kept so.
+	//
+	// His function takes a third argument, a "combined total" separate from the natural roll, so the
+	// 100 test can read the die while the others read the die plus modifiers. Every one of his 25
+	// callers passes the die twice (the weapon parry's finalresult is set to originalRoll first,
+	// 65362), so the modifiers always go on the CHANCE, and one roll is all this takes.
+	//
+	// The Player's Guide agrees on the two absolutes (p.79, "Skill Notes": a roll of 00 is still a
+	// failure, and at 200% "the practitioner will never fail, and does not need to make a skill
+	// roll"). It also says a natural 01 always succeeds (p.326, "Automatic Failure and Success");
+	// his function has no such rule -- a 0% skill rolling 01 is a Failure -- and the sheet outranks
+	// the book, so there is none here either.
+	//
+	// Returns { chance, roll, margin, half, outcome, made, critical, byHalf, criticalFail }. The
+	// margin (chance minus roll) is kept for the card and for breaking a tie between two copies.
+	export function resolveSkillRoll(tmpchance, tmproll) {
+		var tmpTotalChanceValue = parseInt(tmpchance) || 0;
+		var tmpOriginalRollValue = parseInt(tmproll) || 0;
+		var tmpTotalHalfChanceValue = parseInt((tmpTotalChanceValue + 1) / 2) || 0;
+		var tmpTotalCriticalFailChanceValue = tmpTotalChanceValue + 20;
+		var tmpTotalCriticalChanceValue = tmpTotalChanceValue - 20;
+
+		var tmpSkillResult = "";
+		if (tmpTotalChanceValue > 199) {
+			tmpSkillResult = "Grandmaster";                          // never has to roll, always succeeds
+		} else if (tmpOriginalRollValue == 100) {
+			tmpSkillResult = "Rolled 100";                           // always a failure below 200%
+		} else if (tmpOriginalRollValue > tmpTotalCriticalFailChanceValue) {
+			tmpSkillResult = "Critical Failure";                     // missed by more than 20
+		} else if (tmpOriginalRollValue > tmpTotalChanceValue) {
+			tmpSkillResult = "Failure";
+		} else if (tmpOriginalRollValue < tmpTotalCriticalChanceValue) {
+			if (tmpOriginalRollValue < (tmpTotalHalfChanceValue + 1)) {
+				tmpSkillResult = "Critical Success and made by half"; // made by 21 or more AND by half
+			} else {
+				tmpSkillResult = "Critical Success";                 // made by 21 or more
+			}
+		} else {
+			if (tmpOriginalRollValue < (tmpTotalHalfChanceValue + 1)) {
+				tmpSkillResult = "Made by half";
+			} else {
+				tmpSkillResult = "Success";
+			}
+		}
+
+		var tmpDetails = SKILL_ROLL_RESULTS[tmpSkillResult];
+		return {
+			chance: tmpTotalChanceValue,
+			roll: tmpOriginalRollValue,
+			margin: tmpTotalChanceValue - tmpOriginalRollValue,
+			half: tmpTotalHalfChanceValue,
+			outcome: tmpSkillResult,
+			made: tmpDetails.made,
+			critical: tmpDetails.critical,
+			byHalf: tmpDetails.byHalf,
+			criticalFail: tmpDetails.criticalFail
+		};
+	}
+
+	// This is the function which words a resolved result the way his cards end theirs. His race skill
+	// card reads "...rolled a 23% against a 45%. Result=Made by half. Succeeded? = true"
+	// (handleRaceSkillRoll, sheet-worker.js:63963), and every other skill card the same: the result,
+	// and then plainly whether it passed, since "Rolled 100" and "Grandmaster" do not say so
+	// themselves. So: "<strong>Made by half</strong> (succeeded)". A Grandmaster's die is said not to
+	// matter, since his sheet rolls it anyway and then ignores it.
+	export function describeSkillResult(tmpresult) {
+		if (!tmpresult) { return ""; }
+		var tmpnote = tmpresult.made ? "succeeded" : "failed";
+		if (tmpresult.outcome == "Grandmaster") { tmpnote = "succeeded, no roll needed"; }
+		return `<strong>${tmpresult.outcome}</strong> (${tmpnote})`;
+	}
+
+	// This is the function which says in words what a resolved skill roll came to, for a chat card:
+	// "rolled 23 against 45% -- Made by half (succeeded)".
+	export function describeSkillRoll(tmpresult) {
+		if (!tmpresult) { return ""; }
+		return `rolled ${tmpresult.roll} against ${tmpresult.chance}% &mdash; ${describeSkillResult(tmpresult)}`;
+	}
+
+
+// @MARKER ATTRIBUTE SAVES
+
+	// This is the function which reads one attribute save, as his twelve save handlers do (the
+	// Strength one is sheet-worker.js:42-58; the other eleven are the same lines with the attribute
+	// changed). Three results only: a save has no criticals and no 100 rule.
+	//
+	//     roll > chance    Failed
+	//     roll > half      Succeeded
+	//     otherwise        Succeeded by half
+	//
+	// The half is divideWithMin(chance, 2) (25595): rounded DOWN, but never below 1. The port used
+	// Math.floor with no floor of its own until 2026-09-23, which differed from his only at a
+	// chance of 1 -- a roll of 1 there is made by half on his sheet and was only "Succeeded" here.
+	// Both sheets' save buttons read this now, so the two cannot drift apart again.
+	//
+	// Returns { chance, roll, half, outcome, made, byHalf }.
+	export function resolveAttributeSave(tmpchance, tmproll) {
+		var tmpnumchance = parseInt(tmpchance) || 0;
+		var tmpnumroll = parseInt(tmproll) || 0;
+		var tmphalfChance = parseInt(tmpnumchance / 2) || 0;
+		if (tmphalfChance < 1) { tmphalfChance = 1; } // divideWithMin's floor
+
+		var tmpoutcome = "Succeeded by half";
+		if (tmpnumroll > tmpnumchance)       { tmpoutcome = "Failed"; }
+		else if (tmpnumroll > tmphalfChance) { tmpoutcome = "Succeeded"; }
+
+		return {
+			chance: tmpnumchance,
+			roll: tmpnumroll,
+			half: tmphalfChance,
+			outcome: tmpoutcome,
+			made: tmpoutcome != "Failed",
+			byHalf: tmpoutcome == "Succeeded by half"
+		};
+	}
+
+
+// @MARKER SITUATIONAL SKILL ROLLS
+
+	// The four outcomes of a SITUATIONAL skill roll, best first -- the Critical, Focused Attack,
+	// Surprise Attack, Brace, Perfect Shot and Quick Load buttons of his Situation Mods panel.
+	//
+	// These are not handleSkillRollDetails. Each of those handlers reads its own roll inline
+	// (roll_critical_sit, sheet-worker.js:19112, and the same shape after it): critical failure
+	// over chance + 20, failure over the chance, critical success under chance - 20, success
+	// otherwise (19130-19197). No Grandmaster, no 100 rule, no made by half -- so a 120% Critical
+	// rolling 100 still succeeds there. They are kept as he wrote them, and this reader is theirs.
 	export const SKILL_OUTCOMES = ["Critical success", "Succeeded", "Failed", "Critical failure"];
 
-	// This is the function which reads one percentile roll against one chance.
+	// This is the function which reads one situational roll against one chance.
 	//
 	// Rolled at or under the chance succeeds. Beating it by more than 20 is a critical success;
-	// missing it by more than 20 is a critical failure. The margin is reported because the caller
-	// needs it to choose between two rolls of the same kind, and because the card prints it.
+	// missing it by more than 20 is a critical failure. The margin is reported because the card
+	// prints it.
 	export function resolveSkillOutcome(tmpchance, tmproll) {
 		var tmpnumchance = parseInt(tmpchance) || 0;
 		var tmpnumroll = parseInt(tmproll) || 0;
@@ -40,6 +220,28 @@
 		return { chance: tmpnumchance, roll: tmpnumroll, margin: tmpmargin, outcome: tmpoutcome };
 	}
 
+
+// @MARKER DUPLICATE SKILLS
+
+	// Each situational outcome stands at the same place as its skill-roll twin, so that a result of
+	// either reader ranks against the other on one scale (see getSkillResultRank).
+	const SITUATIONAL_OUTCOME_TWINS = {
+		// situational          skill-roll result
+		"Critical success":     "Critical Success",
+		"Succeeded":            "Success",
+		"Failed":               "Failure",
+		"Critical failure":     "Critical Failure"
+	};
+
+	// This is the function which says where one result stands, 0 being the best. It reads his
+	// eight results in SKILL_ROLL_ORDER, and the four situational words at their twins' places. A
+	// word neither list knows ranks last, so a malformed result never beats a real one.
+	export function getSkillResultRank(tmpoutcome) {
+		var tmpname = SITUATIONAL_OUTCOME_TWINS[tmpoutcome] ?? tmpoutcome;
+		var tmprank = SKILL_ROLL_ORDER.indexOf(tmpname);
+		return tmprank < 0 ? SKILL_ROLL_ORDER.length : tmprank;
+	}
+
 	// This is the function which picks the best of several rolls of the same skill.
 	//
 	// Player's Guide, "Duplicate Class and Racial Skills": a character may hold the same skill both
@@ -53,18 +255,19 @@
 	// is resolved against its own and only then compared -- which is why this takes resolved
 	// results rather than one chance and a list of dice.
 	//
-	// Ranking is by outcome first, in SKILL_OUTCOMES order. Where two rolls share an outcome the
-	// larger margin is named the chosen one; that tie-break is presentation only, since two
-	// ordinary successes do the same thing, and the book leaves the choice to the player anyway.
-	// Every roll is returned, not just the winner, so the card can show what was given up.
+	// Ranking is by outcome first, in SKILL_ROLL_ORDER -- his eight results since 2026-09-23, so a
+	// copy made by half beats a copy merely made. Where two rolls share an outcome the larger
+	// margin is named the chosen one; that tie-break is presentation only, since two ordinary
+	// successes do the same thing, and the book leaves the choice to the player anyway. Every roll
+	// is returned, not just the winner, so the card can show what was given up.
 	export function pickBestSkillRoll(tmpresults) {
 		var tmplist = Array.isArray(tmpresults) ? tmpresults : [];
 		if (!tmplist.length) { return { rolls: [], best: null, bestIndex: -1 }; }
 
 		var tmpbestindex = 0;
 		for (var i = 1; i < tmplist.length; i++) {
-			var tmprank = SKILL_OUTCOMES.indexOf(tmplist[i].outcome);
-			var tmpbestrank = SKILL_OUTCOMES.indexOf(tmplist[tmpbestindex].outcome);
+			var tmprank = getSkillResultRank(tmplist[i].outcome);
+			var tmpbestrank = getSkillResultRank(tmplist[tmpbestindex].outcome);
 			if (tmprank < tmpbestrank) { tmpbestindex = i; }
 			else if (tmprank == tmpbestrank && tmplist[i].margin > tmplist[tmpbestindex].margin) { tmpbestindex = i; }
 		}

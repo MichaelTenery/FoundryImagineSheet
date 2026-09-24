@@ -27,13 +27,14 @@
 import { ATTRIBUTE_TABLES } from "../config-tables.mjs";
 import { explainAvailability } from "../availability.mjs";
 import ImagineCharacterData from "./actor-character.mjs";
-import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../creature-tables.mjs";
+import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS, CREATURE_SIZES } from "../creature-tables.mjs";
 import {
 	getBodyChart, parseBodyChart, getAreaEndurance, getStrongestMaterial,
 	getInitiativeModifier, getNextAttackSkill, getAreaArmor, getAreaShield, resolveEncumbrance,
-	resolveSituationalMods, getOffhandSecondsCap
+	resolveSituationalMods, getOffhandSecondsCap, getWeightDamageAdjust, getShockBar, hasLore, LORE_GENERAL
 } from "../combat/combat-rules.mjs";
 import { MARTIAL_DISCIPLINE_NAMES, deriveMartialArts } from "../combat/martial-arts.mjs";
+import { getCreatureHideMax, getCreatureJumps } from "../creature-sheet-rules.mjs";
 
 const fields = foundry.data.fields;
 
@@ -110,7 +111,13 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				// creature; blank reads as right-handed, which is what his equipShield does with
 				// anything that is not exactly "Left".
 				handedness: new fields.StringField({ required: true, blank: true, initial: "",
-				                choices: ["", "Right", "Left", "Ambidextrous"], label: "Handedness" })
+				                choices: ["", "Right", "Left", "Ambidextrous"], label: "Handedness" }),
+				// How big it is, from the Master's Manual's size classes (CREATURE_SIZES). His sheet has
+				// no such field; every book body line carries one ("Body Type: Huge (quadruped)"), and
+				// the errata's hide cap exempts the Titanic. Blank is "not given" -- which every creature
+				// made before 2026-09-23 is, so nothing needs migrating and the cap simply applies.
+				size:       new fields.StringField({ required: true, blank: true, initial: "",
+				                choices: ["", ...CREATURE_SIZES], label: "Size" })
 				// DERIVED: title and powerLevel, both of which are simply the level
 				// (updateCreatureTitle and updatePowerLevel, sheet-worker.js:178477-178487).
 			}),
@@ -203,11 +210,18 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 					tenSec: new fields.NumberField({ required: true, initial: 0 }),
 					oneSec: new fields.NumberField({ required: true, initial: 0 })
 				})),
-				// Entered rather than derived. His code sets a creature's jump distances from a
-				// switch on Agility (setCreatureMovementValues, sheet-worker.js:178893), which is
-				// not one of the attribute dictionaries and is not ported yet.
+				// @MARKER JUMPS
+				// DERIVED since 2026-09-23, from his switch on Agility (setCreatureMovementValues,
+				// sheet-worker.js:178893-179003) -- see getCreatureJumps in creature-sheet-rules.mjs.
+				// The two fields stay in the schema, as the character's do, and prepareDerivedData
+				// writes the worked-out distances over them. Nothing ever showed them as inputs, so a
+				// figure stored in one before then is simply no longer read.
 				jumpStand: new fields.NumberField({ required: true, initial: 0, label: "Standing Jump" }),
-				jumpUp:    new fields.NumberField({ required: true, initial: 0, label: "Jump Up" })
+				jumpUp:    new fields.NumberField({ required: true, initial: 0, label: "Jump Up" }),
+				// What IS entered: his two temporary jump modifiers (tmp_move_stand_jump_mod_input and
+				// tmp_move_up_jump_mod_input), added to the Agility figures. Feet, and may be fractional.
+				jumpStandMod: new fields.NumberField({ required: true, initial: 0, label: "Standing Jump Modifier" }),
+				jumpUpMod:    new fields.NumberField({ required: true, initial: 0, label: "Jump Up Modifier" })
 			}),
 
 			// @MARKER PHYSICAL FEATURES
@@ -364,6 +378,7 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this._prepareMartialArts();
 		this._prepareSituation();
 		this._prepareBody();
+		this._prepareMovement();
 		this._prepareAvailability();
 
 		// NOT YET IMPLEMENTED, and deliberately so rather than guessed at:
@@ -378,7 +393,11 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		//                           phase. Powers are carried and listed, not resolved.
 		//   evoke body mutations -- the Famorian and Evoked body types build their chart from
 		//                           toggles at runtime. Shared gap with the character model.
-		//   jump distances       -- see the movement field above.
+		//   movement modifiers   -- his modifiers page also takes a temporary modifier per movement
+		//                           mode (tmp_walk_mod_input and its siblings, 178836). A creature's
+		//                           modes are its own named list here, not his fixed four slots, so
+		//                           the rates are edited directly instead. Jumps ARE derived; see
+		//                           _prepareMovement.
 	}
 
 	// This is the function which fills in the values that follow from the creature's level.
@@ -415,6 +434,32 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 
 			var tmptable = ATTRIBUTE_TABLES[tmpkey];
 			tmpattrib.mods = (tmptable && tmptable[tmpattrib.value]) ? tmptable[tmpattrib.value] : {};
+		}
+
+		// Strength's melee to-hit and melee damage, NEVER BELOW 0 for a creature -- his changeAttribs
+		// (sheet-worker.js:29694-29697), which floors them as it sets str_melee_attack and
+		// str_melee_damage themselves, so his creature page shows the 0 as well:
+		//
+		//     tmpSTRtoHitMelee=setIntLowBounds(tmpSTRtoHitMelee, 0);   // low STR is already factored into
+		//                                                               // creature to hit melee modifiers.
+		//     tmpSTRMeleeDamage=setIntLowBounds(tmpSTRMeleeDamage, 0); // low STR is already factored into
+		//                                                               // creature melee damage modifiers.
+		//
+		// A weak creature's bite is already small on its stat block; the Strength table's penalty would
+		// count its weakness twice. The bestiaries print the same: a badger of Strength 7 is "Melee +0,
+		// Damage +0" (Aspects of the Wild), where the table gives -2 and -4. His test there reads the worker
+		// global tmpCreatureType, which changeAttribs fetches creature_type for but never assigns
+		// (29648) -- other creature handlers set it -- and his comments leave no doubt what it is for
+		// (recorded for him in docs/UPSTREAM-ISSUES.md item 92, so the variable can be set there).
+		// Everything built on these takes the floor with them: combat.meleeAttack and meleeDamage, so the
+		// natural attack's to-hit and damage, and a creature's martial attacks (martial-attack.mjs reads the
+		// same two). A copy is floored, never the shared table row. A character keeps the table's signed
+		// figures (actor-character.mjs).
+		var tmpstrrow = this.attributes.str?.mods;
+		if (tmpstrrow) {
+			this.attributes.str.mods = { ...tmpstrrow,
+				meleeAttack: Math.max(0, parseInt(tmpstrrow.meleeAttack) || 0),
+				meleeDamage: Math.max(0, parseInt(tmpstrrow.meleeDamage) || 0) };
 		}
 	}
 
@@ -588,10 +633,52 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this.combat.weaponSpeedMod = (parseInt(tmpstrmods.weaponSpeed) || 0)
 		                           + (parseInt(tmpaglmods.weaponSpeed) || 0) + tmparmorspeed;
 
+		// Strength's two melee figures, already floored at 0 for a creature (_prepareAttributes, his
+		// changeAttribs at sheet-worker.js:29694-29697).
 		this.combat.meleeAttack   = parseInt(tmpstrmods.meleeAttack) || 0;
 		this.combat.meleeDamage   = parseInt(tmpstrmods.meleeDamage) || 0;
 		this.combat.missileAttack = parseInt(tmpaglmods.missileAttack) || 0;
 		this.combat.armorSkillPenalty = tmparmorskills;
+
+		// @MARKER CREATURE DAMAGE BONUS
+		// The creature's standing damage figure, his combat_mod_damage (setCombatModifierValues,
+		// sheet-worker.js:82167, the damage lines at 82309-82322):
+		//
+		//     Strength's melee damage   off the Strength table, floored at 0 for a creature (29697,
+		//                               _prepareAttributes)
+		//     body weight               getWeightDamageAdjust, floored at 0 for a creature (82173)
+		//     Weapon Lore               +4 while the creature holds the skill (82262-82290)
+		//     the temporary modifier    combat.damageMisc, his tmp_damage_mod
+		//
+		// His handleCreatureAttack adds it to every natural attack but a Touch (179920-179929). Before
+		// 2026-09-23 the port gave a creature none of it, on a misreading that "the dice on the stat block
+		// are the whole of it" -- the books' own stat lines print "Damage +17" for a 1,200 lb buffalo of
+		// Strength 19, which is 5 + 12. See the CORRECTION in docs/DECISIONS.md, 2026-09-23.
+		//
+		// Both of the first two parts stop at 0, so a weak, light creature's attack does its dice and no
+		// less, until a temporary modifier says otherwise. (The creature audit's D3 once read his
+		// formula as keeping a NEGATIVE Strength figure -- Badger, Strength 7, -4. It missed the floor at
+		// 29694-29697, which _prepareAttributes now applies. Corrected 2026-09-23 before it shipped.)
+		this.combat.weightDamage = getWeightDamageAdjust(this.physical?.weight, true);
+
+		// Weapon Lore and Missile Lore, held at all, are worth the general figures (LORE_GENERAL): +2 to
+		// hit and +4 damage for Weapon Lore, +2 to hit for Missile Lore, which his creature branch puts in
+		// combat_mod_melee_other and combat_mod_missile_other (82262-82307). A creature has no list of
+		// lored weapons, so the specific tier never applies. His test is the creature's own chance for
+		// the skill by its EXACT name (getCreatureSkillChance, 178814) and its level standing as the
+		// title against an acquisition level of 1 -- "(currentTitle+1)>whenWeaponLoreAcquired" -- so a
+		// level 0 creature holding the skill gets nothing from it. Closes the gap left open in
+		// docs/DECISIONS.md 2026-09-14, "Lore corrections, item 1 done; item 2 turned out to be a real
+		// gap" ("his sheet applies a real numeric Weapon/Missile Lore bonus to creature attacks").
+		var tmplevel = parseInt(this.identity.level) || 0;
+		var tmpweaponlore = (this._getCreatureSkillChance("Weapon Lore") > 0) && hasLore(tmplevel, 1);
+		var tmpmissilelore = (this._getCreatureSkillChance("Missile Lore") > 0) && hasLore(tmplevel, 1);
+		this.combat.loreMelee   = tmpweaponlore  ? LORE_GENERAL.attack : 0;
+		this.combat.loreDamage  = tmpweaponlore  ? LORE_GENERAL.damage : 0;
+		this.combat.loreMissile = tmpmissilelore ? LORE_GENERAL.attack : 0;
+
+		this.combat.damageBonus = this.combat.meleeDamage + this.combat.weightDamage + this.combat.loreDamage
+		                        + (parseInt(this.combat.damageMisc) || 0);
 	}
 
 	// @MARKER MARTIAL ARTS
@@ -733,6 +820,38 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
 		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
 		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
+
+		// @MARKER TOKEN BAR
+		// What a token's resource bar draws, Shock less the total wounds: see getShockBar. Registered
+		// as the bar attribute "body.shockBar" in imagine-rpg.mjs (CONFIG.Actor.trackableAttributes),
+		// the same path on a character.
+		this.body.shockBar = getShockBar(this.body.shock, this.body.totalWounds);
+
+		// @MARKER HIDE CAP
+		// His errata's cap, 5 x level (level 0 as 1), with plants and the Titanic exempt: see HIDE_CAP
+		// in creature-tables.mjs. WARNED about, not enforced -- hide stays exactly what was entered, and
+		// the sheet flags the excess (the provisional D4 of the creature audit). hideMax is null for an
+		// exempt creature.
+		this.body.hideMax = getCreatureHideMax(this.identity.level, this.identity.creatureType, this.identity.size);
+		this.body.hideOverCap = (this.body.hideMax !== null) && ((parseInt(this.body.hide) || 0) > this.body.hideMax);
+	}
+
+	// This is the function which works out the creature's two jump distances from its Agility, his
+	// setCreatureMovementValues switch (sheet-worker.js:178893-179003), plus its two jump modifiers.
+	// The worked-out distances are written over the stored jumpStand and jumpUp, as the character's
+	// are. See getCreatureJumps in creature-sheet-rules.mjs.
+	//
+	// His rebuild of the movement list in the same function writes each mode's hourly figure into its
+	// one-second slot and writes the modified list back as the base, so the modifiers are added again
+	// on every recalculation (178866-178891). Neither is reproduced: the modes are the creature's own
+	// list and are edited directly. Both are recorded for him in docs/UPSTREAM-ISSUES.md item 94.
+	_prepareMovement() {
+		var tmpmove = this.movement;
+		var tmpjumps = getCreatureJumps(this.attributes.agl.value, tmpmove.jumpStandMod, tmpmove.jumpUpMod);
+		tmpmove.jumpStandBase = tmpjumps.baseStand;
+		tmpmove.jumpUpBase = tmpjumps.baseUp;
+		tmpmove.jumpStand = tmpjumps.stand;
+		tmpmove.jumpUp = tmpjumps.up;
 	}
 
 	// This is the function which totals what the creature is carrying and how encumbered it is.

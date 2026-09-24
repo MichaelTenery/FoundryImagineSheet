@@ -24,6 +24,7 @@
 import { MAGIC_KINDS, rollStartingLore, getCountedSkillNames, findBestCastingSkill, getItemKind,
          makePotionRecipe, makePoisonSystem, CONSUMABLE_KINDS } from "./lore-rules.mjs";
 import { CASTING_SKILLS } from "./lore-tables.mjs";
+import { getSpellDays } from "./casting-rules.mjs";
 
 // The compendia the starting lore draws from, as the content importer names them.
 const LORE_PACKS = {
@@ -180,9 +181,18 @@ const LORE_PACKS = {
 				tmpissues.push(`${tmplabel} "${tmpentry.name}" is drawn by his list but is not in his ${tmpdef.heading?.toLowerCase() ?? "tables"}; nothing added.`);
 				continue;
 			}
-			// His rows arrive unmemorized -- "without recalculating mem points" -- and the player
-			// chooses what to hold in mind.
-			tmpknown.system.memorized = false;
+			// A LORE row arrives unmemorized, as his ballad, hymn and rune adders write it (_mem_check "",
+			// sheet-worker.js:136847 and siblings), and the player chooses what to hold in mind. A SPELL
+			// arrives memorized, with its days: his starting spells go through addSpellByName (147348),
+			// which writes spell_mem_check "on" and 30 less the level in days (160095-160107) -- "without
+			// recalculating mem points", which is what its "No" means, not unmemorized. Until 2026-09-24
+			// every row here arrived unmemorized, spells too (from the parallel magic branch).
+			if (tmpknown.type == "spell") {
+				tmpknown.system.memorized = true;
+				tmpknown.system.days = getSpellDays(tmpknown.system.level);
+			} else {
+				tmpknown.system.memorized = false;
+			}
 			tmpcreate.push(tmpknown);
 			tmpadded.push(`${tmplabel}: ${tmpentry.name}`);
 		}

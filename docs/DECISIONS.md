@@ -6101,3 +6101,76 @@ from it: **77-82** (the shop), **83-89** (race and cross-skill modifiers), **90-
 **98-100** (skill results and repairs). Code comments that cited one of them only by date now carry
 its number. With all four merged, `node tools/run-tests.mjs` runs 20 suites, 2,671 checks, all
 passing, and 86 modules parse.
+
+## Reconciling the two magic branches: what the parallel one brought that main lacked (2026-09-24)
+
+Two sessions built magic casting at the same time. The one the user asked for is on main as ff0db70 ("Cast spells and invoke at targets"). It holds:
+- the derived Aura Control, pool, regeneration and Piety Control;
+- his useSpell, prayer and re-pray, and Divine Denial;
+- targeting;
+- his whole doSpellAction and doInvocationAction, carried across by `extract_casting.py`.
+
+**It stays, and it is the architecture.** The other session's work is branch `wip/magic-m1`, a parallel M0+M1 that duplicates much of it. This pass ported onto main only what main lacked, on main's own field names, with no parallel fields. A review of the first port (64b6f3a) found three errors, fixed in 6d81360 and described below.
+
+**What was ported:**
+- **21 magic switches** (`module/availability.mjs`), one per repeating section of his.
+  - `bardic` is split into Ballads, Hymns, Poems and Songs; `herbalism` into Herbs, Potions and Elixirs. Hymns are divine and the other three arcane, so a Game Master could not keep one without the others.
+  - The retired names are still honoured. A stored `{ bardic: false }` reads as all four of its successors off (`normalizeMagicSubsystems`). An item stored as `bardic` or `herbalism` reads as its own kind's switch (`getLegacySubsystem`, from the lore and consumable models' `migrateData`).
+  - The content packs were rebuilt for the new names.
+- **Lore skills answer to their kind's switch AS WELL AS their types'.** A skill that learns or uses one of his lore kinds (Ballad Lore, Intone, Recite, Sing, Rune Lore, Evoke, Candle Lore, Empathy Magic...) still answers to the switches for its types, as the 2026-09-11 entry has it, and to its kind's switch as well.
+  - Sing needs Arcane Magic and Songs. Intone needs Divine Magic and Hymns. Candle Lore needs Arcane, Divine and Candle Lore.
+  - **The 2026-09-11 rule stands unchanged:** a Magical,Divine skill disappears if either arcane or divine magic is off.
+  - The first port *replaced* the type switches with the kind's. His skilldict types Hymn Lore, Intone and Evoke as Divine, and Candle, Potion and Ritual Lore as Magical,Divine, so that brought those skills back into worlds with Divine Magic off, and Sing, Rune Lore and Glyph back into worlds with Arcane Magic off. Corrected before merging.
+- **Power items carry a magic switch**: Powers, Magic Item Empowering or Divine Item Empowering. A power stored without one takes it from its kind. Until now the Powers switches reached nothing.
+- **A title's power answers to no switch.** His Arch Mortal invulnerability is written by setArchMortalInvulnerability (sheet-worker.js:27574-27593) into the plain `powers` text attribute. That is not his `repeating_powers` section, which is what the Powers switch stands for. It is a benefit of the title, not magic.
+  - It is created with the power switch `"none"`. One made before this is recognised by his exact wording (`isTitlePower`).
+  - Neither Powers off nor all magic off reaches it.
+  - Advancement creates the new wording before deleting the old, so a refused creation keeps the old one, and the level-up message says so.
+  - The first port had put it under Powers, so with Powers off a player's 13th or 15th title deleted the old invulnerability and could not create the new one. Corrected before merging.
+- **An empty `magicRules` world setting** and `MAGIC_RULES` table, as a home for the optional casting rules when the first one is built.
+- **A memorized spell lasts a number of days**, 30 less its level (his spell_days, addSpellDays; PG p.215).
+  - A spell out of days is "forgotten" and cannot be cast, except by a Hermeticist. This is his gate at 161896, after "not memorized".
+  - **Sleep** takes a day from every spell and refills the pool (subtractDayFromAllSpells). **MEM** rolls the casting skill to refresh a spell, with Shift for his MOD (handleRemorizeSpell). **Drain** takes Aura from the pool (drainAuraPoolByAmount).
+  - Unticking Memorized clears a spell's days and an invocation's uses, as his change handlers do (22088-22127). Loss of Spell clears the days too.
+  - Starting spells arrive memorized with their days, as his addSpellByName writes them. Until now they arrived unmemorized.
+- **Apply buttons for a mishap's lasting effects**: AUR or WIL lost or gained, Burnout, and a Wild Wish's AUR. Each is read off his own getMagicalMishap words, and each can be applied once only. The same changes are no longer also listed in words.
+- **Small fixes.** A Self spell's Cast dialog opens on the caster (his self-check handlers). Cast, Invoke, Pray, MEM, Sleep, Drain, Reset and Regen are held one at a time against a double-click.
+
+**One of main's rules corrected, because his sheet says so plainly:** a Wilder never takes Spell Lore's +2. His setMagicDivineLore sets spellLoreBonus to 0 for a Wilder, whether Winds is held or not (96663-96670). Main had given the +2 to a Wilder holding Spell Lore without Winds.
+
+**The Wilder's halving was not applied; a ruling is needed.**
+- The Master's Manual p.47 says "All Aura Control modifiers are halved (round down); apply to dual class Wilders as well". The same page gives "+1 Aura Control per Title".
+- His sheet encodes that page as 1 a title for a Wilder (a Mage has 2; 96291), with Intelligence, Metaphysics and the boost added in full (96729-96733).
+- His MM errata's "Should Read" block for p.47 repeats the halving sentence word for word. What it actually changes on that page is the Goal Advancement figures and the animal Affinity.
+- The first port applied the halving as "errata over sheet". It was withdrawn on review: here the errata restates the book, and his sheet, which outranks the book, had already read the same sentence.
+- **For the user:** does restated, unchanged book text in the errata count as the errata disagreeing with the sheet under the 2026-09-21 ruling? Until then his sheet's figure stands, as it did before 2026-09-24. Applied, a title-5 Wilder with Intelligence +2 and Winds would go from 14 to 12. Asked upstream as well.
+
+**Where the two branches disagreed and main's reading stands,** because his sheet-worker is clear:
+- Spell Lore's +2 is counted twice (UPSTREAM 71).
+- Piety Control's start-title figure is counted as his code counts it (96015 ">=", 96783-96784). This makes a jump of twice the class figure on the title after a late start. It is now asked upstream.
+- His gate order: the failure roll first.
+- His regeneration branches, plus the one "1/per Hour" case main already added (UPSTREAM 72).
+- An invocation's uses start at 0 and come from Pray.
+- The class figures are read from his per-class functions, not stored on the class item.
+
+**Dropped as already done by main:** the invocation "uses" label, Refill and Regen, re-pray and invoke, and the derivations. Also the parallel branch's own mishap table, worked columns, devotion picker (already on main's Sonnet list), flag records and selfCast fields.
+
+**Provisional: taken 2026-09-24 while the user was away -- confirm or overrule.**
+1. **Splitting `bardic` and `herbalism` into seven switches.** The parallel design's decision, now carried onto main.
+2. **A lore kind's switch now reaches the skills that learn and use it, as well as the kind's items.** This is the one change existing worlds will notice:
+   - a world that had switched off Runes, Glyphs, Rituals, Evocation or Candle Lore now also has Rune Lore, Glyph, Ritual Lore, Evoke or Candle Lore unavailable;
+   - a stored `{ bardic: false, herbalism: false }` now also hides Intone, Hymn Lore, Sing and Potion Lore;
+   - these skills are not granted at level-up and a player cannot add them. Nothing already on a character is deleted; it is flagged.
+3. **Power items answer to the Powers switches**; a title's power (the Arch Mortal invulnerability) answers to none. A GM can set any power's switch to "None" on its sheet.
+4. **A spell's days are null until first counted,** and read as the full count while memorized. Existing casters' memorized spells stay castable with no migration. A spell ticked by hand after being unticked has 0 days until MEM, as on his sheet.
+5. **A Sorcerer's MEM is rolled** without his check that the spell is of the Arcane Pact's types (checkSorcSpellType). The card says the check was not made. Refusing would leave a Sorcerer's spells forgotten for good after the first Sleep.
+6. **A mishap's AUR and WIL go onto the attribute's permanent modifier (permMod), not its rating,** and wait for Apply. His sheet rewrote the rating on the spot.
+7. **A Wild Wish gets an Apply button.** His sheet does nothing for it, and the button is labelled "if no wish is made".
+8. **The Wilder keeps his sheet's Aura Control** until the user rules on the errata question above.
+9. **Sleep leaves alone a spell that was never counted and is not memorized.** His Drain posts nothing, and neither does the port's.
+
+**Verified:**
+- All 20 headless suites pass, 2732 checks. casting-test is 105 (was 79), availability-test 76 (was 49), lore-test 150 (was 145), levelup-walk 40 (was 37).
+- The changed templates compile and render.
+
+**Not verified:** anything needing a running Foundry V14.

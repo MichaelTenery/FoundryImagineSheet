@@ -3,7 +3,9 @@
 	figures that say how much punishment it takes and how well it perceives, charms and endures.
 
 	Endurance, Hide and Shock are entered rather than calculated: a creature's stat block states
-	them. Perception, Affinity and Fortune are worked out from its attributes and level.
+	them. Perception, Affinity and Fortune are worked out from its attributes and level, and roll
+	from here -- his creature header's ROLL, DBL and MOD buttons (HTML 57780-57791), the MODs as a
+	shift-click.
 --}}
 <header class="imagine-header creature">
 
@@ -28,6 +30,15 @@
 		</div>
 
 		<div class="identity-line">
+			{{!-- Not in his sheet; every book body line carries it, and a Titanic creature is exempt
+			      from the errata's hide cap. See CREATURE_SIZES in module/creature-tables.mjs. --}}
+			<span class="field"><label>Size</label>
+				<select name="system.identity.size">
+					<option value="" {{#unless system.identity.size}}selected{{/unless}}>&mdash;</option>
+					{{#each config.sizes as |s|}}
+					<option value="{{s}}" {{#if (eq s ../system.identity.size)}}selected{{/if}}>{{s}}</option>
+					{{/each}}
+				</select></span>
 			<span class="field"><label>Life Cycle</label>
 				<input type="text" name="system.identity.lifecycle" value="{{system.identity.lifecycle}}"></span>
 			<span class="field"><label>Habitat</label>
@@ -37,6 +48,8 @@
 		<div class="identity-line">
 			<span class="field"><label>Alignment</label>
 				<input type="text" name="system.identity.alignment" value="{{system.identity.alignment}}"></span>
+			<span class="field"><label>Tendencies</label>
+				<input type="text" name="system.identity.tendencies" value="{{system.identity.tendencies}}"></span>
 			<span class="field"><label>Exp Value</label>
 				<input type="number" name="system.identity.expValue" value="{{system.identity.expValue}}"></span>
 		</div>
@@ -48,22 +61,31 @@
 			<span class="value">{{system.characteristics.endurance.value}}</span>
 			<span class="sub">Shock {{#if system.characteristics.shock.immune}}Immune{{else}}{{system.body.shock}}{{/if}}</span>
 		</div>
+		{{!-- The errata's cap is WARNED about, never applied: the figure stays what was entered. --}}
 		<div class="char-box">
 			<label>Hide</label>
-			<span class="value">{{system.body.hide}}</span>
+			<span class="value{{#if system.body.hideOverCap}} alarm{{/if}}">{{system.body.hide}}</span>
+			{{#if system.body.hideOverCap}}
+			<span class="sub alarm" data-tooltip="His errata: Hide may be at most 5 per level (level 0 counts as 1). Plants, magical plants and Titanic creatures are exempt.">over the cap of {{system.body.hideMax}}</span>
+			{{else}}
 			<span class="sub">all mitigation but armour</span>
+			{{/if}}
 		</div>
 		<div class="char-box">
 			<label>Perception</label>
 			<span class="value">{{system.characteristics.perception.value}}%</span>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="perception" data-tooltip="Roll Perception &mdash; shift-click for a modifier">Roll</button>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="perception" data-double="true" data-tooltip="Roll at double Perception">Dbl</button>
 		</div>
 		<div class="char-box">
 			<label>Affinity</label>
 			<span class="value">{{system.characteristics.affinity.value}}%</span>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="affinity" data-tooltip="Roll Affinity &mdash; shift-click for a modifier">Roll</button>
 		</div>
 		<div class="char-box">
 			<label>Fortune</label>
 			<span class="value">{{system.characteristics.fortune.value}}%</span>
+			<button type="button" class="char-roll" data-action="rollCharacteristic" data-characteristic="fortune" data-tooltip="Roll Fortune &mdash; shift-click for a modifier">Roll</button>
 		</div>
 	</div>
 </header>

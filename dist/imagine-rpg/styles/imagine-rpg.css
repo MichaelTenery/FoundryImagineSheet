@@ -1131,6 +1131,26 @@ input.source-unknown {
 .chargen .famorian-numeric { font-weight: bold; }
 .chargen .alarm { color: var(--imagine-alarm); margin: 2px 0; }
 .chargen .ok { color: var(--imagine-confirm); font-weight: bold; }
+/* The Equipment step's shop (module/shop-rules.mjs): the list bought so far, and the offers to choose
+   from, which scroll on their own so the purse and the list stay in view. A line the purse can no
+   longer cover is marked in the alarm colour; an offer it cannot cover is only dimmed, since Buy says
+   why in his words. */
+.chargen-shop-list, .chargen-shop-offers { width: 100%; border-collapse: collapse; font-size: 12px; }
+.chargen-shop-list th { font-size: 11px; color: var(--imagine-muted); text-align: left; padding: 2px 4px;
+	border-bottom: 1px solid var(--imagine-rule); }
+.chargen-shop-list td, .chargen-shop-offers td { padding: 2px 4px; border-bottom: 1px solid var(--imagine-rule-soft);
+	vertical-align: top; }
+.chargen-shop-list td input[type="number"] { width: 52px; }
+.chargen-shop-list tr.unaffordable td:first-child { color: var(--imagine-alarm); }
+.chargen-shop-list button, .chargen-shop-offers button { width: auto; flex: none; padding: 1px 8px; line-height: 18px; }
+.chargen-shop-offers { display: block; max-height: 260px; overflow-y: auto; border: 1px solid var(--imagine-rule);
+	border-radius: 3px; }
+.chargen-shop-offers tbody { display: table; width: 100%; }
+.chargen-shop-offers tr.unaffordable td { color: var(--imagine-muted); }
+.chargen-shop-filter select { flex: 1 1 140px; }
+.chargen-shop-filter input[type="text"] { flex: 2 1 160px; }
+.chargen-shop-filter input[type="number"] { width: 52px; }
+.chargen-shop-filter button { width: auto; flex: none; }
 .chargen-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px;
 	padding-top: 6px; border-top: 1px solid var(--imagine-rule); }
 .chargen-footer .alarm { flex: 1; font-size: 12px; }
@@ -1489,6 +1509,33 @@ input.source-unknown {
 .imagine-magic .magic-other button { width: auto; }
 .imagine.item-picker .learn-by-roll { font-size: 12px; display: flex; align-items: center; gap: 6px; }
 .imagine-chat .imagine-magic-card p, .imagine-magic-card p { margin: 4px 0; }
+
+/* Casting and invoking: the Aura and Piety lines at the head of each group, the ticks and boxes
+   beside them, what is running on the character, and the cast card (templates/chat/cast-card.hbs). */
+.imagine-magic .aura-summary { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0; }
+.imagine-magic .aura-summary button { width: auto; }
+.imagine-magic .aura-summary .alarm, .imagine-magic .magic-table .alarm { color: var(--imagine-alarm); font-weight: 700; }
+.imagine-magic .aura-flags { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; margin: 4px 0; }
+.imagine-magic .aura-flags label { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.imagine-magic .aura-flags input.short, .imagine-magic .aura-summary input.short { width: 4em; }
+.imagine-magic .aura-flags input[type="text"] { width: 14em; }
+.imagine-magic .magic-table .col-roll { white-space: nowrap; }
+.imagine-magic .magic-effects { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0; font-size: 12px; }
+.imagine-magic .magic-effects .chip { border: 1px solid var(--imagine-muted); border-radius: 10px; padding: 0 2px 0 8px; }
+.imagine-chat.cast-card .cast-level, .imagine-chat.cast-card .target { font-size: 11px; margin-left: 6px; }
+.imagine-chat.cast-card .cast-outcome { font-weight: 600; margin: 4px 0; }
+.imagine-chat.cast-card .outcome-mishap { color: var(--imagine-alarm); }
+.imagine-chat.cast-card .cast-text { font-size: 12px; margin: 4px 0; }
+.imagine-chat.cast-card .cast-attacks { width: 100%; font-size: 11px; border-collapse: collapse; margin: 4px 0; }
+.imagine-chat.cast-card .cast-attacks td { padding: 1px 3px; vertical-align: middle; }
+.imagine-chat.cast-card .cast-attacks tr.hit  { background: #e3eed9; color: #2f5a1c; }
+.imagine-chat.cast-card .cast-attacks tr.miss { background: #efe9e0; color: #6d675e; }
+.imagine-chat.cast-card .cast-attacks button { width: auto; padding: 0 6px; line-height: 18px; }
+.imagine-chat.cast-card .cast-attacks button.applied { opacity: 0.6; }
+.imagine-chat.cast-card .cast-targets p { font-size: 11px; margin: 3px 0; }
+.imagine-chat.cast-card button.inline { width: auto; display: inline; padding: 0 6px; line-height: 18px; font-size: 11px; }
+.imagine-chat.cast-card .cast-effects, .imagine-chat.cast-card .cast-changes { font-size: 11px; }
+.imagine-chat.cast-card .cast-changes ul { margin: 2px 0 2px 16px; padding: 0; }
 .imagine-starting-lore ul { margin: 4px 0 4px 16px; padding: 0; }
 
 
@@ -1713,3 +1760,24 @@ input.source-unknown {
 	border: 1px solid currentColor;
 	white-space: nowrap;
 }
+
+/* ---- Authoring a creature on its sheet (actor-creature-sheet.mjs, @MARKER AUTHORING) ---------- */
+/* The body chart's own rows, the modifiers panel and the notes under the attacks. Inputs fill their
+   cells, as the race sheet's movement rows do (.edit-move-table). */
+.imagine.sheet .body-chart-controls { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-size: 11px; }
+.imagine.sheet .body-chart-controls button { width: auto; padding: 1px 8px; font-size: 11px; }
+.imagine.sheet .body-chart-editor td { padding: 1px 4px; }
+.imagine.sheet .edit-move-table .col-row-actions,
+.imagine.sheet .body-chart-editor .col-row-actions { width: 1%; white-space: nowrap; text-align: right; }
+.imagine.sheet .body-chart-editor input[type="text"],
+.imagine.sheet .body-chart-editor select { width: 100%; box-sizing: border-box; height: 22px; }
+.imagine.sheet .body-chart-warning,
+.imagine.sheet .body-chart-note { margin: 2px 0 6px; font-size: 11px; }
+.imagine.sheet .creature-modifiers-toggle {
+	width: auto; padding: 0 6px; border: none; background: none;
+	font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit;
+}
+.imagine.sheet .modifier-table td { padding: 1px 4px; font-size: 12px; }
+.imagine.sheet .modifier-table input[type="number"] { width: 4.5em; text-align: center; }
+.imagine.sheet .creature-note { display: block; margin: 4px 0; font-size: 11px; color: var(--imagine-muted); }
+.imagine.sheet .creature-note input, .imagine.sheet .creature-note textarea { display: block; width: 100%; box-sizing: border-box; }

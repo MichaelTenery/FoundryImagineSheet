@@ -844,6 +844,61 @@ export const MODE_DAMAGE_TYPES = {
 		return tmpmod;
 	}
 
+	// @MARKER BODY WEIGHT DAMAGE
+	// His getWeightDamageAdj (sheet-worker.js:83259-83301), the Player's Guide's "Body Weight Damage
+	// Modifiers" table (p.179, PDF page 197): what a being's own weight adds to, or takes off, the
+	// damage it does.
+	// The book says "when the character attacks with any melee weapon"; his setCombatModifierValues
+	// (82170) folds it into combat_mod_damage, the one standing damage figure every attack reads.
+	//
+	// Each row is the band's UPPER bound, exclusive, walked in order, which is exactly what his else-if
+	// chain does -- 10.5 lb is in the first band because it is under 11, as his "tempweight<11" has it.
+	// Nothing at all (0, blank) adjusts nothing. His 350-399 branch is written "tempweight>249", a
+	// slip that changes no answer because 250-349 were already caught by the branches before it.
+	// The book's table has two misprinted rows -- "300-349" twice, the first at +2, and "2000-3999"
+	// twice, the first at +12 -- which his sheet reads as the evident 250-299 and 1200-1999. Same
+	// answer either way; the sheet is the one followed.
+	//
+	//          under  adjust        band         the book's example
+	export const WEIGHT_DAMAGE_ADJUST = [
+		[    11, -5 ],       // 1-10 lb        a rat
+		[    26, -4 ],       // 11-25          a fairy
+		[    51, -3 ],       // 26-50          a dog
+		[    76, -2 ],       // 51-75          a midfolk
+		[   100, -1 ],       // 76-99          an elf
+		[   200,  0 ],       // 100-199        a human
+		[   250,  1 ],       // 200-249        a dwarf
+		[   300,  2 ],       // 250-299        a goblin
+		[   350,  3 ],       // 300-349        a saurian
+		[   400,  4 ],       // 350-399        a troll
+		[   500,  5 ],       // 400-499        an ogre
+		[   600,  6 ],       // 500-599        a centaur
+		[   800,  8 ],       // 600-799        a wyvern
+		[  1200, 10 ],       // 800-1199       a small giant
+		[  2000, 12 ],       // 1200-1999      a giant
+		[  4000, 14 ],       // 2000-3999      a large giant
+		[  8000, 16 ],       // 4000-7999      a titan
+		[ 10000, 18 ]        // 8000-9999      a dragon; 10,000 lb or more is +20, a large dragon
+	];
+
+	// This is the function which gives the body-weight damage adjustment for a weight in pounds.
+	//
+	// A CREATURE's is floored at 0: his own comment at sheet-worker.js:82173 reads "weight is already
+	// factored into smaller creature damage modifiers", so a small creature is not docked for being
+	// small -- only a big one is paid for being big. A character's is signed both ways.
+	export function getWeightDamageAdjust(tmpweight, tmpiscreature) {
+		var tmppounds = parseFloat(tmpweight) || 0;
+		var tmpadjust = 0;
+		if (tmppounds > 0) {
+			tmpadjust = 20;
+			for (const [tmpunder, tmpvalue] of WEIGHT_DAMAGE_ADJUST) {
+				if (tmppounds < tmpunder) { tmpadjust = tmpvalue; break; }
+			}
+		}
+		if (tmpiscreature && tmpadjust < 0) { tmpadjust = 0; }
+		return tmpadjust;
+	}
+
 	// This is the function which combines damage multipliers. The Player's Guide: "no matter
 	// how many multipliers to damage one can gain, base damage may never be multiplied by more
 	// than three."
@@ -1192,6 +1247,30 @@ export const MODE_DAMAGE_TYPES = {
 	// This is the function which returns the body chart for a body type, as areas.
 	export function getBodyChart(tmpbodytype) {
 		return parseBodyChart(BODY_CHARTS[tmpbodytype] ?? BODY_CHARTS["Humanoid"]);
+	}
+
+	// @MARKER TOKEN BAR
+	// This is the function which gives the figure a token's resource bar draws: how far a being is
+	// from shock. Shock is the one overall threshold both actor types carry (Endurance x 3 for a
+	// character, the stat block's figure or Endurance x 3 for a creature), and total wounds against it
+	// is what the Combat tab's Shock box already shows as "wounds / shock".
+	//
+	// The bar is drawn as what is LEFT, Shock less the wounds, never below 0. Foundry colours its
+	// first bar green when full and red when empty, so a bar of wounds would show an unhurt creature
+	// as an empty red bar. `wounds` rides along for anything that wants the other reading.
+	//
+	// A being immune to shock (a creature's Shock Immune) has a Shock of 0, and a bar with a maximum
+	// of 0 is one Foundry does not draw at all -- which is right: there is nothing to run out of.
+	//
+	// Not in his sheet: Roll20 has token bars of its own, set by hand. Chosen for this port (the
+	// provisional D9 of the creature audit, docs/DECISIONS.md 2026-09-23).
+	export function getShockBar(tmpshock, tmptotalwounds) {
+		var tmpmax = parseInt(tmpshock) || 0;
+		var tmpwounds = parseInt(tmptotalwounds) || 0;
+		if (tmpmax < 0) { tmpmax = 0; }
+		var tmpleft = tmpmax - tmpwounds;
+		if (tmpleft < 0) { tmpleft = 0; }
+		return { value: tmpleft, max: tmpmax, wounds: tmpwounds };
 	}
 
 	// This is the function which finds which armour-family covers a body type.
@@ -1907,6 +1986,13 @@ export const MODE_DAMAGE_TYPES = {
 		["Arrow(Fairy Hand Crossbow", ["Fairy Hand Crossbow"]],
 		["Arrow(Fairy Heavy Crossbow", ["Fairy Heavy Crossbow"]],
 		["Arrow(Fairy Crossbow", ["Fairy Crossbow"]],
+		// Not in his chain. His panel and his prices call the fairy crossbow bolts "Arrow(Fairy ...
+		// Crossbow/...)", and so does this chain; his VALUES call them "Bolt(...)" (79792 on), and the
+		// weapons pack, built from his values, holds only the Bolt spelling. So the Bolt that is actually
+		// bought or dropped on a sheet finds its crossbow too (module/shop-rules.mjs @MARKER NAME ALIASES).
+		["Bolt(Fairy Hand Crossbow", ["Fairy Hand Crossbow"]],
+		["Bolt(Fairy Heavy Crossbow", ["Fairy Heavy Crossbow"]],
+		["Bolt(Fairy Crossbow", ["Fairy Crossbow"]],
 		["Pebble(Fairy Sling)", ["Fairy Sling"]],
 		["Bullet(Fairy Sling)", ["Fairy Sling"]],
 		["Arrow(Giant Short Bow", ["Giant Short Bow"]],

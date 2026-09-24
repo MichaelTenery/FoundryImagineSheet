@@ -4,7 +4,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 15,
       "modifier": 10,
       "startTime": "20 sec.",
@@ -22,7 +22,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "10 min.",
@@ -40,7 +40,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 16,
       "modifier": 5,
       "startTime": "30 sec.",
@@ -58,7 +58,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 17,
       "modifier": 0,
       "startTime": "30 sec.",
@@ -76,7 +76,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "10 min.",
@@ -94,7 +94,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 15,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -112,7 +112,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 17,
       "modifier": 0,
       "startTime": "1 min.",
@@ -130,7 +130,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -148,7 +148,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "30 sec.",
@@ -166,7 +166,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 17,
       "modifier": 0,
       "startTime": "20 sec.",
@@ -184,7 +184,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 16,
       "modifier": 5,
       "startTime": "30 sec.",
@@ -202,7 +202,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 22,
       "modifier": -25,
       "startTime": "30 sec.",
@@ -220,7 +220,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "20 sec.",
@@ -238,7 +238,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "1 min.",
@@ -256,7 +256,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "1 min.",
@@ -274,7 +274,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "30 sec.",
@@ -292,7 +292,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 21,
       "modifier": -20,
       "startTime": "10 sec.",
@@ -310,7 +310,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -328,7 +328,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -346,7 +346,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "1 min.",
@@ -364,7 +364,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 21,
       "modifier": -20,
       "startTime": "30 sec.",
@@ -382,7 +382,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -400,7 +400,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -418,7 +418,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 16,
       "modifier": 5,
       "startTime": "30 sec.",
@@ -436,7 +436,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 17,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -454,7 +454,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "30 sec.",
@@ -472,7 +472,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 25,
       "modifier": -40,
       "startTime": "30 sec.",
@@ -490,7 +490,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 17,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -508,7 +508,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 25,
       "modifier": -40,
       "startTime": "15 sec.",
@@ -526,7 +526,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 16,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -544,7 +544,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 17,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -562,7 +562,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -580,7 +580,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 15,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -598,7 +598,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "15 sec.",
@@ -616,7 +616,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 17,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -634,7 +634,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "30 min.",
@@ -652,7 +652,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -670,7 +670,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -688,7 +688,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -706,7 +706,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "5 sec.",
@@ -724,7 +724,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "5 sec.",
@@ -742,7 +742,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 18,
       "modifier": -5,
       "startTime": "10 min.",
@@ -760,7 +760,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "10 min.",
@@ -778,7 +778,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "10 min.",
@@ -796,7 +796,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 19,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -814,7 +814,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -832,7 +832,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -850,7 +850,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -868,7 +868,7 @@
     "type": "lore",
     "system": {
       "kind": "ballad",
-      "subsystem": "bardic",
+      "subsystem": "ballads",
       "rating": 20,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -2596,7 +2596,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -2614,7 +2614,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -2632,7 +2632,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -2650,7 +2650,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 min.",
@@ -2668,7 +2668,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -2686,7 +2686,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -2704,7 +2704,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -2722,7 +2722,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -2740,7 +2740,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -2758,7 +2758,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "20 sec.",
@@ -2776,7 +2776,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 28,
       "modifier": -50,
       "startTime": "10 min.",
@@ -2794,7 +2794,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "20 sec.",
@@ -2812,7 +2812,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 24,
       "modifier": -30,
       "startTime": "10 min.",
@@ -2830,7 +2830,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 28,
       "modifier": -50,
       "startTime": "1 min.",
@@ -2848,7 +2848,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -2866,7 +2866,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "5 sec.",
@@ -2884,7 +2884,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -2902,7 +2902,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 31,
       "modifier": 65,
       "startTime": "1 min.",
@@ -2920,7 +2920,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "15 sec.",
@@ -2938,7 +2938,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "30 sec.",
@@ -2956,7 +2956,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "8 min.",
@@ -2974,7 +2974,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -2992,7 +2992,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -3010,7 +3010,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -3028,7 +3028,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "15 sec.",
@@ -3046,7 +3046,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -3064,7 +3064,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -3082,7 +3082,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -3100,7 +3100,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -3118,7 +3118,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "20 sec.",
@@ -3136,7 +3136,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 25,
       "modifier": -35,
       "startTime": "10 sec.",
@@ -3154,7 +3154,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "5 sec.",
@@ -3172,7 +3172,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "1 min.",
@@ -3190,7 +3190,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 24,
       "modifier": -30,
       "startTime": "10 min.",
@@ -3208,7 +3208,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -3226,7 +3226,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -3244,7 +3244,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "30 sec.",
@@ -3262,7 +3262,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -3280,7 +3280,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "5 sec.",
@@ -3298,7 +3298,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -3316,7 +3316,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -3334,7 +3334,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "20 sec.",
@@ -3352,7 +3352,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -3370,7 +3370,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -3388,7 +3388,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "20 sec.",
@@ -3406,7 +3406,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -3424,7 +3424,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -3442,7 +3442,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -3460,7 +3460,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -3478,7 +3478,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "1 min.",
@@ -3496,7 +3496,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -3514,7 +3514,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "30 sec.",
@@ -3532,7 +3532,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 15,
       "modifier": 15,
       "startTime": "10 sec.",
@@ -3550,7 +3550,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -3568,7 +3568,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 26,
       "modifier": -40,
       "startTime": "10 min.",
@@ -3586,7 +3586,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": -20,
       "startTime": "10 min.",
@@ -3604,7 +3604,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 24,
       "modifier": -30,
       "startTime": "10 min.",
@@ -3622,7 +3622,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": -20,
       "startTime": "15 sec.",
@@ -3640,7 +3640,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -3658,7 +3658,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -3676,7 +3676,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -3694,7 +3694,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -3712,7 +3712,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -3730,7 +3730,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "5 sec.",
@@ -3748,7 +3748,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "30 sec.",
@@ -3766,7 +3766,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -3784,7 +3784,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": -20,
       "startTime": "5 sec.",
@@ -3802,7 +3802,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": -20,
       "startTime": "15 sec.",
@@ -3820,7 +3820,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -3838,7 +3838,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "5 sec.",
@@ -3856,7 +3856,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -3874,7 +3874,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -3892,7 +3892,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -3910,7 +3910,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -3928,7 +3928,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -3946,7 +3946,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "15 sec.",
@@ -3964,7 +3964,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -3982,7 +3982,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -4000,7 +4000,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "20 sec.",
@@ -4018,7 +4018,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "20 sec.",
@@ -4036,7 +4036,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "20 sec.",
@@ -4054,7 +4054,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -4072,7 +4072,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 min.",
@@ -4090,7 +4090,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -4108,7 +4108,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "15 sec.",
@@ -4126,7 +4126,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -4144,7 +4144,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 14,
       "modifier": 20,
       "startTime": "10 min.",
@@ -4162,7 +4162,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 min.",
@@ -4180,7 +4180,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 min.",
@@ -4198,7 +4198,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 min.",
@@ -4216,7 +4216,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -4234,7 +4234,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "20 sec.",
@@ -4252,7 +4252,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "15 sec.",
@@ -4270,7 +4270,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -4288,7 +4288,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -4306,7 +4306,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -4324,7 +4324,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 32,
       "modifier": -70,
       "startTime": "10 sec.",
@@ -4342,7 +4342,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -4360,7 +4360,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -4378,7 +4378,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -4396,7 +4396,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -4414,7 +4414,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -4432,7 +4432,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -4450,7 +4450,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 15,
       "modifier": 15,
       "startTime": "15 sec.",
@@ -4468,7 +4468,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -4486,7 +4486,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 min.",
@@ -4504,7 +4504,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "10 min.",
@@ -4522,7 +4522,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 min.",
@@ -4540,7 +4540,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 25,
       "modifier": -35,
       "startTime": "10 min.",
@@ -4558,7 +4558,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 28,
       "modifier": -50,
       "startTime": "5 sec.",
@@ -4576,7 +4576,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": -20,
       "startTime": "1 min.",
@@ -4594,7 +4594,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -4612,7 +4612,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": -20,
       "startTime": "10 sec.",
@@ -4630,7 +4630,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -4648,7 +4648,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -4666,7 +4666,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -4684,7 +4684,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -4702,7 +4702,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -4720,7 +4720,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -4738,7 +4738,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -4756,7 +4756,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -4774,7 +4774,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -4792,7 +4792,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -4810,7 +4810,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -4828,7 +4828,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -4846,7 +4846,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -4864,7 +4864,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -4882,7 +4882,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -4900,7 +4900,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 min.",
@@ -4918,7 +4918,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "5 sec.",
@@ -4936,7 +4936,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "15 sec.",
@@ -4954,7 +4954,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -4972,7 +4972,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -4990,7 +4990,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "5 sec.",
@@ -5008,7 +5008,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": 20,
       "startTime": "5 sec.",
@@ -5026,7 +5026,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "5 sec.",
@@ -5044,7 +5044,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -5062,7 +5062,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -5080,7 +5080,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 25,
       "modifier": -35,
       "startTime": "10 sec.",
@@ -5098,7 +5098,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -5116,7 +5116,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 25,
       "modifier": -35,
       "startTime": "1 min.",
@@ -5134,7 +5134,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "10 min.",
@@ -5152,7 +5152,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -5170,7 +5170,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -5188,7 +5188,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -5206,7 +5206,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -5224,7 +5224,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -5242,7 +5242,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -5260,7 +5260,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -5278,7 +5278,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -5296,7 +5296,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -5314,7 +5314,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -5332,7 +5332,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "1 min.",
@@ -5350,7 +5350,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "1 min.",
@@ -5368,7 +5368,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -5386,7 +5386,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -5404,7 +5404,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -5422,7 +5422,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "5 sec.",
@@ -5440,7 +5440,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "10 min.",
@@ -5458,7 +5458,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "2 min.",
@@ -5476,7 +5476,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -5494,7 +5494,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 24,
       "modifier": -30,
       "startTime": "10 min.",
@@ -5512,7 +5512,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -5530,7 +5530,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -5548,7 +5548,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 30,
       "modifier": -60,
       "startTime": "10 min.",
@@ -5566,7 +5566,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -5584,7 +5584,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -5602,7 +5602,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 24,
       "modifier": -30,
       "startTime": "5 min.",
@@ -5620,7 +5620,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -5638,7 +5638,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -5656,7 +5656,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -5674,7 +5674,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -5692,7 +5692,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 min.",
@@ -5710,7 +5710,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -5728,7 +5728,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "15 sec.",
@@ -5746,7 +5746,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 15,
       "modifier": 15,
       "startTime": "10 sec.",
@@ -5764,7 +5764,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -5782,7 +5782,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 28,
       "modifier": -50,
       "startTime": "5 sec.",
@@ -5800,7 +5800,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -5818,7 +5818,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -5836,7 +5836,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -5854,7 +5854,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": 20,
       "startTime": "1 min.",
@@ -5872,7 +5872,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -5890,7 +5890,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -5908,7 +5908,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -5926,7 +5926,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "20 sec.",
@@ -5944,7 +5944,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -5962,7 +5962,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -5980,7 +5980,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -5998,7 +5998,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -6016,7 +6016,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -6034,7 +6034,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": 20,
       "startTime": "5 min.",
@@ -6052,7 +6052,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "15 sec.",
@@ -6070,7 +6070,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -6088,7 +6088,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -6106,7 +6106,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -6124,7 +6124,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -6142,7 +6142,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 22,
       "modifier": 20,
       "startTime": "10 sec.",
@@ -6160,7 +6160,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 21,
       "modifier": -15,
       "startTime": "20 sec.",
@@ -6178,7 +6178,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -6196,7 +6196,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -6214,7 +6214,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -6232,7 +6232,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 23,
       "modifier": -25,
       "startTime": "10 sec.",
@@ -6250,7 +6250,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -6268,7 +6268,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "1 min.",
@@ -6286,7 +6286,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -6304,7 +6304,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -6322,7 +6322,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -6340,7 +6340,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -6358,7 +6358,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -6376,7 +6376,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -6394,7 +6394,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 15,
       "modifier": 15,
       "startTime": "15 sec.",
@@ -6412,7 +6412,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -6430,7 +6430,7 @@
     "type": "lore",
     "system": {
       "kind": "hymn",
-      "subsystem": "bardic",
+      "subsystem": "hymns",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -6448,7 +6448,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "3d6 sec.",
@@ -6466,7 +6466,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 20,
       "modifier": -20,
       "startTime": "10d4 sec.",
@@ -6484,7 +6484,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 20,
       "modifier": -20,
       "startTime": "10d4 sec.",
@@ -6502,7 +6502,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 21,
       "modifier": -25,
       "startTime": "6d6 sec.",
@@ -6520,7 +6520,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 17,
       "modifier": -5,
       "startTime": "10d4 sec.",
@@ -6538,7 +6538,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 19,
       "modifier": -15,
       "startTime": "4d6 sec.",
@@ -6556,7 +6556,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "3d6 sec.",
@@ -6574,7 +6574,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 14,
       "modifier": 10,
       "startTime": "2d8 sec.",
@@ -6592,7 +6592,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 17,
       "modifier": -5,
       "startTime": "10d3 sec.",
@@ -6610,7 +6610,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "4d4 sec.",
@@ -6628,7 +6628,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 19,
       "modifier": -15,
       "startTime": "6d6 sec.",
@@ -6646,7 +6646,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "4d6 sec.",
@@ -6664,7 +6664,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 15,
       "modifier": 5,
       "startTime": "2d4 sec.",
@@ -6682,7 +6682,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 19,
       "modifier": -15,
       "startTime": "4d4 sec.",
@@ -6700,7 +6700,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "3d4 sec.",
@@ -6718,7 +6718,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "4d4 sec.",
@@ -6736,7 +6736,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 14,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -6754,7 +6754,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -6772,7 +6772,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 14,
       "modifier": 10,
       "startTime": "3d6 sec.",
@@ -6790,7 +6790,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "2d6 sec.",
@@ -6808,7 +6808,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "2d6 sec.",
@@ -6826,7 +6826,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 17,
       "modifier": -5,
       "startTime": "2d8 sec.",
@@ -6844,7 +6844,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 17,
       "modifier": -5,
       "startTime": "2d8 sec.",
@@ -6862,7 +6862,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "2d4 sec.",
@@ -6880,7 +6880,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 14,
       "modifier": 10,
       "startTime": "2d4 sec.",
@@ -6898,7 +6898,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "2d4 sec.",
@@ -6916,7 +6916,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 19,
       "modifier": -15,
       "startTime": "2d6 sec.",
@@ -6934,7 +6934,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 14,
       "modifier": 10,
       "startTime": "2d6 sec.",
@@ -6952,7 +6952,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "2d4 sec.",
@@ -6970,7 +6970,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 19,
       "modifier": -15,
       "startTime": "2d4 sec.",
@@ -6988,7 +6988,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "2d4 sec.",
@@ -7006,7 +7006,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 15,
       "modifier": 5,
       "startTime": "3d4 sec.",
@@ -7024,7 +7024,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "2d4 sec.",
@@ -7042,7 +7042,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 15,
       "modifier": 5,
       "startTime": "3d4 sec.",
@@ -7060,7 +7060,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "3d6 sec.",
@@ -7078,7 +7078,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 20,
       "modifier": -20,
       "startTime": "1d4 min.",
@@ -7096,7 +7096,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 14,
       "modifier": 10,
       "startTime": "2d6 sec.",
@@ -7114,7 +7114,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -7132,7 +7132,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 19,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -7150,7 +7150,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "20 sec.",
@@ -7168,7 +7168,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -7186,7 +7186,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 14,
       "modifier": 10,
       "startTime": "1 min.",
@@ -7204,7 +7204,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 19,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -7222,7 +7222,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "2d6 sec.",
@@ -7240,7 +7240,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "3d6 sec.",
@@ -7258,7 +7258,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "3d4 sec.",
@@ -7276,7 +7276,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "2d6 sec.",
@@ -7294,7 +7294,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 18,
       "modifier": -10,
       "startTime": "3d6 sec.",
@@ -7312,7 +7312,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 20,
       "modifier": -20,
       "startTime": "3d6 sec.",
@@ -7330,7 +7330,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 16,
       "modifier": 0,
       "startTime": "3d4 sec.",
@@ -7348,7 +7348,7 @@
     "type": "lore",
     "system": {
       "kind": "poem",
-      "subsystem": "bardic",
+      "subsystem": "poems",
       "rating": 20,
       "modifier": -20,
       "startTime": "3d6 sec.",
@@ -12442,7 +12442,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -12460,7 +12460,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 21,
       "modifier": -15,
       "startTime": "15 sec.",
@@ -12478,7 +12478,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 22,
       "modifier": -20,
       "startTime": "15 sec.",
@@ -12496,7 +12496,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -12514,7 +12514,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 22,
       "modifier": -20,
       "startTime": "10 sec.",
@@ -12532,7 +12532,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 14,
       "modifier": 20,
       "startTime": "30 sec.",
@@ -12550,7 +12550,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "15 sec.",
@@ -12568,7 +12568,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -12586,7 +12586,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -12604,7 +12604,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 17,
       "modifier": 5,
       "startTime": "1 min.",
@@ -12622,7 +12622,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "15 sec.",
@@ -12640,7 +12640,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -12658,7 +12658,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 15,
       "modifier": 15,
       "startTime": "30 sec.",
@@ -12676,7 +12676,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -12694,7 +12694,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "20 sec.",
@@ -12712,7 +12712,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 21,
       "modifier": -15,
       "startTime": "20 sec.",
@@ -12730,7 +12730,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "30 sec.",
@@ -12748,7 +12748,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "15 sec.",
@@ -12766,7 +12766,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 23,
       "modifier": -25,
       "startTime": "1 min.",
@@ -12784,7 +12784,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 22,
       "modifier": -20,
       "startTime": "1 min.",
@@ -12802,7 +12802,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "20 sec.",
@@ -12820,7 +12820,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -12838,7 +12838,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -12856,7 +12856,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -12874,7 +12874,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "30 sec.",
@@ -12892,7 +12892,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 15,
       "modifier": 15,
       "startTime": "10 sec.",
@@ -12910,7 +12910,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -12928,7 +12928,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -12946,7 +12946,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -12964,7 +12964,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "10 sec.",
@@ -12982,7 +12982,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 22,
       "modifier": -20,
       "startTime": "10 sec.",
@@ -13000,7 +13000,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -13018,7 +13018,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 14,
       "modifier": 20,
       "startTime": "10 sec.",
@@ -13036,7 +13036,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 21,
       "modifier": -15,
       "startTime": "30 sec.",
@@ -13054,7 +13054,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -13072,7 +13072,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -13090,7 +13090,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -13108,7 +13108,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -13126,7 +13126,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 sec.",
@@ -13144,7 +13144,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 21,
       "modifier": -15,
       "startTime": "10 sec.",
@@ -13162,7 +13162,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 22,
       "modifier": -20,
       "startTime": "10 sec.",
@@ -13180,7 +13180,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -13198,7 +13198,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -13216,7 +13216,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -13234,7 +13234,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 17,
       "modifier": 5,
       "startTime": "5 sec.",
@@ -13252,7 +13252,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -13270,7 +13270,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "30 sec.",
@@ -13288,7 +13288,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",
@@ -13306,7 +13306,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "30 sec.",
@@ -13324,7 +13324,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "15 sec.",
@@ -13342,7 +13342,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "5 sec.",
@@ -13360,7 +13360,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -13378,7 +13378,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "1d4,min.",
@@ -13396,7 +13396,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "10 sec.",
@@ -13414,7 +13414,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -13432,7 +13432,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "5 sec.",
@@ -13450,7 +13450,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 17,
       "modifier": 5,
       "startTime": "10 sec.",
@@ -13468,7 +13468,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 20,
       "modifier": -10,
       "startTime": "1d3,min.",
@@ -13486,7 +13486,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -13504,7 +13504,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -13522,7 +13522,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "1 min.",
@@ -13540,7 +13540,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 19,
       "modifier": -5,
       "startTime": "1 min.",
@@ -13558,7 +13558,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 24,
       "modifier": -30,
       "startTime": "10 sec.",
@@ -13576,7 +13576,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 min.",
@@ -13594,7 +13594,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 26,
       "modifier": -40,
       "startTime": "10 sec.",
@@ -13612,7 +13612,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 16,
       "modifier": 10,
       "startTime": "10 sec.",
@@ -13630,7 +13630,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 min.",
@@ -13648,7 +13648,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "10 min.",
@@ -13666,7 +13666,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 14,
       "modifier": 20,
       "startTime": "10 sec.",
@@ -13684,7 +13684,7 @@
     "type": "lore",
     "system": {
       "kind": "song",
-      "subsystem": "bardic",
+      "subsystem": "songs",
       "rating": 18,
       "modifier": 0,
       "startTime": "5 sec.",

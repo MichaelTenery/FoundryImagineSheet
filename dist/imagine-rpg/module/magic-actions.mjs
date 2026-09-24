@@ -339,8 +339,19 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 	// This is the function which ticks or unticks an entry as memorized. His tick is free and it is
 	// his recalculation that complains -- "has too many things memorized. Forget a few things" -- so
 	// this does not refuse either; the tab's memorization line turns red instead.
+	//
+	// UNTICKED, a spell loses its days of memory and an invocation its uses -- his spell_mem_check and
+	// invoc_mem_check handlers (sheet-worker.js:22088-22127), which call clearSpellDays and
+	// clearInvocUsages when the tick goes off. So neither can be unticked to free memorization points
+	// and ticked again later with its days or uses intact: ticked by hand, his handlers give nothing
+	// back, and a spell reads "forgotten" until MEM refreshes it (casting-actions.mjs rememorizeSpell),
+	// an invocation 0 uses until Pray. A spell whose days were never counted (days null: dragged from a
+	// compendium, or held before 2026-09-24) keeps reading its full days when ticked, as his add gave.
 	export async function toggleMemorized(tmpactor, tmpitem) {
-		await tmpitem.update({ "system.memorized": !tmpitem.system.memorized });
+		var tmpupdate = { "system.memorized": !tmpitem.system.memorized };
+		if (tmpitem.system.memorized && tmpitem.type == "spell") { tmpupdate["system.days"] = 0; }
+		if (tmpitem.system.memorized && tmpitem.type == "invocation") { tmpupdate["system.usesLeft"] = 0; }
+		await tmpitem.update(tmpupdate);
 	}
 
 
@@ -443,7 +454,7 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 				var tmpentry = [...tmpindex].find(tmpe => tmpe.name == tmpitem.name && tmpe.system?.kind == "potion");
 				var tmpdoc = tmpentry ? await tmppack.getDocument(tmpentry._id) : null;
 				tmpstock = tmpdoc ? tmpdoc.toObject() : { name: tmpitem.name, type: "consumable",
-					system: { kind: "potion", subsystem: "herbalism", value: tmpitem.system.value,
+					system: { kind: "potion", subsystem: MAGIC_KINDS.potion.subsystem, value: tmpitem.system.value,
 					          duration: tmpitem.system.duration, description: tmpitem.system.description } };
 				delete tmpstock._id;
 			}
@@ -503,8 +514,8 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 
 	// @MARKER READING OUT
 	// This is the function which posts a spell, invocation or evoke to chat as the book gives it.
-	// Casting and invoking are the deferred magic phase's (CLAUDE.md, Layer 4); until then this is how
-	// a table reads what one does without opening its sheet.
+	// Casting and invoking are module/casting-actions.mjs; this is how a table reads what one does
+	// without casting it or opening its sheet.
 	export async function postMagic(tmpactor, tmpitem) {
 		var tmpkind = getItemKind(tmpitem);
 		var tmpsystem = tmpitem.system;

@@ -18,6 +18,132 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.20.0 — 2026-09-24
+
+**New characters can buy their equipment.** The character generator has a new **Equipment** step
+between Details and Review. It holds the money, which is now rolled there rather than on Details,
+and the starting-kit ticks, and it adds a shop. The shop sells everything his sheet's ADD/BUY ITEMS
+panel sells, at his prices. Pick Armor/Clothing, Weapon or Equipment, narrow the list by kind or
+search by name, set the number and press **Buy**. Each Buy is paid from whatever the list already
+leaves. If the purse cannot cover it, you are told so in his words and nothing is added. The purse
+line shows what the character has, what the list leaves, and what it has spent. Each item's weight
+is shown, with the load the character would carry. Nothing is paid until the character is created.
+If the money is re-rolled or changed and something on the list no longer fits, it is marked and Next
+waits until you remove it or buy fewer. Everything bought is carried, and bought armour is put on.
+Barding is only put on the body it was made for: a Centaur wears its Centaur Barding, and a Human who
+buys horse barding carries it. Arrows, rations and other gear arrive as one stack. Swords and armour
+arrive one item each, so each can be held or worn. The Review shows what was bought and the purse
+left over, and the purchases go to chat when the character is made.
+
+**Paying works the way his sheet pays, with two fixes.** Change is made his way, from the price's
+own coin and then from higher coins. When his sheet would refuse because the coins are the wrong
+kind, the port changes lower coins up ten for one instead. A Baron's child with 275 gp can now buy a
+6 pp leather suit, and a peasant with 31 sp can buy a 3 gp sword. His sheet's habit of taking one
+coin too many, which could leave a coin below zero, is also fixed. Hemp and silk rope are sold fifty
+feet at a time, at the book's price for fifty feet. Creature-hide armour is not sold yet. The fairy
+crossbow bolts the shop sells now pair with their fairy crossbows.
+
+**A new world setting, Price level**, under Configure Settings: his seven price columns from Quarter
+Low to Triple High, Medium by default. A Game Master in the generator can also set any line's price
+level, including Free. Homebrew weapons, armour and gear with a **cost** of their own are sold at that
+cost; see `docs/ADDING-CONTENT.md`. A cost must be a whole number and one coin, such as "25 sp". One
+the shop cannot read, such as "2 gp 5 sp" or "1.5 gp", is not sold rather than being charged wrongly.
+A Game Master opening the Equipment step is told which items those are, and which of his items the
+world's compendiums are missing.
+
+**Equip Best Armour** on the character sheet no longer puts barding on a body it was not made for.
+
+**Starting skills take their race and cross-skill modifiers.** A new character's skills now get the
+modifiers his sheet lists, not just the dice. A Dwarf's Smithy starts at +20%, a Merfolk's Swimming
+at +90%; holding Mathematics gives Accounting +10%, holding Explorer gives Cartography +25%, and a
+Famorian's Climbing evoke gives Climb +40%. A class skill counts toward a social skill whatever title
+it comes at, as on his sheet: an Assassin, whose Disguise comes at title 2, starts with Acting +15%.
+Where his errata corrects his race table (Gaunt Astronomy, Sylph Heavy Drinking and eleven others),
+the errata's figure is used. On the generator's Skills step, each social skill shows the race's
+modifier. A skill the race may not take is marked BLOCKED, and the step will not continue until it
+is unticked. The Review step lists what each skill's bonus is made of. Class skills granted at a
+later title get the same modifiers. A race's penalty on a racial skill (a Brok's Tame Animal -10%)
+is no longer lost when the character is made.
+
+**Creatures can be built on their own sheet.** A creature's body type is now a dropdown on the Combat
+tab. **Edit areas** gives it its own body chart, which you can change area by area (name,
+Vital/Limb/Other/Wing, Endurance multiplier), and **Use stock chart** puts the stock one back. New
+areas get names of their own, and the sheet warns you when two areas share a name. Skills and
+movement modes have Add and Remove buttons, and movement modes can also be moved up and down. A name
+you type just before clicking Add is kept. Attacks, Powers, abilities, disabilities and immunities
+each have an Add button that creates one and opens it. The gear a creature carries is listed on its
+Combat tab, to open or remove. The tame bonus, tendencies, experience note, attack notes and a
+description are now on the sheet. A **Modifiers** panel on the Stats tab holds every temporary and
+permanent adjustment.
+
+**Creatures hit as hard as their stat blocks say.** Every natural attack except a touch now adds the
+creature's Strength damage, its body weight and Weapon Lore's +4. Strength and weight never take
+anything away: a weak or light creature does its own dice, as its stat line's "+0" says. A 1,200 lb
+buffalo's horns roll 6d6+17, as its stat line prints. The Combat tab shows the figure as **Damage**,
+and the attack card lists each part by name. An attack with no damage, blank or "0", does none. A
+creature's martial stance and moves now add their damage as well as their to-hit, and a stance's
+extra dice count too. A spitting or bolt attack takes the stance's missile bonus. Weapon Lore and
+Missile Lore on a creature's skill list now give their +2 to hit.
+
+**Martial attacks count body weight.** A Martial Punch or Kick, by a character or a creature, now adds
+the attacker's weight to its damage, as Strength already was: light characters hit a little softer
+and heavy ones harder.
+
+**Perception, Affinity and Fortune can be rolled from a creature's header**, with Double Perception.
+Shift-click any of them, or a skill's Roll, to add a modifier.
+
+**Hide over the errata's cap is flagged.** The cap is 5 per level. A creature over it shows a
+warning, and its Hide stays as you entered it. Creatures now have a **Size**, and Titanic creatures,
+plants and magical plants are exempt from the cap. **Jumps are worked out from Agility**, as his
+sheet does, with a modifier for each jump.
+
+**Tokens can show a wound bar.** Characters and creatures both offer **Shock** (`body.shockBar`) as a
+token resource bar: how far the creature or character is from shock. Pick it in a token's Resources
+tab.
+
+**Skill rolls say what your roll achieved, the way the original sheet does.** A skill card now names
+one of eight results: Critical Success, Critical Success and made by half, Made by half, Success,
+Failure, Critical Failure, Rolled 100 (always a failure below 200%) and Grandmaster (a skill at 200%
+or more never needs to roll). It also says plainly whether the roll succeeded. "Made by half" means
+rolling at or under half the chance, rounded up. This covers character skills, untrained attempts,
+creature skills and the martial arts rolls. When a skill is held twice, a copy made by half now
+beats a copy that is merely made. An attribute save of 1% rolled on a 1 now counts as made by half,
+as on the original sheet.
+
+**Five race and kit corrections from the author's errata and the books:**
+- **Sea and Ice Elves** resist disease at -10% (their -10 was one column off, where it read as a
+  speed penalty).
+- **Podlings** jog 6 feet a second slower, not 60.
+- **Nixies** swim at five times their walk as well as flying.
+- **A Gaunt's starting Endurance** is rolled at -1d4, once, when the character is made or the race is
+  added, and the roll is shown as Start roll on the character's copy of the race. A Gaunt made before
+  this update gets a **Roll -1d4** button beside Endurance. If you had already typed the penalty into
+  that race's Start mod, the button asks before rolling, because the two would be added together.
+- **With Gear by culture,** social class 5 and 12-13 get their own kits instead of the next band's.
+  For example, a social-5 Troll now gets a club and a stone or obsidian knife.
+
+Each correction is printed every time the content is built, so the author can see it and undo it.
+To pick these up in an existing world, run `game.imagine.importContent()`. A character made before
+this update keeps its old copy of its race: to update it, remove the race from the character and add
+it again (remove it first, because adding a second race makes a half race). For a half race, remove
+both races and add them back in their original order.
+
+**Spells now last a number of days.** A memorized spell stays in mind for 30 days less its level, and the Magic & Lore tab shows the days left. **Sleep** takes a day from every spell and refills the Aura pool. A spell out of days is marked *forgotten* and can't be cast until its **Mem** button rolls the casting skill to refresh it (Shift-click adds a modifier). Starting spells now arrive memorized, with their days. Unticking a spell's Memorized clears its days, and unticking an invocation clears its uses, as on the Roll20 sheet. Spells your characters already have memorized keep working.
+
+**Drain** takes a chosen amount of Aura from the pool (a skill, an item, a spell cast at the table). A spell whose range is Self now opens its Cast dialog on the caster.
+
+**Magical mishaps can be applied from the card.** An Aura or Will loss or gain, a Burnout, or a Wild Wish's Aura loss gets an **Apply** button. Each can be pressed once, by the Game Master or whoever cast the spell. Aura and Will changes go onto the attribute's permanent modifier, where they can be seen and undone.
+
+**Wilders no longer gain Spell Lore's +2 Aura Control,** as on the Roll20 sheet.
+
+**Finer magic switches.** Content Availability now has 21 magic switches: Ballads, Hymns, Poems and Songs are separate switches, and so are Herbs, Potions and Elixirs. A campaign that had switched off Bardic Magic or Herbalism keeps those kinds off.
+
+The skills that learn or use a kind now follow that kind's switch too, as well as Arcane or Divine Magic. Switching off Songs now also hides Sing and Song Lore, and switching off Arcane Magic still hides them. **If your campaign had Runes, Glyphs, Rituals, Evocation, Candle Lore, Bardic Magic or Herbalism switched off,** the matching skills (Rune Lore, Glyph, Ritual Lore, Evoke, Candle Lore, Intone, Sing, Potion Lore and the like) are now unavailable as well. They are flagged on characters who hold them, not removed.
+
+The Powers, Magic Item Empowering and Divine Item Empowering switches now reach power items. An Arch Mortal's invulnerability is a benefit of the title rather than a power, and no switch touches it.
+
+**Double-clicks are harmless.** Pressing Cast, Invoke, Pray, Mem, Sleep, Drain, Reset or Regenerate twice in quick succession now counts as one press.
+
 ## 0.19.3 — 2026-09-23
 
 **A bug sweep.** The whole system was read through for faults, and 36 were fixed. The ones you are

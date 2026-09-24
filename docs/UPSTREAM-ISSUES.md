@@ -2528,3 +2528,46 @@ The walk's hourly -2 beside -30/-3 may be the same slip one column over. Your Fo
 **What the port does meanwhile:** uses your figures, and `tools/derive-test.html` lists these two
 rows by name, so a third cannot appear unnoticed. They were not repaired: the user's 2026-09-23
 ruling covered a specific list, and neither book was checked for them.
+
+## 101. The Wilder's Aura Control: are all its modifiers halved, or only the +1 a title your sheet gives?
+
+**Status:** open · **Severity:** a Wilder's Aura Control could be a few points high or low
+
+**Where:**
+- Master's Manual p.47, Wilder: "All Aura Control modifiers are halved (round down); apply to dual class Wilders as well", and "Title Advancement: +1 Aura Control per Title".
+- Your MM errata, p.47 "Should Read", repeats the halving sentence unchanged. Its changes on that page are the Goal Advancement figures and the animal Affinity.
+- sheet-worker.js:96291: a Wilder's getAuraControlTitleMod is 1, a Mage's 2.
+- sheet-worker.js:96729-96733: Intelligence, Metaphysics and aura_control_boost are added in full, then doubled by Winds of Wild Magic.
+
+**What the port does (2026-09-24):** follows your sheet, as it always has. A Wilder at title 5 with Intelligence +2 and Winds is (1 + 4 + 2) x 2 = 14. A first draft halved every modifier, and was withdrawn before release.
+
+**Questions:**
+1. Should Intelligence, Metaphysics, the boost, and a dual-classed Wilder's other class be halved too? That same Wilder would then be (5 + 1) x 2 = 12.
+2. If so:
+   - is each modifier halved on its own, or their sum?
+   - does "round down" take a penalty down (Intelligence -3 to -2) or toward 0 (-1)?
+   - is the Wilder's 1 per title already the halving?
+   - does Winds of Wild Magic double after the halving?
+
+## 102. Piety Control jumps by twice the class figure on the title after a late invoker start
+
+**Status:** open · **Severity:** a late-starting invoker's Piety Control jumps by twice its figure once
+
+**Where:**
+- sheet-worker.js:96015: getOtherTitleImprovements adds the class's Piety Control figure at every title-up with newTitle >= the invoker start, the start's own title-up included.
+- 96778: at the start title, setMagicDivineLore uses only the "Starting Piety Control" 2.
+- 96783-96784: above the start title it adds the whole piety_control_added.
+
+So a class that starts invoking above title 1 jumps by twice its figure on the next title. A Monk (start 3, +2 a title) is 2 at title 3 and 6 at title 4, where the Player's Guide's 2 x practitioner title (p.285) gives 4. His own commented-out lines say the start's figure is "already covered by getPietyControlTitleMod (when acquired)", which reads as if he meant it counted once. A class starting at title 1 (Priest, Druid) is not affected.
+
+**What the port does:** follows his code literally (casting-rules.mjs getPietyControl). The parallel magic branch had taken the "once" reading; the reconciliation kept his code.
+
+**Question:** is the jump intended, or should the start title's figure be counted once?
+
+## 103. useSpell's "Reduce N by M" sentence has its subtraction the wrong way round
+
+**Status:** open · **Severity:** a sentence on the card reads backwards; nothing is worked out from it
+
+**Where:** sheet-worker.js:161955 and 161962. The over-Aura-Control lines print (tmpAC-tempSpellAura), so a caster with Aura Control 5 who puts in 8 is told "Reduce 8 by -3".
+
+**What the port does:** prints the Aura put in less the Aura Control ("Reduce 8 by 3"), as his sentence evidently means (casting-rules.mjs performSpellCast, overControl). Reported as a plain slip; nothing else changes.

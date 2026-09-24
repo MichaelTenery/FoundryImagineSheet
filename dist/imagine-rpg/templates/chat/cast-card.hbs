@@ -1,0 +1,90 @@
+{{!--
+	Spell or invocation chat card -- module/casting-actions.mjs postCastCard. His own words for what it
+	did (his doSpellAction / doInvocationAction, at the Aura or Piety level it was cast at), then what his
+	sheet could not do: each target's resistance, and an Apply button on each bolt, dart or finger that
+	hit. What the cast would have changed on the caster in his sheet is listed for the Game Master.
+--}}
+<div class="imagine-chat cast-card">
+	<header>
+		<strong>{{casterName}}</strong> — {{#if (eq kind "spell")}}casts{{else}}invokes{{/if}} <strong>{{name}}</strong>
+		{{#if went}}{{#if (eq kind "spell")}}<span class="cast-level">at {{aura}} Aura</span>{{else}}<span class="cast-level">at Piety level {{pietyLevel}}</span>{{/if}}{{/if}}
+		{{#if self}}<span class="target">on self</span>{{/if}}
+	</header>
+
+	<div class="cast-outcome outcome-{{outcome}}">
+		{{#if (eq outcome "cast")}}Cast{{/if}}{{#if (eq outcome "invoked")}}Invoked{{/if}}{{#if (eq outcome "mishap")}}MAGICAL MISHAP{{else}}{{#unless went}}Nothing happens{{/unless}}{{/if}}
+		{{#if drained}}<span class="muted">&mdash; {{drained}} Aura drained</span>{{/if}}
+		{{#if (eq kind "invocation")}}{{#if went}}<span class="muted">&mdash; {{usesLeft}} use(s) left</span>{{/if}}{{/if}}
+	</div>
+
+	<p class="cast-text">{{text}}</p>
+
+	{{!-- Each magical attack his text rolled: to hit on the caster's own chart (a Missile, with the
+	      target's defence when there was one target) or against their INT save, and its damage. --}}
+	{{#if attacks.length}}
+	<table class="cast-attacks">
+		<tbody>
+		{{#each attacks as |a|}}
+		<tr class="{{#if a.isHit}}hit{{else}}miss{{/if}}">
+			<td class="col-name">{{a.name}}</td>
+			<td class="col-roll">{{#if (eq a.kind "INT")}}d100 {{a.natural}} vs INT {{a.save}}{{else}}d20 {{a.natural}}{{#if a.modifier}} {{#if (gt a.modifier 0)}}+{{/if}}{{a.modifier}}{{/if}}{{#if a.defense}} {{#if (gt a.defense 0)}}+{{/if}}{{a.defense}} defence{{/if}} = {{a.total}}{{/if}}
+				&middot; <strong>{{a.zone}}</strong></td>
+			<td class="col-damage">{{#if a.isHit}}{{a.dice}} = <strong>{{a.damage}}</strong> {{a.damageType}}{{/if}}</td>
+			<td class="col-apply">{{#if a.isHit}}<button type="button" data-imagine-action="applySpellAttack" data-index="{{a.index}}"
+				data-tooltip="Apply to a target, after their resistance">Apply</button>{{/if}}</td>
+		</tr>
+		{{/each}}
+		</tbody>
+	</table>
+	{{/if}}
+
+	{{!-- Each target's resistance, rolled here because his sheet never knew who a spell was aimed at. --}}
+	{{#if targets.length}}
+	<div class="cast-targets">
+		{{#each targets as |t|}}
+		<p><strong>{{t.name}}</strong>
+			{{#if t.resist}}&mdash; {{t.resist.label}} Resistance: {{t.resist.reason}} &mdash; <strong>{{t.resist.outcome}}</strong>, {{t.fractionLabel}}{{/if}}
+			{{#if t.note}}&mdash; {{t.note}}{{/if}}
+			<button type="button" class="inline" data-imagine-action="applySpellTarget" data-index="{{@index}}"
+				data-tooltip="Apply damage the spell's words give, with no attack roll of its own (a storm, a blast)">Apply damage&hellip;</button></p>
+		{{/each}}
+	</div>
+	{{else}}{{#if resistLabel}}{{#if went}}{{#unless self}}{{#unless (eq outcome "mishap")}}
+	<p class="muted">Anyone it reaches makes a {{resistLabel}} Resistance. Target their tokens before casting to have it rolled here.</p>
+	{{/unless}}{{/unless}}{{/if}}{{/if}}{{/if}}
+
+	{{#if effectsAdded.length}}<p class="cast-effects">Now running on {{casterName}}: {{#each effectsAdded as |e|}}<strong>{{e}}</strong>{{#unless @last}}, {{/unless}}{{/each}}
+		<span class="muted">(Magic &amp; Lore tab; end it there)</span></p>{{/if}}
+	{{#if effectsRemoved.length}}<p class="cast-effects">Ended: {{#each effectsRemoved as |e|}}{{e}}{{#unless @last}}, {{/unless}}{{/each}}</p>{{/if}}
+	{{#if forgot}}<p class="cast-effects"><strong>The spell is lost from memory</strong> (unticked as memorized, its days cleared).</p>{{/if}}
+
+	{{!-- A mishap's lasting effects on the caster -- AUR or WIL for good, Burnout -- each applied once,
+	      by the Game Master or whoever cast it (casting-actions.mjs applyMishapEffect). --}}
+	{{#if mishapEffects.length}}
+	<div class="cast-mishap-effects">
+		{{#each mishapEffects as |m|}}
+		<p>{{m.label}}
+			<button type="button" class="inline" data-imagine-action="applyMishapEffect" data-index="{{m.index}}"
+				data-tooltip="Put it on {{../casterName}}: once only">Apply</button></p>
+		{{/each}}
+	</div>
+	{{/if}}
+
+	{{!-- What his sheet would ALSO have done to the caster, in words; the Game Master applies it. --}}
+	{{#if changes.length}}
+	<div class="cast-changes">
+		<p class="muted">His sheet would also change {{casterName}}:</p>
+		<ul>{{#each changes as |c|}}<li>{{c.label}}: {{c.text}}</li>{{/each}}
+			{{#each powersAdded as |p|}}<li>Power gained: {{p}}</li>{{/each}}
+			{{#each powersRemoved as |p|}}<li>Power lost: {{p}}</li>{{/each}}</ul>
+	</div>
+	{{else}}{{#if powersAdded.length}}
+	<div class="cast-changes"><ul>{{#each powersAdded as |p|}}<li>Power gained: {{p}}</li>{{/each}}</ul></div>
+	{{/if}}{{/if}}
+
+	{{#if seconds}}{{#if inCombat}}
+	<div class="card-buttons">
+		<button type="button" data-imagine-action="spendCastTime"><i class="fa-solid fa-stopwatch"></i> Spend {{seconds}}s</button>
+	</div>
+	{{/if}}{{/if}}
+</div>

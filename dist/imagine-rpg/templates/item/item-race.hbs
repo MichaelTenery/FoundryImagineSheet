@@ -33,10 +33,23 @@
 		<div class="panel">
 			<h3>Endurance</h3>
 			<ul class="band-list">
+				{{!-- The placeholder is the one real example, Gaunt's. It used to read "2d6" from when this
+				      field was only a label; since 2026-09-23 a die typed here IS rolled, so suggesting one
+				      would hand every character of a homebrew race 2 to 12 extra Endurance. --}}
 				<li><label>Start formula</label>
-					<span><input type="text" name="system.endurance.startFormula" value="{{system.endurance.startFormula}}" placeholder="2d6"></span></li>
+					<span><input type="text" name="system.endurance.startFormula" value="{{system.endurance.startFormula}}" placeholder="-1d4="></span></li>
 				<li><label>Start mod</label>
 					<span><input type="number" name="system.endurance.startMod" value="{{system.endurance.startMod}}"></span></li>
+				{{!-- Only a start formula with a die is rolled (Gaunt's -1d4): once, into the character's
+				      own copy -- by the generator, when the race is dropped on a character, or from the
+				      header's Roll button. The roll goes in Start roll, never into Start mod, and Start
+				      rolled is ticked so it is never rolled twice; the two figures are added. A race
+				      document itself is never rolled: 0 and unticked. See race-rules.mjs,
+				      @MARKER ROLLED STARTING ENDURANCE. --}}
+				<li><label>Start roll</label>
+					<span><input type="number" name="system.endurance.startRoll" value="{{system.endurance.startRoll}}"></span></li>
+				<li><label>Start rolled</label>
+					<span><input type="checkbox" name="system.endurance.startRolled" {{#if system.endurance.startRolled}}checked{{/if}}></span></li>
 				<li><label>Title formula</label>
 					<span><input type="text" name="system.endurance.titleFormula" value="{{system.endurance.titleFormula}}"></span></li>
 				<li><label>Title dice</label>
@@ -46,6 +59,12 @@
 				<li><label>Title mod</label>
 					<span><input type="number" name="system.endurance.titleMod" value="{{system.endurance.titleMod}}"></span></li>
 			</ul>
+			<p class="muted">A die in Start formula (a Gaunt's <code>-1d4=</code>) is rolled once for
+			each character who takes the race, and the result goes in Start roll on that character's
+			copy; the character starts with Start mod and Start roll added together. Leave the formula
+			blank for a race with a fixed figure, which goes in Start mod alone. The die is not re-rolled;
+			a Game Master who does want it rolled again unticks Start rolled on the character's copy, and
+			the new roll replaces the old.</p>
 			<p class="muted">Gained on each title advance is rolled rather than fixed, which is why the
 			dice and maximum are carried separately from the flat modifier.</p>
 		</div>
@@ -182,6 +201,37 @@
 	magical flight, which reads the Intelligence attribute directly instead. Five formula shapes
 	exist across the kinds (Fly, Gallop, Swim, Scurry, Slither); see resolveSpecialMovement in
 	combat-rules.mjs. Leave the name blank for a race with no special movement.</p>
+
+	{{!-- A second special movement, read exactly as the first. Only a Nixie has one (it swims AND
+	      flies, Legends p.33); blank for every other race. --}}
+	<h3 class="section-head">Second Special Movement</h3>
+	<ul class="band-list">
+		<li><label>Name</label>
+			<span><input type="text" name="system.movement.secondSpecialName" value="{{system.movement.secondSpecialName}}" placeholder="Swim:"></span></li>
+	</ul>
+	<table class="move-table edit-move-table">
+		<thead><tr><th></th><th>Base rate</th><th>Multiplier</th><th>Mod</th></tr></thead>
+		<tbody>
+			<tr>
+				<td>Hourly</td>
+				<td><input type="text" name="system.movement.secondSpecial.hourly" value="{{system.movement.secondSpecial.hourly}}" placeholder="Walk"></td>
+				<td><input type="number" name="system.movement.secondSpecial.hourlyMultiplier" value="{{system.movement.secondSpecial.hourlyMultiplier}}"></td>
+				<td><input type="number" name="system.movement.secondSpecial.hourlyMod" value="{{system.movement.secondSpecial.hourlyMod}}"></td>
+			</tr>
+			<tr>
+				<td>10 sec</td>
+				<td><input type="text" name="system.movement.secondSpecial.tenSec" value="{{system.movement.secondSpecial.tenSec}}" placeholder="Walk"></td>
+				<td><input type="number" name="system.movement.secondSpecial.tenSecMultiplier" value="{{system.movement.secondSpecial.tenSecMultiplier}}"></td>
+				<td><input type="number" name="system.movement.secondSpecial.tenSecMod" value="{{system.movement.secondSpecial.tenSecMod}}"></td>
+			</tr>
+			<tr>
+				<td>1 sec</td>
+				<td><input type="text" name="system.movement.secondSpecial.oneSec" value="{{system.movement.secondSpecial.oneSec}}" placeholder="Walk"></td>
+				<td><input type="number" name="system.movement.secondSpecial.oneSecMultiplier" value="{{system.movement.secondSpecial.oneSecMultiplier}}"></td>
+				<td><input type="number" name="system.movement.secondSpecial.oneSecMod" value="{{system.movement.secondSpecial.oneSecMod}}"></td>
+			</tr>
+		</tbody>
+	</table>
 
 	{{!-- What the race GIVES, as opposed to what it modifies. This block used to be missing
 	      altogether: the sheet showed a race's numbers and none of its skills, abilities or

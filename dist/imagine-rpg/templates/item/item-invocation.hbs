@@ -1,9 +1,9 @@
 {{!--
 	Invocation body. One root element, as every PART must be.
 
-	Every column of his invocationslist. "Uses per day" is his fraction of a day -- ".166" is once
-	in six -- and a duration in Piety Control is a formula for the invoking engine, which belongs to
-	the deferred magic phase.
+	Every column of his invocationslist. "Uses per PC" is what each point of Piety Control buys when it
+	is prayed for (his addUsageByName), and a duration in Piety Control is worked out when it is
+	invoked (the Magic & Lore tab's Invoke button, his own doInvocationAction).
 --}}
 <section class="imagine-item-body invocation">
 
@@ -17,10 +17,12 @@
 					<span><input type="text" name="system.alignment" value="{{system.alignment}}"></span></li>
 				<li><label>Save</label>
 					<span><input type="text" name="system.save" value="{{system.save}}"></span></li>
-				<li><label>Uses per day</label>
+				<li><label>Uses per PC</label>
 					<span><input type="text" name="system.uses" value="{{system.uses}}"></span></li>
 				<li><label>Memorized</label>
 					<span><input type="checkbox" name="system.memorized" {{#if system.memorized}}checked{{/if}}></span></li>
+				<li><label>Uses left</label>
+					<span><input type="number" name="system.usesLeft" value="{{system.usesLeft}}" min="0"></span></li>
 			</ul>
 		</div>
 

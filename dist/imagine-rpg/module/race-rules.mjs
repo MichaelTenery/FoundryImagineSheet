@@ -335,8 +335,13 @@
 			endurance: {
 				// The body decides what a character starts with; the psyche decides what each
 				// title adds, which is why a Formless gains 1 a title whatever it is wearing.
+				// The host's flat figure and its roll together (a Gaunt host's -1d4), folded into
+				// startMod, since the race built here is never rolled itself. The host's OWN copy is
+				// read, not his Formless copy of its row, which gives a Gaunt a flat +4 (DECISIONS
+				// 2026-09-21, "His second copy of the physical half is NOT used").
 				startFormula: tmpHostEnd.startFormula ?? "",
-				startMod:     tmpHostEnd.startMod ?? 0,
+				startMod:     getStartingEnduranceMod(tmpHostEnd),
+				startRoll:    0,
 				titleFormula: tmpPsycheEnd.titleFormula ?? "",
 				titleDice:    tmpPsycheEnd.titleDice ?? "",
 				titleMax:     tmpPsycheEnd.titleMax ?? 0,
@@ -376,6 +381,11 @@
 			// Fly/Gallop/Scurry/Swim switch reads tempRaceStatMoves1, and so does the fallback
 			specialName: tmpMove1.specialName ?? "",
 			special:     structuredClone(tmpMove1.special ?? {}),
+			// ...and so does the second one, which his sheet has no field for at all (a Nixie's
+			// swim beside its flight, race-rules' callers and item-race.mjs): the body is the first
+			// race's, and so are the ways it moves.
+			secondSpecialName: tmpMove1.secondSpecialName ?? "",
+			secondSpecial:     structuredClone(tmpMove1.secondSpecial ?? {}),
 			jumpStand:   averageTwoFloatsRounded(tmpMove1.jumpStand, tmpMove2.jumpStand),
 			jumpUp:      averageTwoFloatsRounded(tmpMove1.jumpUp, tmpMove2.jumpUp)
 		};
@@ -390,8 +400,12 @@
 			attributeMods:      averageEachKey(tmpRace1.attributeMods, tmpRace2.attributeMods),
 			attributeLimits:    averageEachKey(tmpRace1.attributeLimits, tmpRace2.attributeLimits),
 			endurance: {
+				// Each race's flat figure and roll together, averaged: his half race averages
+				// race_start_tmp_end_mod, which for a Gaunt IS the roll (8147-8152). Folded into
+				// startMod, since the half race is never rolled itself.
 				startFormula: pairFormulas(tmpEnd1.startFormula, tmpEnd2.startFormula),
-				startMod:     averageTwoFloatsRounded(tmpEnd1.startMod, tmpEnd2.startMod),
+				startMod:     averageTwoFloatsRounded(getStartingEnduranceMod(tmpEnd1), getStartingEnduranceMod(tmpEnd2)),
+				startRoll:    0,
 				titleFormula: pairFormulas(tmpEnd1.titleFormula, tmpEnd2.titleFormula),
 				titleDice:    pairFormulas(tmpEnd1.titleDice, tmpEnd2.titleDice),
 				titleMax:     tmpEnd1.titleMax ?? 0,
@@ -425,6 +439,130 @@
 			page:               "",
 			description:        ""
 		};
+	}
+
+	// @MARKER ROLLED STARTING ENDURANCE
+	// One race's starting Endurance modifier is a die, not a number: Gaunt's, "Starting Endurance
+	// -1d4" (Epitaph of the Fallen p.7). His row carries it as the live expression [0-getDieRoll(4)]
+	// with the label "-1d4=" beside it (sheet-worker.js:34058), so his sheet rolls it afresh
+	// whenever the race is applied and writes the result to that character's
+	// race_start_tmp_end_mod (33722) -- the figure his half race then averages (8147-8152).
+	//
+	// The port keeps the race DOCUMENT's startMod at 0 with the formula beside it, and rolls once,
+	// when a character takes the race, into that character's own copy of the race. The roll has a
+	// field of its OWN, startRoll, and startRolled says it is done:
+	//
+	//     startMod     the race's flat figure, as the document has it (0 for Gaunt), or whatever a
+	//                  player or Game Master has typed on the copy -- never touched by the roll
+	//     startRoll    what the die came to, SET by the roll and never added to (a new roll replaces it)
+	//     startRolled  ticked once it is rolled, so nothing rolls that copy again
+	//
+	// Everything downstream -- the Endurance characteristic, the half-race average, a Formless host
+	// -- reads the two added together, through getStartingEnduranceMod. Until 2026-09-23 nothing
+	// rolled it at all, and every Gaunt started at 0 (UPSTREAM-ISSUES item 2).
+	//
+	// WHY A FIELD OF ITS OWN, and not the roll added into startMod: until 2026-09-23 the only way to
+	// give a Gaunt its penalty was to type it into the copy's Start mod by hand. Adding the roll into
+	// that same field would count such a Gaunt's penalty twice the moment the header's Roll button was
+	// pressed; and a Game Master who unticks Start rolled to have it rolled again would get the new
+	// roll ON TOP of the old one (-3 then -2 making -5, which -1d4 cannot give). Kept apart, a re-roll
+	// replaces, and a hand-typed Start mod is asked about before the button rolls
+	// (getStartingEnduranceRollWarning).
+
+	// This is the function which reads the die out of his formula text: "-1d4=" is
+	// { sign: -1, count: 1, sides: 4 }. The trailing "=" is his label, where his sheet prints the
+	// result. Returns null for a formula with no die -- every race's but Gaunt's, all of them blank.
+	export function parseStartingEnduranceDie(tmpFormula) {
+		var tmpText = ("" + (tmpFormula ?? "")).trim();
+		var tmpMatch = tmpText.match(/^([+-]?)\s*(\d*)\s*d\s*(\d+)/i);
+		if (!tmpMatch) { return null; }
+		var tmpSides = parseInt(tmpMatch[3]) || 0;
+		if (tmpSides < 1) { return null; }
+		return {
+			sign:  tmpMatch[1] == "-" ? -1 : 1,
+			count: parseInt(tmpMatch[2]) || 1,
+			sides: tmpSides
+		};
+	}
+
+	// This is the function which rolls one race's starting Endurance, if it is a die and has not
+	// been rolled. Returns the race's endurance block for the character's copy -- a new object,
+	// the original untouched -- with startRoll SET to the roll (replacing whatever it held) and
+	// startRolled ticked, or the block unchanged (as a copy) where there is nothing to roll.
+	// startMod is never touched.
+	//
+	//   tmpEndurance  the race document's system.endurance
+	//   tmpRoll       the dice, tmpRoll(sides) -> 1..sides
+	export function rollStartingEndurance(tmpEndurance, tmpRoll) {
+		var tmpOut = { ...(tmpEndurance ?? {}) };
+		if (tmpOut.startRolled) { return tmpOut; }
+		var tmpDie = parseStartingEnduranceDie(tmpOut.startFormula);
+		if (!tmpDie) { return tmpOut; }
+
+		var tmpTotal = 0;
+		for (var i = 0; i < tmpDie.count; i++) {
+			// Held to 1..sides, as every die-indexed pick in the generator is: a fixed preview die
+			// of 0 or a stray NaN must not become a Gaunt with no penalty or a NaN Endurance.
+			var tmpFace = parseInt(tmpRoll(tmpDie.sides)) || 1;
+			tmpTotal = tmpTotal + Math.max(1, Math.min(tmpDie.sides, tmpFace));
+		}
+		tmpOut.startRoll = tmpDie.sign * tmpTotal;
+		tmpOut.startRolled = true;
+		return tmpOut;
+	}
+
+	// This is the function which gives a race's whole starting-Endurance modifier: its flat Start
+	// mod and its rolled Start roll, added. It is what his race_start_tmp_end_mod holds -- one figure
+	// on his sheet, because his Gaunt row has no flat part: its modifier IS the roll. Everything that
+	// reads a race's starting Endurance reads it through here: the character model
+	// (_prepareCharacteristics), and the half race and Formless host (combineHalfRace and
+	// combineFormless, which fold it into the startMod of the race they build). A race document, or a
+	// copy made before startRoll existed, has none, and reads as its startMod alone.
+	export function getStartingEnduranceMod(tmpEndurance) {
+		return (parseInt(tmpEndurance?.startMod) || 0) + (parseInt(tmpEndurance?.startRoll) || 0);
+	}
+
+	// This is the function which says what to ask before the header's Roll button rolls a copy whose
+	// Start mod is not 0. On a Gaunt that figure can only have been typed -- the document's is 0 --
+	// and until 2026-09-23 typing it was the only way to give a Gaunt its penalty at all, so it may be
+	// standing in for the very roll about to be made. The roll is kept apart from it and the two are
+	// added, so the player is asked rather than handed the penalty twice. Returns the question, or ""
+	// when there is nothing to ask (Start mod 0, or nothing to roll). Only the button asks: the
+	// generator and the createItem hook roll a fresh copy of the document, whose Start mod is the
+	// race's own.
+	export function getStartingEnduranceRollWarning(tmpRaceName, tmpRaceSystem) {
+		if (!needsStartingEnduranceRoll(tmpRaceSystem)) { return ""; }
+		var tmpFlat = parseInt(tmpRaceSystem.endurance.startMod) || 0;
+		if (tmpFlat == 0) { return ""; }
+		var tmpSigned = (tmpFlat > 0 ? "+" : "") + tmpFlat;
+		var tmpLabel = getStartingEnduranceLabel(tmpRaceSystem.endurance.startFormula);
+		return `${tmpRaceName}'s Start mod already holds ${tmpSigned}. The ${tmpLabel} roll is kept apart `
+			+ `from it, and the two are added together. If ${tmpSigned} was typed in place of this roll, `
+			+ `set Start mod to 0 on the race first. Roll anyway?`;
+	}
+
+	// This is the function which says whether one race copy still has its starting Endurance to
+	// roll: a die in its formula, and not rolled yet. Three places ask it of a CHARACTER'S copy of a
+	// race, and each rolls when it is true:
+	//
+	//     the character generator     assembleCharacter (chargen-rules.mjs), before the actor exists
+	//     a race added to a character  the createItem hook in race-endurance.mjs -- a race dragged
+	//                                  onto the sheet, or made by a macro
+	//     the sheet's Roll button      beside Endurance in the header, for a Gaunt made before
+	//                                  2026-09-23, when nothing rolled it
+	//
+	// It is also true of the Gaunt race DOCUMENT, which is never rolled; only a copy on a character
+	// is. Takes the race's system data (a document's, or a plain object shaped like one).
+	export function needsStartingEnduranceRoll(tmpRaceSystem) {
+		var tmpEndurance = tmpRaceSystem?.endurance;
+		if (!tmpEndurance || tmpEndurance.startRolled) { return false; }
+		return parseStartingEnduranceDie(tmpEndurance.startFormula) != null;
+	}
+
+	// This is the function which gives the formula as a player reads it: his "-1d4=" is written with
+	// the "=" his sheet prints the result after, which a button label or a chat card does not want.
+	export function getStartingEnduranceLabel(tmpFormula) {
+		return ("" + (tmpFormula ?? "")).replace(/=\s*$/, "").trim();
 	}
 
 // @MARKER ADD NEW race rule functions HERE

@@ -12,24 +12,39 @@
 //     2 Attributes  roll or enter, adjust, Civilized Human   (his step 2)
 //     3 Class       class or path, qualification             (his step 5)
 //     4 Skills      class, racial and social                 (his step 6)
-//     5 Details     handedness, age, looks, languages,       (his steps 3, 4, 7, 8)
-//                   alignment, money
-//     6 Review      everything, and Create
+//     5 Details     handedness, age, looks, languages,       (his steps 3, 4, 7)
+//                   alignment
+//     6 Equipment   money, starting kit, and the shop        (his step 8, and the book's step 10)
+//     7 Review      everything, and Create
+//
+// The Equipment step was added on 2026-09-23 (docs/sonnet/2026-09-23-equipment-shop.md). The money and the
+// starting kit moved there from Details, because the money, the Gear by culture tick (which REPLACES the
+// coins) and what the coins buy decide one another and belong on one page -- his own step 8 is "MONEY
+// AND EQUIPMENT". Height and weight are rolled on Details, one step earlier, so the load can be shown.
 //==================================================================================================================
 
 import { ATTRIBUTE_TABLES } from "./config-tables.mjs";
+import { resolveEncumbrance } from "./combat/combat-rules.mjs";
+import { buildShopCatalog, priceCart, buildPurchasedEntries, listShopOffers, getOfferPrice, describeOfferPrices,
+	describeCoins, describeCartLine, describeValue, getPurseValue, getPriceLevelLabel, PRICE_LEVELS, DEFAULT_PRICE_LEVEL, FREE_LEVEL,
+	FREE_LABEL, SHOP_TYPES, SHOP_TYPE_ORDER, describeShopGaps } from "./shop-rules.mjs";
 import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePhysiqueLock,
 	readFormlessPair, combineFormless } from "./race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget } from "./famorian-rules.mjs";
 import { buildStartingKit } from "./starting-kit.mjs";
 import { getStartingFortune, rollStartingMoney, describeStartingMoney,
 	GEAR_INSTEAD_OF_COINS_RACES, FAIRY_COIN_RACES, FAIRY_COIN_NOTE } from "./starting-money.mjs";
+import { getSocialModRaceName, getSocialSkillRaceMod } from "./social-skill-rules.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
 	checkClassQualification, getStartingClassSkills, assembleCharacter
 } from "./chargen-rules.mjs";
 
-	export const STEPS = ["Basics", "Race", "Attributes", "Class", "Skills", "Details", "Review"];
+	export const STEPS = ["Basics", "Race", "Attributes", "Class", "Skills", "Details", "Equipment", "Review"];
+
+	// The most offers the shop lists at once -- the item picker's cap. A kind of thing is rarely longer,
+	// and a search narrows anything that is.
+	export const SHOP_OFFER_LIMIT = 60;
 
 	// The clothing styles his setClothing tests for, in the order it tests them.
 	export const CLOTHING_STYLES = ["western", "renaissance", "eastern", "african", "kilted"];
@@ -81,8 +96,17 @@ import {
 			alignment: "", languages: [], wealth: { copper: 0, silver: 0, gold: 0, platinum: 0 },
 			// @MARKER STARTING MONEY
 			// The last starting-money roll, whole -- see module/starting-money.mjs and
-			// rollStartingMoneyIfDue below. Null until the Details step first rolls it.
+			// rollStartingMoneyIfDue below. Null until the Equipment step first rolls it.
 			startingMoney: null,
+			// @MARKER SHOP
+			// What is to be bought, in the order it was put on the list: [{ key, count, level }] -- see
+			// module/shop-rules.mjs priceCart. Nothing is paid until the character is created; the list
+			// is priced afresh against the purse every time it is drawn, so a re-rolled purse or a new
+			// price level is always reflected. level is a Game Master's per-line price level ("" for the
+			// world's). shop is what the browser is showing: a Type, a kind of it, a search, and the
+			// number the next Buy takes -- his "No#".
+			purchases: [],
+			shop: { type: "Weapon", subtype: "", search: "", count: 1 },
 			// @MARKER STARTING KIT
 			// His three optional ways of giving a new character its kit, each its own tick and all
 			// three off unless asked for -- see module/starting-kit.mjs. The style only matters to
@@ -100,9 +124,14 @@ import {
 	}
 
 	// This is the function which works out everything that follows from the choices so far --
-	// the race, the ratings, the final attributes, the class and its qualification, the slots --
-	// so each step's view and the Next checks read one consistent picture.
-	export function deriveGenerator(tmpState, tmpContent, tmpIsAvailable) {
+	// the race, the ratings, the final attributes, the class and its qualification, the slots, the
+	// shopping list priced against the purse -- so each step's view and the Next checks read one
+	// consistent picture.
+	//
+	//   tmpOptions  { priceLevel, isGM } -- the world's price level (the "priceLevel" setting) and
+	//               whether a Game Master is at the window. Passed in rather than read from
+	//               game.settings, so this module stays Foundry-free; left out, Medium and a player.
+	export function deriveGenerator(tmpState, tmpContent, tmpIsAvailable, tmpOptions) {
 		var tmpAvail = tmpIsAvailable ?? (() => true);
 		var tmpFind = (tmpDocs, tmpName) => (tmpDocs ?? []).find(tmpDoc => tmpDoc.name == tmpName) ?? null;
 
@@ -188,8 +217,25 @@ import {
 		var tmpFortune = getStartingFortune(tmpFinals.aur.final, tmpFinals.pty.final, tmpFinals.wil.final,
 			tmpRace?.characteristicMods?.fortune, tmpClass?.system?.classMods, tmpNonClassed);
 
+		// @MARKER SHOP
+		// The shopping list, priced against the purse in the order it was made -- module/shop-rules.mjs.
+		// With Gear by culture ticked nothing is bought: that kit is taken INSTEAD of coins, so there is
+		// nothing to pay with. The list itself is kept, and comes back priced if the tick is taken off,
+		// the same as the coins do.
+		var tmpShopOptions = { priceLevel: tmpOptions?.priceLevel || DEFAULT_PRICE_LEVEL, isGM: !!tmpOptions?.isGM };
+		var tmpCatalog = buildShopCatalog(tmpContent, tmpAvail);
+		var tmpByCulture = !!tmpState.startingKit?.byCulture;
+		var tmpCart = priceCart(tmpByCulture ? {} : tmpState.wealth, tmpByCulture ? [] : (tmpState.purchases ?? []),
+			tmpCatalog, tmpShopOptions.priceLevel, tmpShopOptions);
+
+		// @MARKER RACE AND CROSS-SKILL MODIFIERS
+		// The race his social-skill table is read for: the FIRST race only, as his race_list1 (17028) --
+		// a Half Race's second race neither adds its modifiers nor BLOCKs. See social-skill-rules.mjs.
+		var tmpSocialRaceName = getSocialModRaceName(tmpRace1);
+
 		return {
 			race1: tmpRace1, race2: tmpRace2, raceNames: tmpRaceNames, race: tmpRace,
+			socialRaceName: tmpSocialRaceName,
 			raceSourceNames: tmpRaceSourceNames, physique: tmpPhysique, slightPhysique: tmpIsSlight,
 			formless: tmpFormless,
 			type: tmpType, hasBase: tmpHasBase, ratings: tmpBuilt.ratings, ratingIssues: tmpBuilt.issues,
@@ -202,7 +248,9 @@ import {
 				social: parseInt(tmpKnwRow.socialSkills) || 0
 			},
 			intRow: ATTRIBUTE_TABLES.int[Math.max(0, Math.min(30, tmpFinals.int.final))] ?? {},
-			available: tmpAvail
+			available: tmpAvail,
+			shopOptions: tmpShopOptions, catalog: tmpCatalog, cart: tmpCart,
+			purchases: buildPurchasedEntries(tmpCart, tmpCatalog)
 		};
 	}
 
@@ -230,14 +278,33 @@ import {
 				if (tmpState.socialSkillNames.length > tmpDerived.slots.social) {
 					return `Only ${tmpDerived.slots.social} social skills are allowed; ${tmpState.socialSkillNames.length} are chosen.`;
 				}
+				// His copy button refuses a social skill the race is BLOCKED from: "A skill was selected
+				// that this race cannot acquire. Nothing done." (sheet-worker.js:7393, refused at
+				// 7420-7427). Refused here the same way, at the point of choice, and the reason names
+				// the skill so the player knows which box to untick.
+				var tmpBlocked = tmpState.socialSkillNames.filter(tmpName =>
+					getSocialSkillRaceMod(tmpName, tmpDerived.socialRaceName ?? "").blocked);
+				if (tmpBlocked.length) {
+					return `This race cannot acquire ${tmpBlocked.join(", ")}: his race table marks `
+						+ `${tmpBlocked.length == 1 ? "it" : "them"} BLOCKED for ${tmpDerived.socialRaceName}. Untick to go on.`;
+				}
+				return "";
+			case "Equipment":
+				// A line that can no longer be paid for -- the purse was re-rolled or changed, or the
+				// price level was -- has to be taken off or cut down first: the character cannot leave
+				// the shop owing money. Nothing is taken off for the player, who may prefer to drop
+				// something else.
+				if (tmpDerived.cart?.blocked) {
+					return tmpDerived.cart.issues[0] + " Remove it or buy fewer.";
+				}
 				return "";
 		}
 		return "";
 	}
 
-	// This is the function which builds everything the template renders.
-	export function buildGeneratorView(tmpState, tmpContent, tmpIsAvailable) {
-		var tmpD = deriveGenerator(tmpState, tmpContent, tmpIsAvailable);
+	// This is the function which builds everything the template renders. tmpOptions is deriveGenerator's.
+	export function buildGeneratorView(tmpState, tmpContent, tmpIsAvailable, tmpOptions) {
+		var tmpD = deriveGenerator(tmpState, tmpContent, tmpIsAvailable, tmpOptions);
 		var tmpStepName = STEPS[tmpState.step];
 		var tmpOption = (tmpValue, tmpLabel, tmpSelected, tmpExtra) => ({ value: tmpValue, label: tmpLabel,
 			selected: tmpValue == tmpSelected, ...(tmpExtra ?? {}) });
@@ -415,10 +482,18 @@ import {
 		tmpView.racialSkills = tmpRacialList.map(tmpSkill => ({ name: tmpSkill.name, bonus: tmpSkill.bonus,
 			checked: tmpState.racialSkillNames.includes(tmpSkill.name) }))
 			.sort((a, b) => a.name.localeCompare(b.name));
+		// Each social skill with the first race's modifier beside it, "+10%" or "BLOCKED", as his
+		// class-recommended lists show it (setSocialSkillLists). A BLOCKED one stays in the list --
+		// hiding it would leave a player wondering where it went -- and the step refuses it.
 		tmpView.socialSkills = (tmpContent.skills ?? [])
 			.filter(tmpDoc => tmpDoc.system?.category == "social" && tmpD.available(tmpDoc))
-			.map(tmpDoc => ({ name: tmpDoc.name, checked: tmpState.socialSkillNames.includes(tmpDoc.name) }))
+			.map(tmpDoc => {
+				var tmpRaceMod = getSocialSkillRaceMod(tmpDoc.name, tmpD.socialRaceName);
+				return { name: tmpDoc.name, checked: tmpState.socialSkillNames.includes(tmpDoc.name),
+				         mod: tmpRaceMod.text, blocked: tmpRaceMod.blocked };
+			})
 			.sort((a, b) => a.name.localeCompare(b.name));
+		tmpView.socialRaceName = tmpD.socialRaceName;
 		tmpView.racialChosen = tmpState.racialSkillNames.length;
 		tmpView.socialChosen = tmpState.socialSkillNames.length;
 
@@ -427,10 +502,11 @@ import {
 			.map(tmpValue => tmpOption(tmpValue, tmpValue || "-- roll or choose --", tmpState.handedness));
 
 		// @MARKER STARTING KIT
-		// The styles his clothing tables actually carry, and a preview of what the ticked rules
-		// would bring. The preview is built with a FIXED die rather than a random one: it is there to
-		// show the shape of the kit before the character is made, and a list that reshuffled itself on
-		// every keystroke would be worse than none. The real kit is rolled once, at creation.
+		// On the Equipment step, with the money it can replace. The styles his clothing tables actually
+		// carry, and a preview of what the ticked rules would bring. The preview is built with a FIXED
+		// die rather than a random one: it is there to show the shape of the kit before the character
+		// is made, and a list that reshuffled itself on every keystroke would be worse than none. The
+		// real kit is rolled once, at creation.
 		tmpView.clothingStyles = CLOTHING_STYLES.map(tmpStyle =>
 			tmpOption(tmpStyle, tmpStyle.charAt(0).toUpperCase() + tmpStyle.slice(1), tmpState.clothingStyle));
 		tmpView.startingKitPreview = [];
@@ -472,9 +548,16 @@ import {
 		tmpView.languages = [0, 1, 2, 3, 4, 5].map(tmpN => ({ n: tmpN, name: tmpState.languages[tmpN]?.name ?? "",
 			write: !!tmpState.languages[tmpN]?.write }));
 
+		// @MARKER SHOP
+		// The Equipment step's shop -- module/shop-rules.mjs for every rule. Worked out only on that step,
+		// since the load line assembles the whole character to weigh it.
+		if (tmpStepName == "Equipment") {
+			tmpView.shop = buildShopView(tmpState, tmpD, tmpContent);
+		}
+
 		// @MARKER REVIEW
 		// The same FIXED die as the kit preview above, and for the same reason -- so the Review list
-		// is the kit the Details step just showed. It must be a 1 and never a 0: every rule takes its
+		// is the kit the Equipment step just showed. It must be a 1 and never a 0: every rule takes its
 		// dice as 1..sides (chargen-rules.mjs), and a 0 chose the kit alternative BEFORE the first,
 		// which is nothing. That threw on every redraw and left the window stuck on Details for any
 		// race whose culture kit offers a choice at its social class.
@@ -482,15 +565,107 @@ import {
 			var tmpAssembled = assembleCharacter(choicesFromState(tmpState, tmpD), tmpContent, () => 1);
 			tmpView.review = {
 				items: tmpAssembled.items.map(tmpItem => ({ name: tmpItem.name, type: tmpItem.type,
-					category: tmpItem.system.category ?? "" })),
+					category: tmpItem.system.category ?? "",
+					quantity: (tmpItem.system.quantity ?? 1) > 1 ? tmpItem.system.quantity : 0 })),
 				issues: [...tmpD.ratingIssues, ...tmpD.classIssues.map(tmpIssue => "Class: " + tmpIssue), ...tmpAssembled.issues],
+				// Every skill whose fixed bonus is more than nothing, and what it is made of --
+				// "Surveyor +45%: Explorer +15%, Mathematics +20%, Scholar +10%". The dice are rolled at
+				// creation and are not shown here.
+				skillBonuses: (tmpAssembled.skillBonuses ?? []).filter(tmpEntry => tmpEntry.summary)
+					.map(tmpEntry => ({ name: tmpEntry.name, category: tmpEntry.category,
+						total: (tmpEntry.abilityBonus < 0 ? "" : "+") + tmpEntry.abilityBonus + "%", summary: tmpEntry.summary })),
 				title: tmpAssembled.actor.system.identity.title,
 				// What the character's purse will hold, richest coin first: "40 pp, 3 gp", or nothing.
-				money: [["platinum", "pp"], ["gold", "gp"], ["silver", "sp"], ["copper", "cp"]]
-					.filter(([tmpCoin]) => tmpAssembled.actor.system.wealth[tmpCoin])
-					.map(([tmpCoin, tmpAbbrev]) => `${tmpAssembled.actor.system.wealth[tmpCoin]} ${tmpAbbrev}`).join(", ")
+				// After the shopping, which is what the character actually starts with.
+				money: describeCoins(tmpAssembled.actor.system.wealth),
+				// What was bought, and what it came to.
+				bought: tmpD.cart.lines.filter(tmpLine => tmpLine.ok).map(describeCartLine),
+				spent: describeValue(tmpD.cart.spent)
 			};
 		}
+		return tmpView;
+	}
+
+	// @MARKER SHOP VIEW
+	// This is the function which builds the Equipment step's shop: the purse before and after, the list
+	// with what each line costs, the load, and the offers to choose from.
+	function buildShopView(tmpState, tmpD, tmpContent) {
+		var tmpOption = (tmpValue, tmpLabel, tmpSelected) => ({ value: tmpValue, label: tmpLabel, selected: tmpValue == tmpSelected });
+		var tmpShop = tmpState.shop ?? {};
+		var tmpType = SHOP_TYPES[tmpShop.type] ? tmpShop.type : "Weapon";
+		var tmpIsGM = !!tmpD.shopOptions.isGM;
+		var tmpWorldLevel = tmpD.shopOptions.priceLevel;
+		var tmpCart = tmpD.cart;
+		var tmpByCulture = !!tmpState.startingKit?.byCulture;
+
+		var tmpView = {
+			byCulture: tmpByCulture,
+			keptCount: (tmpState.purchases ?? []).length,
+			isGM: tmpIsGM,
+			priceLevelLabel: getPriceLevelLabel(tmpWorldLevel),
+			count: Math.max(1, parseInt(tmpShop.count) || 1),
+			search: tmpShop.search ?? "",
+			typeOptions: SHOP_TYPE_ORDER.map(tmpKey => tmpOption(tmpKey, SHOP_TYPES[tmpKey].label, tmpType)),
+			subtypeOptions: [tmpOption("", "-- every kind --", tmpShop.subtype)]
+				.concat((tmpD.catalog.categories[tmpType] ?? []).map(tmpCat => tmpOption(tmpCat.value, tmpCat.label, tmpShop.subtype))),
+			// The purse line: "Purse 14 gp. After the list: 2 gp, 3 sp. Spent 11 gp, 7 sp."
+			purse: describeCoins(tmpState.wealth) || "empty",
+			purseAfter: describeCoins(tmpCart.purse) || "nothing",
+			spent: describeValue(tmpCart.spent) || "nothing",
+			blocked: tmpCart.blocked,
+			// For a Game Master only: what the shop would sell and cannot, in this world -- one of his
+			// items missing from its compendiums, or an item whose own Cost cannot be read. A player can
+			// do nothing about either.
+			gaps: tmpIsGM ? describeShopGaps(tmpD.catalog) : ""
+		};
+
+		// The list, as priced. A Game Master may set any line's level, his Free included; a player shops
+		// at the world's level, which is the Game Master's to set (p.207).
+		var tmpLevelChoices = [["", `World (${getPriceLevelLabel(tmpWorldLevel)})`]]
+			.concat(PRICE_LEVELS.map(([tmpKey, tmpLabel]) => [tmpKey, tmpLabel]), [[FREE_LEVEL, FREE_LABEL]]);
+		tmpView.lines = tmpCart.lines.map(tmpLine => ({
+			...tmpLine,
+			weightText: tmpLine.weight ? `${tmpLine.weight} lb` : "",
+			levelOptions: tmpIsGM ? tmpLevelChoices.map(([tmpKey, tmpLabel]) => tmpOption(tmpKey, tmpLabel, tmpLine.level)) : []
+		}));
+
+		// @MARKER LOAD
+		// What the character would carry out of the shop -- the kit, what was bought, the race's natural
+		// weapons and the armour put on -- weighed exactly as the character sheet weighs it
+		// (resolveEncumbrance, combat-rules.mjs), from exactly the items the Review step will list. Shown,
+		// never refused: his add_item fetches the encumbrance weights and does not use them, and the
+		// book's step 10 asks only that the weight of each thing bought be recorded.
+		var tmpWeight = parseFloat(tmpState.weight) || 0;
+		if (tmpWeight > 0) {
+			var tmpItems = assembleCharacter(choicesFromState(tmpState, tmpD), tmpContent, () => 1).items;
+			var tmpStr = Math.max(0, Math.min(30, tmpD.finals?.str?.final ?? 0));
+			var tmpInches = ((parseInt(tmpState.heightFeet) || 0) * 12) + (parseInt(tmpState.heightInches) || 0);
+			var tmpEnc = resolveEncumbrance(tmpItems, ATTRIBUTE_TABLES.str[tmpStr]?.loadLimit, tmpWeight, tmpInches);
+			tmpView.load = { carried: tmpEnc.carried, maxLoad: tmpEnc.maxLoad, status: tmpEnc.status,
+				penalty: tmpEnc.penalty, over: tmpEnc.speedFactor < 1 };
+		} else {
+			tmpView.load = null;
+		}
+
+		// The offers: one Type, one kind of it or every kind, and a search on the name.
+		var tmpListed = listShopOffers(tmpD.catalog, tmpType, tmpShop.subtype ?? "", tmpShop.search ?? "", SHOP_OFFER_LIMIT);
+		tmpView.offers = tmpListed.offers.map(tmpOffer => {
+			var tmpPrice = getOfferPrice(tmpOffer, tmpWorldLevel);
+			return {
+				key: tmpOffer.key, label: tmpOffer.label,
+				price: tmpPrice ? tmpPrice.text : "no price",
+				priceIssue: tmpPrice?.issue ?? "",
+				prices: describeOfferPrices(tmpOffer),
+				weight: tmpOffer.weight ? `${tmpOffer.weight} lb` : "",
+				homebrew: tmpOffer.homebrew,
+				// Could one more be paid for after everything on the list? The purse being worth it is
+				// enough, since change is made up or down as needed (shop-rules.mjs payPrice). A hint
+				// only -- Buy works it out again, and says so in his words if not.
+				affordable: !!tmpPrice && tmpPrice.copper <= getPurseValue(tmpCart.purse)
+			};
+		});
+		tmpView.offerTotal = tmpListed.total;
+		tmpView.offerMore = Math.max(0, tmpListed.total - tmpListed.offers.length);
 		return tmpView;
 	}
 
@@ -503,17 +678,26 @@ import {
 			raceNames: tmpDerived.raceNames, className: tmpState.className,
 			ratings: tmpDerived.ratings,
 			classSkills: tmpDerived.classSkills,
+			// which of a caster/non-caster pair of class skills is this character's, at every title --
+			// read for the later titles' skills that lift a social skill (assembleCharacter)
+			cannotCast: tmpDerived.cannotCast,
 			racialSkillNames: tmpState.racialSkillNames, socialSkillNames: tmpState.socialSkillNames,
 			chosenAttackSkill: tmpState.chosenAttackSkill,
 			handedness: tmpState.handedness, age: tmpState.age, famorian: tmpState.famorian,
 			heightFeet: tmpState.heightFeet, heightInches: tmpState.heightInches, weight: tmpState.weight,
 			frame: tmpState.frame, hair: tmpState.hair, eyes: tmpState.eyes, skin: tmpState.skin,
 			alignment: tmpState.alignment, languages: tmpState.languages,
-			// No coins with Gear by culture: the kit is his wilderness equipment, taken INSTEAD.
-			wealth: tmpState.startingKit?.byCulture ? { copper: 0, silver: 0, gold: 0, platinum: 0 } : tmpState.wealth,
+			// No coins with Gear by culture: the kit is his wilderness equipment, taken INSTEAD. Otherwise
+			// what is LEFT once the shopping is paid for -- deriveGenerator priced it (@MARKER SHOP), and
+			// the items it bought go in as purchases, for assembleCharacter to create.
+			wealth: tmpState.startingKit?.byCulture ? { copper: 0, silver: 0, gold: 0, platinum: 0 }
+				: (tmpDerived.cart?.purse ?? tmpState.wealth),
+			purchases: tmpState.startingKit?.byCulture ? [] : (tmpDerived.purchases ?? []),
 			startingKit: tmpState.startingKit, clothingStyle: tmpState.clothingStyle,
 			socialClass: getKitSocialClass(tmpState, tmpDerived),
-			maxAge: tmpDerived.race?.ages?.maxAge ?? ""
+			maxAge: tmpDerived.race?.ages?.maxAge ?? "",
+			// The body the armour is put on at creation -- barding only on the body it was made for.
+			bodyType: tmpDerived.race?.bodyType ?? ""
 		};
 	}
 
@@ -521,13 +705,14 @@ import {
 	// This is the function which says whether the starting money needs rolling now.
 	//
 	// His sheet rolls it by itself, once, when the racial features are confirmed (sheet-worker.js:6439)
-	// -- nobody presses a button for it. The port rolls it the first time the Details step is drawn,
-	// which is the first point at which everything it reads is known: the Social Class and the three
-	// mystical attributes from the Attributes step, and the class, whose "+5% Fortune" and first title
-	// are part of the Fortune it is rolled against.
+	// -- nobody presses a button for it. The port rolls it the first time the Equipment step is drawn --
+	// the step that holds the money, and the first at which everything it reads is known: the Social
+	// Class and the three mystical attributes from the Attributes step, and the class, whose "+5%
+	// Fortune" and first title are part of the Fortune it is rolled against. (It was the Details step
+	// until 2026-09-23, when the money moved to the new Equipment step with the shop it pays for.)
 	//
 	// It is due:
-	//     - on the Details step, with a race, attributes and a class chosen,
+	//     - on the Equipment step, with a race, attributes and a class chosen,
 	//     - when "Gear by culture" is NOT ticked -- that kit is taken instead of coins, and his sheet
 	//       rolls coins only on the coins side of the switch (override_no_coins, 6798), and
 	//     - when there is no roll yet, OR the roll there is was made for a different Social Class or
@@ -541,7 +726,7 @@ import {
 	// starting characters as she sees fit" (p.207), and the roll goes to chat, so what was rolled is
 	// on the record whatever the fields say afterwards.
 	export function startingMoneyIsDue(tmpState, tmpDerived) {
-		if (STEPS[tmpState.step] != "Details") { return false; }
+		if (STEPS[tmpState.step] != "Equipment") { return false; }
 		if (!tmpDerived.race1 || !tmpDerived.hasBase || !tmpDerived.klass) { return false; }
 		if (tmpState.startingKit?.byCulture) { return false; }
 		var tmpLast = tmpState.startingMoney;
@@ -577,7 +762,7 @@ import {
 	// CLASS). Rolled twice, the same character could look like a slave to its purse and a noble to its
 	// tailor. So once the money has rolled one, the kit is handed that one; buildStartingKit then finds
 	// a class already between 5 and 20 and rolls nothing further. Only while the money roll still
-	// belongs to this character's real class, which startingMoneyIsDue keeps true on the Details step.
+	// belongs to this character's real class, which startingMoneyIsDue keeps true on the Equipment step.
 	export function getKitSocialClass(tmpState, tmpDerived) {
 		var tmpSocial = tmpDerived.finals?.soc?.final ?? 0;
 		var tmpMoney = tmpState.startingMoney;

@@ -12,13 +12,25 @@
 //
 // The attack roll is reached through game.imagine rather than imported, which is how the system
 // already exposes rollWeaponAttack. It keeps the sheet loadable on its own.
+//
+// AUTHORED IN PLAY since 2026-09-23. Before then only what a creature already had could be edited --
+// no skill could be added, no body type chosen, no movement mode written, and an attack dropped on
+// by mistake could not be taken off without the console. His creature is built on a Configurator tab
+// and committed with Finish (handleCreatureFinish, sheet-worker.js:174660); this sheet edits in place
+// instead, the Foundry way (the provisional D7 of the creature audit, docs/DECISIONS.md 2026-09-23).
+// The rules behind the new controls are in module/creature-sheet-rules.mjs.
 //==================================================================================================================
 
-import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS } from "../creature-tables.mjs";
+import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS, CREATURE_SIZES,
+         BODY_AREA_TYPES } from "../creature-tables.mjs";
+import { resolveCharacteristicRoll, readBodyChartRows, serializeBodyChart, getStockBodyChart,
+         getNewBodyAreaName, getDuplicateBodyAreaNames,
+         BODY_AREA_MULTIPLIERS, moveListEntry, removeListEntry } from "../creature-sheet-rules.mjs";
 import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
+import { resolveSkillRoll, describeSkillResult, resolveAttributeSave } from "../skills-rules.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
          learnMartialStance, masterMartialStance, learnMartialSubskill,
          learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
@@ -56,6 +68,27 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		applySheetTheme(this.element);
 	}
 
+	// @MARKER BODY CHART FORM
+	// The body chart is ONE string in the schema -- his "Name(Type:xN),..." (body.bodyChart) -- and a
+	// list of rows on the sheet, so the rows the form hands back are written into the string here
+	// before the document ever sees them, the same shape as the skill sheet's types
+	// (ImagineSkillSheet._processFormData). The rows are named bodyChartRows.N.name / .type /
+	// .multiplier, outside `system`, so nothing else in the form can collide with them. A row whose
+	// name is emptied is dropped (serializeBodyChart).
+	_processFormData(event, form, formData) {
+		var tmpdata = super._processFormData(event, form, formData);
+		if (tmpdata?.bodyChartRows) {
+			var tmprows = Object.entries(tmpdata.bodyChartRows)
+				.sort((a, b) => (parseInt(a[0]) || 0) - (parseInt(b[0]) || 0))
+				.map(([tmpindex, tmprow]) => tmprow);
+			tmpdata.system ??= {};
+			tmpdata.system.body ??= {};
+			tmpdata.system.body.bodyChart = serializeBodyChart(tmprows);
+			delete tmpdata.bodyChartRows;
+		}
+		return tmpdata;
+	}
+
 
 	static DEFAULT_OPTIONS = {
 		classes: ["imagine", "sheet", "actor", "creature"],
@@ -65,6 +98,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		actions: {
 			rollAttributeSave: ImagineCreatureSheet.#onRollAttributeSave,
 			rollResistance: ImagineCreatureSheet.#onRollResistance,
+			rollCharacteristic: ImagineCreatureSheet.#onRollCharacteristic,
 			rollCreatureSkill: ImagineCreatureSheet.#onRollCreatureSkill,
 			rollCreatureAttack: ImagineCreatureSheet.#onRollCreatureAttack,
 			setAttackHand: ImagineCreatureSheet.#onSetAttackHand,
@@ -74,6 +108,20 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			deleteItem: ImagineCreatureSheet.#onDeleteItem,
 			openSituation: ImagineCreatureSheet.#onOpenSituation,
 			clearSituation: ImagineCreatureSheet.#onClearSituation,
+			// Authoring in play, all in the @MARKER AUTHORING block below: the creature's own items,
+			// its skill and movement lists, its body chart and the modifiers panel.
+			// (openItem and deleteItem, above, open and remove what these create.)
+			createCreatureItem: ImagineCreatureSheet.#onCreateCreatureItem,
+			addSkill: ImagineCreatureSheet.#onAddSkill,
+			removeSkill: ImagineCreatureSheet.#onRemoveSkill,
+			addMovement: ImagineCreatureSheet.#onAddMovement,
+			removeMovement: ImagineCreatureSheet.#onRemoveMovement,
+			moveMovement: ImagineCreatureSheet.#onMoveMovement,
+			customizeBodyChart: ImagineCreatureSheet.#onCustomizeBodyChart,
+			resetBodyChart: ImagineCreatureSheet.#onResetBodyChart,
+			addBodyArea: ImagineCreatureSheet.#onAddBodyArea,
+			removeBodyArea: ImagineCreatureSheet.#onRemoveBodyArea,
+			toggleModifiers: ImagineCreatureSheet.#onToggleModifiers,
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class -- the
 			// same panel, rolls and handlers the character sheet has.
 			toggleMartialPanel: ImagineCreatureSheet.#onToggleMartialPanel,
@@ -91,7 +139,8 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		}
 	};
 
-	// This is the function which opens one of the creature's items -- an attack, a power, a trait.
+	// This is the function which opens one of the creature's items -- an attack, a power, a trait, a piece
+	// of gear.
 	static async #onOpenItem(event, target) {
 		event.preventDefault();
 		var tmpitem = this.document.items.get(target.dataset.itemId);
@@ -155,8 +204,20 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		tmpcontext.config = {
 			creatureTypes: CREATURE_TYPES,
 			bodyTypes: CREATURE_BODY_TYPES,
-			attackCharts: CREATURE_ATTACK_CHARTS
+			attackCharts: CREATURE_ATTACK_CHARTS,
+			sizes: CREATURE_SIZES,
+			bodyAreaTypes: BODY_AREA_TYPES,
+			bodyMultipliers: BODY_AREA_MULTIPLIERS.map(([tmplabel]) => tmplabel)
 		};
+
+		// @MARKER AUTHORING CONTEXT
+		// The movement modes with their place in the list, so a row knows whether it can move up or
+		// down; the body chart as editable rows when the creature has its own; and whether the
+		// modifiers panel is open, which is the sheet's own state, as the martial panel's is.
+		tmpcontext.movementRows = ImagineCreatureSheet.#buildMovementRows(this.document.system);
+		tmpcontext.bodyChart = ImagineCreatureSheet.#buildBodyChart(this.document.system);
+		tmpcontext.modifiers = ImagineCreatureSheet.#buildModifierRows(this.document.system);
+		tmpcontext.modifiersOpen = !!this._modifiersOpen;
 
 		tmpcontext.handednessChoices =
 			ImagineCreatureSheet.#buildHandednessChoices(this.document.system.identity.handedness);
@@ -221,6 +282,70 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			}
 		}
 		return tmprows;
+	}
+
+	// This is the function which lists the movement modes with their index and whether each can move
+	// up or down -- his Configurator asks for them slowest first, special modes last (HTML 81003-81007).
+	static #buildMovementRows(tmpsystem) {
+		var tmplist = tmpsystem.movement?.modes ?? [];
+		return tmplist.map((tmpmode, tmpindex) => ({
+			index: tmpindex, name: tmpmode.name, hourly: tmpmode.hourly, tenSec: tmpmode.tenSec, oneSec: tmpmode.oneSec,
+			first: tmpindex == 0, last: tmpindex == tmplist.length - 1
+		}));
+	}
+
+	// This is the function which says what the Combat tab's body controls show. With no chart of its
+	// own the creature uses its body type's stock chart, and the rows are not editable until "Edit
+	// areas" copies that chart into the creature; once it has its own, every row is an input.
+	static #buildBodyChart(tmpsystem) {
+		var tmpstored = String(tmpsystem.body?.bodyChart ?? "").trim();
+		var tmpbodytype = tmpsystem.body?.bodyType || "Humanoid";
+		var tmprows = readBodyChartRows(tmpstored);
+		return {
+			own: !!tmpstored,
+			rows: tmprows.map((tmprow, tmpindex) => ({ ...tmprow, index: tmpindex })),
+			// Names two or more areas share, warned about under the editor: the body tells such areas apart
+			// only by their order ("Name (2)", parseBodyChart), so their wounds follow their places.
+			duplicates: getDuplicateBodyAreaNames(tmprows),
+			hasStock: !!getStockBodyChart(tmpbodytype),
+			isCustom: tmpbodytype == "Custom"
+		};
+	}
+
+	// This is the function which lays out the modifiers panel: every manual adjustment the creature's
+	// schema already carries and no template ever showed -- his GM Tools and Magic/Lore tabs hold the
+	// same temporary modifiers (HTML 84286 onward, 70414 onward). Each row names the field it writes.
+	static #buildModifierRows(tmpsystem) {
+		const tmpattributes = [["str", "Strength"], ["agl", "Agility"], ["vit", "Vitality"],
+			["int", "Intelligence"], ["wis", "Wisdom"], ["knw", "Knowledge"],
+			["app", "Appearance"], ["chm", "Charm"], ["soc", "Social Class"],
+			["aur", "Aura"], ["pty", "Piety"], ["wil", "Will Force"]];
+		const tmpcombat = [
+			//  field              label                what it reaches
+			["meleeMisc",      "Melee to hit",      "every melee-kind attack"],
+			["missileMisc",    "Missile to hit",    "every missile-kind attack"],
+			["damageMisc",     "Damage",            "every attack but a touch"],
+			["defenseMisc",    "Defence",           "the creature's defensive adjustment"],
+			["initiativeMisc", "Initiative",        "the initiative modifier"]
+		];
+		return {
+			attributes: tmpattributes.map(([tmpkey, tmplabel]) => ({
+				key: tmpkey, label: tmplabel,
+				permMod: tmpsystem.attributes[tmpkey]?.permMod ?? 0,
+				tempMod: tmpsystem.attributes[tmpkey]?.tempMod ?? 0
+			})),
+			characteristics: ["endurance", "perception", "affinity", "fortune"].map(tmpkey => ({
+				key: tmpkey, label: tmpkey.charAt(0).toUpperCase() + tmpkey.slice(1),
+				tempMod: tmpsystem.characteristics[tmpkey]?.tempMod ?? 0
+			})),
+			resistances: Object.entries(tmpsystem.resistances ?? {}).map(([tmpkey, tmpresist]) => ({
+				key: tmpkey, label: tmpkey.charAt(0).toUpperCase() + tmpkey.slice(1),
+				tempMod: tmpresist.tempMod ?? 0, permMod: tmpresist.permMod ?? 0
+			})),
+			combat: tmpcombat.map(([tmpkey, tmplabel, tmpnote]) => ({
+				key: tmpkey, label: tmplabel, note: tmpnote, value: tmpsystem.combat?.[tmpkey] ?? 0
+			}))
+		};
 	}
 
 	// This is the function which lists the creature's skills, with their index, so a row can be
@@ -313,23 +438,19 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 	// This is the function which rolls an attribute save. Same rule as a character's: a save
 	// succeeds on a percentile roll at or under the chance, and succeeding by half or better is
-	// a distinct and better result, which is how his sheet reports it.
+	// a distinct and better result, which is how his sheet reports it. One reader for both sheets
+	// (resolveAttributeSave, skills-rules.mjs), so the two cannot drift apart.
 	static async #onRollAttributeSave(event, target) {
 		var tmpkey = target.dataset.attribute;
 		var tmpattrib = this.document.system.attributes[tmpkey];
 		if (!tmpattrib) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpchance = tmpattrib.save;
-		var tmphalf = Math.floor(tmpchance / 2);
-
-		var tmpoutcome = "Failed";
-		if (tmproll.total <= tmphalf)        { tmpoutcome = "Succeeded by half"; }
-		else if (tmproll.total <= tmpchance) { tmpoutcome = "Succeeded"; }
+		var tmpresult = resolveAttributeSave(tmpattrib.save, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`
 		});
 	}
 
@@ -365,34 +486,79 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		});
 	}
 
+	// @MARKER CHARACTERISTIC ROLL
+	// Perception (and double Perception), Affinity and Fortune -- his creature header's ROLL, DBL and
+	// MOD buttons (roll_creature_per and its siblings, sheet-worker.js:24510-24648; HTML 57780-57791).
+	// The header showed the three figures and gave no way to roll them. The same three-way reading the
+	// character sheet's buttons give (bug report 0.18.1:1), worked out by resolveCharacteristicRoll in
+	// creature-sheet-rules.mjs. His separate MOD buttons are a shift-click here, as the resistance
+	// rolls' are.
+	static async #onRollCharacteristic(event, target) {
+		var tmpkey = target.dataset.characteristic;
+		var tmpbase = parseInt(this.document.system.characteristics[tmpkey]?.value) || 0;
+		var tmpdouble = target.dataset.double === "true";
+
+		var tmpmodifier = 0;
+		if (event.shiftKey) {
+			var tmpanswer = await ImagineCreatureSheet.#askModifier(`Modifier to this ${tmpkey} roll:`);
+			if (tmpanswer === null) { return; }
+			tmpmodifier = tmpanswer;
+		}
+
+		var tmproll = await new Roll("1d100").evaluate();
+		var tmpresult = resolveCharacteristicRoll(tmpkey, tmpbase, tmproll.total, tmpdouble, tmpmodifier);
+		if (!tmpresult) { return; }
+		await tmproll.toMessage({
+			speaker: ChatMessage.getSpeaker({ actor: this.document }),
+			flavor: `${tmpresult.label} Check &mdash; ${tmpresult.chance}%${tmpmodifier
+				? ` (modifier ${tmpmodifier > 0 ? "+" : ""}${tmpmodifier})` : ""} &mdash; <strong>${tmpresult.outcome}</strong>`
+		});
+	}
+
+	// This is the function which asks for a modifier to a roll -- his "?{Modifier}" prompt. Returns
+	// the number, or null if the dialog was closed.
+	static async #askModifier(tmpprompt) {
+		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
+			window: { title: "Roll Modifier" },
+			content: `<p>${tmpprompt}</p><input type="number" name="modifier" value="0" autofocus>`,
+			ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
+		}).catch(() => null);
+		if (tmpanswer === null || tmpanswer === undefined) { return null; }
+		return parseInt(tmpanswer) || 0;
+	}
+
 	// This is the function which rolls one of the creature's skills.
 	//
 	// A creature's skill chance is the flat percentage its stat block states, not something
-	// worked out from attributes, so there is nothing to compute here. The outcome follows the
-	// Player's Guide p.93 rule the character sheet uses: at or under the chance succeeds, and a
-	// margin of more than 20% either way is critical.
+	// worked out from attributes, so there is nothing to compute here. The outcome is read the way
+	// his handleCreatureSkillRoll reads it (sheet-worker.js:175374), through the same
+	// handleSkillRollDetails every character skill roll uses -- resolveSkillRoll, his eight results.
+	//
+	// Shift-click asks for a modifier first -- his skill-rollmod button (sheet-worker.js:24660,
+	// handleCreatureSkillRollMod at 175399), which adds it to the chance.
 	static async #onRollCreatureSkill(event, target) {
 		var tmpindex = parseInt(target.dataset.skillIndex);
 		var tmpskill = this.document.system.skills?.[tmpindex];
 		if (!tmpskill) { return; }
 
+		var tmpmodifier = 0;
+		if (event.shiftKey) {
+			var tmpanswer = await ImagineCreatureSheet.#askModifier(`Modifier to ${foundry.utils.escapeHTML(String(tmpskill.name ?? ""))}:`);
+			if (tmpanswer === null) { return; }
+			tmpmodifier = tmpanswer;
+		}
+
 		// A held martial stance's bonus to this skill (the user's ruling of 2026-09-22). A creature's
 		// chance is its entered figure, so the bonus is added here rather than derived onto it.
 		var tmpstancebonus = getStanceSkillBonus(this.document.system.martial?.state?.bonuses, tmpskill.name, []);
-		var tmpchance = (parseInt(tmpskill.chance) || 0) + tmpstancebonus;
+		var tmpchance = (parseInt(tmpskill.chance) || 0) + tmpstancebonus + tmpmodifier;
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpmargin = tmpchance - tmproll.total;
-
-		var tmpoutcome = "Failed";
-		if (tmproll.total <= tmpchance) {
-			tmpoutcome = (tmpmargin > 20) ? "Critical success" : "Succeeded";
-		} else {
-			tmpoutcome = (tmpmargin < -20) ? "Critical failure" : "Failed";
-		}
+		var tmpresult = resolveSkillRoll(tmpchance, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${tmpskill.name} &mdash; ${tmpchance}%${tmpstancebonus ? ` (stance +${tmpstancebonus})` : ""} &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${foundry.utils.escapeHTML(String(tmpskill.name ?? ""))} &mdash; ${tmpresult.chance}%${tmpstancebonus ? ` (stance +${tmpstancebonus})` : ""}`
+				+ `${tmpmodifier ? ` (modifier ${tmpmodifier > 0 ? "+" : ""}${tmpmodifier})` : ""} &mdash; ${describeSkillResult(tmpresult)}`
 		});
 	}
 
@@ -463,6 +629,151 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 				magic phase, which is not built yet, so the Game Master resolves it.</p>
 			</div>`
 		});
+	}
+
+	//==============================================================================================
+	// @MARKER AUTHORING
+	//==============================================================================================
+	// Building and changing a creature on its own sheet. Each handler writes one field or one item;
+	// the list arithmetic is in creature-sheet-rules.mjs.
+
+	// This is the function which saves whatever has been typed into the sheet and not saved yet, before
+	// a list handler reads its list back from the creature and writes the whole list again -- the
+	// character sheet's #saveFormFirst, for the same reason (its language rows, bug sweep 2026-09-23).
+	//
+	// The sheet submits on change, but Foundry does not wait for that save (ApplicationV2._onChangeForm
+	// calls _onSubmitForm without awaiting it), and the creature's stored data only changes when the
+	// server answers. Type a skill's name and click Add: the change event sends the name as the field
+	// loses focus, the click reads the OLD list a moment later and sends it back with the new row, and
+	// the server applies the two in order -- so the name just typed disappears. Awaiting a submit of
+	// the whole form first (ApplicationV2#submit) means the list read afterwards already holds it. A
+	// form that will not save (a value the model refuses) is left to say so on its own change; the
+	// button still does what it was pressed for, as the character's does.
+	static async #saveFormFirst(tmpsheet) {
+		try { await tmpsheet.submit(); } catch (tmperr) { console.warn("imagine-rpg | the sheet could not be saved first", tmperr); }
+	}
+
+	// This is the function which puts a new attack, power or trait on the creature and opens its sheet,
+	// because a blank "New Attack" is not what anyone wanted -- its sheet is where it becomes a Bite.
+	// data-type is the item type (creatureAttack, power, trait) and data-category a trait's kind
+	// (ability, disability, immunity). Dragging from the Imagine Abilities, Disabilities and Immunities
+	// compendia still works and is the better route for anything his dictionaries already hold.
+	static async #onCreateCreatureItem(event, target) {
+		event.preventDefault();
+		const tmpnames = {
+			//  type / category       name
+			creatureAttack: "New Attack",
+			power:          "New Power",
+			ability:        "New Ability",
+			disability:     "New Disability",
+			immunity:       "New Immunity"
+		};
+		var tmptype = target.dataset.type;
+		if (!["creatureAttack", "power", "trait"].includes(tmptype)) { return; }
+		var tmpcategory = target.dataset.category || "ability";
+		var tmpdata = { name: tmpnames[tmptype == "trait" ? tmpcategory : tmptype] ?? "New Item", type: tmptype };
+		if (tmptype == "trait") { tmpdata.system = { category: tmpcategory }; }
+		var tmpcreated = await this.document.createEmbeddedDocuments("Item", [tmpdata]);
+		if (tmpcreated?.length) { tmpcreated[0].sheet.render(true); }
+	}
+
+	// This is the function which adds an empty skill row, a name and a flat percentage, as his
+	// creature skills are (repeating_creatureskills). The row's inputs name it.
+	static async #onAddSkill(event, target) {
+		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmpskills = [...(this.document.system._source?.skills ?? this.document.system.skills ?? [])];
+		tmpskills.push({ name: "", chance: 0 });
+		await this.document.update({ "system.skills": tmpskills });
+	}
+
+	static async #onRemoveSkill(event, target) {
+		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmpskills = removeListEntry(this.document.system._source?.skills ?? this.document.system.skills,
+			target.dataset.skillIndex);
+		await this.document.update({ "system.skills": tmpskills });
+	}
+
+	// This is the function which adds an empty movement mode -- his Configurator's "Walk, Jog, Run,
+	// Gallop, Scurry, Slither, Fly, etc." with three rates each (HTML 81003-81007).
+	static async #onAddMovement(event, target) {
+		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmpmodes = [...(this.document.system._source?.movement?.modes ?? this.document.system.movement?.modes ?? [])];
+		tmpmodes.push({ name: "", hourly: 0, tenSec: 0, oneSec: 0 });
+		await this.document.update({ "system.movement.modes": tmpmodes });
+	}
+
+	static async #onRemoveMovement(event, target) {
+		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmpmodes = removeListEntry(this.document.system._source?.movement?.modes ?? this.document.system.movement?.modes,
+			target.dataset.index);
+		await this.document.update({ "system.movement.modes": tmpmodes });
+	}
+
+	// Up is -1, down is +1: the order is his "slowest first, special modes last".
+	static async #onMoveMovement(event, target) {
+		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmpmodes = moveListEntry(this.document.system._source?.movement?.modes ?? this.document.system.movement?.modes,
+			target.dataset.index, target.dataset.offset);
+		await this.document.update({ "system.movement.modes": tmpmodes });
+	}
+
+	// This is the function which gives the creature a body chart of its own to edit, starting from its
+	// body type's stock chart -- or, for a Custom body, from one Vital area at x1, which is where his
+	// custom body builder starts (new_bodyarea_type "Vital", new_bodyarea_end "x1", 22284-22287).
+	static async #onCustomizeBodyChart(event, target) {
+		event.preventDefault();
+		var tmpstock = getStockBodyChart(this.document.system.body?.bodyType || "Humanoid");
+		var tmpchart = tmpstock || serializeBodyChart([{ name: "Body", type: "Vital", multiplier: "x1" }]);
+		await this.document.update({ "system.body.bodyChart": tmpchart });
+	}
+
+	// This is the function which throws the creature's own chart away and goes back to its body type's
+	// stock one. Asked first: the areas it had are gone, and so is any wound recorded against an area
+	// the stock chart does not have.
+	static async #onResetBodyChart(event, target) {
+		event.preventDefault();
+		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
+			window: { title: "Imagine RPG" },
+			content: `<p>Discard ${foundry.utils.escapeHTML(this.document.name)}'s own body chart and use the stock
+				chart for its body type?</p>`,
+			rejectClose: false,
+			modal: true
+		});
+		if (tmpconfirmed) { await this.document.update({ "system.body.bodyChart": "" }); }
+	}
+
+	// Adding and removing an area of the creature's own chart: his ADD and REMOVE buttons on the custom
+	// body builder (22296 onward). A new area goes on the end -- his note reads "add custom body areas
+	// in order (head to feet)" -- and a Limb at x1 is the commonest thing to add. It is given a name no
+	// other area has ("New Area", "New Area 2", ...), because wounds are kept by area name and a repeated
+	// name is told apart only by its place in the list (getNewBodyAreaName).
+	static async #onAddBodyArea(event, target) {
+		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmprows = readBodyChartRows(this.document.system._source?.body?.bodyChart ?? this.document.system.body?.bodyChart);
+		tmprows.push({ name: getNewBodyAreaName(tmprows), type: "Limb", multiplier: "x1" });
+		await this.document.update({ "system.body.bodyChart": serializeBodyChart(tmprows) });
+	}
+
+	static async #onRemoveBodyArea(event, target) {
+		event.preventDefault();
+		await ImagineCreatureSheet.#saveFormFirst(this);
+		var tmprows = removeListEntry(readBodyChartRows(this.document.system._source?.body?.bodyChart ?? this.document.system.body?.bodyChart),
+			target.dataset.index);
+		await this.document.update({ "system.body.bodyChart": serializeBodyChart(tmprows) });
+	}
+
+	// This is the function which opens and closes the Stats tab's modifiers panel. Its state is the
+	// sheet's own, as the martial panel's is, so it survives the re-render every edit causes.
+	static async #onToggleModifiers(event, target) {
+		event.preventDefault();
+		this._modifiersOpen = !this._modifiersOpen;
+		this.render({ parts: ["stats"] });
 	}
 
 	//==============================================================================================

@@ -63,6 +63,19 @@
 			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0 }));
 	}
 
+	// This is the function which lists every class skill the class gives this character, at every
+	// title. His setFinalClassSkills writes all of them to the sheet AT CREATION, titles 2 to 15 as
+	// well as the first (sheet-worker.js:63288 onward), and his getNewSocialSkillModifier reads them
+	// all back, class_skill_1_1 to class_skill_15_1 (125658) -- which is why a later title's skill
+	// can lift a social skill before the character reaches it (chargen-rules.mjs assembleCharacter).
+	export function getEveryClassSkill(tmpclasssystem, tmpcannotcast) {
+		var tmplist = tmpclasssystem?.advancement?.classSkillList ?? [];
+		return tmplist
+			.filter(tmpskill => (parseInt(tmpskill.title) || 0) > 0)
+			.filter(tmpskill => isClassSkillForCharacter(tmpskill, tmpcannotcast))
+			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0 }));
+	}
+
 	// This is the function which says which entitled class skills the character does not hold yet,
 	// so they can be granted. A skill already on the character is never granted a second time,
 	// whoever put it there -- a player who added it by hand keeps their copy and its bonuses.

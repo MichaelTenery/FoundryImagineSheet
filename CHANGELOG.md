@@ -18,7 +18,7 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
-## Unreleased
+## 0.20.0 — 2026-09-24
 
 **New characters can buy their equipment.** The character generator has a new **Equipment** step
 between Details and Review. It holds the money, which is now rolled there rather than on Details,
@@ -127,6 +127,22 @@ To pick these up in an existing world, run `game.imagine.importContent()`. A cha
 this update keeps its old copy of its race: to update it, remove the race from the character and add
 it again (remove it first, because adding a second race makes a half race). For a half race, remove
 both races and add them back in their original order.
+
+**Spells now last a number of days.** A memorized spell stays in mind for 30 days less its level, and the Magic & Lore tab shows the days left. **Sleep** takes a day from every spell and refills the Aura pool. A spell out of days is marked *forgotten* and can't be cast until its **Mem** button rolls the casting skill to refresh it (Shift-click adds a modifier). Starting spells now arrive memorized, with their days. Unticking a spell's Memorized clears its days, and unticking an invocation clears its uses, as on the Roll20 sheet. Spells your characters already have memorized keep working.
+
+**Drain** takes a chosen amount of Aura from the pool (a skill, an item, a spell cast at the table). A spell whose range is Self now opens its Cast dialog on the caster.
+
+**Magical mishaps can be applied from the card.** An Aura or Will loss or gain, a Burnout, or a Wild Wish's Aura loss gets an **Apply** button. Each can be pressed once, by the Game Master or whoever cast the spell. Aura and Will changes go onto the attribute's permanent modifier, where they can be seen and undone.
+
+**Wilders no longer gain Spell Lore's +2 Aura Control,** as on the Roll20 sheet.
+
+**Finer magic switches.** Content Availability now has 21 magic switches: Ballads, Hymns, Poems and Songs are separate switches, and so are Herbs, Potions and Elixirs. A campaign that had switched off Bardic Magic or Herbalism keeps those kinds off.
+
+The skills that learn or use a kind now follow that kind's switch too, as well as Arcane or Divine Magic. Switching off Songs now also hides Sing and Song Lore, and switching off Arcane Magic still hides them. **If your campaign had Runes, Glyphs, Rituals, Evocation, Candle Lore, Bardic Magic or Herbalism switched off,** the matching skills (Rune Lore, Glyph, Ritual Lore, Evoke, Candle Lore, Intone, Sing, Potion Lore and the like) are now unavailable as well. They are flagged on characters who hold them, not removed.
+
+The Powers, Magic Item Empowering and Divine Item Empowering switches now reach power items. An Arch Mortal's invulnerability is a benefit of the title rather than a power, and no switch touches it.
+
+**Double-clicks are harmless.** Pressing Cast, Invoke, Pray, Mem, Sleep, Drain, Reset or Regenerate twice in quick succession now counts as one press.
 
 ## 0.19.3 — 2026-09-23
 

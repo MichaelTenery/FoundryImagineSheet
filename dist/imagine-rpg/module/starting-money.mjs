@@ -184,7 +184,7 @@ import { getApparentSocialClass } from "./starting-kit.mjs";
 
 	// @MARKER DESCRIBE STARTING MONEY
 	// This is the function which says in one line what a starting-money roll did, for the generator's
-	// Details step and for the chat card -- the same words in both, so the two never disagree.
+	// Equipment step and for the chat card -- the same words in both, so the two never disagree.
 	export function describeStartingMoney(tmpMoney) {
 		if (!tmpMoney) { return ""; }
 		if (tmpMoney.issues?.length) { return tmpMoney.issues.join(" "); }
@@ -242,7 +242,7 @@ import { getApparentSocialClass } from "./starting-kit.mjs";
 	// @MARKER GEAR INSTEAD OF COINS
 	// The races his setMoneyEquipmentByRace (sheet-worker.js:73467) sends to wilderness gear rather
 	// than to setCoins. On this port Gear by culture stays off unless ticked (DECISIONS 2026-09-20), so
-	// these only earn a hint on the Details step. His race names: a split form reads its sourceRace.
+	// these only earn a hint on the Equipment step. His race names: a split form reads its sourceRace.
 	export const GEAR_INSTEAD_OF_COINS_RACES = [
 		// race                     his case line
 		"Chetahl",                  // 73511

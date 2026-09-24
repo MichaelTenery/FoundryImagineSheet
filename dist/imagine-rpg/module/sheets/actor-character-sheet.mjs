@@ -18,6 +18,8 @@ import { GEM_TYPES, COIN_TYPES, getWealthInGold, changeCoins, changeValuables } 
 import { canRollStartingMoney, getCharacterMoneyInputs, rollStartingMoney, describeStartingMoney } from "../starting-money.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
 import { grantNaturalWeapons, getMissingNaturalWeaponNames } from "../natural-weapons.mjs";
+import { needsStartingEnduranceRoll, getStartingEnduranceLabel } from "../race-rules.mjs";
+import { rollRaceStartingEndurance, confirmRaceStartingEnduranceRoll } from "../race-endurance.mjs";
 import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
          getSecondWeaponFlags, resolveMissileComboAcquisition, isThrownWeapon, isProjectileWeapon,
          isLauncherWeapon } from "../combat/combat-rules.mjs";
@@ -29,6 +31,8 @@ import { buildMagicPanel } from "../magic-view.mjs";
 import { useConsumable, addDose, toggleMemorized, useLore, brewRecipe, addPoison,
          postMagic } from "../magic-actions.mjs";
 import { provideStartingLore } from "../starting-lore.mjs";
+import { castSpell, invokeInvocation, prayForInvocation, resetAuraPool, regenerateAura,
+         removeMagicEffect, rememorizeSpell, sleepSpells, drainAuraPool } from "../casting-actions.mjs";
 import { getWeaponCustomTags, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
 import ImagineWeaponMods from "../apps/weapon-mods.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
@@ -38,7 +42,8 @@ import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
 import {
-	resolveSkillOutcome, pickBestSkillRoll, canTransferSlot, canSacrificeSlot,
+	resolveSkillRoll, describeSkillResult, resolveAttributeSave, pickBestSkillRoll,
+	canTransferSlot, canSacrificeSlot,
 	SLOT_TRANSFERS, SLOT_SACRIFICE_DICE, SACRIFICEABLE_SLOTS
 } from "../skills-rules.mjs";
 
@@ -90,6 +95,17 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			useLore: ImagineCharacterSheet.#onUseLore,
 			brewRecipe: ImagineCharacterSheet.#onBrewRecipe,
 			postMagic: ImagineCharacterSheet.#onPostMagic,
+			// Casting and invoking -- module/casting-actions.mjs.
+			castSpell: ImagineCharacterSheet.#onCastSpell,
+			rememorizeSpell: ImagineCharacterSheet.#onRememorizeSpell,
+			toggleMastered: ImagineCharacterSheet.#onToggleMastered,
+			invokeInvocation: ImagineCharacterSheet.#onInvokeInvocation,
+			prayForInvocation: ImagineCharacterSheet.#onPrayForInvocation,
+			resetAuraPool: ImagineCharacterSheet.#onResetAuraPool,
+			sleepSpells: ImagineCharacterSheet.#onSleepSpells,
+			drainAuraPool: ImagineCharacterSheet.#onDrainAuraPool,
+			regenerateAura: ImagineCharacterSheet.#onRegenerateAura,
+			removeMagicEffect: ImagineCharacterSheet.#onRemoveMagicEffect,
 			provideStartingLore: ImagineCharacterSheet.#onProvideStartingLore,
 			openWeaponMods: ImagineCharacterSheet.#onOpenWeaponMods,
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
@@ -114,6 +130,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
 				changeWealth: ImagineCharacterSheet.#onChangeWealth,
 				rollStartingMoney: ImagineCharacterSheet.#onRollStartingMoney,
+				rollStartingEndurance: ImagineCharacterSheet.#onRollStartingEndurance,
 				rollHandedness: ImagineCharacterSheet.#onRollHandedness,
 				grantNaturalWeapons: ImagineCharacterSheet.#onGrantNaturalWeapons,
 				learnMissileCombo: ImagineCharacterSheet.#onLearnMissileCombo,
@@ -178,6 +195,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.missingNaturalWeapons = getMissingNaturalWeaponNames(
 			this.document.items.filter(tmpitem => tmpitem.type == "race").map(tmpitem => tmpitem.system),
 			this.document.items.filter(tmpitem => tmpitem.type == "weapon").map(tmpitem => tmpitem.name));
+		// A race copy whose starting Endurance die was never rolled -- a Gaunt made before 2026-09-23.
+		// The header offers to roll it, once, beside Endurance (module/race-endurance.mjs).
+		tmpcontext.unrolledEndurance = this.document.items
+			.filter(tmpitem => tmpitem.type == "race" && needsStartingEnduranceRoll(tmpitem.system))
+			.map(tmpitem => ({ id: tmpitem.id, name: tmpitem.name,
+			                   formula: getStartingEnduranceLabel(tmpitem.system.endurance.startFormula) }));
 		// Handedness is rolled rather than chosen unless the Game Master has ticked the setting,
 		// so the dropdown is built only when it will actually be shown -- see the @MARKER
 		// HANDEDNESS note in imagine-rpg.mjs for why rolling is the default.
@@ -588,23 +611,19 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 	// This is the function which rolls an attribute save. A save succeeds on a percentile roll
 	// equal to or under the save chance, and succeeding by half the chance or better is a
-	// distinct and better result -- which is how his sheet reports it.
+	// distinct and better result -- which is how his sheet reports it. The reading is his
+	// (resolveAttributeSave, skills-rules.mjs), half rounded down with a floor of 1.
 	static async #onRollAttributeSave(event, target) {
 		var tmpkey = target.dataset.attribute;
 		var tmpattrib = this.document.system.attributes[tmpkey];
 		if (!tmpattrib) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpchance = tmpattrib.save;
-		var tmphalf = Math.floor(tmpchance / 2);
-
-		var tmpoutcome = "Failed";
-		if (tmproll.total <= tmphalf)        { tmpoutcome = "Succeeded by half"; }
-		else if (tmproll.total <= tmpchance) { tmpoutcome = "Succeeded"; }
+		var tmpresult = resolveAttributeSave(tmpattrib.save, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`
 		});
 	}
 
@@ -686,10 +705,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		});
 	}
 
-	// This is the function which rolls a skill. Player's Guide p.93: the roll succeeds on
-	// equal to or under the total chance, and a margin of more than 20% either way is a
-	// critical success or failure.
 	// This is the function which rolls a skill, once for every copy of it the character holds.
+	//
+	// Each roll is read as his handleSkillRollDetails reads it (resolveSkillRoll, skills-rules.mjs):
+	// eight results, among them Made by half, a critical that is also made by half, Grandmaster at
+	// 200% and a rolled 100 that always fails. Until 2026-09-23 this read only the Player's Guide's
+	// four (p.93), which is why a skill card never said "made by half".
 	//
 	// Player's Guide, "Duplicate Class and Racial Skills": the same skill held both racially and as
 	// a class skill is rolled for each copy and the best result taken. The copies do NOT share a
@@ -719,7 +740,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		for (const tmpcopy of tmpcopies) {
 			var tmproll = await new Roll("1d100").evaluate();
 			tmprolls.push(tmproll);
-			var tmpresult = resolveSkillOutcome(tmpcopy.system.totalChance, tmproll.total);
+			var tmpresult = resolveSkillRoll(tmpcopy.system.totalChance, tmproll.total);
 			tmpresult.category = tmpcopy.system.category;
 			tmpresults.push(tmpresult);
 		}
@@ -730,7 +751,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			var tmpchosen = tmpindex == tmpbest.bestIndex;
 			var tmplabel = tmpresult.category ? `${tmpresult.category} ` : "";
 			return `<div class="skill-roll-line${tmpchosen ? " chosen" : ""}">${tmplabel}${tmpresult.chance}%:
-				rolled ${tmpresult.roll} &mdash; <strong>${tmpresult.outcome}</strong></div>`;
+				rolled ${tmpresult.roll} &mdash; ${describeSkillResult(tmpresult)}</div>`;
 		}).join("");
 
 		var tmpheading = tmpresults.length > 1
@@ -847,6 +868,62 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	static async #onPostMagic(event, target) {
 		var tmpitem = this.#magicItem(target);
 		if (tmpitem) { await postMagic(this.document, tmpitem); }
+	}
+
+	// @MARKER CASTING AND INVOKING
+	// The spell and invocation buttons, and the Aura pool's. The work is in module/casting-actions.mjs.
+	static async #onCastSpell(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await castSpell(this.document, tmpitem); }
+	}
+
+	// His MEM button, and his MOD beside it when Shift is held: the days of memory refreshed.
+	static async #onRememorizeSpell(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await rememorizeSpell(this.document, tmpitem, event); }
+	}
+
+	// His spell_mastery_check: +2 Aura Control, half the time, three times the range, twice the duration.
+	static async #onToggleMastered(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await tmpitem.update({ "system.mastered": !tmpitem.system.mastered }); }
+	}
+
+	static async #onInvokeInvocation(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await invokeInvocation(this.document, tmpitem); }
+	}
+
+	static async #onPrayForInvocation(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await prayForInvocation(this.document, tmpitem, event); }
+	}
+
+	static async #onResetAuraPool(event, target) {
+		event.preventDefault();
+		await resetAuraPool(this.document);
+	}
+
+	static async #onRegenerateAura(event, target) {
+		event.preventDefault();
+		await regenerateAura(this.document);
+	}
+
+	// His Sleep: a day of every spell's memory gone, and a full pool.
+	static async #onSleepSpells(event, target) {
+		event.preventDefault();
+		await sleepSpells(this.document);
+	}
+
+	// His Drain, with his set_aura box asked for.
+	static async #onDrainAuraPool(event, target) {
+		event.preventDefault();
+		await drainAuraPool(this.document);
+	}
+
+	static async #onRemoveMagicEffect(event, target) {
+		event.preventDefault();
+		if (target.dataset.effect) { await removeMagicEffect(this.document, target.dataset.effect); }
 	}
 
 	// This is the function behind the Game Master's "Provide starting lore" -- his "If unchecked GM
@@ -1004,6 +1081,24 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		});
 	}
 
+	// @MARKER ROLL STARTING ENDURANCE
+	// This is the function which rolls a race's starting Endurance die from the header -- Gaunt's -1d4
+	// (Epitaph p.7), for a Gaunt made before 2026-09-23, when nothing rolled it. The button is only
+	// drawn while the copy is unrolled, and rollRaceStartingEndurance asks again before rolling, so a
+	// stale window cannot roll it twice. Once, with no re-roll: see module/race-endurance.mjs.
+	//
+	// A copy whose Start mod is not 0 is asked about first: until 2026-09-23 typing the penalty there
+	// by hand was the only way to give a Gaunt one, and the roll is added to it, not put in its place.
+	static async #onRollStartingEndurance(event, target) {
+		event.preventDefault();
+		var tmpitem = this.document.items.get(target.dataset.itemId);
+		if (!(await confirmRaceStartingEnduranceRoll(tmpitem))) { return; }
+		var tmprolled = await rollRaceStartingEndurance(this.document, tmpitem);
+		if (!tmprolled) {
+			ui.notifications.warn(`${this.document.name}: that race's starting Endurance has already been rolled.`);
+		}
+	}
+
 	static async #onChangeWealth(event, target) {
 		event.preventDefault();
 		var tmprow = target.closest(".wealth-update");
@@ -1045,8 +1140,11 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 		// toObject() is the stored data alone; the campaign's availability (a sourcebook switched off) is
 		// worked out on the item, so it is passed on beside it for chooseBestArmor to honour.
+		// On the character's own body, as the model works it out (body.type): barding only goes on the
+		// body it was made for, as his equipArmor has it (equip-rules.mjs canBodyWearArmor).
 		var tmpbest = chooseBestArmor(tmparmor.map(tmpitem => ({ id: tmpitem.id, name: tmpitem.name,
-			type: tmpitem.type, system: { ...tmpitem.system.toObject(), available: tmpitem.system.available } })));
+			type: tmpitem.type, system: { ...tmpitem.system.toObject(), available: tmpitem.system.available } })),
+			this.document.system.body?.type || "Humanoid");
 		var tmpupdates = tmparmor.map(tmpitem => {
 			var tmpwear = tmpbest.worn.includes(tmpitem.id);
 			var tmpchange = { _id: tmpitem.id, "system.location": tmpwear ? "equipped" : "carried" };
@@ -1172,13 +1270,15 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			tmpentry.system?.attr1, tmpentry.system?.attr2, tmpentry.system?.skillRating)
 			+ tmpchoice.modifier;
 
+		// His common skill roll reads its die through handleSkillRollDetails like every other
+		// skill roll (handleCommonSkillRoll, sheet-worker.js:64285), so an untrained attempt can be
+		// made by half too.
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpresult = resolveSkillOutcome(tmpchance, tmproll.total);
+		var tmpresult = resolveSkillRoll(tmpchance, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${tmpentry.name} (untrained) &mdash; ${tmpresult.chance}% &mdash;
-				<strong>${tmpresult.outcome}</strong>`
+			flavor: `${tmpentry.name} (untrained) &mdash; ${tmpresult.chance}% &mdash; ${describeSkillResult(tmpresult)}`
 		});
 	}
 

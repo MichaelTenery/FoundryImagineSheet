@@ -69,6 +69,10 @@
 					{{#if system.movement.specialName}}
 					<tr><td>{{system.movement.specialName}}</td><td>{{system.movement.special.hourly}}</td><td>{{system.movement.special.tenSec}}</td><td>{{system.movement.special.oneSec}}</td></tr>
 					{{/if}}
+					{{!-- A second special rate: only a Nixie has one, swimming beside its flight. --}}
+					{{#if system.movement.secondSpecialName}}
+					<tr><td>{{system.movement.secondSpecialName}}</td><td>{{system.movement.secondSpecial.hourly}}</td><td>{{system.movement.secondSpecial.tenSec}}</td><td>{{system.movement.secondSpecial.oneSec}}</td></tr>
+					{{/if}}
 				</tbody>
 			</table>
 			{{!-- The rates above are unencumbered, as his sheet shows them. His sheet never applies

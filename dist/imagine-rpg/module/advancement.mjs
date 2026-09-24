@@ -252,28 +252,48 @@ import { grantClassSkills, GRANT_HANDLED } from "./class-advancement.mjs";
 	// His sheet keeps powers as one comma-separated field. Here each is a power Item, the same
 	// type a creature's powers use, so it can be read, described and eventually cast by the same
 	// code. It is marked constant, because his own wording says so: "(Constant: ...)".
+	//
+	// NO MAGIC SWITCH REACHES IT. It is a title's benefit, written by his setArchMortalInvulnerability
+	// into the plain powers text attribute, not his repeating_powers section that the Powers switch
+	// stands for -- so it is created with the switch "none" (availability.mjs, isTitlePower). Before
+	// 2026-09-24 no power answered to a switch at all; this keeps the Arch Mortal where it was.
+	//
+	// THE NEW ONE FIRST, THE OLD ONE AFTER. The creation can still be refused -- a player's creation
+	// goes through preCreateItem (availability.mjs), which a Game Master's override or a sourcebook
+	// switched off can turn down -- and his code REPLACES the wording (a string replace on the powers
+	// list), it never leaves the character with none. So the weaker wording is removed only once the
+	// stronger one is really on the character; if it was refused, the old one stays and the level-up
+	// summary says so, rather than reporting an improvement that did not happen.
 	async function applyArchMortalPower(tmpactor, tmpgains) {
 		if (!tmpgains?.invulnerability) { return ""; }
 
 		var tmpheld = tmpactor.items.filter(tmpitem => tmpitem.type == "power");
 		if (tmpheld.some(tmpitem => tmpitem.name == tmpgains.invulnerability)) { return ""; }
 
-		// The weaker wordings this one replaces, removed rather than left beside it.
+		// The weaker wordings this one replaces -- removed below, once the new one exists.
 		var tmpold = tmpheld.filter(tmpitem => tmpgains.replaces.includes(tmpitem.name));
-		if (tmpold.length) {
-			await tmpactor.deleteEmbeddedDocuments("Item", tmpold.map(tmpitem => tmpitem.id));
-		}
 
-		await tmpactor.createEmbeddedDocuments("Item", [{
+		var tmpcreated = await tmpactor.createEmbeddedDocuments("Item", [{
 			name: tmpgains.invulnerability,
 			type: "power",
 			system: {
 				unlimited: true, uses: 0, usesMax: 0, selfOnly: true,
-				powerKind: "unknown",
+				powerKind: "unknown", subsystem: "none",
 				sourcebook: "Player`s Guide",
 				description: "Granted on reaching Arch Mortal. His setArchMortalInvulnerability."
 			}
 		}]);
+		if (!tmpcreated?.length) {
+			// Refused: nothing is removed, and the summary names what did not arrive.
+			return tmpold.length
+				? `invulnerability NOT improved to "${tmpgains.invulnerability}" (it could not be added in this campaign), `
+					+ `"${tmpold.map(tmpitem => tmpitem.name).join(", ")}" kept`
+				: `"${tmpgains.invulnerability}" NOT gained (it could not be added in this campaign)`;
+		}
+
+		if (tmpold.length) {
+			await tmpactor.deleteEmbeddedDocuments("Item", tmpold.map(tmpitem => tmpitem.id));
+		}
 		return tmpold.length
 			? `invulnerability improves to "${tmpgains.invulnerability}"`
 			: `gains "${tmpgains.invulnerability}"`;

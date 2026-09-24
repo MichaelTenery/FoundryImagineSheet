@@ -20,17 +20,20 @@ import {
 	getInitiativeModifier, getAreaArmor, getAreaShield, getNextAttackSkill, hasLore, parseLoreList,
 	getMovementBase, resolveMovementRate, resolveSpecialMovement, specialMovementReplacesOther,
 	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement,
-	getSecondWeaponSlots, resolveSituationalMods
+	getSecondWeaponSlots, resolveSituationalMods, getShockBar
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
-	readFormlessPair, combineFormless, resolvePhysiqueLock } from "../race-rules.mjs";
+	readFormlessPair, combineFormless, resolvePhysiqueLock, getStartingEnduranceMod } from "../race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget, describeEvokes } from "../famorian-rules.mjs";
 import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions,
          checkClassSkillTitle } from "../class-rules.mjs";
 import { checkClassQualification } from "../chargen-rules.mjs";
 import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../advancement-rules.mjs";
 import { MARTIAL_DISCIPLINE_NAMES, getStanceSkillBonus, deriveMartialArts } from "../combat/martial-arts.mjs";
+import { getAuraControl, getAuraPool, getAuraRegen, getPietyControl } from "../casting-rules.mjs";
+import { getSkillStanding } from "../lore-rules.mjs";
+import { CASTING_SKILLS } from "../lore-tables.mjs";
 
 const fields = foundry.data.fields;
 
@@ -442,6 +445,30 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				resistingHold:    new fields.BooleanField({ required: true, initial: false })
 			}),
 
+			// @MARKER MAGIC
+			// What casting and invoking keep between one cast and the next -- his Aura and Divine
+			// panels. Aura Control, the pool's size, Piety Control and the rest are DERIVED from class,
+			// title and attributes (_prepareMagic, module/casting-rules.mjs); only these are stored:
+			//                                                                     his attribute
+			magic: new fields.SchemaField({
+				drainedAura:      new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }), // drained_aura
+				additionalAura:   new fields.NumberField({ required: true, integer: true, initial: 0 }),         // additional_aura
+				auraControlBoost: new fields.NumberField({ required: true, integer: true, initial: 0 }),         // aura_control_boost
+				auraRegenDouble:  new fields.BooleanField({ required: true, initial: false }),                   // aura_regen_double
+				magicSuppressed:  new fields.BooleanField({ required: true, initial: false }),                   // magic_suppression
+				halfMagic:        new fields.BooleanField({ required: true, initial: false }),                   // half_magic
+				pietyLevelBoost:  new fields.NumberField({ required: true, integer: true, initial: 0 }),         // piety_level_boost
+				divineDenial:     new fields.BooleanField({ required: true, initial: false }),                   // divine_denial
+				// The devotions an invoker prays through, comma-separated as his current_devotions is,
+				// and his tick to ignore them.
+				devotions:        new fields.StringField({ required: true, blank: true, initial: "" }),         // current_devotions
+				ignoreDevotions:  new fields.BooleanField({ required: true, initial: false }),                   // ignore_devotions
+				// "Spell: Fly, Invoke: Chill" -- what the caster has running on themselves. His cases
+				// read it to refuse a second copy ("already in use"); a cast adds to it and the tab's
+				// cross takes one off. His tmp_effect_list, holding only these.
+				effectList:       new fields.StringField({ required: true, blank: true, initial: "" })          // tmp_effect_list
+			}),
+
 			// @MARKER NOTES
 			biography: new fields.HTMLField({ required: true, initial: "" })
 		};
@@ -683,6 +710,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// nothing the off-hand step sets.
 		this._prepareSituation();
 		this._prepareOffhandSkills();
+		// Casting and invoking read the skills (Spell Lore, the casting skills, Divine Knowledge) and
+		// the attributes, and nothing after this step reads what they set.
+		this._prepareMagic();
 		// After the skills: the Arch Mortal screen reads five class skills' chances, and those
 		// are not worked out until _prepareSkills has run.
 		this._prepareAdvancement();
@@ -923,6 +953,10 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
 		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
 		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
+		// What a token's resource bar draws, Shock less the total wounds -- the same "body.shockBar" a
+		// creature carries (getShockBar in combat-rules.mjs; CONFIG.Actor.trackableAttributes in
+		// imagine-rpg.mjs). Added 2026-09-23 with the creature's, so both actor types have a bar.
+		this.body.shockBar = getShockBar(this.body.shock, this.body.totalWounds);
 	}
 
 	// This is the function which totals carried weight and works out how encumbered the
@@ -1322,7 +1356,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			// his sheet gives it none: "GMEs (0 title) get no 1st title endurance modifier"
 			// (sheet-worker.js:8142).
 			var tmpnonclassed = this.classItems.some(tmpclass => tmpclass.system.nonClassed);
-			this.characteristics.endurance.raceMod  = tmpnonclassed ? 0 : tmpracesys.endurance.startMod;
+			// The race's flat Start mod and its rolled Start roll together (a Gaunt's -1d4, rolled into
+			// its own field on this character's copy of the race): getStartingEnduranceMod, race-rules.mjs.
+			this.characteristics.endurance.raceMod  = tmpnonclassed ? 0 : getStartingEnduranceMod(tmpracesys.endurance);
 			this.characteristics.perception.raceMod = tmpracesys.characteristicMods.perception;
 			this.characteristics.affinity.raceMod   = tmpracesys.characteristicMods.affinity;
 			this.characteristics.fortune.raceMod    = tmpracesys.characteristicMods.fortune;
@@ -1505,6 +1541,19 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.movement.special.tenSec = tmpspecial.tenSec;
 		this.movement.special.oneSec = tmpspecial.oneSec;
 
+		// A second special rate, for the one race the books give two of: a Nixie swims AND flies
+		// (Legends p.33), and his row has room for only the flight -- the swim is his Formless copy
+		// of the same row. Read exactly as the first is. DERIVED ONLY, never stored: it has no field
+		// on the character, so an actor made before it existed needs nothing to load, and a race
+		// document made before it existed reads as blank (the schema's initial values).
+		var tmpsecondname = ("" + (tmpracemove.secondSpecialName ?? "")).trim();
+		if (tmpsecondname == "None:") { tmpsecondname = ""; }
+		this.movement.secondSpecialName = tmpsecondname;
+		this.movement.secondSpecial = tmpsecondname
+			? resolveSpecialMovement(tmpsecondname, tmpracemove.secondSpecial ?? {},
+				this.movement, tmpmulti, this.attributes.int.value)
+			: { hourly: 0, tenSec: 0, oneSec: 0 };
+
 		// For a slithering race the special rate is not an extra on top of walking, it is the whole
 		// of their movement -- "Slither is the only movement sssssnake people have", and they do
 		// not jump either. His sheet zeroes these after the fact too, so this runs last.
@@ -1659,6 +1708,98 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// which also takes off what a late initiative costs. See getOffhandSecondsCap.
 		this.combat.offhandSecondsCap = getOffhandSecondsCap(
 			this.physical.handedness, this.combat.secondWeaponLoreChance);
+	}
+
+	// @MARKER MAGIC
+	// This is the function which works out how far the character has come as a caster and as an
+	// invoker -- his setMagicDivineLore (sheet-worker.js:96635). The rules are casting-rules.mjs; this
+	// gathers the class, the title, the attributes and the skills they read, and lays the results out
+	// on magic.aura and magic.piety for the tab and for a cast.
+	//
+	// After the skills, whose chances it reads (Spell Lore, the casting skills, Divine Knowledge).
+	// A dual-classed character takes the better of the two classes' figures, as the Player's Guide
+	// has the better of two versions of anything apply (Dual Class, Experience and Advancement rule 4).
+	_prepareMagic() {
+		// The schema always supplies magic; a character built outside Foundry (the test pages) may not.
+		if (!this.magic) { this.magic = {}; }
+		var tmpmagic = this.magic;
+		var tmpskills = (this.parent?.items ?? []).filter(tmpitem => tmpitem.type == "skill");
+		var tmptitle = parseInt(this.identity.title) || 0;
+		var tmpstanding = (tmpname) => getSkillStanding(tmpskills, tmpname, tmptitle);
+		var tmpheld = (tmpname) => { var tmps = tmpstanding(tmpname); return tmps.held && tmps.chance > 0; };
+		var tmpintmods = this.attributes.int?.mods ?? {};
+		var tmpwismods = this.attributes.wis?.mods ?? {};
+		var tmpaura = parseInt(this.attributes.aur?.value) || 0;
+
+		// @MARKER AURA
+		var tmpbestaura = { value: 0, max: 0, isCaster: false, parts: [] };
+		var tmpcasterclass = null;
+		for (const tmpclass of this.classItems ?? []) {
+			var tmpclassname = tmpclass.system.baseClass || tmpclass.name;
+			var tmpac = getAuraControl({
+				className: tmpclassname,
+				title: this._getClassTitle(tmpclass),
+				casterStartTitle: tmpclass.system.casting?.isCaster ? tmpclass.system.casting.casterStartTitle : 0,
+				intAdjust: tmpintmods.auraControlAdjust,
+				metaphysics: tmpheld("Metaphysics"),
+				boost: tmpmagic.auraControlBoost,
+				spellLore: tmpheld("Spell Lore"),
+				windsOfWildMagic: tmpclassname == "Wilder" && tmpheld("Winds of Wild Magic"),
+				suppressed: tmpmagic.magicSuppressed
+			});
+			if (tmpac.isCaster && (!tmpbestaura.isCaster || tmpac.value > tmpbestaura.value)) {
+				tmpbestaura = tmpac;
+				tmpcasterclass = { name: tmpclassname, title: this._getClassTitle(tmpclass),
+					start: tmpclass.system.casting?.casterStartTitle || 0 };
+			}
+		}
+		// The skill a spell is cast with: the best of his five held (storeBestCastingSkill), and its
+		// practitioner title, which a few of his cases read.
+		var tmpcasting = CASTING_SKILLS.map(tmpname => tmpstanding(tmpname)).filter(tmps => tmps.held)
+			.sort((a, b) => b.chance - a.chance)[0] ?? null;
+		var tmppool = getAuraPool({ title: tmptitle, aura: tmpaura, additional: tmpmagic.additionalAura,
+			drained: tmpmagic.drainedAura });
+		tmpmagic.aura = {
+			isCaster: tmpbestaura.isCaster,
+			className: tmpcasterclass?.name ?? "",
+			control: tmpbestaura.value,
+			controlMax: tmpbestaura.max,
+			controlParts: tmpbestaura.parts,
+			controlCapped: !!tmpbestaura.capped,
+			controlDoubled: !!tmpbestaura.doubled,
+			pool: tmppool,
+			regen: getAuraRegen({ className: tmpcasterclass?.name ?? (this.classItem?.system?.baseClass || this.classItem?.name || ""),
+				title: tmpcasterclass?.title ?? tmptitle, casterStartTitle: tmpcasterclass?.start ?? 0,
+				double: tmpmagic.auraRegenDouble }),
+			casting: tmpcasting ? { name: tmpcasting.name, chance: tmpcasting.chance, practitionerTitle: tmpcasting.practitionerTitle } : null,
+			absorbAura: tmpstanding("Absorb Aura").chance,
+			// His aura_fatigue_note: a mortal who can put 22 or more into a spell risks Aura Fatigue.
+			fatigueWarning: tmptitle < 11 && tmpbestaura.value > 20
+		};
+
+		// @MARKER PIETY
+		var tmpbestpiety = { value: 0, level: 0, isInvoker: false, parts: [] };
+		for (const tmpclass of this.classItems ?? []) {
+			var tmppc = getPietyControl({
+				className: tmpclass.system.baseClass || tmpclass.name,
+				title: this._getClassTitle(tmpclass),
+				invokerStartTitle: tmpclass.system.casting?.isInvoker ? tmpclass.system.casting.invokerStartTitle : 0,
+				wisAdjust: tmpwismods.pietyControl,
+				theology: tmpheld("Theology"),
+				levelBoost: tmpmagic.pietyLevelBoost,
+				denial: tmpmagic.divineDenial
+			});
+			if (tmppc.isInvoker && (!tmpbestpiety.isInvoker || tmppc.value > tmpbestpiety.value)) { tmpbestpiety = tmppc; }
+		}
+		tmpmagic.piety = {
+			isInvoker: tmpbestpiety.isInvoker,
+			control: tmpbestpiety.value,
+			level: tmpbestpiety.level,
+			controlParts: tmpbestpiety.parts,
+			divineKnowledge: Math.max(tmpstanding("Divine Knowledge").chance, tmpstanding("Divine Knowledge(w)").chance),
+			bless: tmpstanding("Bless").chance,
+			blasphemy: tmpstanding("Blasphemy").chance
+		};
 	}
 
 	// This is the function which totals the Situation Mods the character has set, and lays their

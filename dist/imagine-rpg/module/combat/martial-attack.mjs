@@ -23,7 +23,7 @@ import {
 } from "./martial-arts.mjs";
 import { MARTIAL_LORE_VALUES } from "../combat-tables.mjs";
 import { findActorCombatant } from "./combat-document.mjs";
-import { resolveSkillOutcome } from "../skills-rules.mjs";
+import { resolveSkillRoll, describeSkillRoll } from "../skills-rules.mjs";
 
 const { resolveAttack, resolveCriticalFumble } = CombatRules;
 
@@ -84,12 +84,16 @@ export function loadMartialTemplates() {
 	}
 
 	// This is the function which rolls one percentile skill check and words it.
+	//
+	// His martial knowledge and lore rolls -- attack, block, hold, throw, move and lore value
+	// (handleMartialAttackSkillRoll, sheet-worker.js:66168, and its siblings to 68725) -- all read
+	// the die through handleSkillRollDetails, so this does too: his eight results, "made" being
+	// the first five of them (resolveSkillRoll carries it).
 	async function rollSkillCheck(tmpchance) {
 		var tmproll = await rollFormula("1d100");
-		var tmpresult = resolveSkillOutcome(tmpchance, tmproll.total);
-		tmpresult.made = tmpresult.outcome == "Succeeded" || tmpresult.outcome == "Critical success";
+		var tmpresult = resolveSkillRoll(tmpchance, tmproll.total);
 		tmpresult.rollObject = tmproll;
-		tmpresult.text = `rolled ${tmpresult.roll} against ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`;
+		tmpresult.text = describeSkillRoll(tmpresult);
 		return tmpresult;
 	}
 
@@ -253,16 +257,20 @@ export async function rollMartialAttack(tmpactor, tmpname) {
 			tmprolls.push(tmpdmgroll);
 			tmpcardrolls.push(tmpdmgroll);
 			var tmpstr = getMartialStrengthDamage(tmpsys.combat.meleeDamage, tmpmods.damage.strength, false);
+			// Body weight, his combat_mod_dam_weight, which getMartialDamageDetails adds beside Strength
+			// (sheet-worker.js:66807-66811): signed for a character, never below 0 for a creature (82173).
+			// Either actor type's own weight, through the one table.
+			var tmpweight = CombatRules.getWeightDamageAdjust(tmpsys.physical?.weight, tmpactor.type == "creature");
 			var tmpmultipliers = [tmpmods.damage.multiplier, tmpsit.multi];
 			if (tmpdoubled) { tmpmultipliers.push(2); }
 			var tmpresolved = resolveMartialAttackDamage({
-				rolled: tmpdmgroll.total, dice: tmpdice, strength: tmpstr,
+				rolled: tmpdmgroll.total, dice: tmpdice, strength: tmpstr, weight: tmpweight,
 				flat: tmpmods.damage.flat + tmpsit.damage, perDie: tmpmods.damage.perDie + tmpsit.perDie,
 				multipliers: tmpmultipliers, skillMade: tmpskill.made,
 				halve: (tmpoptions.calledShot && !tmpentry.result.isCalledShot) || tmpsit.halfDamage
 			});
 			tmpdamage = {
-				dice: tmpdice, rolled: tmpdmgroll.total, str: tmpstr,
+				dice: tmpdice, rolled: tmpdmgroll.total, str: tmpstr, weight: tmpweight,
 				flat: tmpmods.damage.flat + tmpsit.damage, perDie: tmpresolved.perDie,
 				multiplier: tmpresolved.multiplier, halved: tmpresolved.halved, total: tmpresolved.total,
 				type: tmprow.damageType || "Smashing",

@@ -22,6 +22,10 @@
 import { buildStartingKit } from "./starting-kit.mjs";
 import { chooseBestArmor } from "./equip-rules.mjs";
 import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapons.mjs";
+import { rollStartingEndurance, needsStartingEnduranceRoll } from "./race-rules.mjs";
+import { buildSkillModContext, getSocialSkillRaceMod, getExtraSocialMods, getExtraClassRacialMods,
+	describeSkillBonusParts } from "./social-skill-rules.mjs";
+import { getEveryClassSkill } from "./class-rules.mjs";
 
 	// The twelve attributes, in the order his sheet and the Player's Guide list them.
 	export const ATTRIBUTE_ORDER = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "pty", "wil"];
@@ -281,43 +285,72 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 	];
 
 	// This is the function which works out a class skill's bonus at creation, as his
-	// setClassSkillAbility does (sheet-worker.js, called from setFinalClassSkills):
+	// setClassSkillAbility does (sheet-worker.js:63767, called from setFinalClassSkills):
 	//     the skill's starting dice, rolled
 	//   + 30 if it is a CORE skill
 	//   + every class modifier naming a type the skill has ("+10% to magical skills" on a Magical skill)
-	// His further term, getExtraClassRacialMods (a few social skills lifting class skills), is not
-	// ported; it needs the social-skill modifier tables, which the generator does not use yet.
+	//   + getExtraClassRacialMods: the trait switch (a Famorian's evokes, Climbing, Enhanced Hearing
+	//     and Smell, Loud) and whatever the character's social skills give this skill -- see
+	//     module/social-skill-rules.mjs, which also says why this is added although on his live sheet
+	//     that function always returns 0 (it returns before its own getAttrs callback runs)
 	// Returned in two parts, because the character keeps the roll (startingBonus) apart from the
 	// fixed bonuses (abilityBonus).
-	export function getClassSkillBonuses(tmpSkillSystem, tmpCore, tmpClassMods, tmpRoll) {
+	//
+	// tmpContext is optional and last, so a caller with no character to hand still gets the first
+	// three terms exactly as before: buildSkillModContext's names plus skillName, the skill's own
+	// name, which the skill's system data does not carry. Given it, the answer also carries parts --
+	// every term that went into abilityBonus, for the generator's Review step.
+	export function getClassSkillBonuses(tmpSkillSystem, tmpCore, tmpClassMods, tmpRoll, tmpContext) {
 		var tmpStarting = rollDicePool(tmpSkillSystem?.startingDice, tmpRoll);
 		var tmpAbility = tmpCore ? 30 : 0;
+		var tmpParts = tmpCore ? [{ label: "CORE", percent: 30 }] : [];
 		var tmpTypes = (tmpSkillSystem?.types ?? []).join(",");
 		for (const tmpMod of tmpClassMods ?? []) {
 			if (!("" + tmpMod).includes("skills")) { continue; }
 			for (const [tmpWord, tmpType] of CLASS_MOD_SKILL_TYPES) {
 				if (("" + tmpMod).includes(tmpWord) && tmpTypes.includes(tmpType)) {
 					tmpAbility = tmpAbility + parseClassModPercent(tmpMod);
+					tmpParts.push({ label: "class", percent: parseClassModPercent(tmpMod) });
 				}
 			}
 		}
-		return { startingBonus: tmpStarting, abilityBonus: tmpAbility };
+		if (!tmpContext) { return { startingBonus: tmpStarting, abilityBonus: tmpAbility }; }
+		// his "tmpmod" here is the CORE +30 or 0 alone, not the class-type modifiers (63772-63786)
+		var tmpExtra = getExtraClassRacialMods(tmpContext.skillName, tmpCore ? 30 : 0, tmpContext);
+		return { startingBonus: tmpStarting, abilityBonus: tmpAbility + tmpExtra.total,
+		         parts: [...tmpParts, ...tmpExtra.parts] };
 	}
 
 	// This is the function which works out a racial skill's bonus at creation. His
 	// setRacialSkillAbility (sheet-worker.js:53452): the starting dice count DOUBLE for a racial
-	// skill -- "(tmprandom*2)" -- plus the race's own bonus on it ("+10%").
-	export function getRacialSkillBonuses(tmpSkillSystem, tmpRaceBonus, tmpRoll) {
+	// skill -- "(tmprandom*2)" -- plus the race's own bonus on it ("+10%"), plus
+	// getExtraClassRacialMods with the race's bonus as the mod already there (see getClassSkillBonuses
+	// above for tmpContext, and module/social-skill-rules.mjs for the terms).
+	export function getRacialSkillBonuses(tmpSkillSystem, tmpRaceBonus, tmpRoll, tmpContext) {
 		var tmpStarting = rollDicePool(tmpSkillSystem?.startingDice, tmpRoll) * 2;
 		var tmpBonus = parseInt(("" + (tmpRaceBonus ?? "")).replace("%", "").replace("+", "")) || 0;
-		return { startingBonus: tmpStarting, abilityBonus: tmpBonus };
+		if (!tmpContext) { return { startingBonus: tmpStarting, abilityBonus: tmpBonus }; }
+		var tmpExtra = getExtraClassRacialMods(tmpContext.skillName, tmpBonus, tmpContext);
+		return { startingBonus: tmpStarting, abilityBonus: tmpBonus + tmpExtra.total,
+		         parts: [...(tmpBonus ? [{ label: "race", percent: tmpBonus }] : []), ...tmpExtra.parts] };
 	}
 
-	// This is the function which works out a social skill's bonus at creation: its starting dice
-	// (setSocialSkillAbility). His social-class and racial modifiers on social skills
-	// (getSocialSkillMods, getExtraSocialMods) are not ported yet.
-	export function getSocialSkillBonuses(tmpSkillSystem, tmpRoll) {
-		return { startingBonus: rollDicePool(tmpSkillSystem?.startingDice, tmpRoll), abilityBonus: 0 };
+	// This is the function which works out a social skill's bonus at creation, as his
+	// setSocialSkillAbility (sheet-worker.js:56962): its starting dice, plus the first race's
+	// modifier on it (getSocialSkillMods), plus getExtraSocialMods -- racial and class skills lifting
+	// it, Falconry, other social skills lifting it, and Swimming. See module/social-skill-rules.mjs.
+	//
+	// A skill the race is BLOCKED from takes nothing from the race (his percentStringToInt makes 0 of
+	// the word) and is flagged with blocked: true. It is not refused here: the generator's Skills step
+	// refuses it, as his copy button does, and assembleCharacter reports it.
+	export function getSocialSkillBonuses(tmpSkillSystem, tmpRoll, tmpContext) {
+		var tmpStarting = rollDicePool(tmpSkillSystem?.startingDice, tmpRoll);
+		if (!tmpContext) { return { startingBonus: tmpStarting, abilityBonus: 0 }; }
+		var tmpRace = getSocialSkillRaceMod(tmpContext.skillName, tmpContext.raceName);
+		var tmpExtra = getExtraSocialMods(tmpContext.skillName, tmpContext);
+		return { startingBonus: tmpStarting, abilityBonus: tmpRace.percent + tmpExtra.total,
+		         parts: [...(tmpRace.percent ? [{ label: "race", percent: tmpRace.percent }] : []), ...tmpExtra.parts],
+		         blocked: tmpRace.blocked };
 	}
 
 	// @MARKER HANDEDNESS
@@ -350,12 +383,13 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 	// and previewed without Foundry; the generator window only calls Actor.create with the result.
 	//
 	//   tmpChoices  what the player settled on, step by step (see the generator window)
-	//   tmpContent  { races, classes, skills }: plain documents, as the compendiums or the
-	//               src/packs/documents files hold them
+	//   tmpContent  { races, classes, skills, equipment, armor, weapons }: plain documents, as the
+	//               compendiums or the src/packs/documents files hold them
 	//   tmpRoll     the dice, for every skill's starting bonus
 	//
-	// Returns { actor, items, issues }. Nothing is refused: anything that could not be found or
-	// did not add up is listed in issues, for the review step to show.
+	// Returns { actor, items, issues, skillBonuses }. Nothing is refused: anything that could not be
+	// found or did not add up is listed in issues, for the review step to show. skillBonuses says, per
+	// skill, what went into its abilityBonus (see @MARKER RACE AND CROSS-SKILL MODIFIERS below).
 	export function assembleCharacter(tmpChoices, tmpContent, tmpRoll) {
 		var tmpIssues = [];
 		var tmpByName = (tmpDocs, tmpName) => (tmpDocs ?? []).find(tmpDoc => tmpDoc.name == tmpName) ?? null;
@@ -370,7 +404,16 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 			if (!tmpDoc) { tmpIssues.push(`Race "${tmpName}" was not found.`); }
 			return tmpDoc;
 		}).filter(tmpDoc => tmpDoc);
-		for (const tmpDoc of tmpRaceDocs) { tmpItems.push(tmpItem(tmpDoc)); }
+		// A race whose starting Endurance is a die -- Gaunt's -1d4, Epitaph p.7 -- is rolled here,
+		// once, into this character's own copy of the race (rollStartingEndurance, race-rules.mjs).
+		// Every other race's copy is its document's, unchanged. The generator creates the actor and
+		// its items in one go, which Foundry does not run through the createItem hook that rolls a
+		// race added later (race-endurance.mjs), so this roll is the only one a new character gets.
+		for (const tmpDoc of tmpRaceDocs) {
+			tmpItems.push(needsStartingEnduranceRoll(tmpDoc.system)
+				? tmpItem(tmpDoc, { endurance: rollStartingEndurance(tmpDoc.system.endurance, tmpRoll) })
+				: tmpItem(tmpDoc));
+		}
 
 		var tmpClassDoc = tmpByName(tmpContent.classes, tmpChoices.className);
 		if (tmpChoices.className && !tmpClassDoc) { tmpIssues.push(`Class "${tmpChoices.className}" was not found.`); }
@@ -379,6 +422,8 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 
 		// Skills. A skill the pack does not hold is still created, bare, so nothing the player chose
 		// is lost -- and reported, since it will have no attributes to work its chance from.
+		// What went into each skill's abilityBonus is kept too, for the Review step to show.
+		var tmpSkillBonuses = [];
 		var tmpAddSkill = (tmpName, tmpCategory, tmpBonuses, tmpTitle) => {
 			var tmpDoc = tmpByName(tmpContent.skills, tmpName);
 			if (!tmpDoc) {
@@ -390,29 +435,70 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 			tmpItems.push(tmpItem(tmpDoc, { category: tmpCategory, acquiredAtTitle: tmpTitle,
 				startingBonus: tmpBonuses.startingBonus, abilityBonus: tmpBonuses.abilityBonus,
 				misc: 0, isCommon: false }));
+			tmpSkillBonuses.push({ name: tmpName, category: tmpCategory, startingBonus: tmpBonuses.startingBonus,
+				abilityBonus: tmpBonuses.abilityBonus, parts: tmpBonuses.parts ?? [],
+				summary: describeSkillBonusParts(tmpBonuses.parts) });
 		};
+
+		// @MARKER RACE AND CROSS-SKILL MODIFIERS
+		// Every name the modifiers read, gathered once -- see module/social-skill-rules.mjs. The whole
+		// of the character's skills is known up front, from the choices, so each skill's terms can be
+		// worked out in any order; none of them reads another skill's chance. The title is the one the
+		// character starts at, which is all his Famorian Instinct(Navigation) ever used (53495).
+		//
+		// The class skills a SOCIAL skill is lifted by are every title's, not the first title's alone
+		// (laterClassSkills): his sheet writes every title's class skills at creation (63288 onward)
+		// and his getNewSocialSkillModifier reads them all (125658). So an Assassin's Disguise, which
+		// it gains at title 2, gives Acting its +15 now, and the grant at title 2 leaves Acting alone.
+		// Nothing else here reads the class skills. Which of a caster/non-caster pair is this
+		// character's is the generator's cannotCast; without it, the races' own disabilities.
+		var tmpCannotCast = tmpChoices.cannotCast ?? tmpRaceDocs.some(tmpDoc =>
+			(tmpDoc.system?.disabilities ?? []).includes("Cannot Cast Spells"));
+		var tmpModContext = buildSkillModContext({
+			raceDocs: tmpRaceDocs,
+			famorianEvokes: tmpChoices.famorian?.evokes,
+			title: tmpNonClassed ? 0 : 1,
+			socialSkillNames: tmpChoices.socialSkillNames,
+			racialSkillNames: tmpChoices.racialSkillNames,
+			classSkillNames: tmpNonClassed ? [] : (tmpChoices.classSkills ?? []).map(tmpSkill => tmpSkill.name),
+			laterClassSkills: (tmpNonClassed || !tmpClassDoc) ? []
+				: getEveryClassSkill(tmpClassDoc.system, tmpCannotCast).filter(tmpSkill => tmpSkill.title > 1)
+		});
+		var tmpContextFor = (tmpName) => ({ ...tmpModContext, skillName: tmpName });
 
 		var tmpClassMods = tmpClassDoc?.system?.classMods ?? [];
 		for (const tmpSkill of (tmpNonClassed ? [] : (tmpChoices.classSkills ?? []))) {
 			var tmpDef = tmpByName(tmpContent.skills, tmpSkill.name)?.system;
-			tmpAddSkill(tmpSkill.name, "class", getClassSkillBonuses(tmpDef, tmpSkill.core, tmpClassMods, tmpRoll), 1);
+			tmpAddSkill(tmpSkill.name, "class",
+				getClassSkillBonuses(tmpDef, tmpSkill.core, tmpClassMods, tmpRoll, tmpContextFor(tmpSkill.name)), 1);
 		}
-		// A racial skill's bonus is the race's -- for a Half Race, the combined list's.
+		// A racial skill's bonus is the race's -- for a Half Race, the better of the two where both
+		// list the skill. Kept as a number: this used to compare every figure against 0 as well as
+		// against the other race, so a race PENALTY -- a Brok's Tame Animal -10% -- came out as
+		// nothing at all (found 2026-09-23 with the race and cross-skill modifiers).
 		var tmpRacialBonuses = {};
 		for (const tmpRace of tmpRaceDocs) {
 			for (const tmpSkill of tmpRace.system?.racialSkills ?? []) {
-				var tmpBest = Math.max(parseInt(("" + tmpSkill.bonus).replace("%", "")) || 0,
-				                       parseInt(("" + (tmpRacialBonuses[tmpSkill.name] ?? "")).replace("%", "")) || 0);
-				tmpRacialBonuses[tmpSkill.name] = tmpBest ? `+${tmpBest}%` : "";
+				var tmpThis = parseInt(("" + (tmpSkill.bonus ?? "")).replace("%", "").replace("+", "")) || 0;
+				tmpRacialBonuses[tmpSkill.name] = (tmpSkill.name in tmpRacialBonuses)
+					? Math.max(tmpRacialBonuses[tmpSkill.name], tmpThis) : tmpThis;
 			}
 		}
 		for (const tmpName of tmpChoices.racialSkillNames ?? []) {
 			var tmpRacialDef = tmpByName(tmpContent.skills, tmpName)?.system;
-			tmpAddSkill(tmpName, "racial", getRacialSkillBonuses(tmpRacialDef, tmpRacialBonuses[tmpName], tmpRoll), 0);
+			tmpAddSkill(tmpName, "racial",
+				getRacialSkillBonuses(tmpRacialDef, tmpRacialBonuses[tmpName], tmpRoll, tmpContextFor(tmpName)), 0);
 		}
 		for (const tmpName of tmpChoices.socialSkillNames ?? []) {
 			var tmpSocialDef = tmpByName(tmpContent.skills, tmpName)?.system;
-			tmpAddSkill(tmpName, "social", getSocialSkillBonuses(tmpSocialDef, tmpRoll), 0);
+			var tmpSocialBonuses = getSocialSkillBonuses(tmpSocialDef, tmpRoll, tmpContextFor(tmpName));
+			// A skill the race may not take is still created -- nothing the player chose is dropped
+			// behind their back -- and said, since the generator's Skills step should have refused it.
+			if (tmpSocialBonuses.blocked) {
+				tmpIssues.push(`${tmpModContext.raceName} may not take the social skill ${tmpName} `
+					+ `(BLOCKED on his race table); added anyway, with no race modifier.`);
+			}
+			tmpAddSkill(tmpName, "social", tmpSocialBonuses, 0);
 		}
 
 		// The actor. A GME is his "0-title non-classed" character (setFinalClass sets title 0 for
@@ -505,6 +591,36 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 			}
 		}
 
+		// @MARKER PURCHASES
+		// What was bought on the Equipment step -- module/shop-rules.mjs buildPurchasedEntries, already
+		// paid for: the coins in tmpChoices.wealth are what was left. Everything goes to Carried, as his
+		// add_item puts it ("they have to carry it out of the store, where they put it later is up to
+		// them", sheet-worker.js:14297); Equip Best Armour below then puts on any armour bought, which is
+		// the book's "If you bought a suit of armor ..." (step 10).
+		//
+		// An entry is one document. Equipment and ammunition arrive as ONE item carrying the quantity;
+		// armour and other weapons as one item per copy, each with a quantity of one, so each can be worn
+		// or held on its own (split -- see buildPurchasedEntries for why). A document that is no longer
+		// in the content cannot be created, and is reported rather than dropped in silence.
+		var tmpNotBought = [];
+		for (const tmpEntry of tmpChoices.purchases ?? []) {
+			var tmpPool = { equipment: tmpContent.equipment, armor: tmpContent.armor, weapon: tmpContent.weapons }[tmpEntry.docType];
+			var tmpBought = tmpByName(tmpPool, tmpEntry.docName);
+			var tmpHowMany = parseInt(tmpEntry.quantity) || 0;
+			if (!tmpBought) { tmpNotBought.push(tmpEntry.label || tmpEntry.docName); continue; }
+			if (tmpHowMany < 1) { continue; }
+			if (tmpEntry.split) {
+				for (var tmpCopyBought = 0; tmpCopyBought < tmpHowMany; tmpCopyBought += 1) {
+					tmpItems.push(tmpItem(tmpBought, { location: "carried", quantity: 1 }));
+				}
+			} else {
+				tmpItems.push(tmpItem(tmpBought, { location: "carried", quantity: tmpHowMany }));
+			}
+		}
+		if (tmpNotBought.length) {
+			tmpIssues.push(`Bought, but no longer in the compendium, so not created: ${tmpNotBought.join(", ")}.`);
+		}
+
 		// @MARKER NATURAL WEAPONS
 		// The race's claws, bites and horns, as weapons in the Weapons section -- see
 		// module/natural-weapons.mjs. The generator knows the character's physique, so an attack his
@@ -520,12 +636,14 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 		}
 
 		// The same choice his sheet's Equip Best Armour button makes -- see equipBestArmorInPlace,
-		// just below -- applied once here because the starting kit above is the only place armour
-		// ever enters a new character and the generator has no equipment step of its own to put a
-		// button on. (docs/sonnet/2026-09-19-equip-buttons.md item 1.)
-		equipBestArmorInPlace(tmpItems);
+		// just below -- applied once here because the starting kit and the purchases above are the only
+		// places armour ever enters a new character, and there is no armour on it to choose between
+		// until both are in. (docs/sonnet/2026-09-19-equip-buttons.md item 1.) On the character's body:
+		// the generator's combined race gives it (a Half Race's is its first race's, a Formless's its
+		// host's), and failing that the first race's, as the character model itself falls back.
+		equipBestArmorInPlace(tmpItems, tmpChoices.bodyType || tmpFirstRace.bodyType || "Humanoid");
 
-		return { actor: tmpActor, items: tmpItems, issues: tmpIssues };
+		return { actor: tmpActor, items: tmpItems, issues: tmpIssues, skillBonuses: tmpSkillBonuses };
 	}
 
 	// @MARKER EQUIP BEST ARMOUR
@@ -539,10 +657,14 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 	// a character in. Weapons and shields are left untouched, for the same reason the sheet leaves
 	// them alone -- which hand holds what is the player's call, not something to decide for them.
 	//
+	// tmpBodyType is the character's body type, so barding is only put on the body it was made for
+	// (canBodyWearArmor, equip-rules.mjs): a Human who bought horse barding carries it. Left out, no
+	// piece is refused for the body.
+	//
 	// Mutates tmpItems' armour entries in place (sets system.location and system.layer on the ones
 	// chosen) and returns nothing; called for its side effect, same as updateEmbeddedDocuments would
 	// be on an actor already on the table.
-	export function equipBestArmorInPlace(tmpItems) {
+	export function equipBestArmorInPlace(tmpItems, tmpBodyType) {
 		var tmpArmorItems = (tmpItems ?? []).filter(tmpEntry => tmpEntry.type == "armor" && !tmpEntry.system?.isShield);
 		if (!tmpArmorItems.length) { return; }
 
@@ -551,7 +673,7 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 		// choice is read back.
 		tmpArmorItems.forEach((tmpEntry, tmpIndex) => { tmpEntry._chargenId = "kitArmor" + tmpIndex; });
 		var tmpBestArmor = chooseBestArmor(tmpArmorItems.map(tmpEntry =>
-			({ id: tmpEntry._chargenId, name: tmpEntry.name, type: tmpEntry.type, system: tmpEntry.system })));
+			({ id: tmpEntry._chargenId, name: tmpEntry.name, type: tmpEntry.type, system: tmpEntry.system })), tmpBodyType);
 		for (const tmpEntry of tmpArmorItems) {
 			if (tmpBestArmor.worn.includes(tmpEntry._chargenId)) {
 				tmpEntry.system.location = "equipped";

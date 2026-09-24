@@ -23,6 +23,12 @@
 		<div class="char-box"><label>Initiative</label>
 			<span class="value">d10 {{#if (gte system.combat.initiativeMod 0)}}+{{/if}}{{system.combat.initiativeMod}}</span>
 			<span class="sub">lower acts first</span></div>
+		{{!-- His combat_mod_damage, which every natural attack but a Touch adds: Strength (never below 0),
+		      body weight (never below 0 for a creature), Weapon Lore's +4 and the Game Master's
+		      modifier. The bestiaries print the same figure as "Damage +N" in a stat line. --}}
+		<div class="char-box"><label>Damage</label>
+			<span class="value" data-tooltip="STR {{system.combat.meleeDamage}}, weight +{{system.combat.weightDamage}}{{#if system.combat.loreDamage}}, Weapon Lore +{{system.combat.loreDamage}}{{/if}}{{#if system.combat.damageMisc}}, modifier {{system.combat.damageMisc}}{{/if}}">{{#if (gte system.combat.damageBonus 0)}}+{{/if}}{{system.combat.damageBonus}}</span>
+			<span class="sub">every attack but a touch</span></div>
 		{{!-- Extra seconds every round from a Speed effect, as a character's. See tab-combat.hbs. --}}
 		<div class="char-box"><label>Speed Seconds</label>
 			<span class="value"><input type="number" class="speed-input" min="0" max="10"
@@ -103,7 +109,11 @@
 			<span class="sub">scales by the weapon's plus</span></div>
 	</div>
 
-	<h3 class="section-head">Attacks</h3>
+	<h3 class="section-head">Attacks
+		<button type="button" class="add-language" data-action="createCreatureItem" data-type="creatureAttack"
+			data-tooltip="Add a natural attack and open it">
+			<i class="fa-solid fa-plus"></i> Add attack</button>
+	</h3>
 	{{#if attacks.length}}
 	<table class="weapon-table">
 		<thead>
@@ -114,6 +124,7 @@
 				<th class="col-num">Seconds</th>
 				<th class="col-hand">Hand</th>
 				<th></th>
+				<th class="col-row-actions"></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -153,26 +164,48 @@
 				<td>
 					<button type="button" data-action="rollCreatureAttack" data-item-id="{{a.id}}">
 						<i class="fa-solid fa-dice-d20"></i> Attack</button>
-					{{!-- Open and remove, as every item row on the character sheet has. Without them an
-					      attack dropped on a creature could be neither corrected nor taken off again. --}}
-					<button type="button" class="row-button" data-action="openItem" data-item-id="{{a.id}}" data-tooltip="Open"><i class="fa-solid fa-pen-to-square"></i></button>
-					<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{a.id}}" data-tooltip="Remove"><i class="fa-solid fa-trash"></i></button>
+				</td>
+				{{!-- Open and remove, as every item row on the character sheet has. Without them an
+				      attack dropped on a creature could be neither corrected nor taken off again. --}}
+				<td class="col-row-actions">
+					<button type="button" class="row-button" data-action="openItem"
+						data-item-id="{{a.id}}" data-tooltip="Edit this attack">&#9998;</button>
+					<button type="button" class="row-button" data-action="deleteItem"
+						data-item-id="{{a.id}}" data-tooltip="Remove this attack">&times;</button>
 				</td>
 			</tr>
 			{{/each}}
 		</tbody>
 	</table>
 	{{else}}
-	<p class="empty">No attacks. Add a Creature Attack item for each bite, claw, breath or gaze.</p>
+	<p class="empty">No attacks. Add one for each bite, claw, breath or gaze.</p>
 	{{/if}}
+
+	{{!-- His attack notes (the Configurator's new_creat_atk_notes, HTML 81436): what the table needs to know about
+	      how it fights that no single attack says -- "breathes once every three rounds". --}}
+	<label class="creature-note">Attack notes
+		<textarea name="system.combat.attackNotes" rows="2">{{system.combat.attackNotes}}</textarea></label>
 
 	{{!-- @MARKER MARTIAL ARTS -- the same partial the character's Combat tab includes. It shows only
 	      for a creature holding Martial Knowledge (or with a discipline written down). --}}
 	{{> imagine-martial-panel}}
 
 	{{!-- As on the character sheet: handedness decides which side a shield covers. A creature's
-	      is blank by default, and blank reads as right-handed. --}}
-	<h3 class="section-head">Body <span class="muted">{{system.body.type}}{{#if system.body.bodyChart}} (own chart){{/if}}</span>
+	      is blank by default, and blank reads as right-handed.
+
+	      The body type is his Configurator's select (HTML 80794): it picks the stock chart and, even
+	      with a chart of the creature's own, which armour slots cover which area. --}}
+	<h3 class="section-head">Body
+		<label class="handedness">Type
+			<select name="system.body.bodyType">
+				{{!-- Blank is allowed by the schema and reads as Humanoid; offered so a blank one is not
+				      silently rewritten as the list's first entry by the next save. --}}
+				<option value="" {{#unless system.body.bodyType}}selected{{/unless}}>(Humanoid)</option>
+				{{#each config.bodyTypes as |b|}}
+				<option value="{{b}}" {{#if (eq b ../system.body.bodyType)}}selected{{/if}}>{{b}}</option>
+				{{/each}}
+			</select>
+		</label>
 		<label class="handedness">Handedness
 			<select name="system.identity.handedness">
 				{{#each handednessChoices as |h|}}
@@ -181,6 +214,59 @@
 			</select>
 		</label>
 	</h3>
+
+	{{!-- @MARKER BODY CHART EDITOR
+	      His custom body builder (HTML 80845-80880): a name, a kind and an Endurance multiplier per area,
+	      head to feet. The creature's own chart is one string in its data; these rows are read out of it
+	      and written back by the sheet's _processFormData. Emptying a name removes that area. --}}
+	<div class="body-chart-controls">
+		{{#if bodyChart.own}}
+		<span class="muted">Its own chart, {{bodyChart.rows.length}} areas.</span>
+		<button type="button" data-action="addBodyArea"><i class="fa-solid fa-plus"></i> Add area</button>
+		<button type="button" data-action="resetBodyChart"
+			data-tooltip="Discard this chart and use the stock one for its body type">Use stock chart</button>
+		{{else}}
+		<span class="muted">{{#if bodyChart.isCustom}}A Custom body has no stock chart: until its own areas are
+			added it is read as Humanoid.{{else}}The stock {{system.body.bodyType}} chart.{{/if}}</span>
+		<button type="button" data-action="customizeBodyChart"
+			data-tooltip="Give this creature a chart of its own to edit">Edit areas</button>
+		{{/if}}
+	</div>
+	{{#if bodyChart.own}}
+	<table class="body-chart-editor">
+		<thead><tr><th class="col-name">Area</th><th>Kind</th><th>Endurance</th><th class="col-row-actions"></th></tr></thead>
+		<tbody>
+			{{#each bodyChart.rows as |r|}}
+			<tr>
+				<td class="col-name"><input type="text" name="bodyChartRows.{{r.index}}.name" value="{{r.name}}"></td>
+				<td><select name="bodyChartRows.{{r.index}}.type">
+					{{#each ../config.bodyAreaTypes as |t|}}
+					<option value="{{t}}" {{#if (eq t r.type)}}selected{{/if}}>{{t}}</option>
+					{{/each}}
+				</select></td>
+				<td><select name="bodyChartRows.{{r.index}}.multiplier">
+					{{#each ../config.bodyMultipliers as |m|}}
+					<option value="{{m}}" {{#if (eq m r.multiplier)}}selected{{/if}}>{{m}}</option>
+					{{/each}}
+				</select></td>
+				<td class="col-row-actions">
+					<button type="button" class="row-button" data-action="removeBodyArea" data-index="{{r.index}}"
+						data-tooltip="Remove this area">&times;</button>
+				</td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+	{{!-- Wounds are kept by area NAME (system.body.wounds.<name>). A repeated name is read as a second
+	      area, "Name (2)" (parseBodyChart), whose wounds follow its place in the list rather than the
+	      area; and a renamed area starts its count again. Warned about, as the hide cap is, and never
+	      renamed for the Game Master: his own Segmented Worm chart repeats two names. --}}
+	{{#if bodyChart.duplicates.length}}
+	<p class="alarm body-chart-warning">More than one area is called {{#each bodyChart.duplicates as |n|}}<strong>{{n}}</strong>{{#unless @last}}, {{/unless}}{{/each}}:
+		the body tells them apart as "(2)", "(3)" by their order, so removing or renaming one moves the others' wounds. Give each area its own name.</p>
+	{{/if}}
+	<p class="muted body-chart-note">Wounds are kept by area name: renaming an area starts its count again.</p>
+	{{/if}}
 	<table class="body-table">
 		<thead>
 			<tr>
@@ -212,7 +298,28 @@
 		</tbody>
 	</table>
 
-	{{#if system.combat.attackNotes}}
-	<p class="muted">{{system.combat.attackNotes}}</p>
+	{{!-- What it carries. His creature has an equipment tab of its own and can wear armour; a weapon's
+	      Attack button is still to come (the creatures-using-weapons gap, G8 of the creature audit), so
+	      for now each is listed to be opened -- where its location is set -- or taken off. --}}
+	{{#if gear.length}}
+	<h3 class="section-head">Carried</h3>
+	<table class="gear-table">
+		<thead><tr><th class="col-name">Item</th><th class="col-num">Type</th><th class="col-num">Location</th><th class="col-row-actions"></th></tr></thead>
+		<tbody>
+			{{#each gear as |item|}}
+			<tr>
+				<td class="col-name">{{item.name}}</td>
+				<td class="col-num muted">{{item.type}}</td>
+				<td class="col-num muted">{{item.system.location}}</td>
+				<td class="col-row-actions">
+					<button type="button" class="row-button" data-action="openItem"
+						data-item-id="{{item.id}}" data-tooltip="Edit this item">&#9998;</button>
+					<button type="button" class="row-button" data-action="deleteItem"
+						data-item-id="{{item.id}}" data-tooltip="Remove from this creature">&times;</button>
+				</td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
 	{{/if}}
 </section>

@@ -38,9 +38,11 @@ import {
 	ImagineConsumableSheet, ImagineLoreSheet, ImagineSpellSheet, ImagineInvocationSheet
 } from "./sheets/item-sheet.mjs";
 import { provideStartingLore } from "./starting-lore.mjs";
+import { PRICE_LEVELS, DEFAULT_PRICE_LEVEL } from "./shop-rules.mjs";
 import { importAllContent } from "./content-importer.mjs";
 import { grantClassSkills, registerClassAdvancement } from "./class-advancement.mjs";
 import { grantNaturalWeapons, registerNaturalWeapons } from "./natural-weapons.mjs";
+import { registerRolledStartingEndurance } from "./race-endurance.mjs";
 import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
@@ -50,6 +52,7 @@ import ImagineCombat, { ImagineCombatant } from "./combat/combat-document.mjs";
 import ImagineCombatTracker from "./combat/combat-tracker.mjs";
 import ImagineRoundClock, { loadClockTemplates } from "./apps/round-clock.mjs";
 import { rollWeaponAttack, registerAttackCardListeners } from "./combat/attack.mjs";
+import { registerCastCardListeners } from "./casting-actions.mjs";
 import { rollCreatureAttack } from "./combat/creature-attack.mjs";
 import { loadMartialTemplates } from "./combat/martial-attack.mjs";
 import {
@@ -130,6 +133,20 @@ Hooks.once("init", function () {
 	CONFIG.Item.dataModels.creatureAttack = ImagineCreatureAttackData;
 	CONFIG.Item.dataModels.power = ImaginePowerData;
 	CONFIG.Item.dataModels.trait = ImagineTraitData;
+
+	// @MARKER TOKEN BARS
+	// What a token's resource bars may show. Without this Foundry offers no bar at all -- neither
+	// actor had a {value, max} pair -- and a Game Master running a dozen creatures had to open each
+	// sheet to see how hurt it was. The bar is Shock less the total wounds (getShockBar in
+	// combat-rules.mjs), the provisional D9 of the creature audit (docs/DECISIONS.md 2026-09-23); it is
+	// derived, so the token HUD shows it and does not offer to edit it -- wounds are healed on the sheet.
+	// Naming the types here replaces Foundry's guess at every number in the schema, so the few plain
+	// values worth watching are listed beside it.
+	//                    bars                 plain values
+	CONFIG.Actor.trackableAttributes = {
+		character: { bar: ["body.shockBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] },
+		creature:  { bar: ["body.shockBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] }
+	};
 
 	// @MARKER MAGIC AND LORE ITEMS
 	// His Magic/Lore tab: consumables held as doses (herbs, potions, elixirs, charms, poisons),
@@ -248,6 +265,8 @@ Hooks.once("init", function () {
 	CONFIG.Combat.documentClass = ImagineCombat;
 	CONFIG.Combat.initiative = { formula: "1d10 + @combat.initiativeMod", decimals: 0 };
 	registerAttackCardListeners();
+	// A spell's or invocation's card: its Apply buttons and its seconds (module/casting-actions.mjs).
+	registerCastCardListeners();
 	// The martial arts panel is a partial both Combat tabs include; loaded here, and awaited again
 	// by the sheets before they render.
 	loadMartialTemplates();
@@ -404,6 +423,27 @@ Hooks.once("init", function () {
 		default: false
 	});
 
+	// @MARKER PRICE LEVEL
+	// Which of his seven price columns the character generator's shop charges -- see module/shop-rules.mjs.
+	// The book makes it the Game Master's: "the GM determines if the cost for items is low, medium, or
+	// high, depending upon the economics of his world setting" (Player's Guide p.207). His own sheet has a
+	// Set Cost select on every purchase instead, defaulting to Free, which is a table tool; in creation it
+	// would let a player spend nothing and ignore the money roll. So it is one world setting, Medium by
+	// default, and a Game Master at the generator may still set a line's own level, Free included. The
+	// sheet-side shop, when it comes, reads the same setting. The recommended default, taken 2026-09-23
+	// while the user was away.
+	game.settings.register("imagine-rpg", "priceLevel", {
+		name: "Price level",
+		hint: "What goods cost in this world, from his seven price columns: Quarter Low to Triple High. "
+		    + "\"The GM determines if the cost for items is low, medium, or high, depending upon the "
+		    + "economics of his world setting\" (Player's Guide p.207). Used by the character generator's shop.",
+		scope: "world",
+		config: true,
+		type: String,
+		choices: Object.fromEntries(PRICE_LEVELS.map(([tmpkey, tmplabel]) => [tmpkey, tmplabel])),
+		default: DEFAULT_PRICE_LEVEL
+	});
+
 	// @MARKER CONTENT AVAILABILITY
 	// Sourcebook and magic switches, individual overrides, and the check that stops disallowed
 	// content being added to a character. See module/availability.mjs.
@@ -421,6 +461,11 @@ Hooks.once("init", function () {
 	// @MARKER NATURAL WEAPONS
 	// Gives a character their race's natural weapons when the race is added. See module/natural-weapons.mjs.
 	registerNaturalWeapons();
+
+	// @MARKER ROLLED STARTING ENDURANCE
+	// Rolls a race's starting Endurance die (Gaunt's -1d4, Epitaph p.7) when the race is added to a
+	// character. See module/race-endurance.mjs.
+	registerRolledStartingEndurance();
 
 	// @MARKER CHANGELOG
 	// The What's New window and its Configure Settings button. See module/changelog.mjs.

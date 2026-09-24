@@ -28,6 +28,7 @@
 //==================================================================================================================
 
 import { LORE_KINDS } from "../lore-rules.mjs";
+import { getLegacySubsystem } from "../availability.mjs";
 
 const fields = foundry.data.fields;
 
@@ -39,7 +40,9 @@ export default class ImagineLoreData extends foundry.abstract.TypeDataModel {
 			// @MARKER KIND
 			kind:      new fields.StringField({ required: true, initial: "ballad", choices: LORE_KINDS, label: "Kind" }),
 			// Which magic switch this answers to -- stored, for the reason given on the consumable.
-			subsystem: new fields.StringField({ required: true, initial: "bardic", label: "Magic Subsystem" }),
+			// "ballads" for the ballad the initial kind is; one made before the 2026-09-24 split may
+			// carry "bardic" or "herbalism", which migrateData below reads as its kind's switch now.
+			subsystem: new fields.StringField({ required: true, initial: "ballads", label: "Magic Subsystem" }),
 
 			// @MARKER HIS COLUMNS
 			// Rating is the entry's difficulty AND its memorization cost: his recalcMemorizationPoints
@@ -78,5 +81,15 @@ export default class ImagineLoreData extends foundry.abstract.TypeDataModel {
 	}
 
 	// @MARKER ADD NEW lore data model functions HERE
+
+	// @MARKER MIGRATION
+	// This is the function which reads a lore entry stored before the 2026-09-24 switch split: its
+	// "bardic" or "herbalism" becomes its own kind's switch -- a hymn's "hymns", a potion recipe's
+	// "potions". Run by Foundry every time one is loaded, so worlds need no migration pass; the new
+	// value is written the next time the item is saved for any reason.
+	static migrateData(tmpsource) {
+		if (tmpsource?.subsystem) { tmpsource.subsystem = getLegacySubsystem(tmpsource.subsystem, tmpsource.kind); }
+		return super.migrateData(tmpsource);
+	}
 }
 // @END (CODE)

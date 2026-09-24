@@ -5,13 +5,16 @@
 	them and how his sheet stores them. They are NOT recomputed from attributes -- that would
 	produce different numbers from the printed stat block.
 
-	Every skill is used at the creature's practitioner title, which is simply its level.
+	Every skill is used at the creature's practitioner title, which is simply its level. Rows are
+	added and removed here; shift-click on Roll asks for a modifier, his skill-rollmod button.
 --}}
 <section class="tab imagine-creature-skills{{#if tab.active}} active{{/if}}" data-tab="skills" data-group="primary">
 
 	<div class="slot-summary">
 		<span><label>Practitioner title</label> {{system.identity.title}}</span>
 		<span><label>Memorization points</label> {{system.identity.memorizationPoints}}</span>
+		<button type="button" class="add-language" data-action="addSkill" data-tooltip="Add a skill row">
+			<i class="fa-solid fa-plus"></i> Add skill</button>
 	</div>
 
 	{{#if skills.length}}
@@ -21,19 +24,25 @@
 				<th class="col-name">Skill</th>
 				<th class="col-num">Chance</th>
 				<th class="col-roll"></th>
+				<th class="col-row-actions"></th>
 			</tr>
 		</thead>
 		<tbody>
 			{{#each skills as |s|}}
 			<tr>
 				<td class="col-name">
-					<input type="text" name="system.skills.{{s.index}}.name" value="{{s.name}}">
+					<input type="text" name="system.skills.{{s.index}}.name" value="{{s.name}}" placeholder="Ambush">
 				</td>
 				<td class="col-num">
 					<input type="number" name="system.skills.{{s.index}}.chance" value="{{s.chance}}">
 				</td>
 				<td class="col-roll">
-					<button type="button" data-action="rollCreatureSkill" data-skill-index="{{s.index}}">Roll</button>
+					<button type="button" data-action="rollCreatureSkill" data-skill-index="{{s.index}}"
+						data-tooltip="Roll &mdash; shift-click for a modifier">Roll</button>
+				</td>
+				<td class="col-row-actions">
+					<button type="button" class="row-button" data-action="removeSkill" data-skill-index="{{s.index}}"
+						data-tooltip="Remove this skill">&times;</button>
 				</td>
 			</tr>
 			{{/each}}
@@ -41,6 +50,6 @@
 	</table>
 	{{else}}
 	<p class="empty">No skills recorded. A creature's stat block lists them as a name and a percentage,
-	for example &ldquo;Ambush 45%&rdquo;.</p>
+	for example &ldquo;Ambush 45%&rdquo;: add a row for each.</p>
 	{{/if}}
 </section>
