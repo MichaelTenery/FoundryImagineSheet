@@ -44,3 +44,6 @@ dist/*.zip
 
 # graphify knowledge-graph output (may contain extracted rulebook text; keep local)
 graphify-out/
+
+# tools/run-tests.mjs writes each suite beside its page for a moment, then removes it
+tools/.run-*.mjs
