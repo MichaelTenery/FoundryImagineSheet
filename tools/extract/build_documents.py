@@ -905,6 +905,7 @@ def build_formless(tmpraceskills, tmpracefertile, tmpraceages, tmpformmap):
             # Starting Endurance comes from the host; the per-title roll is the psyche's own.
             "startFormula": "",
             "startMod": 0,
+            "startRoll": 0,
             "startRolled": False,
             "titleFormula": clean_text(str(tmpmental.get("race_title_tmp_end_formula", ""))),
             "titleDice": clean_text(str(int(tmpmental.get("race_title_tmp_end_dice", 0) or 0))),
@@ -1024,6 +1025,7 @@ def build_famorian(tmpraceskills, tmpracefertile, tmpraceages, tmpbodymap):
         "endurance": {
             "startFormula": clean_text(str(tmpbase.get("race_start_tmp_end_formula", ""))),
             "startMod": base("race_start_tmp_end_mod"),
+            "startRoll": 0,
             "startRolled": False,
             "titleFormula": clean_text(str(tmpbase.get("race_title_tmp_end_formula", ""))),
             "titleDice": clean_text(str(tmpbase.get("race_title_tmp_end_dice", ""))),
@@ -1134,7 +1136,8 @@ def apply_race_value_repairs(tmpname, tmpkey, tmprow):
 # applied and writes to the character's race_start_tmp_end_mod. The formula column beside it
 # reads "-1d4=", the label his sheet shows the result after. Epitaph of the Fallen p.7 agrees:
 # "Endurance Modifier: Starting Endurance -1d4". So the document carries startMod 0 and the
-# formula, and the roll is made ONCE, when a character takes the race (chargen-rules.mjs).
+# formula, and the roll is made ONCE, when a character takes the race, into startRoll on that
+# character's copy (race-rules.mjs, @MARKER ROLLED STARTING ENDURANCE).
 ROLLED_ENDURANCE_MOD = re.compile(r'^\s*0\s*-\s*getDieRoll\(\s*(\d+)\s*\)\s*$')
 
 
@@ -1399,7 +1402,9 @@ def build_races():
             "endurance": {
                 "startFormula": clean_text(str(tmprow.get("startEnduranceFormula", ""))),
                 "startMod": to_number(tmprow.get("startEnduranceMod"), where, "startEnduranceMod"),
-                # False on every document: a race is rolled on the CHARACTER's copy, never here.
+                # 0 and False on every document: a race is rolled on the CHARACTER's copy, never
+                # here, and the roll goes in startRoll, apart from startMod (race-rules.mjs).
+                "startRoll": 0,
                 "startRolled": False,
                 "titleFormula": clean_text(str(tmprow.get("titleEnduranceFormula", ""))),
                 "titleDice": clean_text(str(tmprow.get("titleEnduranceDice", ""))),

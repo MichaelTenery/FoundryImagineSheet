@@ -2111,8 +2111,11 @@ check("...and resists disease 5 worse than a Wood Elf (-10 against -5)",
 check("both Podling forms jog -6 a second, not -60 (PG errata p.36: ten seconds is ten times one)",
 	["Podling(Winged)", "Podling(Wingless)"].map(n => raceByName(n).system.movement.jog.oneSec), [-6, -6]);
 // The same errata line settles every rate: ten seconds is ten times one. Two of his rows still break it
-// in the RUN column; they are reported to him (UPSTREAM-ISSUES), not repaired, since no book was checked
-// for them in this pass. Listed here so a third cannot appear unnoticed.
+// in the RUN column (sheet-worker.js:34098, 34117). They are NOT repaired: they were not in the list the
+// 2026-09-23 provisional ruling covered and no book was checked for them. This pass raises them as a new
+// upstream item, "Two more rows break the ten-times movement rule" (docs/UPSTREAM-ISSUES.md, added when
+// this work is merged), and docs/sonnet/2026-09-23-skill-results-repairs.md item 1 says how to settle
+// them. Listed here so a third cannot appear unnoticed.
 check("every other rate keeps ten seconds at ten times one second, bar the two run slips reported",
 	raceDocs.flatMap(d => ["walk", "jog", "run"].filter(m => d.system.movement[m].tenSec != 10 * d.system.movement[m].oneSec)
 		.map(m => `${d.name} ${m}`)),
@@ -2142,23 +2145,51 @@ check("a half race takes the first race's second movement, as it takes its first
 // document stays at 0; a character's own copy is rolled once.
 const gauntEnd = raceByName("Gaunt").system.endurance;
 check("the Gaunt document carries his formula with 0 beside it, unrolled",
-	[gauntEnd.startFormula, gauntEnd.startMod, gauntEnd.startRolled], ["-1d4=", 0, false]);
+	[gauntEnd.startFormula, gauntEnd.startMod, gauntEnd.startRoll, gauntEnd.startRolled], ["-1d4=", 0, 0, false]);
+check("...and every race document has a Start roll of 0, unrolled",
+	raceDocs.filter(d => d.system.endurance.startRoll !== 0 || d.system.endurance.startRolled !== false).map(d => d.name), []);
 check("his formula reads as one d4, taken away", RR.parseStartingEnduranceDie("-1d4="), { sign: -1, count: 1, sides: 4 });
 check("a blank formula, every other race's, has no die", RR.parseStartingEnduranceDie(""), null);
 check("no race but Gaunt has a die to roll",
 	raceDocs.filter(d => RR.parseStartingEnduranceDie(d.system.endurance.startFormula)).map(d => d.name), ["Gaunt"]);
 const gauntRolled = RR.rollStartingEndurance(gauntEnd, () => 3);
-check("rolled with a 3 it is -3, and marked rolled", [gauntRolled.startMod, gauntRolled.startRolled], [-3, true]);
-check("...leaving the document's own block alone", [gauntEnd.startMod, gauntEnd.startRolled], [0, false]);
-check("a copy already rolled is never rolled again", RR.rollStartingEndurance(gauntRolled, () => 1).startMod, -3);
+check("rolled with a 3 its Start roll is -3, Start mod stays 0, and it is marked rolled",
+	[gauntRolled.startRoll, gauntRolled.startMod, gauntRolled.startRolled], [-3, 0, true]);
+check("...leaving the document's own block alone",
+	[gauntEnd.startMod, gauntEnd.startRoll, gauntEnd.startRolled], [0, 0, false]);
+check("a copy already rolled is never rolled again", RR.rollStartingEndurance(gauntRolled, () => 1).startRoll, -3);
 check("the die is held to 1..4 whatever the dice say",
-	[0, 9, NaN].map(f => RR.rollStartingEndurance(gauntEnd, () => f).startMod), [-1, -4, -1]);
+	[0, 9, NaN].map(f => RR.rollStartingEndurance(gauntEnd, () => f).startRoll), [-1, -4, -1]);
+// The roll has a field of its own, so it is never stacked on a figure already there.
+check("unticked to be rolled again, the new roll REPLACES the old: -3 then -2 is -2, not -5",
+	RR.rollStartingEndurance({ ...gauntRolled, startRolled: false }, () => 2).startRoll, -2);
+check("a Start mod typed on the copy is left as it is, and kept apart from the roll",
+	[RR.rollStartingEndurance({ ...gauntEnd, startMod: -2 }, () => 3).startMod,
+	 RR.rollStartingEndurance({ ...gauntEnd, startMod: -2 }, () => 3).startRoll], [-2, -3]);
+check("a race's starting-Endurance modifier is its Start mod and Start roll added",
+	[RR.getStartingEnduranceMod(gauntRolled), RR.getStartingEnduranceMod({ startMod: 2, startRoll: -3 }),
+	 RR.getStartingEnduranceMod({ startMod: 4 }), RR.getStartingEnduranceMod({}), RR.getStartingEnduranceMod(undefined)],
+	[-3, -1, 4, 0, 0]);
 check("a Gaunt character's racial Endurance is its rolled -3",
 	makeCharacter(flat, 1, [raceItemFor("Gaunt", { endurance: gauntRolled })]).characteristics.endurance.raceMod, -3);
+check("...and a race copy made before Start roll existed reads as its Start mod alone",
+	makeCharacter(flat, 1, [raceItemFor("Dwarf(Mountain)", { endurance: { ...raceByName("Dwarf(Mountain)").system.endurance,
+		startRoll: undefined } })]).characteristics.endurance.raceMod,
+	raceByName("Dwarf(Mountain)").system.endurance.startMod);
 check("...and a Gaunt half race averages the roll as his half race does (8147-8152)",
 	RR.combineHalfRace({ ...raceByName("Gaunt").system, endurance: gauntRolled },
 		raceByName("Human(Civilized:Village)").system).endurance.startMod,
 	RR.averageTwoFloatsRounded(-3, raceByName("Human(Civilized:Village)").system.endurance.startMod));
+check("...folding the roll into the half race's Start mod, since the half race itself is never rolled",
+	RR.combineHalfRace({ ...raceByName("Gaunt").system, endurance: gauntRolled },
+		raceByName("Human(Civilized:Village)").system).endurance.startRoll, 0);
+// A Formless wearing a Gaunt takes its host's OWN copy, roll and all -- not his Formless copy of the Gaunt
+// row, which writes a flat +4 (formlessRace.json hostCopyDiffers; DECISIONS 2026-09-21, "His second copy
+// of the physical half is NOT used").
+const formlessInGaunt = RR.combineFormless(raceByName("Formless").system,
+	{ ...raceByName("Gaunt").system, endurance: gauntRolled });
+check("a Formless in a Gaunt body starts at its host copy's rolled -3, not his Formless copy's +4",
+	[formlessInGaunt.endurance.startMod, formlessInGaunt.endurance.startRoll], [-3, 0]);
 // Which copies still want the die: asked by the generator, the createItem hook and the sheet's button
 // (race-endurance.mjs). A copy made before 2026-09-23 is unrolled; one rolled since is not.
 check("an unrolled Gaunt copy needs its roll; a rolled one, and every other race, does not",
@@ -2171,6 +2202,18 @@ check("...and a race with no endurance block at all needs nothing",
 check("his formula reads without the '=' his sheet prints the result after",
 	[RR.getStartingEnduranceLabel("-1d4="), RR.getStartingEnduranceLabel(""), RR.getStartingEnduranceLabel(undefined)],
 	["-1d4", "", ""]);
+// Before the header's button rolls a copy whose Start mod is not 0 -- typed by hand on a Gaunt made
+// before 2026-09-23, perhaps in place of this very roll -- the player is asked.
+check("an unrolled Gaunt with Start mod 0 is rolled without a question",
+	RR.getStartingEnduranceRollWarning("Gaunt", raceByName("Gaunt").system), "");
+check("...one with a Start mod typed by hand is asked about first",
+	RR.getStartingEnduranceRollWarning("Gaunt", { endurance: { ...gauntEnd, startMod: -2 } }),
+	"Gaunt's Start mod already holds -2. The -1d4 roll is kept apart from it, and the two are added together. "
+	+ "If -2 was typed in place of this roll, set Start mod to 0 on the race first. Roll anyway?");
+check("...and nothing is asked of a copy already rolled, or a race with no die",
+	[RR.getStartingEnduranceRollWarning("Gaunt", { endurance: { ...gauntRolled, startMod: -2 } }),
+	 RR.getStartingEnduranceRollWarning("Dwarf(Mountain)", raceByName("Dwarf(Mountain)").system),
+	 RR.getStartingEnduranceRollWarning("", null)], ["", "", ""]);
 
 // --- the Foundry face of that roll (module/race-endurance.mjs), against stubs ----------------------
 // Rolled for a race dropped onto a character (the createItem hook) and from the header's button for a
@@ -2192,9 +2235,9 @@ const fakeRaceItem = (tmpsystem, tmpparent) => {
 };
 const unrolledGaunt = fakeRaceItem(raceByName("Gaunt").system);
 await RE.rollRaceStartingEndurance({ name: "Vex" }, unrolledGaunt);
-check("the roll writes the figure and the tick to that character's copy of the race, rolling 1d4",
+check("the roll writes the figure to Start roll, and the tick, on that character's copy, rolling 1d4",
 	[unrolledGaunt.updates, postedFlavors.map(p => p[0])],
-	[[{ "system.endurance.startMod": -2, "system.endurance.startRolled": true }], ["1d4"]]);
+	[[{ "system.endurance.startRoll": -2, "system.endurance.startRolled": true }], ["1d4"]]);
 check("...and puts the roll in chat",
 	postedFlavors.map(p => p[1]), ["Vex: Gaunt starting Endurance -1d4 &mdash; <strong>-2</strong>, rolled once"]);
 const rolledGaunt = fakeRaceItem({ ...raceByName("Gaunt").system, endurance: gauntRolled });
@@ -2205,6 +2248,23 @@ check("...as is a race with nothing to roll, and something that is not a race",
 	[await RE.rollRaceStartingEndurance({}, fakeRaceItem(raceByName("Elf(Wood)").system)),
 	 await RE.rollRaceStartingEndurance({}, { type: "weapon", system: {} }), await RE.rollRaceStartingEndurance({}, null)],
 	[null, null, null]);
+// The header button's question (confirmRaceStartingEnduranceRoll), against a stub dialog that records
+// what it was asked and answers as told.
+const askedDialogs = [];
+let dialogAnswer = false;
+globalThis.foundry.applications = { api: { DialogV2: {
+	confirm: async (tmpoptions) => { askedDialogs.push(tmpoptions.content); return dialogAnswer; } } } };
+check("the button rolls a Gaunt with Start mod 0 without asking",
+	[await RE.confirmRaceStartingEnduranceRoll(fakeRaceItem(raceByName("Gaunt").system)), askedDialogs.length], [true, 0]);
+const handTypedGaunt = fakeRaceItem({ ...raceByName("Gaunt").system, endurance: { ...gauntEnd, startMod: -2 } });
+check("...asks first when Start mod was typed by hand, and a No leaves it unrolled",
+	[await RE.confirmRaceStartingEnduranceRoll(handTypedGaunt), askedDialogs.length, handTypedGaunt.updates.length],
+	[false, 1, 0]);
+dialogAnswer = true;
+check("...and a Yes rolls",
+	[await RE.confirmRaceStartingEnduranceRoll(handTypedGaunt), askedDialogs.length], [true, 2]);
+check("...the question naming the figure already there",
+	askedDialogs[0].includes("Start mod already holds -2"), true);
 // The hook rolls only for the user who added the race, and only onto a character.
 let createItemHook = null;
 globalThis.Hooks = { on: (tmpname, tmpfn) => { if (tmpname == "createItem") { createItemHook = tmpfn; } } };

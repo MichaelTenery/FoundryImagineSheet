@@ -272,13 +272,17 @@ race Item system:
                                           # Title 11 discards it: 25 ordinary, 27 magical.
   endurance:
     startFormula, startMod                # Endurance at creation
-    startRolled                           # ADDED 2026-09-23. Only Gaunt's formula is a die ("-1d4=",
+    startRoll, startRolled                # ADDED 2026-09-23. Only Gaunt's formula is a die ("-1d4=",
                                           # Epitaph p.7); it is rolled ONCE into the character's own
-                                          # copy of the race, added to startMod, and this is ticked.
+                                          # copy of the race: the result is SET in startRoll (never
+                                          # added to startMod, so a hand-typed startMod is not counted
+                                          # twice and a re-roll replaces) and startRolled is ticked.
                                           # Rolled by the generator, by the createItem hook when a race
                                           # is dropped on a character, or by the header's Roll button
-                                          # for a copy made before (module/race-endurance.mjs).
-                                          # Always false on a race document.
+                                          # for a copy made before (module/race-endurance.mjs), which
+                                          # asks first if that copy's startMod is not 0.
+                                          # The character's modifier is startMod + startRoll
+                                          # (getStartingEnduranceMod). 0 and false on a race document.
     titleFormula, titleDice, titleMax, titleMod
                                           # what a title advance brings. Rolled below 11th; its
                                           # MAXIMUM at 11-12; x2, x3, x4 at 13, 14, 15.

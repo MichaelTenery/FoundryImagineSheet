@@ -35,6 +35,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -246,6 +247,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -471,6 +473,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -666,6 +669,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -893,6 +897,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -1092,6 +1097,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -1316,6 +1322,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -1532,6 +1539,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -1747,6 +1755,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -1945,6 +1954,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -2165,6 +2175,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -2380,6 +2391,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -2591,6 +2603,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -2756,6 +2769,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -2967,6 +2981,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -3183,6 +3198,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
@@ -3379,6 +3395,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -3576,6 +3593,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3+1",
         "titleDice": "1",
@@ -3789,6 +3807,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -4008,6 +4027,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -4228,6 +4248,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -4453,6 +4474,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+3",
         "titleDice": "1",
@@ -4697,6 +4719,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -4920,6 +4943,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
@@ -5169,6 +5193,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -5406,6 +5431,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -5640,6 +5666,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -5860,6 +5887,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -6076,6 +6104,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -6293,6 +6322,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -6515,6 +6545,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -6747,6 +6778,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -6985,6 +7017,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1",
         "titleDice": "1d4",
@@ -7223,6 +7256,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -7460,6 +7494,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -7693,6 +7728,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -7892,6 +7928,7 @@
       "endurance": {
         "startFormula": "-1d4=",
         "startMod": 0,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -8117,6 +8154,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -8328,6 +8366,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 8,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "2d4+1",
         "titleDice": "2",
@@ -8549,6 +8588,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 8,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "2d4+1",
         "titleDice": "2",
@@ -8770,6 +8810,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 10,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "2d6+2",
         "titleDice": "2",
@@ -9006,6 +9047,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -9249,6 +9291,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -9480,6 +9523,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -9687,6 +9731,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -9903,6 +9948,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -10118,6 +10164,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -10326,6 +10373,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -10591,6 +10639,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -10791,6 +10840,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -11007,6 +11057,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -11224,6 +11275,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
@@ -11443,6 +11495,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -11689,6 +11742,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -11934,6 +11988,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -12180,6 +12235,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -12402,6 +12458,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -12640,6 +12697,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -12835,6 +12893,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -13044,6 +13103,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
@@ -13259,6 +13319,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -13465,6 +13526,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -13681,6 +13743,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -13883,6 +13946,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -14111,6 +14175,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -14312,6 +14377,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -14512,6 +14578,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -14711,6 +14778,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -14910,6 +14978,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -15114,6 +15183,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+3",
         "titleDice": "1",
@@ -15346,6 +15416,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
@@ -15554,6 +15625,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -15790,6 +15862,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -16031,6 +16104,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -16266,6 +16340,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -16502,6 +16577,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -16726,6 +16802,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -16950,6 +17027,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -17178,6 +17256,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -17395,6 +17474,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -17611,6 +17691,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -17836,6 +17917,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -18033,6 +18115,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -18247,6 +18330,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -18467,6 +18551,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
@@ -18679,6 +18764,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -18894,6 +18980,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -19121,6 +19208,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -19335,6 +19423,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -19555,6 +19644,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -19755,6 +19845,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -19984,6 +20075,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -20202,6 +20294,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -20409,6 +20502,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -20618,6 +20712,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
@@ -20817,6 +20912,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
@@ -21006,6 +21102,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
@@ -21202,6 +21299,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
@@ -21430,6 +21528,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
@@ -21625,6 +21724,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -21833,6 +21933,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
@@ -22030,6 +22131,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -22236,6 +22338,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
@@ -22462,6 +22565,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -22682,6 +22786,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -22895,6 +23000,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -23107,6 +23213,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -23344,6 +23451,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -23589,6 +23697,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -23814,6 +23923,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -24043,6 +24153,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -24287,6 +24398,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -24531,6 +24643,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -24762,6 +24875,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
@@ -24993,6 +25107,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
@@ -25205,6 +25320,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
@@ -25417,6 +25533,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
@@ -25629,6 +25746,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
@@ -25841,6 +25959,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1",
         "titleDice": "1",
@@ -26128,6 +26247,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRoll": 0,
         "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",

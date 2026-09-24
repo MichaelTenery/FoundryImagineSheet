@@ -24,7 +24,7 @@ import {
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
-	readFormlessPair, combineFormless, resolvePhysiqueLock } from "../race-rules.mjs";
+	readFormlessPair, combineFormless, resolvePhysiqueLock, getStartingEnduranceMod } from "../race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget, describeEvokes } from "../famorian-rules.mjs";
 import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions,
          checkClassSkillTitle } from "../class-rules.mjs";
@@ -1322,7 +1322,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			// his sheet gives it none: "GMEs (0 title) get no 1st title endurance modifier"
 			// (sheet-worker.js:8142).
 			var tmpnonclassed = this.classItems.some(tmpclass => tmpclass.system.nonClassed);
-			this.characteristics.endurance.raceMod  = tmpnonclassed ? 0 : tmpracesys.endurance.startMod;
+			// The race's flat Start mod and its rolled Start roll together (a Gaunt's -1d4, rolled into
+			// its own field on this character's copy of the race): getStartingEnduranceMod, race-rules.mjs.
+			this.characteristics.endurance.raceMod  = tmpnonclassed ? 0 : getStartingEnduranceMod(tmpracesys.endurance);
 			this.characteristics.perception.raceMod = tmpracesys.characteristicMods.perception;
 			this.characteristics.affinity.raceMod   = tmpracesys.characteristicMods.affinity;
 			this.characteristics.fortune.raceMod    = tmpracesys.characteristicMods.fortune;

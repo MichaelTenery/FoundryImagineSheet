@@ -19,7 +19,7 @@ import { canRollStartingMoney, getCharacterMoneyInputs, rollStartingMoney, descr
 import { rollHandedness } from "../chargen-rules.mjs";
 import { grantNaturalWeapons, getMissingNaturalWeaponNames } from "../natural-weapons.mjs";
 import { needsStartingEnduranceRoll, getStartingEnduranceLabel } from "../race-rules.mjs";
-import { rollRaceStartingEndurance } from "../race-endurance.mjs";
+import { rollRaceStartingEndurance, confirmRaceStartingEnduranceRoll } from "../race-endurance.mjs";
 import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
          getSecondWeaponFlags, resolveMissileComboAcquisition, isThrownWeapon, isProjectileWeapon,
          isLauncherWeapon } from "../combat/combat-rules.mjs";
@@ -1017,9 +1017,13 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// (Epitaph p.7), for a Gaunt made before 2026-09-23, when nothing rolled it. The button is only
 	// drawn while the copy is unrolled, and rollRaceStartingEndurance asks again before rolling, so a
 	// stale window cannot roll it twice. Once, with no re-roll: see module/race-endurance.mjs.
+	//
+	// A copy whose Start mod is not 0 is asked about first: until 2026-09-23 typing the penalty there
+	// by hand was the only way to give a Gaunt one, and the roll is added to it, not put in its place.
 	static async #onRollStartingEndurance(event, target) {
 		event.preventDefault();
 		var tmpitem = this.document.items.get(target.dataset.itemId);
+		if (!(await confirmRaceStartingEnduranceRoll(tmpitem))) { return; }
 		var tmprolled = await rollRaceStartingEndurance(this.document, tmpitem);
 		if (!tmprolled) {
 			ui.notifications.warn(`${this.document.name}: that race's starting Endurance has already been rolled.`);

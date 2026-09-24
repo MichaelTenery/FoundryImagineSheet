@@ -185,26 +185,29 @@ check("every skill's misc is set outright, never left to default to NaN",
 // --- a starting Endurance that is a die: Gaunt's -1d4 (Epitaph p.7) -----------------------------
 // His row carries the live expression [0-getDieRoll(4)] beside the label "-1d4=" (sheet-worker.js
 // 34058), rolled whenever the race is applied. Nothing rolled it here, so every Gaunt started at 0.
-// It is rolled once now, into the character's own copy of the race.
+// It is rolled once now, into the character's own copy of the race: into Start roll, a field of its
+// own, with Start mod left as the document has it.
 const gauntContent = { ...content, races: [...content.races,
 	{ name: "Gaunt", type: "race", system: { racialSkills: [], ages: { startLow: 18, startHigh: 21, maxAge: "100" },
 		disabilities: [], abilities: [],
-		endurance: { startFormula: "-1d4=", startMod: 0, startRolled: false, titleFormula: "1d3" } } }] };
+		endurance: { startFormula: "-1d4=", startMod: 0, startRoll: 0, startRolled: false, titleFormula: "1d3" } } }] };
 const raceItemOf = (b, n) => itemsOf(b).find(i => i.type === "race" && i.name === n);
 const gauntAssembled = C.assembleCharacter(choices({ raceNames: ["Gaunt"] }), gauntContent, always(3));
 check("a Gaunt made with a 3 starts at -3 Endurance, on its own copy of the race",
-	[raceItemOf(gauntAssembled, "Gaunt").system.endurance.startMod,
-	 raceItemOf(gauntAssembled, "Gaunt").system.endurance.startRolled], [-3, true]);
+	[raceItemOf(gauntAssembled, "Gaunt").system.endurance.startRoll,
+	 raceItemOf(gauntAssembled, "Gaunt").system.endurance.startMod,
+	 raceItemOf(gauntAssembled, "Gaunt").system.endurance.startRolled], [-3, 0, true]);
 check("...keeping the formula, so the sheet still says where the -3 came from",
 	raceItemOf(gauntAssembled, "Gaunt").system.endurance.startFormula, "-1d4=");
 check("...and the race document itself is left at 0, unrolled",
-	[gauntContent.races[1].system.endurance.startMod, gauntContent.races[1].system.endurance.startRolled], [0, false]);
+	[gauntContent.races[1].system.endurance.startMod, gauntContent.races[1].system.endurance.startRoll,
+	 gauntContent.races[1].system.endurance.startRolled], [0, 0, false]);
 check("a race with no formula is taken exactly as the document has it",
 	raceItemOf(C.assembleCharacter(choices({}), gauntContent, always(3)), "Testfolk").system.endurance,
 	{ startMod: 2 });
 check("a Gaunt half race rolls its own half and leaves the other alone",
 	[raceItemOf(C.assembleCharacter(choices({ raceNames: ["Gaunt", "Testfolk"] }), gauntContent, always(1)), "Gaunt")
-		.system.endurance.startMod,
+		.system.endurance.startRoll,
 	 raceItemOf(C.assembleCharacter(choices({ raceNames: ["Gaunt", "Testfolk"] }), gauntContent, always(1)), "Testfolk")
 		.system.endurance.startMod], [-1, 2]);
 

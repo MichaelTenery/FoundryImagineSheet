@@ -18,18 +18,25 @@
 //                                    created by a macro is rolled the moment it arrives, as his sheet
 //                                    rolls it the moment the race is applied
 //     a Gaunt made before the fix    the sheet's Roll button beside Endurance (rollStartingEndurance
-//                                    on the character sheet), shown only while the copy is unrolled
+//                                    on the character sheet), shown only while the copy is unrolled,
+//                                    and asking first if its Start mod is not 0
+//                                    (confirmRaceStartingEnduranceRoll below)
 //
 // The generator rolls its own (assembleCharacter, chargen-rules.mjs), because it creates the actor
 // and its items in one operation, which Foundry does not pass through createItem.
 //
 // NO RE-ROLL, for the reason handedness, the Famorian breed and starting money have none: a button
-// that rolls until a 1 comes up is the same as choosing it. Once rolled, the button is gone; a Game
-// Master who wants another figure types it into the race's Start mod on its own sheet.
+// that rolls until a 1 comes up is the same as choosing it. Once rolled, the button is gone. A Game
+// Master who wants another figure types it into the race's Start roll on its own sheet, or unticks
+// Start rolled there so the button comes back -- and the new roll then REPLACES the old one, because
+// the roll is written to Start roll alone (never added to Start mod; see race-rules.mjs for why).
+//
+// The button asks first when the copy's Start mod is not 0 (getStartingEnduranceRollWarning): on a
+// Gaunt made before 2026-09-23 that figure was typed by hand, and may be standing in for this roll.
 //==================================================================================================================
 
 import { parseStartingEnduranceDie, rollStartingEndurance, needsStartingEnduranceRoll,
-         getStartingEnduranceLabel } from "./race-rules.mjs";
+         getStartingEnduranceLabel, getStartingEnduranceRollWarning } from "./race-rules.mjs";
 
 
 // @MARKER ROLL ONE RACE
@@ -53,12 +60,14 @@ import { parseStartingEnduranceDie, rollStartingEndurance, needsStartingEnduranc
 		var tmpendurance = rollStartingEndurance({ ...tmpitem.system.endurance },
 			() => tmpfaces[tmpnext++] ?? 1);
 
+		// Start roll alone, never Start mod: a re-roll replaces, and a hand-typed Start mod stays as
+		// it was (the button has already asked about one).
 		await tmpitem.update({
-			"system.endurance.startMod": tmpendurance.startMod,
+			"system.endurance.startRoll": tmpendurance.startRoll,
 			"system.endurance.startRolled": true
 		});
 
-		var tmpsigned = (tmpendurance.startMod > 0 ? "+" : "") + tmpendurance.startMod;
+		var tmpsigned = (tmpendurance.startRoll > 0 ? "+" : "") + tmpendurance.startRoll;
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
 			flavor: `${foundry.utils.escapeHTML(tmpactor?.name ?? "")}: ${foundry.utils.escapeHTML(tmpitem.name)} starting `
@@ -66,6 +75,25 @@ import { parseStartingEnduranceDie, rollStartingEndurance, needsStartingEnduranc
 				+ `<strong>${tmpsigned}</strong>, rolled once`
 		});
 		return tmpendurance;
+	}
+
+	// This is the function which asks, before the header's Roll button rolls, whether to go on when the
+	// copy's Start mod is not 0 -- a figure typed by hand, on a Gaunt made before 2026-09-23, that may be
+	// standing in for this very roll (getStartingEnduranceRollWarning, race-rules.mjs, says what is
+	// asked). Only the button asks: the generator and the createItem hook roll a fresh copy of the
+	// document, whose Start mod is the race's own.
+	//
+	// Returns true to roll, false to leave it.
+	export async function confirmRaceStartingEnduranceRoll(tmpitem) {
+		var tmpwarning = tmpitem ? getStartingEnduranceRollWarning(tmpitem.name, tmpitem.system) : "";
+		if (!tmpwarning) { return true; }
+		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
+			window: { title: `${tmpitem.name}: starting Endurance` },
+			content: `<p>${foundry.utils.escapeHTML(tmpwarning)}</p>`,
+			rejectClose: false,
+			modal: true
+		});
+		return !!tmpconfirmed;
 	}
 
 

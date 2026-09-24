@@ -78,13 +78,23 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 			// (Epitaph p.7, "Starting Endurance -1d4"; his row's modifier is the live expression
 			// 0-getDieRoll(4)). The race document carries startMod 0; when a character takes the
 			// race the die is rolled once, the result is written into THAT CHARACTER'S copy of the
-			// race as startMod, and startRolled is set so it is never rolled again -- which is what
+			// race as startRoll, and startRolled is set so it is never rolled again -- which is what
 			// his sheet does by writing the rolled figure to race_start_tmp_end_mod. Every other race
 			// has a blank formula and nothing is rolled. See rollStartingEndurance, race-rules.mjs, and
 			// module/race-endurance.mjs for the three places it is rolled.
+			//
+			//     startMod     the flat figure; never written by the roll
+			//     startRoll    the rolled figure, SET (never added to) by the roll; 0 on every document
+			//     startRolled  ticked once rolled; false on every document
+			//
+			// The character's starting-Endurance modifier is startMod + startRoll
+			// (getStartingEnduranceMod). The roll has a field of its own so that a Start mod typed by
+			// hand is never counted twice and a re-roll replaces rather than stacks. A copy made
+			// before startRoll existed reads it as 0.
 			endurance: new fields.SchemaField({
 				startFormula: new fields.StringField({ required: true, initial: "" }),
 				startMod:     modField(),
+				startRoll:    modField(),
 				startRolled:  new fields.BooleanField({ required: true, initial: false }),
 				titleFormula: new fields.StringField({ required: true, initial: "" }),
 				titleDice:    new fields.StringField({ required: true, initial: "" }),
