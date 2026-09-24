@@ -4,7 +4,8 @@
 // Which armour a character should wear, worked out from what they own.
 //
 // This is a helper for the Equip Best Armour button on the Equipment tab; his sheet has no such
-// button, so nothing here is ported. It follows the layering rules quoted at the top of
+// button, so nothing here is ported but his refusal of barding a body was not made for
+// (canBodyWearArmor, @MARKER BARDING). It follows the layering rules quoted at the top of
 // module/data/item-armor.mjs (Player's Guide, Layering Armor), and it decides nothing the rules do not:
 //   - at most three layers of armour on any one body location
 //   - the first layer worn must be flexible (a piece with its own padding counts)
@@ -108,17 +109,45 @@ export function isLegalSet(tmppieces, tmpcheckfirst = true) {
 	return true;
 }
 
+// @MARKER BARDING
+// This is the function which says whether a body can wear a piece at all -- which, for anything that is
+// not barding, it can. His two refusals, ported:
+//   - his stacking test (sheet-worker.js:76422-76428): full horse barding is worn by no one -- "There
+//     are no races that wear full horse barding. Centaurs and Insectaurs have their own versions." -- a
+//     Centaur takes no Insectaur Barding, and an Arachen, Scethen or Brachara no Centaur Barding;
+//   - his equipArmor: on a Humanoid, Saurian, Insectoid or Snake body nothing named "Barding" is put
+//     on at all, whatever its flexibility ("cannot equip barding on normal non 'taur' races", 104799 and
+//     the three branches after it), and on the four taur bodies the refusals above (wrongBarding,
+//     105118-105125).
+// A body his equipArmor has no branch for wears no armour at all on his sheet, so barding is refused it
+// here too; everything else about such a body is left to the rest of this file, as before.
+//
+// tmpbodytype is the body type as the race gives it -- "Humanoid(Tail)", "Centaur" -- matched with
+// includes(), as his code matches it. Returns true when the piece can be worn.
+export function canBodyWearArmor(tmpname, tmpbodytype) {
+	var tmpitemname = "" + (tmpname ?? "");
+	var tmpbody = "" + (tmpbodytype ?? "");
+	if (!tmpitemname.includes("Barding")) { return true; }
+	if (tmpbody.includes("Centaur")) { return tmpitemname.includes("Centaur Barding"); }
+	if (tmpbody.includes("Arachen") || tmpbody.includes("Scethen") || tmpbody.includes("Brachara")) {
+		return tmpitemname.includes("Insectaur Barding");
+	}
+	return false;
+}
+
 // This is the function which chooses the best armour from what is owned. Best means the most
 // protection added over the whole body, taken greedily -- the strongest piece first, then the next
 // strongest that still fits legally on top of or beside what is already chosen. Ties go to the piece
 // that costs the wearer less.
 //
-// Takes plain item data ({ id, name, system }). Returns { worn, layers, left }:
+// Takes plain item data ({ id, name, system }), and the wearer's body type. Given a body type, barding
+// that body cannot wear is never chosen (canBodyWearArmor, above); left out, no piece is refused for
+// the body. Returns { worn, layers, left }:
 //   worn   - the ids to wear
 //   layers - { id: layer number }, 0 for clothing that takes no layer, else the outermost place the
 //            piece holds at any location it covers
 //   left   - the armour it did not use, with the reason
-export function chooseBestArmor(tmpitems) {
+export function chooseBestArmor(tmpitems, tmpbodytype) {
 	var tmpcandidates = (tmpitems ?? []).filter(tmpitem => tmpitem.type == "armor"
 		&& !tmpitem.system?.isShield && (parseInt(tmpitem.system?.quantity) ?? 1) != 0
 		&& tmpitem.system?.available !== false && getArmorTotal(tmpitem) > 0);
@@ -128,6 +157,11 @@ export function chooseBestArmor(tmpitems) {
 	var tmpchosen = [];
 	var tmpleft = [];
 	for (const tmpcandidate of tmpcandidates) {
+		// Barding on a body it was not made for: his sheet will not put it on.
+		if (tmpbodytype && !canBodyWearArmor(tmpcandidate.name, tmpbodytype)) {
+			tmpleft.push({ id: tmpcandidate.id, name: tmpcandidate.name, why: "is barding this body cannot wear" });
+			continue;
+		}
 		// Two of the same thing stacked is legal and pointless.
 		if (tmpchosen.some(tmpitem => tmpitem.name == tmpcandidate.name)) {
 			tmpleft.push({ id: tmpcandidate.id, name: tmpcandidate.name, why: "already wearing one" });

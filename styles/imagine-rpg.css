@@ -1131,6 +1131,26 @@ input.source-unknown {
 .chargen .famorian-numeric { font-weight: bold; }
 .chargen .alarm { color: var(--imagine-alarm); margin: 2px 0; }
 .chargen .ok { color: var(--imagine-confirm); font-weight: bold; }
+/* The Equipment step's shop (module/shop-rules.mjs): the list bought so far, and the offers to choose
+   from, which scroll on their own so the purse and the list stay in view. A line the purse can no
+   longer cover is marked in the alarm colour; an offer it cannot cover is only dimmed, since Buy says
+   why in his words. */
+.chargen-shop-list, .chargen-shop-offers { width: 100%; border-collapse: collapse; font-size: 12px; }
+.chargen-shop-list th { font-size: 11px; color: var(--imagine-muted); text-align: left; padding: 2px 4px;
+	border-bottom: 1px solid var(--imagine-rule); }
+.chargen-shop-list td, .chargen-shop-offers td { padding: 2px 4px; border-bottom: 1px solid var(--imagine-rule-soft);
+	vertical-align: top; }
+.chargen-shop-list td input[type="number"] { width: 52px; }
+.chargen-shop-list tr.unaffordable td:first-child { color: var(--imagine-alarm); }
+.chargen-shop-list button, .chargen-shop-offers button { width: auto; flex: none; padding: 1px 8px; line-height: 18px; }
+.chargen-shop-offers { display: block; max-height: 260px; overflow-y: auto; border: 1px solid var(--imagine-rule);
+	border-radius: 3px; }
+.chargen-shop-offers tbody { display: table; width: 100%; }
+.chargen-shop-offers tr.unaffordable td { color: var(--imagine-muted); }
+.chargen-shop-filter select { flex: 1 1 140px; }
+.chargen-shop-filter input[type="text"] { flex: 2 1 160px; }
+.chargen-shop-filter input[type="number"] { width: 52px; }
+.chargen-shop-filter button { width: auto; flex: none; }
 .chargen-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px;
 	padding-top: 6px; border-top: 1px solid var(--imagine-rule); }
 .chargen-footer .alarm { flex: 1; font-size: 12px; }

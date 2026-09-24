@@ -150,6 +150,28 @@ than to anything outside them, so encumbrance reads consistently:
 field, with a comment on each. The generated documents in `src/packs/documents/` show real values
 for every one.
 
+**Prices, and the character generator's shop** (added 2026-09-23). The generator's Equipment step
+sells what his sheet's ADD/BUY ITEMS panel sells, at his prices, which live in code
+(`module/shop-tables.mjs`, generated from his sheet) rather than on the documents. A weapon, armour
+or equipment entry gets a price of its own through its **`cost`** field, written the way his tables
+write one -- a whole number and a coin, `"5 gp"`, `"12 sp"`, `"3 pp"`:
+
+- an item his panel does not list, with a `cost`, is sold under **Other (Game Master's)** at that
+  price, whatever price level the world is set to;
+- a stock item given a `cost` (through `"_override": true`) is sold at that price instead of his, at
+  every level;
+- the cost is for ONE: a stock bundle ("10 Arrow Head") of an item with a cost of `"2 cp"` sells for
+  20 cp;
+- a cost that is not a whole number and ONE coin -- `"2 gp 5 sp"`, `"1.5 gp"`, `"5 gold"` -- is not
+  sold at all, rather than at a misreading (his reading would charge the first two as 2 sp and 1 gp).
+  A Game Master opening the generator's Equipment step is told which items those are, and why;
+  write `"25 sp"` or `"15 sp"` instead.
+
+The crowbar above has no `cost`, so the shop does not sell it; `"cost": "3 sp"` would. **Known gap:**
+the generator reads only the system's own Imagine compendiums, so an item kept in a Game Master's
+own compendium (Route 1) is not offered in its shop yet -- see
+`docs/sonnet/2026-09-23-equipment-shop.md`.
+
 ---
 
 ## Route 3: saying which book something came from

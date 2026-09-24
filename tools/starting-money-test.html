@@ -130,7 +130,7 @@ const makeState = () => {
 	const s = V.newGeneratorState();
 	s.race1 = "Human(Civilized:Village)"; s.className = "Mage"; s.override = true;
 	s.manual = true; s.manualBase = Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 12]));
-	s.step = V.STEPS.indexOf("Details");
+	s.step = V.STEPS.indexOf("Equipment");
 	return s;
 };
 const derive = (s) => V.deriveGenerator(s, content, () => true);
@@ -138,9 +138,11 @@ const derive = (s) => V.deriveGenerator(s, content, () => true);
 const s1 = makeState();
 check("the generator's Fortune for a Mage is his whole calculation: 12 + 1 + 5",
 	derive(s1).fortune, 18);
-check("the money is due on Details with race, attributes and class chosen", V.startingMoneyIsDue(s1, derive(s1)), true);
+check("the money is due on Equipment with race, attributes and class chosen", V.startingMoneyIsDue(s1, derive(s1)), true);
 check("...and not on the Skills step before it",
 	V.startingMoneyIsDue({ ...s1, step: V.STEPS.indexOf("Skills") }, derive(s1)), false);
+check("...nor on Details, which held the money until the Equipment step took it with the shop (2026-09-23)",
+	V.startingMoneyIsDue({ ...s1, step: V.STEPS.indexOf("Details") }, derive(s1)), false);
 check("...nor without a class, whose Fortune bonus it needs",
 	(() => { const s = makeState(); s.className = ""; return V.startingMoneyIsDue(s, derive(s)); })(), false);
 check("...nor with Gear by culture ticked, which is taken instead of coins",
@@ -175,7 +177,7 @@ check("...and untick it, and the coins come back without a new roll",
 
 // The view: the line under the fields, the fields hidden under Gear by culture, the Review total.
 const view = V.buildGeneratorView(s2, content, () => true);
-check("the Details step shows what the roll did", view.startingMoney.summary, M.describeStartingMoney(s2.startingMoney));
+check("the Equipment step shows what the roll did", view.startingMoney.summary, M.describeStartingMoney(s2.startingMoney));
 check("the Review step says what the purse holds",
 	V.buildGeneratorView({ ...s2, step: V.STEPS.indexOf("Review") }, content, () => true).review.money, "14 gp");
 check("...or that it holds nothing",

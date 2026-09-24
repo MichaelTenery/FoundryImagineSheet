@@ -372,6 +372,70 @@ check("getSecondRaceNames: a Formless's hosts, a Half Race's fertile partners",
 	 CV.getSecondRaceNames(null)],
 	[["Elf(High)", "Saurian"], ["Human(Barbaric)"], []]);
 
+// --- the Equipment step: buying at creation (2026-09-23) ------------------------------------------
+// The shop's own rules are tested in tools/shop-test.html against the real packs; this is the
+// generator's side of it, on the small hand-made content above, so every figure is worked out.
+globalThis.foundry = globalThis.foundry ?? {
+	abstract: { TypeDataModel: class {} },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = globalThis.game ?? { imagine: { getAvailabilityRules: () => null } };
+const V = await import("../module/chargen-view.mjs");
+check("eight steps now: Equipment between Details and Review",
+	V.STEPS, ["Basics", "Race", "Attributes", "Class", "Skills", "Details", "Equipment", "Review"]);
+
+// Three of his panel's names, as documents: a Lantern (10 sp at Medium), a Dagger (7 sp) and a leather
+// suit (6 pp), plus his long-bow arrow (3 sp), which is ammunition.
+const shopContent = { ...content,
+	equipment: [{ name: "Lantern", type: "equipment", system: { weight: 1 } }],
+	weapons: [{ name: "Dagger", type: "weapon", system: { weight: 1, type: "Blade", speed: 3 } },
+	          { name: "Arrow(Long Bow/Normal)", type: "weapon", system: { weight: 0.25, type: "Missile", speed: 0 } }],
+	armor: [{ name: "Armor Suit(Leather)", type: "armor", system: { weight: 14, isShield: false, flexibility: "Mixed",
+		coverage: { torsoUpper: 5, torsoMid: 5 }, penalties: {} } }] };
+const shopState = () => {
+	const s = V.newGeneratorState();
+	s.race1 = "Testfolk"; s.className = "Tester";
+	s.manual = true; s.manualBase = Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 12]));
+	s.step = V.STEPS.indexOf("Equipment");
+	s.startingMoney = { realSocialClass: 12, fortune: 13 };   // rolled already
+	s.wealth = { copper: 0, silver: 0, gold: 14, platinum: 0 };
+	return s;
+};
+const sd = (s) => V.deriveGenerator(s, shopContent, () => true);
+const shopped = shopState();
+shopped.purchases = [{ key: "Weapon|Dagger", count: 2, level: "" }, { key: "Equipment|Lantern", count: 3, level: "" },
+	{ key: "Weapon|Arrow(Long Bow/Normal)", count: 20, level: "" }];
+const shoppedChoices = V.choicesFromState(shopped, sd(shopped));
+check("two daggers (14 sp), three lanterns (30 sp) and twenty arrows (60 sp) out of 14 gp leave 3 gp, 6 sp",
+	shoppedChoices.wealth, { copper: 0, silver: 6, gold: 3, platinum: 0 });
+check("...and go to assembleCharacter as purchases, one entry per document",
+	shoppedChoices.purchases.map(e => [e.docName, e.quantity, e.split]),
+	[["Dagger", 2, true], ["Lantern", 3, false], ["Arrow(Long Bow/Normal)", 20, false]]);
+const shoppedMade = C.assembleCharacter(shoppedChoices, shopContent, always(1));
+check("the character carries two daggers, one stack of three lanterns and one of twenty arrows",
+	["Dagger", "Lantern", "Arrow(Long Bow/Normal)"].map(n => itemsOf(shoppedMade).filter(i => i.name == n).map(i => i.system.quantity)),
+	[[1, 1], [3], [20]]);
+check("...all of it carried, out of the shop", itemsOf(shoppedMade).filter(i => ["equipment", "weapon"].includes(i.type))
+	.every(i => i.system.location == "carried"), true);
+check("...and starts with what was left", shoppedMade.actor.system.wealth, { copper: 0, silver: 6, gold: 3, platinum: 0 });
+check("bought armour is put on at creation, as the kit's is",
+	C.assembleCharacter(choices({ purchases: [{ docName: "Armor Suit(Leather)", docType: "armor", quantity: 1, split: true }] }),
+		shopContent, always(1)).items.filter(i => i.type == "armor").map(i => i.system.location), ["equipped"]);
+check("a purchase whose document has gone is reported, and nothing is made for it",
+	(b => [itemsOf(b).some(i => i.name == "Lantern"), b.issues.some(i => i.includes("Lantern"))])(
+		C.assembleCharacter(choices({ purchases: [{ docName: "Lantern", docType: "equipment", quantity: 1, split: false, label: "Lantern" }] }),
+			content, always(1))), [false, true]);
+check("Next goes on from Equipment while the list is paid for", V.checkStep(shopped, sd(shopped)), "");
+const tooDear = shopState();
+tooDear.purchases = [{ key: "Armor|Armor Suit(Leather)", count: 1, level: "" }];
+check("...and waits when it is not: 6 pp is more than 14 gp", V.checkStep(tooDear, sd(tooDear)).includes("can no longer be afforded"), true);
+check("a re-rolled purse re-prices the list: with 100 gp the suit is paid for, in changed-up gold",
+	(() => { tooDear.wealth.gold = 100; return [V.checkStep(tooDear, sd(tooDear)), V.choicesFromState(tooDear, sd(tooDear)).wealth.gold]; })(),
+	["", 40]);
+check("the Review lists what was bought and the purse after it",
+	(r => [r.money, r.bought])(V.buildGeneratorView({ ...shopped, step: V.STEPS.indexOf("Review") }, shopContent, () => true).review),
+	["3 gp, 6 sp", ["Dagger ×2 (14 sp)", "Lantern ×3 (30 sp)", "Arrow(Long Bow/Normal) ×20 (60 sp)"]]);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =
