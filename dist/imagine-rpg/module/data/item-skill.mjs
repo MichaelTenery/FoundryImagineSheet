@@ -16,9 +16,18 @@
 // common_skill_# fields carried only a name and a base.
 //==================================================================================================================
 
+import { undoubleSource } from "./source-fields.mjs";
+
 const fields = foundry.data.fields;
 
 export default class ImagineSkillData extends foundry.abstract.TypeDataModel {
+
+	// The sheets once wrote the sourcebook and page doubled ("Custom,Custom"); read them back as typed.
+	// See module/data/source-fields.mjs.
+	static migrateData(tmpsource) {
+		undoubleSource(tmpsource);
+		return super.migrateData(tmpsource);
+	}
 
 	static defineSchema() {
 		return {

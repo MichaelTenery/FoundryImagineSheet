@@ -18,7 +18,7 @@ import { rollAttributeSets, rollHandedness, rollStartingAge, assembleCharacter, 
 import { rollPhysique } from "../physique-rules.mjs";
 import { getFamorianBreed, rollEvokeBudget } from "../famorian-rules.mjs";
 import { STEPS, newGeneratorState, deriveGenerator, checkStep, buildGeneratorView, choicesFromState,
-	colourChoices, rollStartingMoneyIfDue } from "../chargen-view.mjs";
+	colourChoices, rollStartingMoneyIfDue, getSecondRaceNames } from "../chargen-view.mjs";
 import { describeStartingMoney } from "../starting-money.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { provideStartingLore } from "../starting-lore.mjs";
@@ -64,6 +64,9 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 
 	#state = newGeneratorState();
 	#content = null;
+	// True while Create is writing the character. Foundry runs a second click's action whatever the
+	// first is still doing, so a double-click once made two identical characters (bug sweep 2026-09-23).
+	#busy = false;
 
 	// @MARKER DICE
 	// This is the function which rolls one die, through Foundry's own random source so any dice
@@ -101,6 +104,12 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		var tmpstate = this.#state;
 		var tmplist = (tmpvalue) => Object.values(tmpvalue ?? {});
 
+		// Attributes are rolled FOR a character type -- a Legendary gets the best of three sets -- so a
+		// roll does not survive a change of type: kept, a Legendary's sets went on under Normal's
+		// cheaper swaps (bug sweep 2026-09-23). The Roll button is always there to roll again.
+		if ("charType" in tmpdata && (tmpdata.charType ?? "") !== tmpstate.charType && tmpstate.rolled) {
+			tmpstate.rolled = null;
+		}
 		for (const tmpkey of ["name", "gender", "charType", "race1", "race2", "className", "chosenAttackSkill",
 		                      "handedness", "frame", "hair", "eyes", "skin", "alignment"]) {
 			if (tmpkey in tmpdata) { tmpstate[tmpkey] = tmpdata[tmpkey] ?? ""; }
@@ -155,8 +164,14 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		// A new first race can leave the second one no longer a fertile partner, and carries no
 		// Famorian breed, animal type or evokes of its own -- resetting here stops anything chosen
 		// for an earlier Famorian leaking onto whatever race was picked afterwards.
+		//
+		// A Formless's second race is its HOST, offered from formlessHosts, not fertileWith (the Race
+		// step's list, chargen-view.mjs) -- a Formless is fertile with no one, so testing fertileWith
+		// here once wiped every host chosen on the next change, and every Formless made was a bare
+		// psyche (bug sweep 2026-09-23). The same list the step offers is the one kept.
 		var tmpfirst = (this.#content?.races ?? []).find(tmpdoc => tmpdoc.name == tmpstate.race1);
-		if (tmpstate.race2 && !(tmpfirst?.system?.fertileWith ?? []).includes(tmpstate.race2)) {
+		var tmpsecondallowed = getSecondRaceNames(tmpfirst);
+		if (tmpstate.race2 && !tmpsecondallowed.includes(tmpstate.race2)) {
 			tmpstate.race2 = "";
 		}
 		if (!tmpfirst?.system?.famorian?.isFamorian) {
@@ -438,6 +453,16 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 	}
 
 	static async #onCreateCharacter(event, target) {
+		if (this.#busy) { return; }
+		this.#busy = true;
+		try {
+			await ImagineCharacterGenerator.#createCharacterNow.call(this, event, target);
+		} finally {
+			this.#busy = false;
+		}
+	}
+
+	static async #createCharacterNow(event, target) {
 		this.#captureForm();
 		var tmpderived = deriveGenerator(this.#state, this.#content, ImagineCharacterGenerator.#isAvailable);
 		var tmpassembled = assembleCharacter(choicesFromState(this.#state, tmpderived), this.#content, ImagineCharacterGenerator.#die);

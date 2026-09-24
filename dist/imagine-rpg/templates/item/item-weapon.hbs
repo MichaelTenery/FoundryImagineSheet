@@ -18,7 +18,7 @@
 				<li><label>Magic bonus</label>
 					<span><input type="number" name="system.magicBonus" value="{{system.magicBonus}}"></span></li>
 				<li><label>Kind</label>
-					<span><input type="text" name="system.weaponType" value="{{system.weaponType}}"
+					<span><input type="text" name="system.type" value="{{system.type}}"
 						placeholder="Blade, Bludgeon, ..."></span></li>
 			</ul>
 			<p class="muted">Each +1 of magic adds 1 to the attack roll and 1 to damage, and some
@@ -110,10 +110,11 @@
 		<div class="panel">
 			<h3>Where it comes from</h3>
 			<ul class="band-list">
-				<li><label>Sourcebook</label>
-					<span><input type="text" name="system.sourcebook" value="{{system.sourcebook}}"></span></li>
-				<li><label>Page</label>
-					<span><input type="text" name="system.page" value="{{system.page}}"></span></li>
+				{{!-- Shown, not edited: the header above holds the one input for each. Two inputs of one
+				      name come back from the form as an array, which saved "Custom,Custom" and doubled
+				      again on every edit (bug sweep 2026-09-23). --}}
+				<li><label>Sourcebook</label><span>{{#if system.sourcebook}}{{system.sourcebook}}{{else}}&mdash;{{/if}}</span></li>
+				<li><label>Page</label><span>{{#if system.page}}{{system.page}}{{else}}&mdash;{{/if}}</span></li>
 			</ul>
 		</div>
 	</div>

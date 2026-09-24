@@ -17,8 +17,10 @@ import { chooseBestArmor } from "../equip-rules.mjs";
 import { GEM_TYPES, COIN_TYPES, getWealthInGold, changeCoins, changeValuables } from "../wealth-rules.mjs";
 import { canRollStartingMoney, getCharacterMoneyInputs, rollStartingMoney, describeStartingMoney } from "../starting-money.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
+import { grantNaturalWeapons, getMissingNaturalWeaponNames } from "../natural-weapons.mjs";
 import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
-         getSecondWeaponFlags } from "../combat/combat-rules.mjs";
+         getSecondWeaponFlags, resolveMissileComboAcquisition, isThrownWeapon, isProjectileWeapon,
+         isLauncherWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
@@ -113,6 +115,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				changeWealth: ImagineCharacterSheet.#onChangeWealth,
 				rollStartingMoney: ImagineCharacterSheet.#onRollStartingMoney,
 				rollHandedness: ImagineCharacterSheet.#onRollHandedness,
+				grantNaturalWeapons: ImagineCharacterSheet.#onGrantNaturalWeapons,
+				learnMissileCombo: ImagineCharacterSheet.#onLearnMissileCombo,
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class.
 			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
 			rollMartialAttack: ImagineCharacterSheet.#onRollMartialAttack,
@@ -169,6 +173,11 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.gear = this.document.items.filter(i =>
 			["weapon", "armor", "equipment"].includes(i.type));
 		tmpcontext.weapons = ImagineCharacterSheet.#buildWeaponRows(this.document);
+		// The natural weapons the race gives and the character does not hold: a character made before
+		// natural weapons existed, or one whose race was changed. The Equipment tab offers to add them.
+		tmpcontext.missingNaturalWeapons = getMissingNaturalWeaponNames(
+			this.document.items.filter(tmpitem => tmpitem.type == "race").map(tmpitem => tmpitem.system),
+			this.document.items.filter(tmpitem => tmpitem.type == "weapon").map(tmpitem => tmpitem.name));
 		// Handedness is rolled rather than chosen unless the Game Master has ticked the setting,
 		// so the dropdown is built only when it will actually be shown -- see the @MARKER
 		// HANDEDNESS note in imagine-rpg.mjs for why rolling is the default.
@@ -549,14 +558,27 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// This is the function which adds a blank language row. No ceiling here, unlike the creature
 	// attack's rider effects -- the Intelligence table caps how many are worth having, not how
 	// many the array can hold, and that cap is the Attributes module's to enforce, not this tab's.
+	//
+	// Both language buttons rebuild the whole list from the character, so a name typed and not yet
+	// saved -- its change event and this click arrive together -- would be written over by the old
+	// list. The form is saved first, so the list read here is the one on screen (bug sweep 2026-09-23).
 	static async #onAddLanguage(event, target) {
+		await ImagineCharacterSheet.#saveFormFirst(this);
 		var tmplanguages = [...(this.document.system.languages ?? [])];
 		tmplanguages.push({ name: "", speak: true, write: false });
 		await this.document.update({ "system.languages": tmplanguages });
 	}
 
+	// This is the function which saves what is typed on the sheet before a button reads the character.
+	// A form that will not save (a value the model refuses) is left to say so on its own change; the
+	// button still does what it was pressed for.
+	static async #saveFormFirst(tmpsheet) {
+		try { await tmpsheet.submit(); } catch (tmperr) { console.warn("imagine-rpg | the sheet could not be saved first", tmperr); }
+	}
+
 	// This is the function which removes one language.
 	static async #onDeleteLanguage(event, target) {
+		await ImagineCharacterSheet.#saveFormFirst(this);
 		var tmpindex = parseInt(target.dataset.index);
 		var tmplanguages = [...(this.document.system.languages ?? [])];
 		if (isNaN(tmpindex) || tmpindex < 0 || tmpindex >= tmplanguages.length) { return; }
@@ -852,6 +874,75 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		if (tmpweapon?.type == "weapon") { new ImagineWeaponMods(this.document, tmpweapon).render(true); }
 	}
 
+	// @MARKER MULTIPLE MISSILE COMBINATIONS
+	// This is the function which rolls to learn one launcher/missile combination for Multiple Missile
+	// Knowledge or Lore (data-skill "know" or "lore") -- his handleRollMultiMissileKnow and
+	// handleRollMultiMissileLore (sheet-worker.js:88800, 88950). The launcher and missile are asked
+	// for, 1d100 is rolled against the skill's own chance, and resolveMissileComboAcquisition
+	// (combat-rules.mjs) says what came of it in his early-exit order. Only a success writes the
+	// combination onto the list; a failure changes nothing and locks nothing out -- his code has no
+	// lockout, so it may be tried again.
+	static async #onLearnMissileCombo(event, target) {
+		event.preventDefault();
+		var tmpactor = this.document;
+		var tmplore = target.dataset.skill == "lore";
+		var tmpskillname = tmplore ? "Multiple Missile Lore" : "Multiple Missile Knowledge";
+		var tmplistfield = tmplore ? "multiMissileLoreList" : "multiMissileKnowList";
+		var tmpchance = tmpactor.system._getSkillChance(tmpskillname);
+
+		// What to offer: every weapon the character holds that launches, or is fired or thrown, and
+		// "Thrown" for a weapon thrown from the hand. Typing another name is allowed -- the rule, not
+		// this list, decides whether the pair goes together.
+		var tmpweaponnames = [...new Set(tmpactor.items.filter(tmpitem => tmpitem.type == "weapon").map(tmpitem => tmpitem.name))];
+		var tmplaunchers = ["Thrown"].concat(tmpweaponnames.filter(tmpname => isLauncherWeapon(tmpname)));
+		var tmpmissiles = tmpweaponnames.filter(tmpname => isProjectileWeapon(tmpname) || isThrownWeapon(tmpname));
+		var tmpesc = (tmptext) => foundry.utils.escapeHTML(String(tmptext ?? ""));
+		var tmpchoice = await foundry.applications.api.DialogV2.prompt({
+			window: { title: `${tmpskillname}: learn a combination` },
+			content: `<div class="imagine-attack-dialog">
+				<p class="hint">${tmpesc(tmpactor.name)} rolls against ${tmpchance}% to add a launcher and missile to
+				the list. A failure changes nothing, and may be tried again.</p>
+				<div class="form-group"><label>Launcher</label><input type="text" name="launcher" list="imagine-mm-launchers">
+					<datalist id="imagine-mm-launchers">${tmplaunchers.map(tmpname => `<option value="${tmpesc(tmpname)}">`).join("")}</datalist></div>
+				<div class="form-group"><label>Missile</label><input type="text" name="missile" list="imagine-mm-missiles">
+					<datalist id="imagine-mm-missiles">${tmpmissiles.map(tmpname => `<option value="${tmpesc(tmpname)}">`).join("")}</datalist></div>
+			</div>`,
+			rejectClose: false,
+			ok: { label: "Roll", callback: (tmpevent, tmpbutton) => ({
+				launcher: tmpbutton.form.elements.launcher.value, missile: tmpbutton.form.elements.missile.value }) }
+		});
+		if (!tmpchoice) { return; }
+
+		var tmproll = await new Roll("1d100").evaluate();
+		var tmpresult = resolveMissileComboAcquisition({ launcher: tmpchoice.launcher, missile: tmpchoice.missile,
+			chance: tmpchance, list: tmpactor.system.combat[tmplistfield], roll: tmproll.total });
+		if (tmpresult.outcome == "succeeded") {
+			await tmpactor.update({ [`system.combat.${tmplistfield}`]: tmpresult.list });
+		}
+		// Only a real attempt shows the dice; "nothing done" outcomes are his card's words alone.
+		var tmprolled = tmpresult.outcome == "succeeded" || tmpresult.outcome == "failed";
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+			flavor: `${tmpskillname}: ${tmpesc(tmpchoice.launcher)}/${tmpesc(tmpchoice.missile)}`,
+			content: `<div class="imagine-chat">${tmpesc(tmpresult.reason)}${tmpresult.outcome == "succeeded"
+				? ` <strong>${tmpesc(tmpchoice.launcher.trim())}/${tmpesc(tmpchoice.missile.trim())}</strong> is added.` : ""}</div>`,
+			rolls: tmprolled ? [tmproll] : []
+		});
+	}
+
+	// @MARKER NATURAL WEAPONS
+	// This is the function which adds the race's natural weapons the character does not hold -- the
+	// generator and a race dropped on the sheet already give them, so this is for a character made
+	// before they existed. The same grant as game.imagine.grantNaturalWeapons(actor); nothing held by
+	// that name is given twice (module/natural-weapons.mjs).
+	static async #onGrantNaturalWeapons(event, target) {
+		event.preventDefault();
+		var tmpresult = await grantNaturalWeapons(this.document);
+		if (!tmpresult.granted.length && !tmpresult.missing.length) {
+			ui.notifications.info(`${this.document.name} already has every natural weapon the race gives.`);
+		}
+	}
+
 	// This is the function which TAKES OFF every weapon and every piece of armour, shields
 	// included, leaving them carried.
 	//
@@ -945,11 +1036,17 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 	static async #onEquipBestArmor(event, target) {
 		event.preventDefault();
-		var tmparmor = this.document.items.filter(tmpitem => tmpitem.type == "armor" && !tmpitem.system.isShield);
+		// Only armour on the character -- worn or carried. Armour left in a stash or on a mount stays
+		// there; this once dressed the character from the stash and took barding off the horse (bug
+		// sweep 2026-09-23).
+		var tmparmor = this.document.items.filter(tmpitem => tmpitem.type == "armor" && !tmpitem.system.isShield
+			&& ["equipped", "carried"].includes(tmpitem.system.location));
 		if (!tmparmor.length) { ui.notifications.info(`${this.document.name} has no armour to wear.`); return; }
 
+		// toObject() is the stored data alone; the campaign's availability (a sourcebook switched off) is
+		// worked out on the item, so it is passed on beside it for chooseBestArmor to honour.
 		var tmpbest = chooseBestArmor(tmparmor.map(tmpitem => ({ id: tmpitem.id, name: tmpitem.name,
-			type: tmpitem.type, system: tmpitem.system.toObject() })));
+			type: tmpitem.type, system: { ...tmpitem.system.toObject(), available: tmpitem.system.available } })));
 		var tmpupdates = tmparmor.map(tmpitem => {
 			var tmpwear = tmpbest.worn.includes(tmpitem.id);
 			var tmpchange = { _id: tmpitem.id, "system.location": tmpwear ? "equipped" : "carried" };
@@ -1014,7 +1111,9 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpstep = parseInt(target.dataset.step) || 0;
 		var tmpnow = (parseInt(tmpitem.system.title) || 0)
 			|| (parseInt(this.document.system.identity.title) || 0);
-		await tmpitem.update({ "system.title": Math.max(0, tmpnow + tmpstep) });
+		// Never below 1: a class title of 0 means "follow the character's title" (_getClassTitle), so
+		// stepping a class down from 1 once jumped it UP to the character's title (bug sweep 2026-09-23).
+		await tmpitem.update({ "system.title": Math.max(1, tmpnow + tmpstep) });
 	}
 
 	// This is the function which attempts a skill the character has never learned.

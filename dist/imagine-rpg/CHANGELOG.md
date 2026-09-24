@@ -18,6 +18,53 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.19.3 — 2026-09-23
+
+**A bug sweep.** The whole system was read through for faults, and 36 were fixed. The ones you are
+most likely to have met:
+
+- **Editing a weapon, equipment or skill no longer doubles its sourcebook** ("Custom" becoming
+  "Custom,Custom" on every change, which then escaped its book's on/off switch). Items already
+  doubled read back as they were typed, with nothing to do.
+- **A Formless keeps the host you choose** in the character generator. Before, the host was wiped on
+  the next click and every Formless came out a bare psyche.
+- **Winged and wingless Fairies, Podlings, Sporelings, Dark Fairies and the Brachara get their
+  starting kit and clothing** when "Gear by culture" or "Clothing by status" is ticked. They got none.
+- **Several tokens of one creature each spend their own seconds.** Three Goblins made from one actor
+  all charged the first Goblin's clock, and shared one Situation Mods window.
+- **Portraits can be changed** by clicking them, on every sheet.
+- **The weapon sheet's Kind field works** (Blade, Axe…). It showed blank and kept nothing.
+- **Damage from a card is applied by whoever made the attack, or by the Game Master**, so it can no
+  longer go on twice. A player applying the Game Master's blow to their own character is now asked to
+  leave it to the Game Master.
+- **Only the Game Master begins the next round**, going back a round and forward again keeps
+  everyone's seconds, and seconds are spent only once the combat has begun (surprise excepted).
+- **Level-up rolls a half race's Endurance from both races**, as it should, and a Formless from its
+  psyche.
+
+Also: a thrust with a throwable weapon no longer takes the two/three-missile penalty; a Gravity rune
+below zero keeps its level; a Scissor Strike has one Spend button, not two; a weapon whose damage is
+"Varies" posts its card instead of failing; a lance or garrote's card says "special timing"; Equip
+Best Armour leaves the stash and the mount alone; the martial stance is no longer cleared by editing
+something else while Martial Knowledge is not usable; a class's title can't be stepped below 1; blind
+fighting's bonus reaches Second Weapon Knowledge's off-hand figures; the same spell can't be added
+twice; brewing a poison recipe that names no poison says so; and `game.imagine.clearItems()` removes
+only what `populateItems()` made, never a folder of your own.
+
+**Natural touch attacks roll as touches.** A Brok's Harm Touch, a Mephyt's Heat or Cold Skin, a
+Centaur's Trample and a Sha'Cora's Chafing Skin roll a d20 plus the Agility modifier, needing 10 to
+make contact, and on contact roll their own dice. Run `game.imagine.importContent()` for the weapons
+compendium to learn this, then delete and re-add those weapons on characters who already have them.
+
+**Add natural weapons** is a button on the Equipment tab when the race gives natural weapons the
+character does not have. **Learn a combination** sits under each multiple-missile list on the Combat
+tab: it rolls the skill, and a success adds the launcher and missile. **A creature's attacks, powers
+and traits** can now be opened and removed from its sheet.
+
+If you filled the Items directory before this version, clearing it and filling it again
+(`game.imagine.clearItems()`, then `game.imagine.populateItems()`) puts the "Rigid/Flexible" armour
+and crossover classes in single folders.
+
 ## 0.19.2 — 2026-09-23
 
 **Characters the generator never made can roll their starting money on the sheet.** Reported on

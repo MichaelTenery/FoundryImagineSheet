@@ -671,14 +671,34 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 	// test is a substring test on the joined list, so drawing "Healing" after "Super Healing" is
 	// refused and redrawn; here it is the name itself. And his loop has no way out when a list is
 	// shorter than the count -- an endless loop -- so the draw stops when the list runs out and says so.
+	//
+	// A third, for a die that breaks its 1..n promise: the draw gives up after 1000 tries, the way the
+	// hymn and spell draws below already do. A fixed die (a preview's () => 1) can never find a second
+	// different name, and without the guard the loop would freeze the window with no error at all. The
+	// caller sees fewer names than it asked for and reports it.
 	export function drawDistinct(tmpList, tmpCount, tmpRoll) {
 		var tmpOut = [];
 		var tmpWanted = Math.min(parseInt(tmpCount) || 0, (tmpList ?? []).length);
-		while (tmpOut.length < tmpWanted) {
-			var tmpPick = tmpList[tmpRoll(tmpList.length) - 1];
-			if (!tmpOut.includes(tmpPick)) { tmpOut.push(tmpPick); }
+		var tmpGuard = 0;
+		while (tmpOut.length < tmpWanted && tmpGuard < 1000) {
+			tmpGuard += 1;
+			var tmpPick = pickByDie(tmpList, tmpRoll);
+			if (tmpPick !== undefined && !tmpOut.includes(tmpPick)) { tmpOut.push(tmpPick); }
 		}
 		return tmpOut;
+	}
+
+	// This is the function which picks one entry of a list by a die of its length -- his
+	// list[getDieRoll(n)-1] -- with the die held to 1..n. An in-contract die picks exactly what it
+	// always did; a 0, a NaN or a face past the end lands on the nearest end of the list instead of
+	// reading undefined off it (the Review step's crash on 0.18.1, DECISIONS 2026-09-23 "A preview's
+	// fixed die is a 1"). An empty list gives undefined, and the caller says so.
+	export function pickByDie(tmpList, tmpRoll) {
+		var tmpLength = (tmpList ?? []).length;
+		if (tmpLength < 1) { return undefined; }
+		var tmpFace = parseInt(tmpRoll(tmpLength)) || 1;
+		tmpFace = Math.max(1, Math.min(tmpLength, tmpFace));
+		return tmpList[tmpFace - 1];
 	}
 
 	// This is the function which picks the list a hymn is drawn from -- checkHymn
@@ -757,8 +777,11 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 				while (tmpHymns.length < tmpCount && tmpGuard < 1000) {
 					tmpGuard += 1;
 					var tmpList = getHymnList(tmpInput.alignment, tmpHymns.length == 0, tmpRoll);
-					var tmpPick = tmpList[tmpRoll(tmpList.length) - 1];
-					if (!tmpHymns.includes(tmpPick)) { tmpHymns.push(tmpPick); }
+					var tmpPick = pickByDie(tmpList, tmpRoll);
+					if (tmpPick !== undefined && !tmpHymns.includes(tmpPick)) { tmpHymns.push(tmpPick); }
+				}
+				if (tmpHymns.length < tmpCount) {
+					tmpIssues.push(`${MAGIC_KINDS.hymn?.heading ?? "hymn"}: held ${tmpCount} times, and only ${tmpHymns.length} different could be drawn.`);
 				}
 				for (const tmpName of tmpHymns) { tmpEntries.push({ kind: "hymn", name: tmpName }); }
 				continue;
@@ -779,10 +802,14 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 				var tmpPoisons = getStartingPoisonTypes(tmpInput.alignment);
 				var tmpPotencies = STARTING_LORE_LISTS.getPoisonPotencyList;
 				for (var tmpIndex = 0; tmpIndex < tmpCount; tmpIndex++) {
-					var tmpType = tmpPoisons.types[tmpRoll(tmpPoisons.types.length) - 1];
-					var tmpPotency = tmpPotencies[tmpRoll(tmpPotencies.length) - 1];
+					var tmpType = pickByDie(tmpPoisons.types, tmpRoll);
+					var tmpPotency = pickByDie(tmpPotencies, tmpRoll);
 					var tmpForm = rollPoisonForm(tmpRoll);
 					var tmpDetails = getPoisonDetails(tmpType, tmpPotency);
+					if (!tmpDetails) {
+						tmpIssues.push(`Poison recipe: no poison of type ${tmpType} and potency ${tmpPotency} could be made.`);
+						continue;
+					}
 					tmpEntries.push({ kind: "poisonrecipe", name: tmpDetails.name, form: tmpForm,
 					                  poisonType: tmpType, poisonPotency: tmpPotency });
 					tmpEntries.push({ kind: "poison", name: tmpDetails.name, form: tmpForm,
@@ -800,7 +827,11 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 			if (tmpCount > tmpNames.length) {
 				tmpIssues.push(`${MAGIC_KINDS[tmpStep.kind]?.heading ?? tmpStep.kind}: held ${tmpCount} times, and his list has only ${tmpNames.length} to give.`);
 			}
-			for (const tmpName of drawDistinct(tmpNames, tmpCount, tmpRoll)) {
+			var tmpDrawn = drawDistinct(tmpNames, tmpCount, tmpRoll);
+			if (tmpDrawn.length < Math.min(tmpCount, tmpNames.length)) {
+				tmpIssues.push(`${MAGIC_KINDS[tmpStep.kind]?.heading ?? tmpStep.kind}: held ${tmpCount} times, and only ${tmpDrawn.length} different could be drawn.`);
+			}
+			for (const tmpName of tmpDrawn) {
 				if (tmpStep.kind == "herb") {
 					var tmpValue = (tmpInput.herbValues ?? {})[tmpName];
 					tmpEntries.push({ kind: "herb", name: tmpName, doses: rollLoreDice(getHerbDoseDice(tmpValue), tmpRoll) });
@@ -863,7 +894,7 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 		var tmpPrimer = "";
 		if (tmpHasPrimer) {
 			var tmpKeys = Object.keys(SPELL_PRIMERS);
-			tmpPrimer = SPELL_PRIMERS[tmpKeys[tmpRoll(tmpKeys.length) - 1]];
+			tmpPrimer = SPELL_PRIMERS[pickByDie(tmpKeys, tmpRoll)] ?? "";
 		}
 		return { spells: tmpSpells, primer: tmpPrimer };
 	}

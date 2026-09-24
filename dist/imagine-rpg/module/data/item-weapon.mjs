@@ -13,6 +13,8 @@
 // a dagger with no smash mode is not the same as one that smashes at +0.
 //==================================================================================================================
 
+import { undoubleSource } from "./source-fields.mjs";
+
 const fields = foundry.data.fields;
 
 	// This is the function which builds one attack mode. available is false where the source
@@ -26,6 +28,13 @@ const fields = foundry.data.fields;
 
 
 export default class ImagineWeaponData extends foundry.abstract.TypeDataModel {
+
+	// The sheets once wrote the sourcebook and page doubled ("Custom,Custom"); read them back as typed.
+	// See module/data/source-fields.mjs.
+	static migrateData(tmpsource) {
+		undoubleSource(tmpsource);
+		return super.migrateData(tmpsource);
+	}
 
 	static defineSchema() {
 		return {
@@ -43,6 +52,13 @@ export default class ImagineWeaponData extends foundry.abstract.TypeDataModel {
 			// charge, caltrops are placed rather than swung, a garrote is a grapple. The
 			// source writes "S" for these, and the Game Master sets the timing in play.
 			speedSpecial: new fields.BooleanField({ required: true, initial: false }),
+
+			// A TOUCH attack -- a Brok's Harm Touch, a Mephyt's Heat Skin, a Centaur's Trample --
+			// is not read down the attack chart. His handleNaturalAttack sends every natural attack
+			// whose type names a Touch to handleTouchAttack (sheet-worker.js:70044-70052, 67731):
+			// d20 plus the Agility missile modifier, 10 or better makes contact. Set on the natural
+			// weapons whose type is a Touch (build_documents.py); a homebrew weapon may set it too.
+			touch: new fields.BooleanField({ required: true, initial: false }),
 
 			// A few weapons do different damage in one particular attack mode, which the source
 			// writes in parentheses after the main damage. His code applies exactly two:
@@ -158,9 +174,12 @@ export default class ImagineWeaponData extends foundry.abstract.TypeDataModel {
 				basePiety:       new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
 				magicAbilities:  new fields.ArrayField(new fields.StringField(), { initial: [] }),
 				divineAbilities: new fields.ArrayField(new fields.StringField(), { initial: [] }),
+				// A rune's level is 1 or more, except a Gravity rune's, which is SIGNED: below zero it takes
+				// weight off (getGravityRune). So no minimum here -- a min of 0 once cleaned a Gravity -5
+				// to 0 on save, and the rune did nothing. applyWeaponCustomization refuses a level of 0.
 				runes:           new fields.ArrayField(new fields.SchemaField({
 				                     name:  new fields.StringField({ required: true, initial: "" }),
-				                     level: new fields.NumberField({ required: true, integer: true, initial: 1, min: 0 })
+				                     level: new fields.NumberField({ required: true, integer: true, initial: 1 })
 				                 }), { initial: [] }),
 				energyType:      new fields.StringField({ required: true, initial: "" }),
 				energyDice:      new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),

@@ -58,6 +58,14 @@ const granting = new Set();
 		return tmpNames;
 	}
 
+	// This is the function which lists the natural weapons a character's race gives and it does not
+	// hold, by name -- what the Equipment tab's "Add natural weapons" button would add. The physique is
+	// not known on a sheet, so an attack of one physique only is never listed (see above).
+	export function getMissingNaturalWeaponNames(tmpRaceSystems, tmpHeldNames) {
+		var tmpHeld = new Set(tmpHeldNames ?? []);
+		return getNaturalWeaponNames(tmpRaceSystems, null).filter(tmpName => !tmpHeld.has(tmpName));
+	}
+
 	// This is the function which says which hand a natural weapon is in. A claw is not held, but the
 	// weapon attack reads the hand to decide the off-hand penalty, and a character's own claws are
 	// never their off hand -- so it is their dominant hand, and "right" for the Ambidextrous (who have

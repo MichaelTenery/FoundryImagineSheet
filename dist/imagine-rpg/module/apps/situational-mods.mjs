@@ -68,9 +68,15 @@ export default class ImagineSituationalMods extends HandlebarsApplicationMixin(A
 
 	#actor = null;
 
-	// One window per actor: a fixed id would have a second actor's window steal the first's.
+	// One window per actor: a fixed id would have a second actor's window steal the first's. Keyed
+	// by the actor's uuid, not its id: an unlinked token's actor carries its base actor's id, so by id
+	// Goblin #2's window was Goblin #1's (bug sweep 2026-09-23). Dots are not safe in an element id.
+	static windowId(tmpactor) {
+		return `imagine-situation-mods-${(tmpactor?.uuid ?? "unknown").replace(/\./g, "-")}`;
+	}
+
 	constructor(tmpactor, tmpoptions = {}) {
-		super({ ...tmpoptions, id: `imagine-situation-mods-${tmpactor?.id ?? "unknown"}` });
+		super({ ...tmpoptions, id: ImagineSituationalMods.windowId(tmpactor) });
 		this.#actor = tmpactor;
 	}
 
@@ -81,7 +87,7 @@ export default class ImagineSituationalMods extends HandlebarsApplicationMixin(A
 	// This is the function which opens the actor's window, or brings it forward if it is open
 	// already -- two windows under one id would have ApplicationV2 refuse the second.
 	static open(tmpactor) {
-		var tmpexisting = foundry.applications.instances.get(`imagine-situation-mods-${tmpactor?.id ?? "unknown"}`);
+		var tmpexisting = foundry.applications.instances.get(ImagineSituationalMods.windowId(tmpactor));
 		if (tmpexisting) { tmpexisting.bringToFront(); return tmpexisting; }
 		return new ImagineSituationalMods(tmpactor).render(true);
 	}

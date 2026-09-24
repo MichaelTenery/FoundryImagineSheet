@@ -33,29 +33,35 @@ const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 // A potion RECIPE is picked from the potions -- a recipe is knowing how to make one -- and becomes
 // a lore item on the way (makePotionRecipe). A poison is not picked at all: his poisons are built
 // from a type and a potency, so the tab has its own small form for them.
+// MAGIC says the entry is magic -- a dose or a lore known, never added twice, the Magic & Lore tab's --
+// rather than gear. It was once worked out as "the item type is not the picker's own key", which is
+// false for spells and invocations (both keyed by their type), so the same spell could be added over
+// and over and memorized twice (bug sweep 2026-09-23). Said outright now.
 const PICKER_PACKS = {
-	//  what           compendium                          item type          kind                  heading
-	weapon:        { pack: "world.imagine-weapons",     type: "weapon",     kind: "",              label: "Weapon" },
-	armor:         { pack: "world.imagine-armor",       type: "armor",      kind: "",              label: "Armour" },
-	equipment:     { pack: "world.imagine-equipment",   type: "equipment",  kind: "",              label: "Equipment" },
-	herb:          { pack: "world.imagine-consumables", type: "consumable", kind: "herb",          label: "Herb" },
-	potion:        { pack: "world.imagine-consumables", type: "consumable", kind: "potion",        label: "Potion" },
-	elixir:        { pack: "world.imagine-consumables", type: "consumable", kind: "elixir",        label: "Elixir" },
-	charm:         { pack: "world.imagine-consumables", type: "consumable", kind: "charm",         label: "Charm" },
-	potionrecipe:  { pack: "world.imagine-consumables", type: "lore",       kind: "potion",        label: "Potion recipe", becomes: "potionrecipe" },
-	ballad:        { pack: "world.imagine-lore",        type: "lore",       kind: "ballad",        label: "Ballad" },
-	candlelore:    { pack: "world.imagine-lore",        type: "lore",       kind: "candlelore",    label: "Candle ritual" },
-	empathymagic:  { pack: "world.imagine-lore",        type: "lore",       kind: "empathymagic",  label: "Empathy ritual" },
-	glyph:         { pack: "world.imagine-lore",        type: "lore",       kind: "glyph",         label: "Glyph" },
-	hymn:          { pack: "world.imagine-lore",        type: "lore",       kind: "hymn",          label: "Hymn" },
-	poem:          { pack: "world.imagine-lore",        type: "lore",       kind: "poem",          label: "Poem" },
-	ritual:        { pack: "world.imagine-lore",        type: "lore",       kind: "ritual",        label: "Ritual" },
-	rune:          { pack: "world.imagine-lore",        type: "lore",       kind: "rune",          label: "Rune" },
-	song:          { pack: "world.imagine-lore",        type: "lore",       kind: "song",          label: "Song" },
-	sympathymagic: { pack: "world.imagine-lore",        type: "lore",       kind: "sympathymagic", label: "Sympathy ritual" },
-	evoke:         { pack: "world.imagine-lore",        type: "lore",       kind: "evoke",         label: "Evoke" },
-	spell:         { pack: "world.imagine-spells",      type: "spell",      kind: "",              label: "Spell" },
-	invocation:    { pack: "world.imagine-invocations", type: "invocation", kind: "",              label: "Invocation" }
+	//  what           compendium                          item type          kind                  magic        heading
+	weapon:        { pack: "world.imagine-weapons",     type: "weapon",     kind: "",              magic: false, label: "Weapon" },
+	armor:         { pack: "world.imagine-armor",       type: "armor",      kind: "",              magic: false, label: "Armour" },
+	equipment:     { pack: "world.imagine-equipment",   type: "equipment",  kind: "",              magic: false, label: "Equipment" },
+	herb:          { pack: "world.imagine-consumables", type: "consumable", kind: "herb",          magic: true,  label: "Herb" },
+	potion:        { pack: "world.imagine-consumables", type: "consumable", kind: "potion",        magic: true,  label: "Potion" },
+	elixir:        { pack: "world.imagine-consumables", type: "consumable", kind: "elixir",        magic: true,  label: "Elixir" },
+	charm:         { pack: "world.imagine-consumables", type: "consumable", kind: "charm",         magic: true,  label: "Charm" },
+	potionrecipe:  { pack: "world.imagine-consumables", type: "lore",       kind: "potion",        magic: true,  label: "Potion recipe", becomes: "potionrecipe" },
+	ballad:        { pack: "world.imagine-lore",        type: "lore",       kind: "ballad",        magic: true,  label: "Ballad" },
+	candlelore:    { pack: "world.imagine-lore",        type: "lore",       kind: "candlelore",    magic: true,  label: "Candle ritual" },
+	empathymagic:  { pack: "world.imagine-lore",        type: "lore",       kind: "empathymagic",  magic: true,  label: "Empathy ritual" },
+	glyph:         { pack: "world.imagine-lore",        type: "lore",       kind: "glyph",         magic: true,  label: "Glyph" },
+	hymn:          { pack: "world.imagine-lore",        type: "lore",       kind: "hymn",          magic: true,  label: "Hymn" },
+	poem:          { pack: "world.imagine-lore",        type: "lore",       kind: "poem",          magic: true,  label: "Poem" },
+	ritual:        { pack: "world.imagine-lore",        type: "lore",       kind: "ritual",        magic: true,  label: "Ritual" },
+	rune:          { pack: "world.imagine-lore",        type: "lore",       kind: "rune",          magic: true,  label: "Rune" },
+	song:          { pack: "world.imagine-lore",        type: "lore",       kind: "song",          magic: true,  label: "Song" },
+	sympathymagic: { pack: "world.imagine-lore",        type: "lore",       kind: "sympathymagic", magic: true,  label: "Sympathy ritual" },
+	evoke:         { pack: "world.imagine-lore",        type: "lore",       kind: "evoke",         magic: true,  label: "Evoke" },
+	// A spell's and an invocation's kind is their item type (getItemKind), which "becomes" says, so the
+	// "already known" test finds one already held.
+	spell:         { pack: "world.imagine-spells",      type: "spell",      kind: "",              magic: true,  label: "Spell", becomes: "spell" },
+	invocation:    { pack: "world.imagine-invocations", type: "invocation", kind: "",              magic: true,  label: "Invocation", becomes: "invocation" }
 };
 
 // The kind an item made by this picker ends up as -- a potion recipe is picked FROM the potions.
@@ -146,7 +152,7 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		}
 		tmpcontext.learnSkill = this.#learnSkill;
 		tmpcontext.learnByRoll = this.#learnByRoll;
-		tmpcontext.isMagic = PICKER_PACKS[this.#type].type != this.#type;
+		tmpcontext.isMagic = !!PICKER_PACKS[this.#type].magic;
 		if (this.#learnSkill) {
 			var tmpstanding = getSkillStanding(this.#actor?.items?.filter(i => i.type == "skill"),
 				this.#learnSkill, this.#actor?.system?.identity?.title);
@@ -199,7 +205,7 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		var tmpdata = tmpdoc.toObject();
 		delete tmpdata._id;
 		var tmpdefinition = PICKER_PACKS[this.#type];
-		if (tmpdefinition.type != this.#type) {
+		if (tmpdefinition.magic) {
 			await this.#pickMagic(tmpdata, tmpdefinition);
 			this.render();
 			return;
@@ -283,7 +289,7 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		var tmplabel = tmpdefinition.label;
 		var tmpkind = resultKind(tmpdefinition);
 		var tmpsystem = { location: "carried", quantity: 1, weight: 0 };
-		if (tmpdefinition.type != this.#type) {
+		if (tmpdefinition.magic) {
 			tmpsystem = tmpkind ? { kind: tmpkind, subsystem: MAGIC_KINDS[tmpkind]?.subsystem ?? "" } : {};
 		}
 		var tmpcreated = await this.#actor.createEmbeddedDocuments("Item", [{

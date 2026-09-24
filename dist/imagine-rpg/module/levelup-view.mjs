@@ -176,7 +176,12 @@ import { getClassSkillsAtTitle } from "./class-rules.mjs";
 				// The class skills this title brings, from the class progression built last pass.
 				skills: tmpclass
 					? getClassSkillsAtTitle(tmpclass.system, tmptitle, tmpsystem.identity.cannotCast) : [],
-				enduranceFormula: tmprace?.system?.endurance?.titleFormula ?? "",
+				// The EFFECTIVE race's formula -- the half race's "first|second" pair, a Famorian's
+				// Endurance evoke, a Formless's psyche -- which the character model builds as
+				// system.raceItem (_getEffectiveRace). The first race item alone once rolled a
+				// Dryad|Elf(Dark) as a Dryad and a Formless as its host (bug sweep 2026-09-23). A plain
+				// object with no raceItem, as the tests pass, reads its race item as before.
+				enduranceFormula: (tmpsystem.raceItem ?? tmprace)?.system?.endurance?.titleFormula ?? "",
 				endurance: tmpwork.endurance,
 				// A flag of its own, because a roll of 0 is a real answer -- a race with no title
 				// formula gains nothing -- and testing the number alone would leave the Roll button

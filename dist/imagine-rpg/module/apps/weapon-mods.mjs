@@ -52,7 +52,9 @@ export default class ImagineWeaponMods extends HandlebarsApplicationMixin(Applic
 	#weapon = null;
 
 	constructor(tmpactor, tmpweapon, tmpoptions) {
-		super(foundry.utils.mergeObject({ id: `imagine-weapon-mods-${tmpweapon?.id ?? "x"}` }, tmpoptions ?? {}));
+		// Keyed by the weapon's uuid: an unlinked token's items carry its base actor's item ids, so by
+		// id two Goblins' spears were one window (bug sweep 2026-09-23). Dots are not safe in an id.
+		super(foundry.utils.mergeObject({ id: `imagine-weapon-mods-${(tmpweapon?.uuid ?? "x").replace(/\./g, "-")}` }, tmpoptions ?? {}));
 		this.#actor = tmpactor;
 		this.#weapon = tmpweapon;
 	}

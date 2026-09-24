@@ -29,7 +29,9 @@ import { ARMOR_BLOCKING } from "../combat-tables.mjs";
 import { getWeaponAttackExtras, resolveWeaponSpecials, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
 import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } from "./martial-arts.mjs";
 import { getActionHand } from "./round-rules.mjs";
+import { findActorCombatant } from "./combat-document.mjs";
 import { resolveCoatingDelivery, isEnvenomed } from "../lore-rules.mjs";
+import { resolveTouchAttack } from "./creature-rules.mjs";
 import { postPoisonOnVictims, registerPoisonCardListeners } from "../magic-actions.mjs";
 
 const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Missile" };
@@ -43,14 +45,10 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 	}
 
 	// This is the function which finds an actor's combatant in the current combat, if they have
-	// one. Searches the combatants directly rather than relying on a lookup helper whose name has
-	// changed between Foundry versions.
+	// one -- findActorCombatant (combat-document.mjs), which matches a token's own actor rather than
+	// its base actor's id, so each unlinked token is charged for its own swing.
 	function findCombatant(tmpactor) {
-		if (!game.combat || !tmpactor) { return null; }
-		for (const tmpcombatant of game.combat.combatants) {
-			if (tmpcombatant.actor?.id == tmpactor.id) { return tmpcombatant; }
-		}
-		return null;
+		return findActorCombatant(tmpactor, game.combat);
 	}
 
 	// This is the function which escapes text for safe inclusion in chat HTML. Item and actor
@@ -230,7 +228,10 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	// the penalty for it. Learned per launcher/missile combination rather than held in general,
 	// so both lists are passed and the weapon in hand is matched against them.
 	var tmpmissiles = resolveMultiMissile({
-		mode: tmpoptions.multiMissile,
+		// Firing two or three at once is a missile attack's only: his sheet reads it only when the
+		// attack is a missile (tempMissileCheck). A Dagger THRUST must not take the Firing box's -4,
+		// which the dialog shows for any weapon that can be thrown and fills from the missile mods.
+		mode: tmpmode == "missile" ? tmpoptions.multiMissile : "",
 		weaponName: tmpweapon.name,
 		knowChance: tmpsys.combat.multiMissileKnowChance,
 		knowList: tmpsys.combat.multiMissileKnowList,
@@ -277,12 +278,34 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		calledShot: tmpoptions.calledShot
 	});
 
+	// @MARKER TOUCH ATTACK
+	// A touch -- a Brok's Harm Touch, a Mephyt's Heat Skin, a Centaur's Trample -- is not read down
+	// the attack chart. His handleNaturalAttack sends every natural attack whose type names a Touch to
+	// handleTouchAttack (sheet-worker.js:70044-70052, 67731): the d20, the declared modifier and the
+	// Agility missile modifier (his combat_mod_missile_agl), 10 or better makes contact, a 1 always
+	// misses. No Strength, lore, situation or martial figure reaches it, and there is no fumble and no
+	// called shot. The creature path's touch (creature-attack.mjs) reads the same rule.
+	var tmpistouch = !!tmpw.touch;
+	if (tmpistouch) {
+		var tmpaglmod = parseInt(tmpsys.combat.missileAttack) || 0;
+		var tmptyped = parseInt(tmpoptions.situational) || 0;
+		tmpmods = { list: [], total: tmpaglmod + tmptyped };
+		if (tmpaglmod) { tmpmods.list.push({ label: "Agility", value: tmpaglmod }); }
+		if (tmptyped) { tmpmods.list.push({ label: "Modifier", value: tmptyped }); }
+		var tmptouch = resolveTouchAttack(tmpd20.total, tmpmods.total);
+		tmpresult = {
+			natural: tmptouch.natural, final: tmptouch.total, skill: tmpsys.combat.attackSkill,
+			zone: tmptouch.touched ? "Touched" : "Missed", isHit: tmptouch.touched, isFumble: false,
+			calledShotDeclared: false, isCalledShot: false, touch: true
+		};
+	}
+
 	// Time. A called shot takes one more second (Player's Guide, Called Shots).
 	// Lore makes a swing quicker, and its speed figure is a total rather than an extra: a lored
 	// weapon is -2, not -1 general and -2 again. See LORE_GENERAL / LORE_SPECIFIC.
 	var tmpspeed = getWeaponSpeed(tmpw.speed, tmpw.minSpeed,
 		tmpsys.combat.weaponSpeedMod + tmplore.speed);
-	if (tmpoptions.calledShot) { tmpspeed = tmpspeed + 1; }
+	if (tmpoptions.calledShot && !tmpistouch) { tmpspeed = tmpspeed + 1; }
 	// A move made takes its own time on top (a Spin, a Jump); a stance's is already in the speed.
 	tmpspeed = tmpspeed + tmpmartial.seconds;
 
@@ -307,7 +330,28 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	// Damage. A called shot does half, whether or not it is made.
 	var tmpdamage = null;
 	var tmprolls = [tmpd20];
-	if (tmpresult.isHit) {
+	// A damage that is not dice -- the Early Gun's Lead Ball reads "Varies", and a homebrew weapon may
+	// read anything -- is not handed to Roll, which would throw after the d20 was already rolled and
+	// post nothing at all. The hit is carried with no damage rolled, and the card says why.
+	var tmpdicenote = "";
+	var tmpcheckdice = getWeaponDamageDice(tmpw, tmpmode);
+	if (tmpresult.isHit && tmpcheckdice && !Roll.validate(tmpcheckdice)) {
+		tmpdicenote = `The damage "${tmpcheckdice}" is not a dice roll; the table settles it.`;
+	}
+	if (tmpresult.isHit && tmpdicenote) {
+		// Nothing to roll or to apply; the note goes on the card below.
+	} else if (tmpresult.isHit && tmpistouch) {
+		// A touch that makes contact rolls its own dice and nothing else: his
+		// damageRolled=rollDiceFromString(naturalAttackDamage) in the touch branch (70047).
+		var tmptouchdice = getWeaponDamageDice(tmpw, tmpmode);
+		var tmptouchroll = await new Roll(tmptouchdice || "0").evaluate();
+		tmprolls.push(tmptouchroll);
+		var tmptouchtotal = Math.max(0, parseInt(tmptouchroll.total) || 0);
+		tmpdamage = {
+			dice: tmptouchdice, magic: 0, touch: true, shots: 1, perShot: tmptouchtotal,
+			rolled: tmptouchtotal, multiplier: 1, total: tmptouchtotal, type: MODE_DAMAGE_TYPES[tmpmode]
+		};
+	} else if (tmpresult.isHit) {
 		// A martial move or stance can add whole dice (a Jump, the Drunken stance), which then count
 		// for everything worked out per die below. A flat-damage weapon takes none -- see addMartialDice.
 		var tmpdice = addMartialDice(getWeaponDamageDice(tmpw, tmpmode), tmpmartial.damage.extraDice);
@@ -409,6 +453,8 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		result: tmpresult,
 		mods: tmpmods,
 		speed: tmpspeed,
+		// His "S" speed: the card says "special timing" and offers no Spend (see attack-card.hbs).
+		speedSpecial: !!tmpw.speedSpecial,
 		// Which of the attacker's two clocks the swing runs on: a weapon in the off hand spends the
 		// off hand's own seconds, not the round's (Player's Guide p.178; module/combat/round-rules.mjs).
 		hand: getActionHand(tmpw.hand, tmpsys.physical?.handedness),
@@ -421,7 +467,8 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		martialNotes: tmpmartial.special,
 		// What the weapon's customization does on a hit, written out for the table (Foe Strike,
 		// energy, Bane, the divine abilities), and the name as his panel would print it.
-		weaponSpecials: tmpdamage ? tmpspecials.lines : [],
+		// A touch rolls no specials (tmpspecials is never set on that path).
+		weaponSpecials: [tmpdicenote].concat((tmpdamage && tmpspecials) ? tmpspecials.lines : []).filter(tmpline => tmpline),
 		weaponDisplay: getWeaponDisplayName(tmpweapon.name, tmpw),
 		// The weapon itself, so a hit can find its poison coating when the damage is applied, and the
 		// coating as it stood when the blow was struck, for the card (lore-rules.mjs, POISON ON A WEAPON).
@@ -455,12 +502,20 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 			ui.notifications.warn(`${tmptargetactor.name} has no body areas to damage.`);
 			return null;
 		}
-		var tmpcentre = tmpattack.result.zone == "Hit(Center)";
-		var tmpdefault = tmpcentre ? tmpattack.aim : "";
+		// Only a chart result is "Hit(...)". A touch ("Touched") and a creature's gaze, voice or
+		// direct attack (its type) were never read down the chart, so there is no off-centre to
+		// speak of: they land where they were aimed, as a centre hit does.
+		var tmpzone = "" + (tmpattack.result.zone ?? "");
+		var tmpcentre = tmpzone == "Hit(Center)";
+		var tmpoffcentre = tmpzone.startsWith("Hit(") && !tmpcentre;
+		var tmpdefault = tmpoffcentre ? "" : tmpattack.aim;
 		var tmpareahint = tmpcentre
 			? `A centre hit: it lands where it was aimed (${esc(tmpattack.aim)}).`
-			: `An off-centre hit, <strong>${esc(tmpattack.result.zone.replace("Hit(", "").replace(")", ""))}</strong> of
-			   where it was aimed (${esc(tmpattack.aim) || "no aim declared"}). Pick the area that sits that way on the target.`;
+			: tmpoffcentre
+			? `An off-centre hit, <strong>${esc(tmpzone.replace("Hit(", "").replace(")", ""))}</strong> of
+			   where it was aimed (${esc(tmpattack.aim) || "no aim declared"}). Pick the area that sits that way on the target.`
+			: `${esc(tmpzone)}: not read down the attack chart, so it lands where it was aimed
+			   (${esc(tmpattack.aim) || "no aim declared"}).`;
 
 		var tmpcontent = `
 			<div class="imagine-damage-dialog">
@@ -500,6 +555,14 @@ export async function applyAttackDamage(tmpmessage) {
 		ui.notifications.warn("That damage has already been applied.");
 		return;
 	}
+	// Only someone who can mark the card applied may apply it -- its author or the Game Master. Anyone
+	// else could put the wounds on and leave the button live, and the Game Master, seeing it, would put
+	// them on again: a player applying a Game Master's blow to their own character did exactly that
+	// (bug sweep 2026-09-23).
+	if (!tmpmessage.isOwner) {
+		ui.notifications.warn("Only the Game Master or whoever made this attack can apply its damage, so it is never applied twice. Ask the Game Master.");
+		return;
+	}
 
 	var tmptargetactor = tmpattack.targetUuid ? await fromUuid(tmpattack.targetUuid) : null;
 	if (!tmptargetactor) {
@@ -513,6 +576,20 @@ export async function applyAttackDamage(tmpmessage) {
 	if (!tmptargetactor.isOwner) {
 		ui.notifications.warn(`You do not have permission to change ${tmptargetactor.name}. Ask the Game Master to apply it.`);
 		return;
+	}
+
+	// A poisoned weapon's hit is applied whole or not at all. Its poison comes off the attacker's
+	// weapon, so whoever applies it must be able to change that weapon as well as the target. Found in
+	// the 2026-09-23 bug sweep: a player applying a Game Master's poisoned blow used to put the wounds on
+	// and then be told to "ask the Game Master to apply this hit" -- who, doing so, dealt it twice.
+	if (tmpattack.coating && tmpattack.weaponId) {
+		var tmpcoatowner = await fromUuid(tmpattack.attackerUuid);
+		var tmpcoatitem = tmpcoatowner?.items?.get(tmpattack.weaponId) ?? null;
+		if (tmpcoatitem && (parseInt(tmpcoatitem.system.coating?.doses) || 0) > 0 && !tmpcoatitem.isOwner) {
+			ui.notifications.warn(`The blow from ${tmpcoatitem.name} carries a poison you cannot take off that weapon. `
+				+ `Ask the Game Master to apply this hit.`);
+			return;
+		}
 	}
 
 	var tmpoptions = await askDamageOptions(tmptargetactor, tmpattack);
@@ -635,7 +712,10 @@ export async function applyAttackDamage(tmpmessage) {
 			tmpdelivery = resolveCoatingDelivery({ coating: tmpcoatedweapon.system.coating, envenomed: isEnvenomed(tmpcoatedweapon.system),
 				mode: tmpattack.mode, fleshDamage: tmpabsorbed.damage });
 			if (tmpdelivery.delivers && !tmpcoatedweapon.isOwner) {
-				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} would go in, but you cannot change that weapon. Ask the Game Master to apply this hit.`);
+				// Refused before any damage above; kept so a weapon changing hands mid-dialog still
+				// spends nothing it may not. The wounds are on, so the Game Master applies only the poison.
+				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} would go in, but you cannot change that weapon. `
+					+ `The wounds are applied; the Game Master should use the poison on the target from that weapon by hand.`);
 				tmpdelivery = null;
 			} else if (!tmpdelivery.delivers && tmpdelivery.reason != "not poisoned") {
 				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} is not delivered: ${esc(tmpdelivery.reason)}.`);
@@ -659,9 +739,8 @@ export async function applyAttackDamage(tmpmessage) {
 		</div>`
 	});
 
-	// Only the message's author or the Game Master may mark it. If someone else applied the
-	// damage the mark cannot be written, and the button stays live -- so the Game Master should
-	// be the one applying damage from other people's attacks.
+	// Only the message's author or the Game Master may mark it -- and only they get this far (see the
+	// test at the head of this function), so the mark is always written.
 	if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
 
 	// The poison delivered: the target rolls their Poison Resistance on its own card, as a poison used
@@ -686,23 +765,35 @@ export async function applyAttackDamage(tmpmessage) {
 // clock can say what the seconds went on. Once spent, the card says so and the button stops
 // offering itself -- a second click would charge the same swing twice. A slip is taken back from
 // the clock itself (its undo button), not from here.
+//
+// A card being spent right now is held in spendingCards until its write lands: the spent mark is only
+// set after the clock's own write, so a quick double-click once read "not spent" twice and charged the
+// same swing twice (bug sweep 2026-09-23). A special-timing card (his "S") has nothing to spend.
+const spendingCards = new Set();
 export async function spendAttackTime(tmpmessage) {
 	var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
 	if (!tmpattack || !game.combat) { return; }
+	if (tmpattack.speedSpecial || !((parseInt(tmpattack.speed) || 0) > 0)) { return; }
 	if (tmpattack.spent) {
 		ui.notifications.info("These seconds have already been spent.");
 		return;
 	}
-	var tmpactor = await fromUuid(tmpattack.attackerUuid);
-	var tmpcombatant = findCombatant(tmpactor);
-	if (!tmpcombatant) {
-		ui.notifications.warn("The attacker is not in the current combat.");
-		return;
+	if (spendingCards.has(tmpmessage.id)) { return; }
+	spendingCards.add(tmpmessage.id);
+	try {
+		var tmpactor = await fromUuid(tmpattack.attackerUuid);
+		var tmpcombatant = findCombatant(tmpactor);
+		if (!tmpcombatant) {
+			ui.notifications.warn("The attacker is not in the current combat.");
+			return;
+		}
+		if (!tmpcombatant.isOwner) { return; }
+		var tmpresult = await game.combat.spendSeconds(tmpcombatant, tmpattack.speed,
+			{ hand: tmpattack.hand ?? "main", label: tmpattack.weapon ?? "" });
+		if (tmpresult && tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.spent", true); }
+	} finally {
+		spendingCards.delete(tmpmessage.id);
 	}
-	if (!tmpcombatant.isOwner) { return; }
-	var tmpresult = await game.combat.spendSeconds(tmpcombatant, tmpattack.speed,
-		{ hand: tmpattack.hand ?? "main", label: tmpattack.weapon ?? "" });
-	if (tmpresult && tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.spent", true); }
 }
 
 // This is the function which wires the chat card's buttons whenever an attack card is shown.

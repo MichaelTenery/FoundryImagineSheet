@@ -277,9 +277,7 @@ import {
 		// EXCEPT for a Formless, whose second race is not a mate but a body, and whose choices are
 		// therefore its host list rather than its (empty) fertility list.
 		var tmpIsFormless = !!tmpD.race1?.system?.formless;
-		var tmpSecond = tmpIsFormless
-			? (tmpD.race1?.system?.formlessHosts ?? [])
-			: (tmpD.race1?.system?.fertileWith ?? []);
+		var tmpSecond = getSecondRaceNames(tmpD.race1);
 		tmpView.race2Options = [tmpOption("", tmpIsFormless ? "-- choose a host --" : "-- one race only --", tmpState.race2)]
 			.concat(tmpRaces.filter(tmpDoc => tmpSecond.includes(tmpDoc.name))
 			.map(tmpDoc => tmpOption(tmpDoc.name, tmpDoc.name, tmpState.race2)));
@@ -439,7 +437,8 @@ import {
 		var tmpWanted = tmpState.startingKit ?? {};
 		if (tmpD.race1 && (tmpWanted.byCulture || tmpWanted.byStatus || tmpWanted.bySkills)) {
 			var tmpPreview = buildStartingKit({
-				raceName: tmpD.raceNames[0] ?? "", social: getKitSocialClass(tmpState, tmpD),
+				raceName: tmpD.raceNames[0] ?? "", sourceRace: tmpD.race1?.system?.sourceRace ?? "",
+				social: getKitSocialClass(tmpState, tmpD),
 				gender: tmpState.gender, style: tmpState.clothingStyle,
 				socialSkillNames: tmpState.socialSkillNames,
 				byCulture: !!tmpWanted.byCulture, byStatus: !!tmpWanted.byStatus, bySkills: !!tmpWanted.bySkills
@@ -559,6 +558,16 @@ import {
 		tmpState.startingMoney = tmpMoney;
 		tmpState.wealth = { copper: tmpMoney.copper, silver: tmpMoney.silver, gold: tmpMoney.gold, platinum: tmpMoney.platinum };
 		return tmpMoney;
+	}
+
+	// This is the function which names the races that may be a character's second race, given the
+	// first race's document: its fertile partners for a Half Race, or -- for a Formless, whose second
+	// race is not a mate but a body -- its host list. The Race step offers these, and the generator
+	// keeps a second race only while it is one of them (character-generator.mjs, @MARKER FORM).
+	export function getSecondRaceNames(tmpRace1Doc) {
+		return tmpRace1Doc?.system?.formless
+			? (tmpRace1Doc?.system?.formlessHosts ?? [])
+			: (tmpRace1Doc?.system?.fertileWith ?? []);
 	}
 
 	// This is the function which gives the Social Class the starting kit is worked out from.

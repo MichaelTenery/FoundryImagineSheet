@@ -672,11 +672,17 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// "+10% to combat skills" reaches Second Weapon Knowledge, which is typed Combat), and the
 		// Situation Mods read the blind fighting it sets in combat.martialBlind.
 		this._prepareMartialArts();
-		this._prepareOffhandSkills();
 		// Late, so that anything martial arts derives before it (blind fighting, a stance held) is
 		// already in place when the situational figures are totalled. It changes defensiveAdjust,
 		// which nothing between _prepareCombat and here reads.
+		//
+		// And BEFORE the off-hand skills: fighting blind lays Martial Lore's bonus on every skill typed
+		// Combat, Second Weapon Knowledge among them, and _prepareOffhandSkills reads those chances.
+		// The other way round, the Skills tab showed 68% while the off-hand penalty, its tooltip and
+		// the off-hand seconds were worked from 58% (bug sweep 2026-09-23). _prepareSituation reads
+		// nothing the off-hand step sets.
 		this._prepareSituation();
+		this._prepareOffhandSkills();
 		// After the skills: the Arch Mortal screen reads five class skills' chances, and those
 		// are not worked out until _prepareSkills has run.
 		this._prepareAdvancement();

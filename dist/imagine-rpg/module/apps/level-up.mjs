@@ -74,7 +74,9 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 	// mean opening a second character's level-up re-used -- or stole -- the first one's window,
 	// which is how ApplicationV2 keeps track of what is open.
 	constructor(tmpactor, tmpoptions = {}) {
-		super({ ...tmpoptions, id: `imagine-level-up-${tmpactor?.id ?? "unknown"}` });
+		// By uuid rather than id, as the Situation Mods window is: an unlinked token's actor shares its
+		// base actor's id. Dots are not safe in an element id.
+		super({ ...tmpoptions, id: `imagine-level-up-${(tmpactor?.uuid ?? "unknown").replace(/\./g, "-")}` });
 		this.#actor = tmpactor;
 	}
 
@@ -172,8 +174,24 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 		this.render();
 	}
 
+	// A commit writes the character across several awaits -- skills, then the actor -- and Foundry runs
+	// a second click's action whatever the first is still doing, so a double-click once added a goal's
+	// skill points twice, or committed the next title on the same Endurance roll (bug sweep
+	// 2026-09-23). #busy holds the window to one commit at a time.
+	#busy = false;
+
 	static async #onCommitGoal(event, target) {
 		event.preventDefault();
+		if (this.#busy) { return; }
+		this.#busy = true;
+		try {
+			await ImagineLevelUp.#commitGoalNow.call(this, event, target);
+		} finally {
+			this.#busy = false;
+		}
+	}
+
+	static async #commitGoalNow(event, target) {
 		if (!buildGoalStep(this.#actor, this.#working).canCommit) {
 			ui.notifications.warn("Roll for the attribute and place every skill point first.");
 			return;
@@ -199,6 +217,16 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 
 	static async #onCommitTitle(event, target) {
 		event.preventDefault();
+		if (this.#busy) { return; }
+		this.#busy = true;
+		try {
+			await ImagineLevelUp.#commitTitleNow.call(this, event, target);
+		} finally {
+			this.#busy = false;
+		}
+	}
+
+	static async #commitTitleNow(event, target) {
 		if (this.#working.endurance === null) {
 			ui.notifications.warn("Roll the title's Endurance first.");
 			return;

@@ -76,7 +76,8 @@
 			{{#each options.magic as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select></label>
 		<label>Weapon rune <select name="custom.rune"><option value=""></option>
 			{{#each options.runes as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select>
-			level <input type="number" name="custom.runeLevel" min="1" class="short"></label>
+			level <input type="number" name="custom.runeLevel" class="short"
+				data-tooltip="1 or more; a Gravity rune may be below zero, to take weight off"></label>
 		<label>Energy <select name="custom.energyType"><option value=""></option>
 			{{#each options.energy as |o|}}<option value="{{o.value}}">{{o.label}}</option>{{/each}}</select>
 			dice <select name="custom.energyDice"><option value=""></option>

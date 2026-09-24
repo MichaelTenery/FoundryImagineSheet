@@ -7,7 +7,8 @@
 --}}
 <header class="imagine-header creature">
 
-	<img class="portrait" src="{{actor.img}}" data-edit="img" alt="{{actor.name}}">
+	{{!-- data-action="editImage" opens the file picker (DocumentSheetV2); data-edit names the field. --}}
+	<img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
 
 	<div class="identity">
 		<input class="charname" type="text" name="name" value="{{actor.name}}" placeholder="Name">

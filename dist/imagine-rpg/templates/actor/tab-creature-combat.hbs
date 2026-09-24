@@ -153,6 +153,10 @@
 				<td>
 					<button type="button" data-action="rollCreatureAttack" data-item-id="{{a.id}}">
 						<i class="fa-solid fa-dice-d20"></i> Attack</button>
+					{{!-- Open and remove, as every item row on the character sheet has. Without them an
+					      attack dropped on a creature could be neither corrected nor taken off again. --}}
+					<button type="button" class="row-button" data-action="openItem" data-item-id="{{a.id}}" data-tooltip="Open"><i class="fa-solid fa-pen-to-square"></i></button>
+					<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{a.id}}" data-tooltip="Remove"><i class="fa-solid fa-trash"></i></button>
 				</td>
 			</tr>
 			{{/each}}

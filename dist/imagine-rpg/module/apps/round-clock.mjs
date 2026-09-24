@@ -26,8 +26,9 @@
 //==================================================================================================================
 
 import {
-	getCombatantClock, getCombatantClockState, getCombatantSurprise, isCarryOverElected
+	getCombatantClock, getCombatantClockState, getCombatantSurprise, isCarryOverElected, findActorCombatant
 } from "../combat/combat-document.mjs";
+export { findActorCombatant };
 import {
 	resolveRoundClock, getClockOptions, isRoundOver, MAX_EXTRA_SECONDS,
 	resolveSurprise, getSurpriseSeconds, SURPRISE_DICE, MAX_SURPRISE_SECONDS
@@ -86,20 +87,8 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 		return ui.combat?.viewed ?? game.combat ?? null;
 	}
 
-	// This is the function which finds an actor's combatant in a combat. The actor itself first --
-	// a token's own actor is its combatant's -- then by id for a linked actor, the way the attack
-	// cards find theirs (findCombatant in combat/attack.mjs).
-	export function findActorCombatant(tmpactor, tmpcombat) {
-		if (!tmpactor || !tmpcombat) { return null; }
-		for (const tmpcombatant of tmpcombat.combatants) {
-			if (tmpcombatant.actor === tmpactor) { return tmpcombatant; }
-		}
-		if (tmpactor.isToken) { return null; }
-		for (const tmpcombatant of tmpcombat.combatants) {
-			if (tmpcombatant.actor?.id == tmpactor.id) { return tmpcombatant; }
-		}
-		return null;
-	}
+	// findActorCombatant lives in combat/combat-document.mjs now, beside the clock it serves, so the
+	// attack cards can use it without loading this window; it is re-exported here for its old callers.
 
 	// This is the function which gives what an actor's Combat tab shows of the round clock, beside its
 	// Off-Hand Seconds box (buildSheetClockView): the live figures while the actor is in the combat
@@ -261,13 +250,19 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 	async function askSpendSeconds(tmpcombatant) {
 		var tmpstate = getCombatantClockState(tmpcombatant);
 		var tmpname = esc(tmpcombatant.name);
+		// During a surprise the seconds are the surprise's, and an off-hand spend costs it nothing
+		// (spendSurpriseSeconds) -- so the choices say that, not the round clock's figures.
+		var tmpsurprise = getCombatantSurprise(tmpcombatant);
+		var tmpsurprisestate = tmpsurprise ? resolveSurprise(tmpsurprise) : null;
+		var tmpmainleft = tmpsurprisestate ? `${tmpsurprisestate.left} of the surprise left` : `${tmpstate.left} left`;
+		var tmpoffleft = tmpsurprisestate ? "costs the surprise nothing" : `${tmpstate.offhand.left} left`;
 		var tmpcontent = `<div class="imagine-dialog">
 			<div class="form-group"><label>Seconds</label>
 				<input type="number" name="seconds" value="1" min="1" max="60" autofocus></div>
 			<div class="form-group"><label>Hand</label>
 				<select name="hand">
-					<option value="main">Main hand (${tmpstate.left} left)</option>
-					<option value="off">Off hand (${tmpstate.offhand.left} left)</option>
+					<option value="main">Main hand (${tmpmainleft})</option>
+					<option value="off">Off hand (${tmpoffleft})</option>
 				</select>
 				<p class="hint">An off-hand action runs alongside the main hand -- a shield parry while the sword
 				swings -- so it spends the off hand's seconds and does not move ${tmpname} along the round.</p></div>

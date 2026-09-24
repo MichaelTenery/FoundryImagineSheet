@@ -1138,12 +1138,21 @@ export const MODE_DAMAGE_TYPES = {
 	// say so and a Limb otherwise -- which is how his code treats wings, tails and the rest. The
 	// multiplier is matched in his exact order; the order matters because "x1" appears inside
 	// "x1/2" and "x10", so it has to be tested last.
+	//
+	// An area's name is its key -- the wounds and armour damage are stored under it -- so a chart that
+	// names an area twice would give two areas one record, and two inputs of one name, which the sheet's
+	// form reads back as an array and every edit then fails. His Segmented Worm does exactly that: Left
+	// and Right Foot12 twice over, where the second pair was surely meant to be 13 (UPSTREAM-ISSUES). A
+	// repeated name is kept as a separate area, marked " (2)", " (3)"..., and the chart's order kept.
 	export function parseBodyChart(tmpchart) {
 		var tmpareas = [];
 		if (!tmpchart) { return tmpareas; }
+		var tmpseen = {};
 		for (const tmpentry of String(tmpchart).split(",")) {
 			var tmpopen = tmpentry.lastIndexOf("(");
 			var tmpname = (tmpopen >= 0 ? tmpentry.slice(0, tmpopen) : tmpentry).trim();
+			tmpseen[tmpname] = (tmpseen[tmpname] ?? 0) + 1;
+			if (tmpseen[tmpname] > 1) { tmpname = `${tmpname} (${tmpseen[tmpname]})`; }
 			var tmpdetails = tmpopen >= 0 ? tmpentry.slice(tmpopen + 1).replace(")", "") : "";
 			tmpareas.push({
 				name: tmpname,

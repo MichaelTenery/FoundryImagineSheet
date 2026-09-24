@@ -127,41 +127,47 @@ export const RETIRED_DOCUMENTS = {
 		var tmpwaslocked = tmppack.locked;
 		if (tmpwaslocked) { await tmppack.configure({ locked: false }); }
 
-		var tmpindex = await tmppack.getIndex({ fields: ["system.kind"] });
-		var tmpexisting = new Map();
-		var tmpexistingkeys = new Map();
-		for (const tmpentry of tmpindex) {
-			tmpexisting.set(tmpentry.name, tmpentry._id);
-			tmpexistingkeys.set(getImportKey(tmpdefinition, tmpentry.name, tmpentry.system?.kind), tmpentry._id);
-		}
-
+		// Locked again whatever happens: a batch Foundry refuses throws out of here, the caller carries
+		// on with the next pack, and a pack the Game Master had locked was once left unlocked (bug
+		// sweep 2026-09-23).
 		var tmptocreate = [];
 		var tmptoupdate = [];
-		for (const tmpdoc of tmpdocs) {
-			var tmpid = tmpexistingkeys.get(getImportKey(tmpdefinition, tmpdoc.name, tmpdoc.system?.kind));
-			if (tmpid) {
-				tmptoupdate.push({ _id: tmpid, type: tmpdoc.type, system: tmpdoc.system });
-			} else {
-				tmptocreate.push(tmpdoc);
+		var tmptodelete = [];
+		try {
+			var tmpindex = await tmppack.getIndex({ fields: ["system.kind"] });
+			var tmpexisting = new Map();
+			var tmpexistingkeys = new Map();
+			for (const tmpentry of tmpindex) {
+				tmpexisting.set(tmpentry.name, tmpentry._id);
+				tmpexistingkeys.set(getImportKey(tmpdefinition, tmpentry.name, tmpentry.system?.kind), tmpentry._id);
 			}
-		}
 
-		if (tmptocreate.length) {
-			await Item.createDocuments(tmptocreate, { pack: tmppack.collection, keepId: false });
-		}
-		if (tmptoupdate.length) {
-			await Item.updateDocuments(tmptoupdate, { pack: tmppack.collection });
-		}
+			for (const tmpdoc of tmpdocs) {
+				var tmpid = tmpexistingkeys.get(getImportKey(tmpdefinition, tmpdoc.name, tmpdoc.system?.kind));
+				if (tmpid) {
+					tmptoupdate.push({ _id: tmpid, type: tmpdoc.type, system: tmpdoc.system });
+				} else {
+					tmptocreate.push(tmpdoc);
+				}
+			}
 
-		// Retired names go, but only if the shipped file has not brought the name back.
-		var tmpshipped = new Set(tmpdocs.map(tmpdoc => tmpdoc.name));
-		var tmptodelete = retiredNamesToRemove(RETIRED_DOCUMENTS[tmpdefinition.pack], tmpshipped, tmpexisting.keys())
-			.map(tmpname => tmpexisting.get(tmpname));
-		if (tmptodelete.length) {
-			await Item.deleteDocuments(tmptodelete, { pack: tmppack.collection });
-		}
+			if (tmptocreate.length) {
+				await Item.createDocuments(tmptocreate, { pack: tmppack.collection, keepId: false });
+			}
+			if (tmptoupdate.length) {
+				await Item.updateDocuments(tmptoupdate, { pack: tmppack.collection });
+			}
 
-		if (tmpwaslocked) { await tmppack.configure({ locked: true }); }
+			// Retired names go, but only if the shipped file has not brought the name back.
+			var tmpshipped = new Set(tmpdocs.map(tmpdoc => tmpdoc.name));
+			tmptodelete = retiredNamesToRemove(RETIRED_DOCUMENTS[tmpdefinition.pack], tmpshipped, tmpexisting.keys())
+				.map(tmpname => tmpexisting.get(tmpname));
+			if (tmptodelete.length) {
+				await Item.deleteDocuments(tmptodelete, { pack: tmppack.collection });
+			}
+		} finally {
+			if (tmpwaslocked) { await tmppack.configure({ locked: true }); }
+		}
 
 		return { created: tmptocreate.length, updated: tmptoupdate.length, retired: tmptodelete.length,
 			total: tmpdocs.length };
