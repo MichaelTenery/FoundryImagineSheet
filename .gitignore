@@ -41,3 +41,6 @@ __pycache__/
 # price for the update button working. Any OTHER zip in dist/ is still scratch.
 dist/*.zip
 !dist/imagine-rpg.zip
+
+# graphify knowledge-graph output (may contain extracted rulebook text; keep local)
+graphify-out/
