@@ -3216,6 +3216,9 @@ returns no height and "this race has no height table", the new one gives a Nixie
 
 ## Starting money is not guessed at (2026-09-20)
 
+**Superseded 2026-09-23:** starting money is now rolled, on the user's rulings. See "Starting money
+is rolled, on the user's three rulings" below.
+
 Asked for, and deliberately not built in this pass. His rule is fully specified and was read:
 `doing_coins` (sheet-worker.js:74150) rolls an apparent social class of 5d4 for anything outside
 5-20, gives non-Nobles (under 15) a Fortune roll, turns a success into a multiplier off a d100
@@ -5007,3 +5010,74 @@ own pass, which is also in the note.
 89/89, `derive-test` 510, `combat-test` 520, `importer-test` 9, all passing. `syntax-check` clean
 with the new module listed. **Not verified:** a running V14. Not released either: the tree held
 another session's unfinished work when this was done.
+
+## Starting money is rolled, on the user's three rulings (2026-09-23)
+
+**Reported as "sheet not generating currency for character creation."** It was not a regression: it
+had never been built. The 2026-09-20 entry earlier in this file held it back ("Starting money is not guessed at")
+because one line in his `setCoins` could not be ported without a decision. Reading the function again
+turned up two more such lines, and the book's own table (Player's Guide p.207, an image the text
+extraction had dropped, read off the PDF this time) settled what it could. All three went to the user
+together and were ruled on the same day:
+
+1. **The Fortune roll is made at or under Fortune** (UPSTREAM 40). His line succeeds on a d100 at or
+   ABOVE it. The book says only "Make a Fortune roll… If the roll is successful", and every Fortune
+   roll elsewhere succeeds at or under. Taken as a slip; still open with him. `checkStartingFortune`
+   holds the comparison alone, with his literal reading written beside it as a comment, so his answer
+   is a one-line change either way.
+2. **Nobles get the book's x5 and x10** (UPSTREAM 67). His `tempcoins*5;` computes and discards. The
+   multiplication is written, and the book's table has it, so it is applied: a King's family gets
+   (10d20)x10 platinum, not 10d20. **This goes against "the sheet wins"** in the plain sense: his sheet
+   as it runs pays a fifth or a tenth. The call is the user's, made because the sheet's own text
+   says x5/x10 and only fails to assign it. Compare the kit fall-throughs (UPSTREAM 42), which ARE
+   reproduced: nothing in that code says what else was meant.
+3. **The Fortune rolled against is the character's whole Fortune** (UPSTREAM 68): the average of
+   AUR/PTY/WIL rounded up, +5 for "+5% Fortune", +1 for the first title (none for a GME), and the race
+   modifier. That is his `changeCharacteristics` (30333). His `setCoins` fetches the race modifier and
+   never adds it, and misnames the field it tests for the class bonus, so on his sheet neither ever
+   applies.
+
+**Where it lives.** `module/starting-money.mjs`, Foundry-free, beside `starting-kit.mjs`. It is not in
+`chargen-rules.mjs`, where the 2026-09-20 note proposed it, only because another session was editing
+that file at the same time. The table is written in by hand rather than extracted: sixteen rows, each
+checked in the tests against the book's printed range for its row.
+
+**When it rolls.** By itself, the first time the generator's Details step is drawn with a race,
+attributes and a class chosen. His sheet rolls it by itself too, when the racial features are
+confirmed, with no button. The port waits for the class because rule 3 needs it (his sheet rolls before
+the class is chosen, so on his sheet the class bonus could not have applied even with the field name
+right). It rolls again only if the Social Class or Fortune it was rolled from has changed since, i.e.
+the player went back and made a different character. His sheet does the same: confirming the features
+again clears the money and rolls afresh (`clearMoneyEquipmentValues`, 6438).
+
+**No re-roll button, on purpose,** for the reason handedness and the Famorian breed have none: a button
+that re-rolls until the multiplier comes up x10 is the same as choosing it. The four coin fields stay
+editable, because the book lets the Game Master "alter the resources available to starting characters"
+(p.207). The roll goes to chat, so the record of what was rolled stays there whatever the fields say
+later.
+
+**Gear by culture is taken instead of coins,** as its label always said and nothing enforced. While it
+is ticked the coin fields are replaced by a note, nothing is rolled, and the character is created with
+no coins. A field that would be quietly ignored at creation is worse than no field. Unticking it brings
+back the coins already rolled, without a new roll: that is his `override_no_coins`, which keeps money
+already there (6816).
+
+**One apparent Social Class, not two.** A class below 5 or above 20 rolls an apparent one (5d4), in the
+money and in the starting kit alike. Rolled separately, one character could look like a slave to its
+purse and a noble to its tailor. So the kit is handed the money's apparent class (`getKitSocialClass`),
+which the 2026-09-20 kit entry already required ("rolled ONCE by the caller").
+
+**Found on the way and NOT fixed here:** the character sheet's own Fortune has neither the +1 per title
+nor the class's "+5% Fortune". Perception (+1 per title, "+5% Perception") and Affinity (+2 per title,
+"+5% Affinity") have the same gap. `titleBonus` is only ever written for Endurance
+(`advancement.mjs`), and the Active Effects `item-class.mjs` says carry `classMods` were never
+created. So a Mage's generator Fortune (his whole calculation) is 6 higher than the Fortune its sheet
+shows. That is a gap in the actor model, not in the money, and is flagged for its own pass.
+
+**Verified:** `tools/starting-money-test.html` 44 of 44: every row's lowest and highest roll against
+the book's printed range, both rulings, the multiplier ladder, apparent class, the Fortune terms, and
+the generator (when it is due, that it stands, the re-roll on a changed character, Gear by culture both
+ways, the created actor's wealth, the Review line, one apparent class). `tools/chargen-test.html` 89 of
+89, unchanged. `tools/syntax-check.html` clean. The Details step was drawn from the real template with a
+rolled Mage: Gold 72 and the one-line account under it. **Not verified:** the window in a running V14,
+including the chat card.

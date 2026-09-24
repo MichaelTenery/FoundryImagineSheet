@@ -1,0 +1,202 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG starting money test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/starting-money.mjs and the generator's use of it (module/chargen-view.mjs
+// @MARKER STARTING MONEY), checked against his setCoins (sheet-worker.js:74147) and the Player's
+// Guide's Starting Money table (p.207). Every die is scripted, never random.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/starting-money-test.html
+const M = await import("../module/starting-money.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+// A roller that hands out the given faces in order, then repeats the last.
+const dice = (...faces) => { let i = 0; return () => faces[Math.min(i++, faces.length - 1)]; };
+const always = (face) => () => face;
+// Every die at its highest face: a d4 shows 4, a d100 shows 100.
+const highest = (sides) => sides;
+
+// --- the table, against the book's own ranges --------------------------------------------------
+// The Player's Guide gives each row's range beside its dice, so the lowest and highest the port can
+// roll are checked against the book directly. Fortune 0 so no non-Noble ever makes the Fortune roll
+// and the multiplier stays out of it: the d100 is 1 or 100, and neither is at or under 0.
+const BOOK = {
+	//  social  low   high  coin
+	5:  [5,    20,   "copper"],   6:  [5,   40,   "copper"],
+	7:  [3,    30,   "silver"],   8:  [3,   60,   "silver"],
+	9:  [4,    10,   "gold"],     10: [4,   16,   "gold"],
+	11: [6,    26,   "gold"],     12: [6,   26,   "gold"],
+	13: [6,    48,   "gold"],     14: [6,   48,   "gold"],
+	15: [40,   160,  "gold"],     16: [50,  500,  "gold"],
+	17: [10,   100,  "platinum"], 18: [30,  300,  "platinum"],
+	19: [50,   500,  "platinum"], 20: [100, 2000, "platinum"]
+};
+check("his table has all sixteen social classes, 5 to 20", Object.keys(M.STARTING_MONEY).map(Number), Object.keys(BOOK).map(Number));
+const offBook = [];
+for (const [social, [low, high, coin]] of Object.entries(BOOK)) {
+	const lowest = M.rollStartingMoney(Number(social), 0, always(1));
+	const most = M.rollStartingMoney(Number(social), 0, highest);
+	if (lowest.coin != coin || lowest[coin] != low || most[coin] != high || lowest.multiplier != 1 || most.multiplier != 1) {
+		offBook.push(`social ${social}: ${lowest[lowest.coin]}-${most[most.coin]} ${lowest.coin}, book ${low}-${high} ${coin}`);
+	}
+}
+check("every row rolls exactly the book's range in the book's coin", offBook, []);
+check("only one coin is ever more than nothing",
+	(() => { const m = M.rollStartingMoney(12, 0, always(3)); return [m.copper, m.silver, m.gold, m.platinum]; })(), [0, 0, 14, 0]);
+
+// --- the Noble x5 and x10 (UPSTREAM-ISSUES item 67) -------------------------------------------
+// His "tempcoins*5;" assigns nothing; the ruling is the book's multiplication.
+check("a Knight Banneret's family rolls (8d4)x5: eight 2s is 80 gp, not his sheet's 16",
+	M.rollStartingMoney(15, 0, always(2)).gold, 80);
+check("a King's family rolls (10d20)x10: ten 10s is 1000 pp, not 100",
+	M.rollStartingMoney(20, 0, always(10)).platinum, 1000);
+
+// --- the Fortune roll (UPSTREAM-ISSUES item 40) -----------------------------------------------
+check("made on a d100 UNDER Fortune -- the ruling, not his literal line", M.checkStartingFortune(30, 25), true);
+check("...and AT it", M.checkStartingFortune(30, 30), true);
+check("missed above it", M.checkStartingFortune(30, 31), false);
+check("so a higher Fortune is the better one", [M.checkStartingFortune(90, 60), M.checkStartingFortune(10, 60)], [true, false]);
+
+// --- the multiplier ladder ---------------------------------------------------------------------
+check("his ladder: 01-50 x2, 51-70 x3, 71-90 x4, 91-95 x5, 96-99 x8, 100 x10",
+	[1, 50, 51, 70, 71, 90, 91, 95, 96, 99, 100].map(M.getMoneyMultiplier), [2, 2, 3, 3, 4, 4, 5, 5, 8, 8, 10]);
+check("a roll off the d100 multiplies by nothing", [0, 101, NaN].map(M.getMoneyMultiplier), [1, 1, 1]);
+
+// --- the whole roll, in his order: Fortune d100, multiplier d100, then the coins ---------------
+const lucky = M.rollStartingMoney(10, 50, dice(20, 80, 4, 4, 4, 4));
+check("social 10, Fortune 50: a 20 makes it, an 80 is x4, and 4d4 of 16 becomes 64 gp",
+	[lucky.madeFortune, lucky.multiplier, lucky.rolled, lucky.gold], [true, 4, 16, 64]);
+const unlucky = M.rollStartingMoney(10, 50, dice(70, 4, 4, 4, 4));
+check("a 70 misses, no second d100 is rolled, and the dice go straight to the coins",
+	[unlucky.madeFortune, unlucky.multiplierRoll, unlucky.multiplier, unlucky.gold], [false, 0, 1, 16]);
+const noble = M.rollStartingMoney(15, 100, always(1));
+check("a Noble makes no Fortune roll at all, however high their Fortune",
+	[noble.noble, noble.fortuneRoll, noble.madeFortune, noble.multiplier, noble.gold], [true, 0, false, 1, 40]);
+check("social 14 is the last class that rolls for Fortune", [M.rollStartingMoney(14, 100, always(1)).madeFortune], [true]);
+
+// --- apparent social class ---------------------------------------------------------------------
+// Below 5 or above 20 rolls 5d4 for a class in the mortal realms, before anything else.
+const outsider = M.rollStartingMoney(25, 0, always(2));
+check("social 25 rolls an apparent class of 5d4 -- five 2s is 10 -- and is paid as that",
+	[outsider.apparent, outsider.realSocialClass, outsider.socialClass, outsider.gold], [true, 25, 10, 8]);
+check("social 3 is outside too", M.rollStartingMoney(3, 0, always(1)).apparent, true);
+check("5 and 20 are inside, and roll nothing extra",
+	[M.rollStartingMoney(5, 0, always(1)).apparent, M.rollStartingMoney(20, 0, always(1)).apparent], [false, false]);
+
+// --- the Fortune it is rolled against (UPSTREAM-ISSUES item 68) -------------------------------
+check("the average of AUR, PTY and WIL rounded up, plus 1 for the first title",
+	[M.getStartingFortune(13, 14, 15, 0, [], false), M.getStartingFortune(10, 10, 11, 0, [], false)], [15, 12]);
+check("plus the race's modifier, which his setCoins fetched and never added",
+	M.getStartingFortune(13, 14, 15, 5, [], false), 20);
+check("plus 5 for a '+5% Fortune' class, which his setCoins could never see",
+	M.getStartingFortune(13, 14, 15, 0, ["+30% to core skills", "+5% Fortune"], false), 20);
+check("a GME has no first title, so no +1", M.getStartingFortune(13, 14, 15, 0, [], true), 14);
+
+// --- what it says ------------------------------------------------------------------------------
+check("the line names the class, the dice, the Fortune roll, the multiplier and the total",
+	M.describeStartingMoney(lucky),
+	"Social class 10: 4d4 gp, rolled 16 — Fortune 50, rolled 20: made, and 80 on the multiplier gives x4. Starts with 64 gp.");
+check("a Noble's says there was no Fortune roll",
+	M.describeStartingMoney(M.rollStartingMoney(17, 0, always(3))),
+	"Social class 17: 1d10 x10 pp, rolled 3 — a Noble makes no Fortune roll. Starts with 30 pp.");
+check("an outsider's says why a class was rolled",
+	M.describeStartingMoney(outsider).startsWith("Social class 25 has no standing in the mortal realms, so an apparent class was rolled: 10"), true);
+
+// --- the generator ------------------------------------------------------------------------------
+// The real races, classes and skills, so the Fortune and the class come from the same documents the
+// window reads.
+globalThis.foundry = globalThis.foundry ?? {
+	abstract: { TypeDataModel: class {} },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = globalThis.game ?? { imagine: { getAvailabilityRules: () => null } };
+const V = await import("../module/chargen-view.mjs");
+const C = await import("../module/chargen-rules.mjs");
+const load = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`)).json());
+const [races, classes, skills] = await Promise.all(["races", "classes", "skills"].map(load));
+const content = { races, classes, skills, equipment: [], armor: [], weapons: [] };
+
+// A village Human Mage with every attribute entered as 12 -- Social Class 12, Fortune 12 + 1 for the
+// first title + 5 for the Mage's "+5% Fortune".
+const makeState = () => {
+	const s = V.newGeneratorState();
+	s.race1 = "Human(Civilized:Village)"; s.className = "Mage"; s.override = true;
+	s.manual = true; s.manualBase = Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 12]));
+	s.step = V.STEPS.indexOf("Details");
+	return s;
+};
+const derive = (s) => V.deriveGenerator(s, content, () => true);
+
+const s1 = makeState();
+check("the generator's Fortune for a Mage is his whole calculation: 12 + 1 + 5",
+	derive(s1).fortune, 18);
+check("the money is due on Details with race, attributes and class chosen", V.startingMoneyIsDue(s1, derive(s1)), true);
+check("...and not on the Skills step before it",
+	V.startingMoneyIsDue({ ...s1, step: V.STEPS.indexOf("Skills") }, derive(s1)), false);
+check("...nor without a class, whose Fortune bonus it needs",
+	(() => { const s = makeState(); s.className = ""; return V.startingMoneyIsDue(s, derive(s)); })(), false);
+check("...nor with Gear by culture ticked, which is taken instead of coins",
+	(() => { const s = makeState(); s.startingKit.byCulture = true; return V.startingMoneyIsDue(s, derive(s)); })(), false);
+
+const rolled = V.rollStartingMoneyIfDue(s1, derive(s1), dice(90, 3, 3, 3, 3));
+check("social 12, Fortune 18: a 90 misses, and 4d6+2 of 14 goes into the gold field",
+	[rolled.madeFortune, s1.wealth], [false, { copper: 0, silver: 0, gold: 14, platinum: 0 }]);
+check("once rolled, it stands: drawing the step again rolls nothing",
+	[V.startingMoneyIsDue(s1, derive(s1)), V.rollStartingMoneyIfDue(s1, derive(s1), always(1))], [false, null]);
+check("a Game Master's change to the fields is not rolled over",
+	(() => { s1.wealth.gold = 50; V.rollStartingMoneyIfDue(s1, derive(s1), always(1)); return s1.wealth.gold; })(), 50);
+check("but going back and changing the Social Class makes it due again -- a peasant's money is not a noble's",
+	(() => { s1.manualBase.soc = 16; return V.startingMoneyIsDue(s1, derive(s1)); })(), true);
+check("...and so does a change to the Fortune it was rolled against",
+	(() => { const s = makeState(); V.rollStartingMoneyIfDue(s, derive(s), always(99));
+	         s.manualBase.aur = 18; return V.startingMoneyIsDue(s, derive(s)); })(), true);
+
+// The character it makes carries the coins -- unless Gear by culture replaced them.
+const s2 = makeState();
+V.rollStartingMoneyIfDue(s2, derive(s2), dice(90, 3, 3, 3, 3));
+check("the created character starts with the rolled coins",
+	C.assembleCharacter(V.choicesFromState(s2, derive(s2)), content, always(1)).actor.system.wealth,
+	{ copper: 0, silver: 0, gold: 14, platinum: 0 });
+s2.startingKit.byCulture = true;
+check("with Gear by culture ticked afterwards, it starts with none",
+	C.assembleCharacter(V.choicesFromState(s2, derive(s2)), content, always(1)).actor.system.wealth,
+	{ copper: 0, silver: 0, gold: 0, platinum: 0 });
+s2.startingKit.byCulture = false;
+check("...and untick it, and the coins come back without a new roll",
+	[V.startingMoneyIsDue(s2, derive(s2)), V.choicesFromState(s2, derive(s2)).wealth.gold], [false, 14]);
+
+// The view: the line under the fields, the fields hidden under Gear by culture, the Review total.
+const view = V.buildGeneratorView(s2, content, () => true);
+check("the Details step shows what the roll did", view.startingMoney.summary, M.describeStartingMoney(s2.startingMoney));
+check("the Review step says what the purse holds",
+	V.buildGeneratorView({ ...s2, step: V.STEPS.indexOf("Review") }, content, () => true).review.money, "14 gp");
+check("...or that it holds nothing",
+	V.buildGeneratorView({ ...s2, step: V.STEPS.indexOf("Review"), startingKit: { byCulture: true } }, content, () => true).review.money, "");
+check("the fields are replaced by a note while Gear by culture is ticked",
+	V.buildGeneratorView({ ...s2, startingKit: { byCulture: true } }, content, () => true).moneyByCulture, true);
+
+// One apparent class for the purse and the tailor both: a class the money had to roll is the class
+// the kit is chosen for, rather than the kit rolling a second, different one of its own.
+// A Troll's Social Class, say, can fall below 5 -- theirs is -6 -- and a Human's entered as 3 does too.
+// (Above 20 cannot be reached this way: the race's own limit holds a Human's at 20.)
+const s3 = makeState();
+s3.manualBase.soc = 3;
+V.rollStartingMoneyIfDue(s3, derive(s3), always(3));   // 5d4 of 15: apparent class 15
+check("the kit is handed the money's apparent class", V.getKitSocialClass(s3, derive(s3)), 15);
+check("...and the character's real class once the money roll no longer belongs to it",
+	(() => { s3.manualBase.soc = 12; return V.getKitSocialClass(s3, derive(s3)); })(), 12);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

@@ -1192,8 +1192,15 @@ Three readings fit, and we cannot choose between them from the code:
 2. **Deliberate**, on some reading where an unlucky character stumbles into money.
 3. **The variable means something else here** — a target number rather than a chance.
 
-**What the port does meanwhile:** nothing. Starting money is not rolled at all yet, and this is why
-the rest of the rule was transcribed into the notes but not implemented — the multiplier table is
+**What the port does meanwhile:** reading 1, by the user's ruling of 2026-09-23 — made on a d100
+at or under Fortune, as the Player's Guide's "Make a Fortune roll… If the roll is successful" (p.207)
+reads too. Starting money is now rolled (`module/starting-money.mjs`), and the comparison is one line
+in `checkStartingFortune` with your literal reading written beside it, so if you meant it the other
+way round it is a one-line change. Still open with you. Items 67 and 68 are two more things found in
+the same function.
+
+*Earlier, until 2026-09-23:* nothing. Starting money was not rolled at all, and this is why the rest
+of the rule was transcribed into the notes but not implemented — the multiplier table is
 unambiguous and this one line decides who it applies to.
 
 ## 41. A Dark Fairy has no Iron Aversion and no Night Vision in `raceFeatureAbilities`
@@ -1906,3 +1913,54 @@ runs "+30%" through `convertPercentNumToMulti` (26140), which reads a positive f
 OF the weight -- so +30% makes a weapon 0.3 of its weight. Only from +100% up does it get heavier.
 Negative levels come out right (-50% is half). The port takes the rune's words: +30% is x1.3. If the
 "200 = double" reading was meant for runes too, say so and it comes back.
+
+## 67. Nobles' starting money is never multiplied by 5 or 10
+
+**Status:** open · **Severity:** a noble character starts with a fifth or a tenth of the book's money
+
+In `setCoins` (sheet-worker.js:74272 onward), social classes 15 to 20 roll their dice and then:
+
+```
+tempcoins=getDiceRollNoMod(8, 4);
+tempcoins*5;
+setAttrs({start_gold: tempcoins });
+```
+
+`tempcoins*5;` works out the product and throws it away, because nothing assigns it. It needs to be
+`tempcoins=tempcoins*5;`. The same slip is in all six Noble cases (`*5` at 15, `*10` at 16–20). As
+the sheet runs, a King's family starts with 10–200 pp. The Player's Guide's Starting Money table
+(p.207) gives "(10d20)x10", 100–2000 pp, and has "(8d4)x5" and "(5d10)x10" and so on for the rest.
+
+**What the port does:** multiplies, by the user's ruling of 2026-09-23. The multiplication is written
+in your code and the book agrees, so it reads as meant and simply not assigned.
+
+## 68. The starting-money Fortune roll uses a Fortune without its race or class bonus
+
+**Status:** open · **Severity:** small — a few points either way on the Fortune roll for starting money
+
+`setCoins` (sheet-worker.js:74148) works out a Fortune of its own rather than reading the
+character's:
+
+```
+getAttrs(['aur_final','pty_final','wil_final','soc_final','race_tmp_for_mod','tmp_class_modifiers'], ...
+tempraceformod = parseInt(values.race_tmp_for_mod)||0;
+tempclassformod = ""+values.tmp_class_modifiers;
+tempfort = parseInt(([tempattrib1+tempattrib2+tempattrib3]/3)+.99)||0;
+if (values.class_modifiers=="+5% Fortune") { tempfort = tempfort+5; }
+```
+
+Two things fall out:
+
+1. **The race's Fortune modifier is fetched and never added.** `tempraceformod` is set and not used,
+   so a Dwarf(Fire)'s +5 or an Avian(Forest)'s −10 makes no difference to the roll.
+2. **The class's "+5% Fortune" can never apply.** The test reads `values.class_modifiers`, but the
+   field fetched is `tmp_class_modifiers`, so `values.class_modifiers` is always undefined.
+   `tempclassformod` holds the right value and is not used either.
+
+Your real Fortune calculation (`changeCharacteristics`, 30333) adds both, plus the first title's +1
+(`class_title_fortune`, 8158). **What the port does:** rolls against that whole Fortune, by the
+user's ruling of 2026-09-23 — the Fortune the character actually has.
+
+Also worth knowing: on your sheet the money is rolled when the racial features are confirmed (step
+3, 6439), before the class is chosen at step 5, so the class bonus could not be known then even if
+the field name were right. The port rolls on its Details step, after the class, for that reason.

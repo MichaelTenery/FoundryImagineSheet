@@ -212,6 +212,9 @@ definition cycle described in `DECISIONS.md`.
 
 ## 10. Starting money: the table is ready to transcribe, the rule is not
 
+**DONE 2026-09-23**, on the user's rulings. See `docs/sonnet/2026-09-23-starting-money.md` and
+`DECISIONS.md` for that date. What follows is kept as the record of what was asked.
+
 **What to do.** Roll starting coins in the character generator, which is currently entry-only.
 The whole rule is in `doing_coins` (sheet-worker.js:74150 onward) and has three parts:
 

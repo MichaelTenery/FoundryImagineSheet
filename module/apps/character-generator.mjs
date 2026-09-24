@@ -18,7 +18,8 @@ import { rollAttributeSets, rollHandedness, rollStartingAge, assembleCharacter, 
 import { rollPhysique } from "../physique-rules.mjs";
 import { getFamorianBreed, rollEvokeBudget } from "../famorian-rules.mjs";
 import { STEPS, newGeneratorState, deriveGenerator, checkStep, buildGeneratorView, choicesFromState,
-	colourChoices } from "../chargen-view.mjs";
+	colourChoices, rollStartingMoneyIfDue } from "../chargen-view.mjs";
+import { describeStartingMoney } from "../starting-money.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { provideStartingLore } from "../starting-lore.mjs";
 
@@ -219,6 +220,25 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 					tmpfam[tmpbonuskey] = 0;
 				}
 			}
+		}
+
+		// @MARKER STARTING MONEY
+		// Rolled by itself the first time the Details step is drawn, and again only if the character
+		// it was rolled for has since changed -- see startingMoneyIsDue in module/chargen-view.mjs for
+		// when, and why there is no re-roll button. The state is set BEFORE the chat card is awaited,
+		// so a second render arriving in the meantime finds the money already rolled and leaves it.
+		var tmpmoney = rollStartingMoneyIfDue(this.#state,
+			deriveGenerator(this.#state, tmpcontent, ImagineCharacterGenerator.#isAvailable), ImagineCharacterGenerator.#die);
+		// The card has its own try: this runs while the window is being drawn, and a chat message that
+		// could not be posted must not leave the player looking at a window that will not open.
+		if (tmpmoney) {
+			try {
+				await ChatMessage.create({
+					content: `<h3>${this.#state.name || "A new character"} counts their coins</h3>`
+						+ `<div>${describeStartingMoney(tmpmoney)}</div>`,
+					speaker: ChatMessage.getSpeaker()
+				});
+			} catch (tmperr) { console.error("Imagine RPG | the starting money roll could not be posted to chat", tmperr); }
 		}
 
 		Object.assign(tmpcontext, buildGeneratorView(this.#state, tmpcontent, ImagineCharacterGenerator.#isAvailable));

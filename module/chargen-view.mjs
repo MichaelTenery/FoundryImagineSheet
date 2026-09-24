@@ -22,6 +22,7 @@ import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePh
 	readFormlessPair, combineFormless } from "./race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget } from "./famorian-rules.mjs";
 import { buildStartingKit } from "./starting-kit.mjs";
+import { getStartingFortune, rollStartingMoney, describeStartingMoney } from "./starting-money.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
 	checkClassQualification, getStartingClassSkills, assembleCharacter
@@ -77,6 +78,10 @@ import {
 			physiqueSummary: "", physiqueIssues: [],
 			frame: "", hair: "", eyes: "", skin: "",
 			alignment: "", languages: [], wealth: { copper: 0, silver: 0, gold: 0, platinum: 0 },
+			// @MARKER STARTING MONEY
+			// The last starting-money roll, whole -- see module/starting-money.mjs and
+			// rollStartingMoneyIfDue below. Null until the Details step first rolls it.
+			startingMoney: null,
 			// @MARKER STARTING KIT
 			// His three optional ways of giving a new character its kit, each its own tick and all
 			// three off unless asked for -- see module/starting-kit.mjs. The style only matters to
@@ -176,6 +181,12 @@ import {
 		// Skill slots are Knowledge's, as the character itself reads them (ATTRIBUTE_TABLES.knw).
 		var tmpKnwRow = ATTRIBUTE_TABLES.knw[Math.max(0, Math.min(30, tmpFinals.knw.final))] ?? {};
 
+		// @MARKER STARTING FORTUNE
+		// The Fortune the starting money is rolled against: his whole FORTUNE calculation on the day
+		// the character is made, race and class and first title included (getStartingFortune).
+		var tmpFortune = getStartingFortune(tmpFinals.aur.final, tmpFinals.pty.final, tmpFinals.wil.final,
+			tmpRace?.characteristicMods?.fortune, tmpClass?.system?.classMods, tmpNonClassed);
+
 		return {
 			race1: tmpRace1, race2: tmpRace2, raceNames: tmpRaceNames, race: tmpRace,
 			raceSourceNames: tmpRaceSourceNames, physique: tmpPhysique, slightPhysique: tmpIsSlight,
@@ -183,7 +194,7 @@ import {
 			type: tmpType, hasBase: tmpHasBase, ratings: tmpBuilt.ratings, ratingIssues: tmpBuilt.issues,
 			finals: tmpFinals, human: tmpHuman,
 			klass: tmpClass, blocked: tmpBlocked, classIssues: tmpClassIssues, cannotCast: tmpCannotCast,
-			nonClassed: tmpNonClassed, classSkills: tmpClassSkills,
+			nonClassed: tmpNonClassed, classSkills: tmpClassSkills, fortune: tmpFortune,
 			slots: {
 				class: parseInt(tmpKnwRow.classSkills) || 0,
 				racial: parseInt(tmpKnwRow.raceSkills) || 0,
@@ -427,7 +438,7 @@ import {
 		var tmpWanted = tmpState.startingKit ?? {};
 		if (tmpD.race1 && (tmpWanted.byCulture || tmpWanted.byStatus || tmpWanted.bySkills)) {
 			var tmpPreview = buildStartingKit({
-				raceName: tmpD.raceNames[0] ?? "", social: tmpD.finals?.soc?.final ?? 0,
+				raceName: tmpD.raceNames[0] ?? "", social: getKitSocialClass(tmpState, tmpD),
 				gender: tmpState.gender, style: tmpState.clothingStyle,
 				socialSkillNames: tmpState.socialSkillNames,
 				byCulture: !!tmpWanted.byCulture, byStatus: !!tmpWanted.byStatus, bySkills: !!tmpWanted.bySkills
@@ -435,6 +446,14 @@ import {
 			tmpView.startingKitPreview = tmpPreview.items.map(tmpEntry =>
 				tmpEntry.count > 1 ? `${tmpEntry.name} ×${tmpEntry.count}` : tmpEntry.name);
 		}
+		// @MARKER STARTING MONEY
+		// "Gear by culture" is taken INSTEAD of coins, so while it is ticked the coin fields are not
+		// shown at all -- a field that would silently be ignored at creation is worse than none. What
+		// was rolled is kept, and comes back if the tick is taken off again, as his override_no_coins
+		// keeps money already there (sheet-worker.js:6816).
+		tmpView.moneyByCulture = !!tmpWanted.byCulture;
+		tmpView.startingMoney = tmpState.startingMoney
+			? { summary: describeStartingMoney(tmpState.startingMoney) } : null;
 		tmpView.ages = tmpD.race?.ages ?? null;
 		// @MARKER COLOURING
 		// The colours a member of this race is found in. Offered as choices with anything already
@@ -461,7 +480,11 @@ import {
 				items: tmpAssembled.items.map(tmpItem => ({ name: tmpItem.name, type: tmpItem.type,
 					category: tmpItem.system.category ?? "" })),
 				issues: [...tmpD.ratingIssues, ...tmpD.classIssues.map(tmpIssue => "Class: " + tmpIssue), ...tmpAssembled.issues],
-				title: tmpAssembled.actor.system.identity.title
+				title: tmpAssembled.actor.system.identity.title,
+				// What the character's purse will hold, richest coin first: "40 pp, 3 gp", or nothing.
+				money: [["platinum", "pp"], ["gold", "gp"], ["silver", "sp"], ["copper", "cp"]]
+					.filter(([tmpCoin]) => tmpAssembled.actor.system.wealth[tmpCoin])
+					.map(([tmpCoin, tmpAbbrev]) => `${tmpAssembled.actor.system.wealth[tmpCoin]} ${tmpAbbrev}`).join(", ")
 			};
 		}
 		return tmpView;
@@ -481,11 +504,71 @@ import {
 			handedness: tmpState.handedness, age: tmpState.age, famorian: tmpState.famorian,
 			heightFeet: tmpState.heightFeet, heightInches: tmpState.heightInches, weight: tmpState.weight,
 			frame: tmpState.frame, hair: tmpState.hair, eyes: tmpState.eyes, skin: tmpState.skin,
-			alignment: tmpState.alignment, languages: tmpState.languages, wealth: tmpState.wealth,
+			alignment: tmpState.alignment, languages: tmpState.languages,
+			// No coins with Gear by culture: the kit is his wilderness equipment, taken INSTEAD.
+			wealth: tmpState.startingKit?.byCulture ? { copper: 0, silver: 0, gold: 0, platinum: 0 } : tmpState.wealth,
 			startingKit: tmpState.startingKit, clothingStyle: tmpState.clothingStyle,
-			socialClass: tmpDerived.finals?.soc?.final ?? 0,
+			socialClass: getKitSocialClass(tmpState, tmpDerived),
 			maxAge: tmpDerived.race?.ages?.maxAge ?? ""
 		};
+	}
+
+	// @MARKER STARTING MONEY
+	// This is the function which says whether the starting money needs rolling now.
+	//
+	// His sheet rolls it by itself, once, when the racial features are confirmed (sheet-worker.js:6439)
+	// -- nobody presses a button for it. The port rolls it the first time the Details step is drawn,
+	// which is the first point at which everything it reads is known: the Social Class and the three
+	// mystical attributes from the Attributes step, and the class, whose "+5% Fortune" and first title
+	// are part of the Fortune it is rolled against.
+	//
+	// It is due:
+	//     - on the Details step, with a race, attributes and a class chosen,
+	//     - when "Gear by culture" is NOT ticked -- that kit is taken instead of coins, and his sheet
+	//       rolls coins only on the coins side of the switch (override_no_coins, 6798), and
+	//     - when there is no roll yet, OR the roll there is was made for a different Social Class or
+	//       a different Fortune -- the player went back and changed the character, and money rolled
+	//       for a peasant is not a noble's. His sheet does the same: confirming the features again
+	//       clears the money and rolls it afresh (clearMoneyEquipmentValues, 6438).
+	//
+	// There is deliberately no re-roll button, for the reason handedness has none: a button that
+	// re-rolls until the multiplier comes up x10 is the same as choosing it. The coin fields stay
+	// editable, because the book says the Game Master "may alter the resources available to
+	// starting characters as she sees fit" (p.207), and the roll goes to chat, so what was rolled is
+	// on the record whatever the fields say afterwards.
+	export function startingMoneyIsDue(tmpState, tmpDerived) {
+		if (STEPS[tmpState.step] != "Details") { return false; }
+		if (!tmpDerived.race1 || !tmpDerived.hasBase || !tmpDerived.klass) { return false; }
+		if (tmpState.startingKit?.byCulture) { return false; }
+		var tmpLast = tmpState.startingMoney;
+		if (!tmpLast) { return true; }
+		return tmpLast.realSocialClass != (tmpDerived.finals?.soc?.final ?? 0) || tmpLast.fortune != tmpDerived.fortune;
+	}
+
+	// This is the function which rolls the starting money if it is due, and puts it on the choices:
+	// the whole roll in startingMoney, and the coins in the four wealth fields. Returns the roll, or
+	// null when nothing was rolled, so the window knows whether there is anything to post to chat.
+	export function rollStartingMoneyIfDue(tmpState, tmpDerived, tmpRoll) {
+		if (!startingMoneyIsDue(tmpState, tmpDerived)) { return null; }
+		var tmpMoney = rollStartingMoney(tmpDerived.finals?.soc?.final ?? 0, tmpDerived.fortune, tmpRoll);
+		tmpState.startingMoney = tmpMoney;
+		tmpState.wealth = { copper: tmpMoney.copper, silver: tmpMoney.silver, gold: tmpMoney.gold, platinum: tmpMoney.platinum };
+		return tmpMoney;
+	}
+
+	// This is the function which gives the Social Class the starting kit is worked out from.
+	//
+	// A class below 5 or above 20 has no standing in the mortal realms, and an apparent one is rolled
+	// in its place -- by the money AND by the kit (module/starting-kit.mjs @MARKER APPARENT SOCIAL
+	// CLASS). Rolled twice, the same character could look like a slave to its purse and a noble to its
+	// tailor. So once the money has rolled one, the kit is handed that one; buildStartingKit then finds
+	// a class already between 5 and 20 and rolls nothing further. Only while the money roll still
+	// belongs to this character's real class, which startingMoneyIsDue keeps true on the Details step.
+	export function getKitSocialClass(tmpState, tmpDerived) {
+		var tmpSocial = tmpDerived.finals?.soc?.final ?? 0;
+		var tmpMoney = tmpState.startingMoney;
+		if (tmpMoney?.apparent && tmpMoney.realSocialClass == tmpSocial) { return tmpMoney.socialClass; }
+		return tmpSocial;
 	}
 
 // @MARKER ADD NEW character generator view functions HERE

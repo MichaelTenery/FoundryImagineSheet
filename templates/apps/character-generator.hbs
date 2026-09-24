@@ -254,13 +254,24 @@
 		<div class="swap-row"><input type="text" name="languages.{{l.n}}.name" value="{{l.name}}">
 			<label class="check"><input type="checkbox" name="languages.{{l.n}}.write" {{#if l.write}}checked{{/if}}> writes</label></div>
 		{{/each}}
+		{{!-- @MARKER STARTING MONEY
+		      Rolled by itself when this step is first drawn, his setCoins -- see module/starting-money.mjs.
+		      The fields stay editable because the book leaves the Game Master free to alter it (p.207);
+		      the roll itself is in chat. With Gear by culture ticked the fields are not shown at all,
+		      since that kit is taken instead of coins and anything typed here would be ignored. --}}
 		<h3>Money</h3>
+		{{#if moneyByCulture}}
+		<p class="muted">Gear by culture is ticked below, and it is taken <em>instead of</em> starting coins:
+			this character starts with none. Untick it to have the coins back.</p>
+		{{else}}
 		<div class="swap-row">
 			<label>Copper <input type="number" name="wealth.copper" value="{{state.wealth.copper}}"></label>
 			<label>Silver <input type="number" name="wealth.silver" value="{{state.wealth.silver}}"></label>
 			<label>Gold <input type="number" name="wealth.gold" value="{{state.wealth.gold}}"></label>
 			<label>Platinum <input type="number" name="wealth.platinum" value="{{state.wealth.platinum}}"></label>
 		</div>
+		{{#if startingMoney}}<p class="muted">{{startingMoney.summary}}</p>{{/if}}
+		{{/if}}
 
 		{{!-- @MARKER STARTING KIT
 		      His three optional ways of giving a character its gear, each its own tick and all three
@@ -288,6 +299,7 @@
 	{{#if isReview}}
 		<h2>{{#if state.name}}{{state.name}}{{else}}New Character{{/if}}</h2>
 		<p>{{raceName}} {{#if klass}}{{klass.name}}{{/if}}, title {{review.title}}. {{typeLabel}} character.</p>
+		<p>Money: {{#if review.money}}{{review.money}}{{else}}none{{/if}}</p>
 		<table class="chargen-attributes compact"><tbody>
 			{{#each attributes as |a|}}<tr><td>{{a.label}}</td><td class="strong">{{a.final}}</td></tr>{{/each}}
 		</tbody></table>

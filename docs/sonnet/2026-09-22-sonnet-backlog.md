@@ -43,8 +43,8 @@ one wins. See `DECISIONS.md` 2026-09-22 "The Sonnet backlog, worked through".
 ## Waiting on the developer (nothing to do until he answers)
 
 `UPSTREAM-ISSUES.md` items 21 (projectile lore), 25 (magical flight), 28/29 (multi-missile), 30
-(Language Lore / racial-slot sacrifice), 40 (starting money — parts 1, 3 and 4 are transcribable, the
-Fortune comparison is not), 51 (Mixed flexibility), 52 (social skills). The four missing class
+(Language Lore / racial-slot sacrifice), 40 (starting money — built 2026-09-23 on the user's ruling; the
+Fortune comparison stays open with him but no longer blocks anything), 51 (Mixed flexibility), 52 (social skills). The four missing class
 templates (`2026-09-12-elemental-dancer.md` items 1–2) need his `.doc` files.
 
 ## Only in a running Foundry V14
