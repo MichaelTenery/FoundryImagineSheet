@@ -40,6 +40,7 @@ import {
 import { provideStartingLore } from "./starting-lore.mjs";
 import { importAllContent } from "./content-importer.mjs";
 import { grantClassSkills, registerClassAdvancement } from "./class-advancement.mjs";
+import { grantNaturalWeapons, registerNaturalWeapons } from "./natural-weapons.mjs";
 import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
@@ -299,6 +300,10 @@ Hooks.once("init", function () {
 		// title changes; this is here for a character imported from elsewhere, or one whose
 		// grant was refused when the content was switched off.
 		grantClassSkills: grantClassSkills,
+		// Gives a character the claws, bites and horns their race is born with, as weapons. It runs
+		// by itself when a race is added; this is here for a character made before it existed.
+		//     game.imagine.grantNaturalWeapons(actor)
+		grantNaturalWeapons: grantNaturalWeapons,
 		// @MARKER ADVANCEMENT
 		// The Level Up window, also a button on the character sheet. Experience is added through
 		// it rather than typed, because his cap, his refusals and the Arch Mortal line all apply.
@@ -412,6 +417,10 @@ Hooks.once("init", function () {
 	// @MARKER CLASS ADVANCEMENT
 	// Grants a title's class skills when the title is reached. See module/class-advancement.mjs.
 	registerClassAdvancement();
+
+	// @MARKER NATURAL WEAPONS
+	// Gives a character their race's natural weapons when the race is added. See module/natural-weapons.mjs.
+	registerNaturalWeapons();
 
 	// @MARKER CHANGELOG
 	// The What's New window and its Configure Settings button. See module/changelog.mjs.

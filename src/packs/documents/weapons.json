@@ -26619,5 +26619,3045 @@
       "sourcebook": "Imagine Master Index",
       "page": "401"
     }
+  },
+  {
+    "name": "Apocritara Mandible Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "4d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Apocritara: his natural attack \"Mandible Bite\", a Cut attack.</p><p>Target makes STR Save every 3 seconds or held.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "4"
+    }
+  },
+  {
+    "name": "Apocritara Stinger",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Apocritara: his natural attack \"Stinger\", a Pierce attack.</p><p>Only a Apocritara of slight physique has this.</p><p>Venom (Type V-Paralysis, Potency P). Target makes Poison Resist: or is paralyized for 1d4 hours. If resist is made -2 physical attributes for 1d4 hours. Takes 1d10 seconds to take effect.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "4"
+    }
+  },
+  {
+    "name": "Arachen Fang Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Arachen: his natural attack \"Fang Bite\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "24"
+    }
+  },
+  {
+    "name": "Arachen Stinger",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 6,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Arachen: his natural attack \"Stinger\", a Pierce attack.</p><p>Venom (Type V-Paralysis, Potency P). If 10 physical damage taken: target makes Poison Resist or is paralyized for 1d4 hours. If resist is made -2 physical attributes for 1d4 hours. Takes 1d10 seconds to take effect.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "24"
+    }
+  },
+  {
+    "name": "Avian(Dark) Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Avian(Dark): his natural attack \"Claws\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "23"
+    }
+  },
+  {
+    "name": "Ba'Cora Fang Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Ba'Cora: his natural attack \"Fang Bite\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "3"
+    }
+  },
+  {
+    "name": "Ba'Cora Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Ba'Cora: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "3"
+    }
+  },
+  {
+    "name": "Beastman Horn Attack",
+    "type": "weapon",
+    "system": {
+      "damage": "1d6+2",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Beastman: his natural attack \"Horn Attack\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "1"
+    }
+  },
+  {
+    "name": "Brachara Crusher Claw",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Brachara: his natural attack \"Crusher Claw\", a Crush attack.</p><p>If Hit, restrained. Contest of Strength Saves to break free</p><p>His sheet calls this a Crush attack. A weapon has no Crush mode, so it is rolled as a Smash and its damage is Smashing.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "5"
+    }
+  },
+  {
+    "name": "Brachara Pincer Claw",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 4,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Brachara: his natural attack \"Pincer Claw\", a Cut attack.</p><p>If Hit, restrained. Target makes an uncontested STR Save every 3 seconds to escape.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "5"
+    }
+  },
+  {
+    "name": "Brok Harm Touch",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6+2",
+      "speed": 5,
+      "minSpeed": 5,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Brok: his natural attack \"Harm Touch\", a Touch attack.</p><p>Living Touch Aversion: attacker must make a Will Force save to make this attack. Attacker must make a Control Resist or temporarily lose 1 Will Force point. Does not work on types Plant, Magical Plant and Magical.</p><p>A TOUCH attack. His sheet rolls it as a touch -- a d20 plus the Agility modifier, 10 or better makes contact -- not down the attack chart. The weapon attack does not do that yet: roll the touch at the table.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Epitaph of the Fallen",
+      "page": "4"
+    }
+  },
+  {
+    "name": "Brownie Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "1d3+1",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Brownie: his natural attack \"Bite\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "2"
+    }
+  },
+  {
+    "name": "Centaur Foreleg",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 6,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Centaur: his natural attack \"Foreleg\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Player's Guide",
+      "page": "30"
+    }
+  },
+  {
+    "name": "Centaur Hindleg",
+    "type": "weapon",
+    "system": {
+      "damage": "4d6",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Centaur: his natural attack \"Hindleg\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Player's Guide",
+      "page": "30"
+    }
+  },
+  {
+    "name": "Centaur Trample",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6",
+      "speed": 0,
+      "minSpeed": 0,
+      "speedSpecial": true,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Centaur: his natural attack \"Trample\", a Touch attack.</p><p>Vs. prone opponents or those knocked prone in a move through. Trample hits 1d4 body areas if successful.</p><p>A TOUCH attack. His sheet rolls it as a touch -- a d20 plus the Agility modifier, 10 or better makes contact -- not down the attack chart. The weapon attack does not do that yet: roll the touch at the table.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Player's Guide",
+      "page": "30"
+    }
+  },
+  {
+    "name": "Cervara Hoof Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Cervara: his natural attack \"Hoof Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "6"
+    }
+  },
+  {
+    "name": "Cervara Antler Gouge",
+    "type": "weapon",
+    "system": {
+      "damage": "5d4",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Cervara: his natural attack \"Antler Gouge\", a Pierce/Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "6"
+    }
+  },
+  {
+    "name": "Chetahl Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Chetahl: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "22"
+    }
+  },
+  {
+    "name": "Chetahl Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Chetahl: his natural attack \"Bite\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "22"
+    }
+  },
+  {
+    "name": "Equara Hoof Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Equara: his natural attack \"Hoof Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "29"
+    }
+  },
+  {
+    "name": "Giant(Civilized) Punch",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 8,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(Civilized): his natural attack \"Punch\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    }
+  },
+  {
+    "name": "Giant(Civilized) Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6",
+      "speed": 10,
+      "minSpeed": 6,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(Civilized): his natural attack \"Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    }
+  },
+  {
+    "name": "Giant(Civilized) Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6+5",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(Civilized): his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    }
+  },
+  {
+    "name": "Giant(Civilized:Seafaring) Punch",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 8,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(Civilized:Seafaring): his natural attack \"Punch\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    }
+  },
+  {
+    "name": "Giant(Civilized:Seafaring) Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6",
+      "speed": 10,
+      "minSpeed": 6,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(Civilized:Seafaring): his natural attack \"Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    }
+  },
+  {
+    "name": "Giant(Civilized:Seafaring) Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6+5",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(Civilized:Seafaring): his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "25"
+    }
+  },
+  {
+    "name": "Giant(True) Punch",
+    "type": "weapon",
+    "system": {
+      "damage": "4d6",
+      "speed": 8,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(True): his natural attack \"Punch\", a Crush attack.</p><p>His sheet calls this a Crush attack. A weapon has no Crush mode, so it is rolled as a Smash and its damage is Smashing.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "16"
+    }
+  },
+  {
+    "name": "Giant(True) Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "6d6",
+      "speed": 10,
+      "minSpeed": 6,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(True): his natural attack \"Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "16"
+    }
+  },
+  {
+    "name": "Giant(True) Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "6d6",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Giant(True): his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "16"
+    }
+  },
+  {
+    "name": "Grahl Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d6",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Grahl: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "29"
+    }
+  },
+  {
+    "name": "Grahl Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6+1",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Grahl: his natural attack \"Bite\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "29"
+    }
+  },
+  {
+    "name": "Gremlin Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4+2",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Gremlin: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "7"
+    }
+  },
+  {
+    "name": "Gremlin Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "1d6+1",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Gremlin: his natural attack \"Bite\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "7"
+    }
+  },
+  {
+    "name": "Gryphara Beak",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4",
+      "speed": 5,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Gryphara: his natural attack \"Beak\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "19"
+    }
+  },
+  {
+    "name": "Gryphara Talons",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Gryphara: his natural attack \"Talons\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "19"
+    }
+  },
+  {
+    "name": "Gryphara Raking Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6+3",
+      "speed": 0,
+      "minSpeed": 0,
+      "speedSpecial": true,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Gryphara: his natural attack \"Raking Claws\", a Cut attack.</p><p>During fly by attacks only.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "19"
+    }
+  },
+  {
+    "name": "Hippotara Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4+2",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Hippotara: his natural attack \"Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "20"
+    }
+  },
+  {
+    "name": "Hippotara Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "6d6",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Hippotara: his natural attack \"Bite\", a Crush attack.</p><p>His sheet calls this a Crush attack. A weapon has no Crush mode, so it is rolled as a Smash and its damage is Smashing.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "20"
+    }
+  },
+  {
+    "name": "Jumara Hoof Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 5,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Jumara: his natural attack \"Hoof Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "23"
+    }
+  },
+  {
+    "name": "Jumara Head Butt",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6",
+      "speed": 3,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Jumara: his natural attack \"Head Butt\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "23"
+    }
+  },
+  {
+    "name": "Katara Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6+1",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Katara: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "9"
+    }
+  },
+  {
+    "name": "Katara Raking Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6+2",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Katara: his natural attack \"Raking Claws\", a Cut attack.</p><p>Attack in grapple or Vs. prone target.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "9"
+    }
+  },
+  {
+    "name": "Kenku Beak",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4+2",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Kenku: his natural attack \"Beak\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "8"
+    }
+  },
+  {
+    "name": "Kerasara Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Kerasara: his natural attack \"Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "24"
+    }
+  },
+  {
+    "name": "Kerasara Horn Gouge",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Kerasara: his natural attack \"Horn Gouge\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "24"
+    }
+  },
+  {
+    "name": "Lissara Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4+1",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Lissara: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "26"
+    }
+  },
+  {
+    "name": "Lissara Tail Slap",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Lissara: his natural attack \"Tail Slap\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "26"
+    }
+  },
+  {
+    "name": "Lotara Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4+1",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Lotara: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "27"
+    }
+  },
+  {
+    "name": "Loxodara Tusk Gouge",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Loxodara: his natural attack \"Tusk Gouge\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "28"
+    }
+  },
+  {
+    "name": "Lutrinara Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4+1",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Lutrinara: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "29"
+    }
+  },
+  {
+    "name": "Mechanos Punch",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4+3",
+      "speed": 4,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mechanos: his natural attack \"Punch\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "32"
+    }
+  },
+  {
+    "name": "Mechanos Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6+3",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mechanos: his natural attack \"Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "32"
+    }
+  },
+  {
+    "name": "Mellivara Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "4d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mellivara: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "33"
+    }
+  },
+  {
+    "name": "Mellivara Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mellivara: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "33"
+    }
+  },
+  {
+    "name": "Mellivara Raking Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "5d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mellivara: his natural attack \"Raking Claws\", a Cut attack.</p><p>Attack in grapple or Vs. prone target.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "33"
+    }
+  },
+  {
+    "name": "Mephyt(Fire) Heat Skin",
+    "type": "weapon",
+    "system": {
+      "damage": "1d6",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mephyt(Fire): his natural attack \"Heat Skin\", a Heat Touch attack.</p><p>A TOUCH attack. His sheet rolls it as a touch -- a d20 plus the Agility modifier, 10 or better makes contact -- not down the attack chart. The weapon attack does not do that yet: roll the touch at the table.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "30"
+    }
+  },
+  {
+    "name": "Mephyt(Fire) Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mephyt(Fire): his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "30"
+    }
+  },
+  {
+    "name": "Mephyt(Ice) Cold Skin",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mephyt(Ice): his natural attack \"Cold Skin\", a Cold Touch attack.</p><p>A TOUCH attack. His sheet rolls it as a touch -- a d20 plus the Agility modifier, 10 or better makes contact -- not down the attack chart. The weapon attack does not do that yet: roll the touch at the table.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "31"
+    }
+  },
+  {
+    "name": "Mephyt(Ice) Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Mephyt(Ice): his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "31"
+    }
+  },
+  {
+    "name": "Ratahl Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4+1",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Ratahl: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "11"
+    }
+  },
+  {
+    "name": "S'rett Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4+3",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the S'rett: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "15"
+    }
+  },
+  {
+    "name": "S'rett Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4+2",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the S'rett: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "15"
+    }
+  },
+  {
+    "name": "S'rett Tail Slap",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the S'rett: his natural attack \"Tail Slap\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "15"
+    }
+  },
+  {
+    "name": "Sasquatch/Yeti Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6+2",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sasquatch/Yeti: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "12"
+    }
+  },
+  {
+    "name": "Sasquatch/Yeti Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6+1",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sasquatch/Yeti: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "12"
+    }
+  },
+  {
+    "name": "Saurian Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Saurian: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Player's Guide",
+      "page": "31"
+    }
+  },
+  {
+    "name": "Saurian Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "4d4",
+      "speed": 5,
+      "minSpeed": 5,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Saurian: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Player's Guide",
+      "page": "31"
+    }
+  },
+  {
+    "name": "Saurian Tail Slap",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4",
+      "speed": 6,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Saurian: his natural attack \"Tail Slap\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Player's Guide",
+      "page": "31"
+    }
+  },
+  {
+    "name": "Scethen Barbed Tail",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 5,
+      "minSpeed": 5,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Scethen: his natural attack \"Barbed Tail\", a Pierce attack.</p><p>Type V(Paralysis, 1d4 hours,if resist -2 Physicals)-Potency P(1d10 seconds)</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "34"
+    }
+  },
+  {
+    "name": "Se'eth Fangs",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4+2",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Se'eth: his natural attack \"Fangs\", a Pierce attack.</p><p>Once per 10 seconds: venom by the character's title (his getPoisonByTitle) -- title 1: Type I(Sleep,1d4 minutes)-Potency M(10-60 seconds); title 2: Type II(Sleep,10d40 minutes)-Potency M(10-60 seconds); title 3: Type III(Sleep,1d4 hours,if resist -2 Physicals)-Potency N(10-40 seconds); title 4: Type IV(Paralysis,1d10 minutes)-Potency N(10-40 seconds); title 5: Type V(Paralysis, 1d4 hours,if resist -2 Physicals)-Potency O(10-30 seconds); title 6: Type VI(1d4 damage per hour,2d4 hours)-Potency O(10-30 seconds); title 7: Type VII(1d4 damage per 10 minutes,10d60 minutes)-Potency P(1d10 seconds); title 8: Type VIII(1d4 damage per minute,1d6 minutes)-Potency P(1d10 seconds); title 9: Type IX(1d6 damage per minute,1d6 minutes)-Potency Q(instant); title 10: Type X(1d8 damage per minute,1d6 minutes)-Potency Q(instant); title 11: Type XI(1d10 damage per minute,1d6 minutes)-Potency Q(instant); title 12: Type XII(2d6 damage per minute,1d6 minutes)-Potency Q(instant); title 13: Type XIII(1d4 damage per 10 seconds,if resist 1d4 per minute,1d4 minutes)-Potency Q(instant); title 14: Type XIV(1d6 damage per 10 seconds,if resist 1d4 per minute,1d4 minutes)-Potency Q(instant); title 15: Type XV(1d6 damage per 10 seconds,if resist 1d6 per minute,1d4 minutes)-Potency Q(instant).</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "14"
+    }
+  },
+  {
+    "name": "Se'eth Constriction Grapple",
+    "type": "weapon",
+    "system": {
+      "damage": "4d4",
+      "speed": 5,
+      "minSpeed": 5,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Se'eth: his natural attack \"Constriction Grapple\", a Constrict attack.</p><p>During grappling only. +20% to grappling moves.</p><p>His sheet calls this a Constrict attack. A weapon has no Constrict mode, so it is rolled as a Smash and its damage is Smashing.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "14"
+    }
+  },
+  {
+    "name": "Sha'Cora Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sha'Cora: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "35"
+    }
+  },
+  {
+    "name": "Sha'Cora Rending Teeth",
+    "type": "weapon",
+    "system": {
+      "damage": "4d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sha'Cora: his natural attack \"Rending Teeth\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "35"
+    }
+  },
+  {
+    "name": "Sha'Cora Chafing Skin",
+    "type": "weapon",
+    "system": {
+      "damage": "1d4",
+      "speed": 1,
+      "minSpeed": 1,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sha'Cora: his natural attack \"Chafing Skin\", a Touch attack.</p><p>A TOUCH attack. His sheet rolls it as a touch -- a d20 plus the Agility modifier, 10 or better makes contact -- not down the attack chart. The weapon attack does not do that yet: roll the touch at the table.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "35"
+    }
+  },
+  {
+    "name": "Sura'keth Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sura'keth: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "38"
+    }
+  },
+  {
+    "name": "Sura'keth Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sura'keth: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "38"
+    }
+  },
+  {
+    "name": "Sura'keth Tail Slap",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sura'keth: his natural attack \"Tail Slap\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "38"
+    }
+  },
+  {
+    "name": "Sura'rath Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "3d4",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sura'rath: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "39"
+    }
+  },
+  {
+    "name": "Sura'rath Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "4d4",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sura'rath: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "39"
+    }
+  },
+  {
+    "name": "Sura'rath Tail Slap",
+    "type": "weapon",
+    "system": {
+      "damage": "4d4",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Sura'rath: his natural attack \"Tail Slap\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "39"
+    }
+  },
+  {
+    "name": "Susara Hoof Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Susara: his natural attack \"Hoof Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "40"
+    }
+  },
+  {
+    "name": "Susara Tusk Gouge",
+    "type": "weapon",
+    "system": {
+      "damage": "4d6",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Susara: his natural attack \"Tusk Gouge\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "40"
+    }
+  },
+  {
+    "name": "Taurian Hoof Kick",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Taurian: his natural attack \"Hoof Kick\", a Smash attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": true,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "17"
+    }
+  },
+  {
+    "name": "Taurian Horn Attack",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6+4",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Taurian: his natural attack \"Horn Attack\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Aspects of the Wild",
+      "page": "17"
+    }
+  },
+  {
+    "name": "Troll Talons",
+    "type": "weapon",
+    "system": {
+      "damage": "4d6",
+      "speed": 4,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Troll: his natural attack \"Talons\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Master's Manual",
+      "page": "30"
+    }
+  },
+  {
+    "name": "Troll(Ice) Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "4d6",
+      "speed": 4,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Troll(Ice): his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "42"
+    }
+  },
+  {
+    "name": "Troll(Ice) Tusk Gouge",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Troll(Ice): his natural attack \"Tusk Gouge\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "42"
+    }
+  },
+  {
+    "name": "Ursara Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "5d6",
+      "speed": 5,
+      "minSpeed": 5,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Ursara: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "43"
+    }
+  },
+  {
+    "name": "Ursara Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "4d6",
+      "speed": 4,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Ursara: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "43"
+    }
+  },
+  {
+    "name": "Whalrog Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d6",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Whalrog: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "37"
+    }
+  },
+  {
+    "name": "Whalrog Tusk",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Whalrog: his natural attack \"Tusk\", a Pierce attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": true,
+        "mod": 0
+      },
+      "cut": {
+        "available": false,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "37"
+    }
+  },
+  {
+    "name": "Wolfen Bite",
+    "type": "weapon",
+    "system": {
+      "damage": "3d6+2",
+      "speed": 3,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Wolfen: his natural attack \"Bite\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "45"
+    }
+  },
+  {
+    "name": "Wolfen Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6+2",
+      "speed": 2,
+      "minSpeed": 2,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Wolfen: his natural attack \"Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "45"
+    }
+  },
+  {
+    "name": "Wolfen Raking Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "2d6+4",
+      "speed": 5,
+      "minSpeed": 4,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Wolfen: his natural attack \"Raking Claws\", a Cut attack.</p><p>Attack in grapple or Vs. prone target.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Mysteries of the Planes",
+      "page": "45"
+    }
+  },
+  {
+    "name": "Xar'Xeth Digging Claws",
+    "type": "weapon",
+    "system": {
+      "damage": "1d6",
+      "speed": 5,
+      "minSpeed": 3,
+      "speedSpecial": false,
+      "type": "Natural",
+      "weight": 0,
+      "location": "equipped",
+      "description": "<p>A natural weapon of the Xar'Xeth: his natural attack \"Digging Claws\", a Cut attack.</p>",
+      "missile": {
+        "available": false,
+        "mod": 0
+      },
+      "thrust": {
+        "available": false,
+        "mod": 0
+      },
+      "cut": {
+        "available": true,
+        "mod": 0
+      },
+      "smash": {
+        "available": false,
+        "mod": 0
+      },
+      "sourcebook": "Legends of the Unknown",
+      "page": "38"
+    }
   }
 ]

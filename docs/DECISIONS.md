@@ -4945,3 +4945,65 @@ the ends; every race at social -2..25 with dice 0/1/10/NaN), `tools/derive-test.
 redraw for every race with a culture kit, all three kit rules ticked, and its list holds the Details
 preview). A node sweep of every race at social -2..25 through the Review view threw 4,858 times on
 0.18.1 and 0 now. **Not verified:** the window in a running V14.
+
+## 2026-09-23 — Natural weapons are weapons, and a race brings them
+
+**Asked for directly:** "please ensure that races that get natural weapons have them on the sheet by
+default." Then, when offered the choice: *"I very much do want them in the weapons section up with all
+the other equipment. I think it's odd that they get added elsewhere. If the player doesn't want them,
+they can remove them."*
+
+**What the port had:** nothing. A race carried an ability label, "Natural Weapons(Saurian)", whose
+description is only "gains additional natural weapon attacks in combat". The attacks themselves live
+in one switch of his, `setRacialNaturalAttacks` (sheet-worker.js:100946-102126), which writes up to ten
+numbered slots per race (name, type, speed, minimum, damage, special). Nothing had read it.
+
+**What is built:**
+- `tools/extract/extract_natural_attacks.py` walks the switch into
+  `src/packs/named/naturalAttacks.json`: **49 races, 97 attacks**, cross-checked against his own
+  `natural_attacks_list` for every race and branch, with no mismatches. It also walks `getPoisonByTitle`.
+- `build_documents.py` makes each one a **weapon** named "<race> <attack>" ("Saurian Claws"), type
+  `Natural`, weight 0, equipped. It lists them on the race in a new `naturalWeapons` field and gives each
+  one its race's book and page. The result is **95 weapons across 48 races**. His `case "Sasquatch"`
+  names no race; every other table of his uses "Sasquatch/Yeti", which has its own case. Its two
+  weapons are reported and not shipped.
+- `module/natural-weapons.mjs`: the generator adds them with the race (`assembleCharacter`), and a
+  `createItem` hook adds them when a race is dropped on a character. Nothing is removed, and nothing
+  already held by that name is given twice, so a deleted claw stays deleted.
+  `game.imagine.grantNaturalWeapons(actor)` covers characters made before this.
+
+**Why a weapon and not a separate block:** the user's call, above. His roll agrees with it, too.
+`handleNaturalAttack` (69996) rolls a d20 down the attack chart with Strength to hit and the damage
+modifiers on top, which is the weapon attack. The port's `creatureAttack` item was the other candidate
+and was not used, because it would have put claws in a place of their own.
+
+**Rules carried from his switch:**
+- **Which body.** "Half races set body by the first race" (100947), so a Half Race takes the first
+  race's weapons. A Formless takes its host's, never its own.
+- **Physique.** The Apocritara's Stinger is in the slight branch only. The generator knows the physique
+  and decides it. The actor stores no physique, so a race dropped on a sheet gives only the unbranched
+  attacks, and the Stinger is left in the pack to drag.
+- **Speed.** Where he shortens the speed (`tmpSpeed=tmpSpeed+combatModSpeed+stanceSpeedMod`, floored
+  at `tmpMinSpeed`), the weapon keeps his speed and minimum. That is what a weapon's speed already does.
+  Where he fixes the speed, the minimum is set to the speed. The Mephyts' Heat and Cold Skin write a
+  lower minimum his code never reaches, and that figure is dropped. His `"S"` (Centaur Trample,
+  Gryphara Raking Claws) is `speedSpecial`.
+- **Se'eth venom by title.** His card appends `getPoisonByTitle(title)`. The description carries the
+  whole 1-15 table, since a weapon's text does not change as its owner advances.
+
+**Departures, each written into the weapon's own description:**
+- His type is only a label on his card. A weapon's mode sets its damage type, so each type takes the
+  nearest mode: Cut→cut, Pierce→thrust, Smash→smash, Pierce/Smash→both. Crush and Constrict become
+  smash, because a weapon has neither mode.
+- **Touch** (Brok's Harm Touch, and the Mephyts' Heat and Cold Skin) is rolled in his sheet as a touch:
+  d20 plus the Agility modifier, 10 or better. The weapon attack rolls it down the chart instead. It is
+  left in `docs/sonnet/2026-09-23-natural-weapons.md`.
+- His `getNaturalAttackLost` (a lost limb loses its attack) is not ported. It is in the same note.
+
+**Not done:** Famorian. Its attacks come from its evokes (`setFamorianNaturalAttacks`) and want their
+own pass, which is also in the note.
+
+**Verified:** `tools/natural-weapons-test.html` 22 of 22, against the real documents. `chargen-test`
+89/89, `derive-test` 510, `combat-test` 520, `importer-test` 9, all passing. `syntax-check` clean
+with the new module listed. **Not verified:** a running V14. Not released either: the tree held
+another session's unfinished work when this was done.

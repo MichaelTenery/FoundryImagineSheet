@@ -184,7 +184,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "4"
+      "page": "4",
+      "naturalWeapons": [
+        {
+          "name": "Apocritara Mandible Bite",
+          "physique": ""
+        },
+        {
+          "name": "Apocritara Stinger",
+          "physique": "slight"
+        }
+      ]
     }
   },
   {
@@ -386,7 +396,17 @@
         "maxAge": "70"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "24"
+      "page": "24",
+      "naturalWeapons": [
+        {
+          "name": "Arachen Fang Bite",
+          "physique": ""
+        },
+        {
+          "name": "Arachen Stinger",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -562,7 +582,13 @@
         "maxAge": "250"
       },
       "sourcebook": "Master's Manual",
-      "page": "23"
+      "page": "23",
+      "naturalWeapons": [
+        {
+          "name": "Avian(Dark) Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -775,7 +801,8 @@
         "maxAge": "180"
       },
       "sourcebook": "Player's Guide",
-      "page": "27"
+      "page": "27",
+      "naturalWeapons": []
     }
   },
   {
@@ -960,7 +987,8 @@
         "maxAge": "250"
       },
       "sourcebook": "Player's Guide",
-      "page": "26"
+      "page": "26",
+      "naturalWeapons": []
     }
   },
   {
@@ -1161,7 +1189,17 @@
         "maxAge": "200"
       },
       "sourcebook": "Epitaph of the Fallen",
-      "page": "3"
+      "page": "3",
+      "naturalWeapons": [
+        {
+          "name": "Ba'Cora Fang Bite",
+          "physique": ""
+        },
+        {
+          "name": "Ba'Cora Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -1358,7 +1396,13 @@
         "maxAge": "70"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "1"
+      "page": "1",
+      "naturalWeapons": [
+        {
+          "name": "Beastman Horn Attack",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -1550,7 +1594,17 @@
         "maxAge": "70"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "5"
+      "page": "5",
+      "naturalWeapons": [
+        {
+          "name": "Brachara Crusher Claw",
+          "physique": ""
+        },
+        {
+          "name": "Brachara Pincer Claw",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -1729,7 +1783,13 @@
         "maxAge": "200"
       },
       "sourcebook": "Epitaph of the Fallen",
-      "page": "4"
+      "page": "4",
+      "naturalWeapons": [
+        {
+          "name": "Brok Harm Touch",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -1930,7 +1990,13 @@
         "maxAge": "2000"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "2"
+      "page": "2",
+      "naturalWeapons": [
+        {
+          "name": "Brownie Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -2118,7 +2184,21 @@
         "maxAge": "250"
       },
       "sourcebook": "Player's Guide",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": [
+        {
+          "name": "Centaur Foreleg",
+          "physique": ""
+        },
+        {
+          "name": "Centaur Hindleg",
+          "physique": ""
+        },
+        {
+          "name": "Centaur Trample",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -2306,7 +2386,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "6"
+      "page": "6",
+      "naturalWeapons": [
+        {
+          "name": "Cervara Hoof Kick",
+          "physique": ""
+        },
+        {
+          "name": "Cervara Antler Gouge",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -2457,7 +2547,8 @@
         "maxAge": "1200"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "3"
+      "page": "3",
+      "naturalWeapons": []
     }
   },
   {
@@ -2645,7 +2736,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Master's Manual",
-      "page": "22"
+      "page": "22",
+      "naturalWeapons": [
+        {
+          "name": "Chetahl Claws",
+          "physique": ""
+        },
+        {
+          "name": "Chetahl Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -2847,7 +2948,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "7"
+      "page": "7",
+      "naturalWeapons": []
     }
   },
   {
@@ -3029,7 +3131,8 @@
         "maxAge": "300"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "8"
+      "page": "8",
+      "naturalWeapons": []
     }
   },
   {
@@ -3212,7 +3315,8 @@
         "maxAge": "300"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "9"
+      "page": "9",
+      "naturalWeapons": []
     }
   },
   {
@@ -3411,7 +3515,8 @@
         "maxAge": "1600"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "5"
+      "page": "5",
+      "naturalWeapons": []
     }
   },
   {
@@ -3616,7 +3721,8 @@
         "maxAge": "200"
       },
       "sourcebook": "Player's Guide",
-      "page": "20"
+      "page": "20",
+      "naturalWeapons": []
     }
   },
   {
@@ -3822,7 +3928,8 @@
         "maxAge": "200"
       },
       "sourcebook": "Player's Guide",
-      "page": "22"
+      "page": "22",
+      "naturalWeapons": []
     }
   },
   {
@@ -4033,7 +4140,8 @@
         "maxAge": "200"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "25"
+      "page": "25",
+      "naturalWeapons": []
     }
   },
   {
@@ -4263,7 +4371,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "10"
+      "page": "10",
+      "naturalWeapons": []
     }
   },
   {
@@ -4472,7 +4581,8 @@
         "maxAge": "200"
       },
       "sourcebook": "Player's Guide",
-      "page": "21"
+      "page": "21",
+      "naturalWeapons": []
     }
   },
   {
@@ -4707,7 +4817,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "11"
+      "page": "11",
+      "naturalWeapons": []
     }
   },
   {
@@ -4930,7 +5041,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Player's Guide",
-      "page": "19"
+      "page": "19",
+      "naturalWeapons": []
     }
   },
   {
@@ -5150,7 +5262,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "26"
+      "page": "26",
+      "naturalWeapons": []
     }
   },
   {
@@ -5356,7 +5469,8 @@
         "maxAge": "500"
       },
       "sourcebook": "Epitaph of the Fallen",
-      "page": "5"
+      "page": "5",
+      "naturalWeapons": []
     }
   },
   {
@@ -5558,7 +5672,8 @@
         "maxAge": "1600"
       },
       "sourcebook": "Player's Guide",
-      "page": "17"
+      "page": "17",
+      "naturalWeapons": []
     }
   },
   {
@@ -5761,7 +5876,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Player's Guide",
-      "page": "16"
+      "page": "16",
+      "naturalWeapons": []
     }
   },
   {
@@ -5969,7 +6085,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "27"
+      "page": "27",
+      "naturalWeapons": []
     }
   },
   {
@@ -6187,7 +6304,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "28"
+      "page": "28",
+      "naturalWeapons": []
     }
   },
   {
@@ -6411,7 +6529,8 @@
         "maxAge": "Immortal"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "12"
+      "page": "12",
+      "naturalWeapons": []
     }
   },
   {
@@ -6635,7 +6754,8 @@
         "maxAge": "Immortal"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "13"
+      "page": "13",
+      "naturalWeapons": []
     }
   },
   {
@@ -6858,7 +6978,8 @@
         "maxAge": "1200"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "14"
+      "page": "14",
+      "naturalWeapons": []
     }
   },
   {
@@ -7077,7 +7198,8 @@
         "maxAge": "1200"
       },
       "sourcebook": "Player's Guide",
-      "page": "18"
+      "page": "18",
+      "naturalWeapons": []
     }
   },
   {
@@ -7257,7 +7379,13 @@
         "maxAge": "100"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "29"
+      "page": "29",
+      "naturalWeapons": [
+        {
+          "name": "Equara Hoof Kick",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -7468,7 +7596,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Epitaph of the Fallen",
-      "page": "7"
+      "page": "7",
+      "naturalWeapons": []
     }
   },
   {
@@ -7665,7 +7794,8 @@
         "maxAge": "70"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "15"
+      "page": "15",
+      "naturalWeapons": []
     }
   },
   {
@@ -7859,7 +7989,21 @@
         "maxAge": "1600"
       },
       "sourcebook": "Master's Manual",
-      "page": "25"
+      "page": "25",
+      "naturalWeapons": [
+        {
+          "name": "Giant(Civilized) Punch",
+          "physique": ""
+        },
+        {
+          "name": "Giant(Civilized) Kick",
+          "physique": ""
+        },
+        {
+          "name": "Giant(Civilized) Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -8053,7 +8197,21 @@
         "maxAge": "1600"
       },
       "sourcebook": "Master's Manual",
-      "page": "25"
+      "page": "25",
+      "naturalWeapons": [
+        {
+          "name": "Giant(Civilized:Seafaring) Punch",
+          "physique": ""
+        },
+        {
+          "name": "Giant(Civilized:Seafaring) Kick",
+          "physique": ""
+        },
+        {
+          "name": "Giant(Civilized:Seafaring) Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -8262,7 +8420,21 @@
         "maxAge": "Immortal"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "16"
+      "page": "16",
+      "naturalWeapons": [
+        {
+          "name": "Giant(True) Punch",
+          "physique": ""
+        },
+        {
+          "name": "Giant(True) Kick",
+          "physique": ""
+        },
+        {
+          "name": "Giant(True) Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -8491,7 +8663,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Master's Manual",
-      "page": "26"
+      "page": "26",
+      "naturalWeapons": []
     }
   },
   {
@@ -8708,7 +8881,8 @@
         "maxAge": "70"
       },
       "sourcebook": "Master's Manual",
-      "page": "27"
+      "page": "27",
+      "naturalWeapons": []
     }
   },
   {
@@ -8901,7 +9075,8 @@
         "maxAge": "70"
       },
       "sourcebook": "Master's Manual",
-      "page": "28"
+      "page": "28",
+      "naturalWeapons": []
     }
   },
   {
@@ -9103,7 +9278,8 @@
         "maxAge": "70"
       },
       "sourcebook": "Master's Manual",
-      "page": "28"
+      "page": "28",
+      "naturalWeapons": []
     }
   },
   {
@@ -9304,7 +9480,8 @@
         "maxAge": "70"
       },
       "sourcebook": "Player's Guide",
-      "page": "28"
+      "page": "28",
+      "naturalWeapons": []
     }
   },
   {
@@ -9489,7 +9666,17 @@
         "maxAge": "100"
       },
       "sourcebook": "Master's Manual",
-      "page": "29"
+      "page": "29",
+      "naturalWeapons": [
+        {
+          "name": "Grahl Claws",
+          "physique": ""
+        },
+        {
+          "name": "Grahl Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -9731,7 +9918,17 @@
         "maxAge": "5000"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "7"
+      "page": "7",
+      "naturalWeapons": [
+        {
+          "name": "Gremlin Claws",
+          "physique": ""
+        },
+        {
+          "name": "Gremlin Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -9917,7 +10114,8 @@
         "maxAge": "120"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "18"
+      "page": "18",
+      "naturalWeapons": []
     }
   },
   {
@@ -10106,7 +10304,21 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "19"
+      "page": "19",
+      "naturalWeapons": [
+        {
+          "name": "Gryphara Beak",
+          "physique": ""
+        },
+        {
+          "name": "Gryphara Talons",
+          "physique": ""
+        },
+        {
+          "name": "Gryphara Raking Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -10300,7 +10512,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "20"
+      "page": "20",
+      "naturalWeapons": [
+        {
+          "name": "Hippotara Kick",
+          "physique": ""
+        },
+        {
+          "name": "Hippotara Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -10505,7 +10727,8 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "21"
+      "page": "21",
+      "naturalWeapons": []
     }
   },
   {
@@ -10737,7 +10960,8 @@
         "maxAge": "80"
       },
       "sourcebook": "Player's Guide",
-      "page": "15"
+      "page": "15",
+      "naturalWeapons": []
     }
   },
   {
@@ -10968,7 +11192,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Player's Guide",
-      "page": "14"
+      "page": "14",
+      "naturalWeapons": []
     }
   },
   {
@@ -11200,7 +11425,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Player's Guide",
-      "page": "14"
+      "page": "14",
+      "naturalWeapons": []
     }
   },
   {
@@ -11408,7 +11634,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Player's Guide",
-      "page": "14"
+      "page": "14",
+      "naturalWeapons": []
     }
   },
   {
@@ -11632,7 +11859,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Player's Guide",
-      "page": "14"
+      "page": "14",
+      "naturalWeapons": []
     }
   },
   {
@@ -11813,7 +12041,8 @@
         "maxAge": "300"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "22"
+      "page": "22",
+      "naturalWeapons": []
     }
   },
   {
@@ -11999,7 +12228,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "23"
+      "page": "23",
+      "naturalWeapons": [
+        {
+          "name": "Jumara Hoof Kick",
+          "physique": ""
+        },
+        {
+          "name": "Jumara Head Butt",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -12191,7 +12430,17 @@
         "maxAge": "1000"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "9"
+      "page": "9",
+      "naturalWeapons": [
+        {
+          "name": "Katara Claws",
+          "physique": ""
+        },
+        {
+          "name": "Katara Raking Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -12378,7 +12627,13 @@
         "maxAge": "180"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "8"
+      "page": "8",
+      "naturalWeapons": [
+        {
+          "name": "Kenku Beak",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -12571,7 +12826,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "24"
+      "page": "24",
+      "naturalWeapons": [
+        {
+          "name": "Kerasara Kick",
+          "physique": ""
+        },
+        {
+          "name": "Kerasara Horn Gouge",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -12759,7 +13024,8 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "25"
+      "page": "25",
+      "naturalWeapons": []
     }
   },
   {
@@ -12973,7 +13239,8 @@
         "maxAge": "2500"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "10"
+      "page": "10",
+      "naturalWeapons": []
     }
   },
   {
@@ -13151,7 +13418,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "26"
+      "page": "26",
+      "naturalWeapons": [
+        {
+          "name": "Lissara Claws",
+          "physique": ""
+        },
+        {
+          "name": "Lissara Tail Slap",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -13332,7 +13609,13 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "27"
+      "page": "27",
+      "naturalWeapons": [
+        {
+          "name": "Lotara Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -13512,7 +13795,13 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "28"
+      "page": "28",
+      "naturalWeapons": [
+        {
+          "name": "Loxodara Tusk Gouge",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -13692,7 +13981,13 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "29"
+      "page": "29",
+      "naturalWeapons": [
+        {
+          "name": "Lutrinara Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -13882,7 +14177,8 @@
         "maxAge": "300"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "31"
+      "page": "31",
+      "naturalWeapons": []
     }
   },
   {
@@ -14091,7 +14387,17 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "32"
+      "page": "32",
+      "naturalWeapons": [
+        {
+          "name": "Mechanos Punch",
+          "physique": ""
+        },
+        {
+          "name": "Mechanos Kick",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -14272,7 +14578,21 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "33"
+      "page": "33",
+      "naturalWeapons": [
+        {
+          "name": "Mellivara Bite",
+          "physique": ""
+        },
+        {
+          "name": "Mellivara Claws",
+          "physique": ""
+        },
+        {
+          "name": "Mellivara Raking Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -14485,7 +14805,17 @@
         "maxAge": "5000"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": [
+        {
+          "name": "Mephyt(Fire) Heat Skin",
+          "physique": ""
+        },
+        {
+          "name": "Mephyt(Fire) Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -14703,7 +15033,17 @@
         "maxAge": "5000"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "31"
+      "page": "31",
+      "naturalWeapons": [
+        {
+          "name": "Mephyt(Ice) Cold Skin",
+          "physique": ""
+        },
+        {
+          "name": "Mephyt(Ice) Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -14924,7 +15264,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "32"
+      "page": "32",
+      "naturalWeapons": []
     }
   },
   {
@@ -15146,7 +15487,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Player's Guide",
-      "page": "24"
+      "page": "24",
+      "naturalWeapons": []
     }
   },
   {
@@ -15356,7 +15698,8 @@
         "maxAge": "120"
       },
       "sourcebook": "Player's Guide",
-      "page": "25"
+      "page": "25",
+      "naturalWeapons": []
     }
   },
   {
@@ -15566,7 +15909,8 @@
         "maxAge": "120"
       },
       "sourcebook": "Player's Guide",
-      "page": "23"
+      "page": "23",
+      "naturalWeapons": []
     }
   },
   {
@@ -15780,7 +16124,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "33"
+      "page": "33",
+      "naturalWeapons": []
     }
   },
   {
@@ -15983,7 +16328,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "34"
+      "page": "34",
+      "naturalWeapons": []
     }
   },
   {
@@ -16185,7 +16531,8 @@
         "maxAge": "70"
       },
       "sourcebook": "Player's Guide",
-      "page": "29"
+      "page": "29",
+      "naturalWeapons": []
     }
   },
   {
@@ -16396,7 +16743,8 @@
         "maxAge": "70"
       },
       "sourcebook": "Player's Guide",
-      "page": "29"
+      "page": "29",
+      "naturalWeapons": []
     }
   },
   {
@@ -16579,7 +16927,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "35"
+      "page": "35",
+      "naturalWeapons": []
     }
   },
   {
@@ -16774,7 +17123,13 @@
         "maxAge": "100"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "11"
+      "page": "11",
+      "naturalWeapons": [
+        {
+          "name": "Ratahl Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -16967,7 +17322,21 @@
         "maxAge": "70"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "15"
+      "page": "15",
+      "naturalWeapons": [
+        {
+          "name": "S'rett Claws",
+          "physique": ""
+        },
+        {
+          "name": "S'rett Bite",
+          "physique": ""
+        },
+        {
+          "name": "S'rett Tail Slap",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -17156,7 +17525,17 @@
         "maxAge": "100"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "12"
+      "page": "12",
+      "naturalWeapons": [
+        {
+          "name": "Sasquatch/Yeti Claws",
+          "physique": ""
+        },
+        {
+          "name": "Sasquatch/Yeti Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -17357,7 +17736,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "13"
+      "page": "13",
+      "naturalWeapons": []
     }
   },
   {
@@ -17557,7 +17937,21 @@
         "maxAge": "70"
       },
       "sourcebook": "Player's Guide",
-      "page": "31"
+      "page": "31",
+      "naturalWeapons": [
+        {
+          "name": "Saurian Claws",
+          "physique": ""
+        },
+        {
+          "name": "Saurian Bite",
+          "physique": ""
+        },
+        {
+          "name": "Saurian Tail Slap",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -17752,7 +18146,13 @@
         "maxAge": "70"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "34"
+      "page": "34",
+      "naturalWeapons": [
+        {
+          "name": "Scethen Barbed Tail",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -17949,7 +18349,17 @@
         "maxAge": "1200"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "14"
+      "page": "14",
+      "naturalWeapons": [
+        {
+          "name": "Se'eth Fangs",
+          "physique": ""
+        },
+        {
+          "name": "Se'eth Constriction Grapple",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -18122,7 +18532,21 @@
         "maxAge": "100"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "35"
+      "page": "35",
+      "naturalWeapons": [
+        {
+          "name": "Sha'Cora Bite",
+          "physique": ""
+        },
+        {
+          "name": "Sha'Cora Rending Teeth",
+          "physique": ""
+        },
+        {
+          "name": "Sha'Cora Chafing Skin",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -18324,7 +18748,21 @@
         "maxAge": "100"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "38"
+      "page": "38",
+      "naturalWeapons": [
+        {
+          "name": "Sura'keth Claws",
+          "physique": ""
+        },
+        {
+          "name": "Sura'keth Bite",
+          "physique": ""
+        },
+        {
+          "name": "Sura'keth Tail Slap",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -18515,7 +18953,21 @@
         "maxAge": "70"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "39"
+      "page": "39",
+      "naturalWeapons": [
+        {
+          "name": "Sura'rath Claws",
+          "physique": ""
+        },
+        {
+          "name": "Sura'rath Bite",
+          "physique": ""
+        },
+        {
+          "name": "Sura'rath Tail Slap",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -18699,7 +19151,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "40"
+      "page": "40",
+      "naturalWeapons": [
+        {
+          "name": "Susara Hoof Kick",
+          "physique": ""
+        },
+        {
+          "name": "Susara Tusk Gouge",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -18894,7 +19356,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "16"
+      "page": "16",
+      "naturalWeapons": []
     }
   },
   {
@@ -19070,7 +19533,17 @@
         "maxAge": "100"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "17"
+      "page": "17",
+      "naturalWeapons": [
+        {
+          "name": "Taurian Hoof Kick",
+          "physique": ""
+        },
+        {
+          "name": "Taurian Horn Attack",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -19245,7 +19718,8 @@
         "maxAge": "200"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "41"
+      "page": "41",
+      "naturalWeapons": []
     }
   },
   {
@@ -19422,7 +19896,13 @@
         "maxAge": "500"
       },
       "sourcebook": "Master's Manual",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": [
+        {
+          "name": "Troll Talons",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -19627,7 +20107,17 @@
         "maxAge": "500"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "42"
+      "page": "42",
+      "naturalWeapons": [
+        {
+          "name": "Troll(Ice) Claws",
+          "physique": ""
+        },
+        {
+          "name": "Troll(Ice) Tusk Gouge",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -19808,7 +20298,8 @@
         "maxAge": "300"
       },
       "sourcebook": "Master's Manual",
-      "page": "31"
+      "page": "31",
+      "naturalWeapons": []
     }
   },
   {
@@ -19993,7 +20484,17 @@
         "maxAge": "80"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "43"
+      "page": "43",
+      "naturalWeapons": [
+        {
+          "name": "Ursara Claws",
+          "physique": ""
+        },
+        {
+          "name": "Ursara Bite",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -20176,7 +20677,8 @@
         "maxAge": "80"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "36"
+      "page": "36",
+      "naturalWeapons": []
     }
   },
   {
@@ -20359,7 +20861,17 @@
         "maxAge": "100"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "37"
+      "page": "37",
+      "naturalWeapons": [
+        {
+          "name": "Whalrog Claws",
+          "physique": ""
+        },
+        {
+          "name": "Whalrog Tusk",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -20571,7 +21083,8 @@
         "maxAge": "120"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "44"
+      "page": "44",
+      "naturalWeapons": []
     }
   },
   {
@@ -20764,7 +21277,21 @@
         "maxAge": "100"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "45"
+      "page": "45",
+      "naturalWeapons": [
+        {
+          "name": "Wolfen Bite",
+          "physique": ""
+        },
+        {
+          "name": "Wolfen Claws",
+          "physique": ""
+        },
+        {
+          "name": "Wolfen Raking Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -20958,7 +21485,13 @@
         "maxAge": "70"
       },
       "sourcebook": "Legends of the Unknown",
-      "page": "38"
+      "page": "38",
+      "naturalWeapons": [
+        {
+          "name": "Xar'Xeth Digging Claws",
+          "physique": ""
+        }
+      ]
     }
   },
   {
@@ -21156,7 +21689,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": []
     }
   },
   {
@@ -21379,7 +21913,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Master's Manual",
-      "page": "24"
+      "page": "24",
+      "naturalWeapons": []
     }
   },
   {
@@ -21610,7 +22145,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Master's Manual",
-      "page": "24"
+      "page": "24",
+      "naturalWeapons": []
     }
   },
   {
@@ -21821,7 +22357,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "4"
+      "page": "4",
+      "naturalWeapons": []
     }
   },
   {
@@ -22036,7 +22573,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "4"
+      "page": "4",
+      "naturalWeapons": []
     }
   },
   {
@@ -22266,7 +22804,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "36"
+      "page": "36",
+      "naturalWeapons": []
     }
   },
   {
@@ -22496,7 +23035,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "36"
+      "page": "36",
+      "naturalWeapons": []
     }
   },
   {
@@ -22713,7 +23253,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "36"
+      "page": "36",
+      "naturalWeapons": []
     }
   },
   {
@@ -22930,7 +23471,8 @@
         "maxAge": "5000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "36"
+      "page": "36",
+      "naturalWeapons": []
     }
   },
   {
@@ -23128,7 +23670,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": []
     }
   },
   {
@@ -23326,7 +23869,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": []
     }
   },
   {
@@ -23524,7 +24068,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": []
     }
   },
   {
@@ -23722,7 +24267,8 @@
         "maxAge": "1000"
       },
       "sourcebook": "Mysteries of the Planes",
-      "page": "30"
+      "page": "30",
+      "naturalWeapons": []
     }
   },
   {
@@ -23995,7 +24541,8 @@
         "maxAge": "Immortal"
       },
       "sourcebook": "Epitaph of the Fallen",
-      "page": "6"
+      "page": "6",
+      "naturalWeapons": []
     }
   },
   {
@@ -24804,7 +25351,8 @@
         "maxAge": "100"
       },
       "sourcebook": "Aspects of the Wild",
-      "page": "6"
+      "page": "6",
+      "naturalWeapons": []
     }
   }
 ]

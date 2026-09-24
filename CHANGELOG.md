@@ -18,6 +18,16 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## Unreleased
+
+**Races with natural weapons now have them on the sheet.** A Saurian starts with Saurian Claws,
+Saurian Bite and Saurian Tail Slap in its Weapons section, equipped and rolled like any other weapon.
+There are 95 of them across 48 races, taken from his sheet. They arrive with the race, in the
+character generator or when a race is dropped on a character. Delete any you don't want and they
+stay deleted. For a character made before this, re-import the content, then run
+`game.imagine.grantNaturalWeapons(actor)` in the console. Touch attacks (Brok, the Mephyts) still
+need the 10-or-better touch roll made at the table.
+
 ## 0.18.2 — 2026-09-23
 
 Found at a real table on 0.18.1.

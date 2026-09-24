@@ -1,0 +1,91 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG natural weapons test</title>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for natural weapons: module/natural-weapons.mjs (which body, which weapons, the items built)
+// and the generator's use of it in assembleCharacter (module/chargen-rules.mjs), against the REAL
+// race and weapon documents in src/packs/documents/ -- so a rebuild that drops a weapon, renames one
+// or unlinks a race fails here.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/natural-weapons-test.html
+const NW = await import("../module/natural-weapons.mjs");
+const { assembleCharacter } = await import("../module/chargen-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+const load = async (n) => (await fetch(`../src/packs/documents/${n}.json`, { cache: "no-store" })).json();
+const races = await load("races");
+const weapons = await load("weapons");
+const race = (n) => { const d = races.find(r => r.name == n); if (!d) { throw new Error("no race " + n); } return d; };
+const content = { races, classes: [], skills: [], equipment: [], armor: [], weapons };
+const make = (raceNames, extra = {}) => assembleCharacter({ raceNames, ...extra }, content, () => 1);
+const weaponNames = (tmpassembled) => tmpassembled.items.filter(i => i.type == "weapon").map(i => i.name);
+
+// --- the content ------------------------------------------------------------------------------------
+const natural = weapons.filter(w => w.system.type == "Natural");
+check("95 natural weapons are built (his 97, less the two of his unused 'Sasquatch' case)", natural.length, 95);
+check("48 races are born with some", races.filter(r => (r.system.naturalWeapons ?? []).length).length, 48);
+check("every name a race lists is a weapon document",
+	races.flatMap(r => (r.system.naturalWeapons ?? []).map(e => e.name)).filter(n => !weapons.find(w => w.name == n)), []);
+check("every natural weapon has a book (none XXX)", natural.filter(w => !w.system.sourcebook || w.system.sourcebook == "XXX").map(w => w.name), []);
+check("every natural weapon weighs nothing and starts equipped",
+	natural.filter(w => w.system.weight != 0 || w.system.location != "equipped").map(w => w.name), []);
+const claws = weapons.find(w => w.name == "Saurian Claws").system;
+check("Saurian Claws: his row -- Cut, 3d4, 5 seconds, minimum 3",
+	[claws.cut.available, claws.thrust.available, claws.smash.available, claws.damage, claws.speed, claws.minSpeed],
+	[true, false, false, "3d4", 5, 3]);
+const fangs = weapons.find(w => w.name == "Arachen Fang Bite").system;
+check("a fixed speed of his is its own minimum (Arachen Fang Bite, 4 and 4, Pierce -> thrust)",
+	[fangs.speed, fangs.minSpeed, fangs.thrust.available], [4, 4, true]);
+check("Se'eth Fangs carry the whole title venom table",
+	/title 1: Type I\(Sleep/.test(weapons.find(w => w.name == "Se'eth Fangs").system.description)
+	&& /title 15: Type XV/.test(weapons.find(w => w.name == "Se'eth Fangs").system.description), true);
+check("a Touch is said to be one", /TOUCH attack/.test(weapons.find(w => w.name == "Brok Harm Touch").system.description), true);
+check("his 'S' speed is a special speed (Centaur Trample)",
+	weapons.find(w => w.name == "Centaur Trample").system.speedSpecial, true);
+
+// --- which body -------------------------------------------------------------------------------------
+check("Saurian: claws, bite, tail slap",
+	NW.getNaturalWeaponNames([race("Saurian").system], null), ["Saurian Claws", "Saurian Bite", "Saurian Tail Slap"]);
+check("a Human has none", NW.getNaturalWeaponNames([race("Human(Barbaric)").system], null), []);
+check("half race: the FIRST race's body (his 'half races set body by the first race')",
+	[NW.getNaturalWeaponNames([race("Human(Barbaric)").system, race("Saurian").system], null).length,
+	 NW.getNaturalWeaponNames([race("Saurian").system, race("Human(Barbaric)").system], null).length], [0, 3]);
+check("Formless: the host's body, whichever order",
+	[NW.getNaturalWeaponNames([race("Formless").system, race("Saurian").system], null).length,
+	 NW.getNaturalWeaponNames([race("Saurian").system, race("Formless").system], null).length], [3, 3]);
+check("Formless with no host: nothing", NW.getNaturalWeaponNames([race("Formless").system], null), []);
+check("Apocritara's Stinger is the slight physique's only",
+	[NW.getNaturalWeaponNames([race("Apocritara").system], true).length,
+	 NW.getNaturalWeaponNames([race("Apocritara").system], false).length,
+	 NW.getNaturalWeaponNames([race("Apocritara").system], null).length], [2, 1, 1]);
+
+// --- the items built --------------------------------------------------------------------------------
+check("the dominant hand; Right for Ambidextrous and unset",
+	["Left", "Right", "Ambidextrous", ""].map(NW.getNaturalWeaponHand), ["left", "right", "right", "right"]);
+const built = NW.buildNaturalWeaponItems(["Saurian Claws", "Saurian Bite", "Nothing Such"], weapons, ["Saurian Claws"], "Left");
+check("a weapon already held is not given twice; a missing one is reported",
+	[built.items.map(i => i.name), built.missing, built.items[0].system.hand], [["Saurian Bite"], ["Nothing Such"], "left"]);
+
+// --- the generator ----------------------------------------------------------------------------------
+check("a new Saurian comes with its natural weapons", weaponNames(make(["Saurian"])),
+	["Saurian Claws", "Saurian Bite", "Saurian Tail Slap"]);
+check("in a left-handed character's left hand, equipped",
+	make(["Saurian"], { handedness: "Left" }).items.filter(i => i.type == "weapon").map(i => [i.system.hand, i.system.location]),
+	[["left", "equipped"], ["left", "equipped"], ["left", "equipped"]]);
+check("a slight Apocritara has the Stinger, an ordinary one does not",
+	[weaponNames(make(["Apocritara"], { slightPhysique: true })).length,
+	 weaponNames(make(["Apocritara"], { slightPhysique: false })).length], [2, 1]);
+check("no issue is raised for them", make(["Saurian"]).issues.filter(i => /Natural/.test(i)), []);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${failed ? failed + " FAILED" : "all passed"} -- ${results.length} checks\n\n` + results.join("\n");
+</script>

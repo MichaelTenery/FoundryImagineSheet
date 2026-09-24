@@ -21,6 +21,7 @@
 
 import { buildStartingKit } from "./starting-kit.mjs";
 import { chooseBestArmor } from "./equip-rules.mjs";
+import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapons.mjs";
 
 	// The twelve attributes, in the order his sheet and the Player's Guide list them.
 	export const ATTRIBUTE_ORDER = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "pty", "wil"];
@@ -500,6 +501,20 @@ import { chooseBestArmor } from "./equip-rules.mjs";
 			if (tmpMissing.length) {
 				tmpIssues.push(`Not in the equipment tables, added by name only: ${tmpMissing.join(", ")}.`);
 			}
+		}
+
+		// @MARKER NATURAL WEAPONS
+		// The race's claws, bites and horns, as weapons in the Weapons section -- see
+		// module/natural-weapons.mjs. The generator knows the character's physique, so an attack his
+		// switch gives to one physique only (the Apocritara's Stinger) is decided here, which a race
+		// dropped on a sheet later cannot be. Not optional: they are the race's, as its skills are.
+		var tmpNatural = buildNaturalWeaponItems(
+			getNaturalWeaponNames(tmpRaceDocs.map(tmpDoc => tmpDoc.system), !!tmpChoices.slightPhysique),
+			tmpContent.weapons, tmpItems.filter(tmpEntry => tmpEntry.type == "weapon").map(tmpEntry => tmpEntry.name),
+			tmpChoices.handedness);
+		for (const tmpEntry of tmpNatural.items) { tmpItems.push(tmpEntry); }
+		if (tmpNatural.missing.length) {
+			tmpIssues.push(`Natural weapons not in the weapons compendium: ${tmpNatural.missing.join(", ")}.`);
 		}
 
 		// The same choice his sheet's Equip Best Armour button makes -- see equipBestArmorInPlace,

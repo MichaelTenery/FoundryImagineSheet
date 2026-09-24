@@ -1,0 +1,1258 @@
+{
+  "source": "setRacialNaturalAttacks (sheet-worker.js:100946) and getPoisonByTitle (102578)",
+  "entries": {
+    "Apocritara": [
+      {
+        "name": "Mandible Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "4d4",
+        "special": "Target makes STR Save every 3 seconds or held.",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Stinger",
+        "type": "Pierce",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "Venom (Type V-Paralysis, Potency P). Target makes Poison Resist: or is paralyized for 1d4 hours. If resist is made -2 physical attributes for 1d4 hours. Takes 1d10 seconds to take effect.",
+        "venomByTitle": false,
+        "physique": "slight"
+      }
+    ],
+    "Arachen": [
+      {
+        "name": "Fang Bite",
+        "type": "Pierce",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "3d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Stinger",
+        "type": "Pierce",
+        "speed": 6,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "Venom (Type V-Paralysis, Potency P). If 10 physical damage taken: target makes Poison Resist or is paralyized for 1d4 hours. If resist is made -2 physical attributes for 1d4 hours. Takes 1d10 seconds to take effect.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Avian(Dark)": [
+      {
+        "name": "Claws",
+        "type": "Pierce",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "2d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Ba’Cora": [
+      {
+        "name": "Fang Bite",
+        "type": "Pierce",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "2d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "1d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Beastman": [
+      {
+        "name": "Horn Attack",
+        "type": "Smash",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "1d6+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Brachara": [
+      {
+        "name": "Crusher Claw",
+        "type": "Crush",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "5d6",
+        "special": "If Hit, restrained. Contest of Strength Saves to break free",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Pincer Claw",
+        "type": "Cut",
+        "speed": 4,
+        "minSpeed": 2,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "If Hit, restrained. Target makes an uncontested STR Save every 3 seconds to escape.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Brok": [
+      {
+        "name": "Harm Touch",
+        "type": "Touch",
+        "speed": 5,
+        "minSpeed": 5,
+        "speedAdjusts": false,
+        "damage": "2d6+2",
+        "special": "Living Touch Aversion: attacker must make a Will Force save to make this attack. Attacker must make a Control Resist or temporarily lose 1 Will Force point. Does not work on types Plant, Magical Plant and Magical.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Brownie": [
+      {
+        "name": "Bite",
+        "type": "Pierce",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "1d3+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Centaur": [
+      {
+        "name": "Foreleg",
+        "type": "Smash",
+        "speed": 6,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Hindleg",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "4d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Trample",
+        "type": "Touch",
+        "speed": "S",
+        "minSpeed": "S",
+        "speedAdjusts": false,
+        "damage": "5d6",
+        "special": "Vs. prone opponents or those knocked prone in a move through. Trample hits 1d4 body areas if successful.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Cervara": [
+      {
+        "name": "Hoof Kick",
+        "type": "Smash",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "2d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Antler Gouge",
+        "type": "Pierce/Smash",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "5d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Chetahl": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "2d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Pierce",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "2d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Equara": [
+      {
+        "name": "Hoof Kick",
+        "type": "Smash",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Giant(Civilized)": [
+      {
+        "name": "Punch",
+        "type": "Smash",
+        "speed": 8,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Kick",
+        "type": "Smash",
+        "speed": 10,
+        "minSpeed": 6,
+        "speedAdjusts": true,
+        "damage": "5d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "5d6+5",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Giant(Civilized:Seafaring)": [
+      {
+        "name": "Punch",
+        "type": "Smash",
+        "speed": 8,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Kick",
+        "type": "Smash",
+        "speed": 10,
+        "minSpeed": 6,
+        "speedAdjusts": true,
+        "damage": "5d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "5d6+5",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Giant(True)": [
+      {
+        "name": "Punch",
+        "type": "Crush",
+        "speed": 8,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "4d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Kick",
+        "type": "Smash",
+        "speed": 10,
+        "minSpeed": 6,
+        "speedAdjusts": true,
+        "damage": "6d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "6d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Grahl": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "1d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Pierce",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "2d6+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Gremlin": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "1d4+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Pierce",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "1d6+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Gryphara": [
+      {
+        "name": "Beak",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 2,
+        "speedAdjusts": true,
+        "damage": "2d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Talons",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Raking Claws",
+        "type": "Cut",
+        "speed": "S",
+        "minSpeed": "S",
+        "speedAdjusts": false,
+        "damage": "3d6+3",
+        "special": "During fly by attacks only.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Hippotara": [
+      {
+        "name": "Kick",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "1d4+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Crush",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "6d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Jumara": [
+      {
+        "name": "Hoof Kick",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 2,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Head Butt",
+        "type": "Smash",
+        "speed": 3,
+        "minSpeed": 2,
+        "speedAdjusts": true,
+        "damage": "2d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Katara": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "2d6+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Raking Claws",
+        "type": "Cut",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "3d6+2",
+        "special": "Attack in grapple or Vs. prone target.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Kenku": [
+      {
+        "name": "Beak",
+        "type": "Pierce",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "1d4+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Kerasara": [
+      {
+        "name": "Kick",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Horn Gouge",
+        "type": "Pierce",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "5d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Lissara": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "3d4+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tail Slap",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "2d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Lotara": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "2d4+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Loxodara": [
+      {
+        "name": "Tusk Gouge",
+        "type": "Pierce",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Lutrinara": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "3d4+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Mechanos": [
+      {
+        "name": "Punch",
+        "type": "Smash",
+        "speed": 4,
+        "minSpeed": 2,
+        "speedAdjusts": true,
+        "damage": "3d4+3",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Kick",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "3d6+3",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Mellivara": [
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "4d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "3d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Raking Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "5d4",
+        "special": "Attack in grapple or Vs. prone target.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Mephyt(Fire)": [
+      {
+        "name": "Heat Skin",
+        "type": "Heat Touch",
+        "speed": 2,
+        "minSpeed": 1,
+        "speedAdjusts": false,
+        "damage": "1d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "1d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Mephyt(Ice)": [
+      {
+        "name": "Cold Skin",
+        "type": "Cold Touch",
+        "speed": 2,
+        "minSpeed": 1,
+        "speedAdjusts": false,
+        "damage": "1d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "1d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Ratahl": [
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "2d4+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "S’rett": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "1d4+3",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "2d4+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tail Slap",
+        "type": "Smash",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "2d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Sasquatch": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "2d6+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "3d6+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Sasquatch/Yeti": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "2d6+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "3d6+1",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Saurian": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "3d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 5,
+        "speedAdjusts": false,
+        "damage": "4d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tail Slap",
+        "type": "Smash",
+        "speed": 6,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Scethen": [
+      {
+        "name": "Barbed Tail",
+        "type": "Pierce",
+        "speed": 5,
+        "minSpeed": 5,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "Type V(Paralysis, 1d4 hours,if resist -2 Physicals)-Potency P(1d10 seconds)",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Se’eth": [
+      {
+        "name": "Fangs",
+        "type": "Pierce",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "3d4+2",
+        "special": "Once per 10 seconds: ",
+        "venomByTitle": true,
+        "physique": ""
+      },
+      {
+        "name": "Constriction Grapple",
+        "type": "Constrict",
+        "speed": 5,
+        "minSpeed": 5,
+        "speedAdjusts": false,
+        "damage": "4d4",
+        "special": "During grappling only. +20% to grappling moves.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Sha’Cora": [
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Rending Teeth",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "4d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Chafing Skin",
+        "type": "Touch",
+        "speed": 1,
+        "minSpeed": 1,
+        "speedAdjusts": false,
+        "damage": "1d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Sura’keth": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "2d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tail Slap",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Sura’rath": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "3d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "4d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tail Slap",
+        "type": "Smash",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "4d4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Susara": [
+      {
+        "name": "Hoof Kick",
+        "type": "Smash",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tusk Gouge",
+        "type": "Pierce",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "4d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Taurian": [
+      {
+        "name": "Hoof Kick",
+        "type": "Smash",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Horn Attack",
+        "type": "Pierce",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "2d6+4",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Troll": [
+      {
+        "name": "Talons",
+        "type": "Cut",
+        "speed": 4,
+        "minSpeed": 2,
+        "speedAdjusts": true,
+        "damage": "4d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Troll(Ice)": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 4,
+        "minSpeed": 2,
+        "speedAdjusts": true,
+        "damage": "4d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tusk Gouge",
+        "type": "Pierce",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Ursara": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 5,
+        "speedAdjusts": false,
+        "damage": "5d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 4,
+        "minSpeed": 4,
+        "speedAdjusts": false,
+        "damage": "4d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Whalrog": [
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "1d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Tusk",
+        "type": "Pierce",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Wolfen": [
+      {
+        "name": "Bite",
+        "type": "Cut",
+        "speed": 3,
+        "minSpeed": 3,
+        "speedAdjusts": false,
+        "damage": "3d6+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Claws",
+        "type": "Cut",
+        "speed": 2,
+        "minSpeed": 2,
+        "speedAdjusts": false,
+        "damage": "2d6+2",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      },
+      {
+        "name": "Raking Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 4,
+        "speedAdjusts": true,
+        "damage": "2d6+4",
+        "special": "Attack in grapple or Vs. prone target.",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ],
+    "Xar’Xeth": [
+      {
+        "name": "Digging Claws",
+        "type": "Cut",
+        "speed": 5,
+        "minSpeed": 3,
+        "speedAdjusts": true,
+        "damage": "1d6",
+        "special": "",
+        "venomByTitle": false,
+        "physique": ""
+      }
+    ]
+  },
+  "venomByTitle": {
+    "1": "Type I(Sleep,1d4 minutes)-Potency M(10-60 seconds)",
+    "2": "Type II(Sleep,10d40 minutes)-Potency M(10-60 seconds)",
+    "3": "Type III(Sleep,1d4 hours,if resist -2 Physicals)-Potency N(10-40 seconds)",
+    "4": "Type IV(Paralysis,1d10 minutes)-Potency N(10-40 seconds)",
+    "5": "Type V(Paralysis, 1d4 hours,if resist -2 Physicals)-Potency O(10-30 seconds)",
+    "6": "Type VI(1d4 damage per hour,2d4 hours)-Potency O(10-30 seconds)",
+    "7": "Type VII(1d4 damage per 10 minutes,10d60 minutes)-Potency P(1d10 seconds)",
+    "8": "Type VIII(1d4 damage per minute,1d6 minutes)-Potency P(1d10 seconds)",
+    "9": "Type IX(1d6 damage per minute,1d6 minutes)-Potency Q(instant)",
+    "10": "Type X(1d8 damage per minute,1d6 minutes)-Potency Q(instant)",
+    "11": "Type XI(1d10 damage per minute,1d6 minutes)-Potency Q(instant)",
+    "12": "Type XII(2d6 damage per minute,1d6 minutes)-Potency Q(instant)",
+    "13": "Type XIII(1d4 damage per 10 seconds,if resist 1d4 per minute,1d4 minutes)-Potency Q(instant)",
+    "14": "Type XIV(1d6 damage per 10 seconds,if resist 1d4 per minute,1d4 minutes)-Potency Q(instant)",
+    "15": "Type XV(1d6 damage per 10 seconds,if resist 1d6 per minute,1d4 minutes)-Potency Q(instant)"
+  },
+  "_noNaturalAttacks": [
+    "Avian(Forest)",
+    "Avian(Mountain)",
+    "Crystori",
+    "Dao",
+    "Djinn",
+    "Dryad",
+    "Dwarf(Civilized)",
+    "Dwarf(Dark)",
+    "Dwarf(Fire)",
+    "Dwarf(Iron)",
+    "Dwarf(Mountain)",
+    "Dwarf(Stone)",
+    "Elf(Dark)",
+    "Elf(Desert)",
+    "Elf(Dread)",
+    "Elf(Gray)",
+    "Elf(High)",
+    "Elf(Ice)",
+    "Elf(Sea)",
+    "Elf(Shadow)",
+    "Elf(Silver)",
+    "Elf(Wild)",
+    "Elf(Wood)",
+    "Fairy",
+    "Fairy(Dark)",
+    "Formless",
+    "Gaunt",
+    "Geebra",
+    "Gnome",
+    "Goblin(Forest)",
+    "Goblin(Mountain)",
+    "Goblin(Mountain:Magic)",
+    "Goblin(Plains)",
+    "Grethen",
+    "Hobgoblin",
+    "Human(Barbaric)",
+    "Human(Civilized:City)",
+    "Human(Civilized:Port)",
+    "Human(Civilized:Town)",
+    "Human(Civilized:Village)",
+    "Ifrit",
+    "Lagara",
+    "Leprechaun",
+    "Maginos",
+    "Maginos(Clay)",
+    "Maginos(Metal)",
+    "Maginos(Stone)",
+    "Maginos(Wood)",
+    "Marid",
+    "Merfolk",
+    "Midfolk(Forest)",
+    "Midfolk(River)",
+    "Midfolk(Town)",
+    "Nixie",
+    "Nymph",
+    "Ogre",
+    "Ogre(Magic)",
+    "Planar",
+    "Podling",
+    "Satyr/Fawn",
+    "Sporeling",
+    "Sylph",
+    "Testudara",
+    "Troll(Rock)",
+    "Vulpara",
+    "Wildling"
+  ],
+  "_fromElsewhere": {
+    "Famorian": "setFamorianNaturalAttacks -- built from the evokes taken"
+  }
+}

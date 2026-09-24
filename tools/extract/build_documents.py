@@ -456,7 +456,174 @@ def build_weapons():
                 "extreme": clean_text(tmprow.get("rangeExtreme", "")),
             },
         }))
+    return docs + build_natural_weapons()
+
+
+# @MARKER NATURAL WEAPONS
+# A race's claws, bites and stingers, from his setRacialNaturalAttacks (sheet-worker.js:100946),
+# walked into src/packs/named/naturalAttacks.json by extract_natural_attacks.py.
+#
+# His sheet shows them in a block of their own on the Combat tab. The port makes each one an
+# ordinary WEAPON, the user's call on 2026-09-23: "I very much do want them in the weapons section
+# up with all the other equipment... If the player doesn't want them, they can remove them." A
+# weapon already carries everything his attack row does -- damage, speed, minimum speed, a mode --
+# and his handleNaturalAttack (sheet-worker.js:69996) rolls one the way a weapon is rolled: the
+# d20 down the attack chart, Strength to hit, the damage modifiers on top.
+#
+# Named "<race> <attack>" -- "Saurian Claws" -- because a Saurian's claws and a Katara's are not
+# the same weapon, the importer matches by name, and a bracketed name would be read back for his
+# quality tags ([Good], [Float]) by the code that reads names.
+#
+# HIS TYPE -> THE WEAPON'S MODE. His type is a label on the card; the port's weapon picks its
+# damage type from its mode, so the nearest mode is used and anything that is not exact is said so
+# in the weapon's own description:
+#
+#     his type      mode             exact?
+#     Cut           cut              yes
+#     Pierce        thrust           thrust damage is Thrusting, his word is Pierce -- same family
+#     Smash         smash            yes
+#     Pierce/Smash  thrust + smash   yes
+#     Crush         smash            no Crush mode on a weapon; Smashing is the nearest
+#     Constrict     smash            no Constrict mode on a weapon
+#     Touch, Heat Touch, Cold Touch  smash   his sheet rolls a touch (10 or better with the
+#                                    Agility modifier to make contact) instead of the attack
+#                                    chart; the weapon attack does not do that yet
+NATURAL_TYPE_MODES = {
+    #  his type        modes
+    "Cut":            ["cut"],
+    "Pierce":         ["thrust"],
+    "Smash":          ["smash"],
+    "Pierce/Smash":   ["thrust", "smash"],
+    "Crush":          ["smash"],
+    "Constrict":      ["smash"],
+    "Touch":          ["smash"],
+    "Heat Touch":     ["smash"],
+    "Cold Touch":     ["smash"],
+}
+NATURAL_TYPE_NOTES = {
+    "Crush":      "His sheet calls this a Crush attack. A weapon has no Crush mode, so it is rolled "
+                  "as a Smash and its damage is Smashing.",
+    "Constrict":  "His sheet calls this a Constrict attack. A weapon has no Constrict mode, so it "
+                  "is rolled as a Smash and its damage is Smashing.",
+    "Touch":      "A TOUCH attack. His sheet rolls it as a touch -- a d20 plus the Agility "
+                  "modifier, 10 or better makes contact -- not down the attack chart. The weapon "
+                  "attack does not do that yet: roll the touch at the table.",
+}
+NATURAL_TYPE_NOTES["Heat Touch"] = NATURAL_TYPE_NOTES["Touch"]
+NATURAL_TYPE_NOTES["Cold Touch"] = NATURAL_TYPE_NOTES["Touch"]
+
+
+def natural_weapon_name(tmprace, tmpattack):
+    return clean_text("%s %s" % (tmprace, tmpattack))
+
+
+def load_natural_attacks():
+    tmppayload = load_named("naturalAttacks") or {}
+    tmpentries = {clean_text(k).replace("’", "'"): v for k, v in tmppayload.get("entries", {}).items()}
+    return tmpentries, tmppayload.get("venomByTitle", {})
+
+
+def natural_key(tmpname):
+    """His race names spell the apostrophe as a curly one in this switch and as a straight one in
+    places; both are read as the same race."""
+    return clean_text(tmpname).replace("’", "'")
+
+
+def build_natural_weapons():
+    tmpentries, tmpvenom = load_natural_attacks()
+    docs = []
+    for tmprace, tmpattacks in tmpentries.items():
+        for tmpattack in tmpattacks:
+            where = "naturalAttacks/%s/%s" % (tmprace, tmpattack["name"])
+            tmptype = tmpattack["type"]
+            tmpmodes = NATURAL_TYPE_MODES.get(tmptype)
+            if tmpmodes is None:
+                note("natural-attack-type-unknown", where, "type %r has no mode; rolled as a smash" % tmptype)
+                tmpmodes = ["smash"]
+
+            # A speed he fixed is never shortened in his sheet, and a weapon's speed is always
+            # shortened by the wielder's speed modifier down to its minimum -- so a fixed speed is
+            # its own minimum here. Two of his fixed rows (the Mephyts' Heat and Cold Skin) write a
+            # lower minimum his code never reaches; that figure is not carried.
+            # "S" is his mark for no ordinary timing (a Centaur's Trample, a Gryphara's Raking
+            # Claws), exactly as in his weapon table.
+            tmpspecialspeed = str(tmpattack["speed"]).strip() == "S"
+            tmpspeed = 0 if tmpspecialspeed else int(tmpattack["speed"] or 0)
+            tmpmin = int(tmpattack["minSpeed"] or 0) if tmpattack["speedAdjusts"] else tmpspeed
+            if tmpspecialspeed:
+                tmpmin = 0
+
+            tmpparas = ["A natural weapon of the %s: his natural attack \"%s\", a %s attack."
+                        % (tmprace, tmpattack["name"], tmptype)]
+            if tmpattack["physique"] == "slight":
+                tmpparas.append("Only a %s of slight physique has this." % tmprace)
+            elif tmpattack["physique"] == "ordinary":
+                tmpparas.append("Only a %s of ordinary physique has this." % tmprace)
+            # His card writes the special text and then the title's venom straight after it
+            # ("Once per 10 seconds: " + getPoisonByTitle(title)); the whole title table is written
+            # out here, since a weapon's description does not change as its owner advances.
+            tmpspecial = clean_text(tmpattack["special"])
+            if tmpattack["venomByTitle"]:
+                tmpspecial = ("%s venom by the character's title (his getPoisonByTitle) -- %s."
+                              % (tmpspecial, "; ".join("title %s: %s" % (k, v) for k, v in tmpvenom.items())))
+            if tmpspecial:
+                tmpparas.append(tmpspecial)
+            if tmptype in NATURAL_TYPE_NOTES:
+                tmpparas.append(NATURAL_TYPE_NOTES[tmptype])
+
+            tmpsystem = {
+                "damage": clean_text(tmpattack["damage"]),
+                "speed": tmpspeed,
+                "minSpeed": tmpmin,
+                "speedSpecial": tmpspecialspeed,
+                "type": "Natural",
+                "weight": 0,
+                "location": "equipped",
+                "description": "".join("<p>%s</p>" % p for p in tmpparas),
+            }
+            for tmpmode in ("missile", "thrust", "cut", "smash"):
+                tmpsystem[tmpmode] = {"available": tmpmode in tmpmodes, "mod": 0}
+            docs.append(make_doc(natural_weapon_name(tmprace, tmpattack["name"]), "weapon", tmpsystem))
     return docs
+
+
+def attach_natural_weapons(tmpbuilt):
+    """Give each race the names of the natural weapons it grants, and give each natural weapon its
+    race's book and page. Run after every pack is built, because races are built after weapons.
+
+    A race is matched by its sourceRace -- his name for it -- so a split form takes its base race's
+    attacks, which is what his switch does: it is keyed by his names too."""
+    tmpentries, _ = load_natural_attacks()
+    tmpweapons = {tmpdoc["name"]: tmpdoc for tmpdoc in tmpbuilt.get("weapons", [])}
+    tmpused = set()
+    for tmprace in tmpbuilt.get("races", []):
+        tmpsystem = tmprace["system"]
+        tmpkey = natural_key(tmpsystem.get("sourceRace") or tmprace["name"])
+        tmplist = []
+        for tmpattack in tmpentries.get(tmpkey, []):
+            tmpname = natural_weapon_name(tmpkey, tmpattack["name"])
+            tmplist.append({"name": tmpname, "physique": tmpattack["physique"]})
+            tmpweapon = tmpweapons.get(tmpname)
+            if not tmpweapon:
+                note("natural-weapon-missing", "race %s" % tmprace["name"], "%r was not built" % tmpname)
+                continue
+            if tmpkey not in tmpused or tmpweapon["system"].get("sourcebook") in ("", "XXX", None):
+                tmpweapon["system"]["sourcebook"] = tmpsystem.get("sourcebook", "")
+                tmpweapon["system"]["page"] = str(tmpsystem.get("page", ""))
+        tmpsystem["naturalWeapons"] = tmplist
+        tmpused.add(tmpkey)
+    # A case of his that names no race the port builds -- "Sasquatch", beside the "Sasquatch/Yeti"
+    # every table of his uses for the race -- would ship weapons nobody can be born with. Reported,
+    # and left out of the pack.
+    tmpunused = {natural_weapon_name(k, a["name"]) for k in tmpentries if k not in tmpused
+                 for a in tmpentries[k]}
+    for tmpkey in tmpentries:
+        if tmpkey not in tmpused:
+            note("natural-attacks-unused", "naturalAttacks/%s" % tmpkey,
+                 "his switch gives this name natural attacks but no race of that name is built; "
+                 "its weapons are not shipped")
+    if tmpunused:
+        tmpbuilt["weapons"] = [d for d in tmpbuilt.get("weapons", []) if d["name"] not in tmpunused]
 
 
 ARMOR_LOCATIONS = [
@@ -2213,11 +2380,16 @@ def main():
         tmpbuilt[tmpname] = docs
         total += len(docs)
         print(f"{tmpname:14} {len(docs):10}")
-        if args.write:
-            with open(os.path.join(OUT, tmpname + ".json"), "w", encoding="utf-8") as fh:
-                json.dump(docs, fh, indent=2, ensure_ascii=False)
     print("-" * 28)
     print(f"{'total':14} {total:10}")
+
+    # Races are built after weapons, so the link between them is made once both exist, and the
+    # packs are written only after that.
+    attach_natural_weapons(tmpbuilt)
+    if args.write:
+        for tmpname, docs in tmpbuilt.items():
+            with open(os.path.join(OUT, tmpname + ".json"), "w", encoding="utf-8") as fh:
+                json.dump(docs, fh, indent=2, ensure_ascii=False)
 
     check_skill_references(tmpbuilt)
     check_race_references(tmpbuilt)
