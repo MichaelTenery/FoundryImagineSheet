@@ -52,7 +52,8 @@ step shows), `module/apps/character-generator.mjs` (the window),
 - Starting money by social class, and buying equipment (his step 8). How his sheet sets starting
   money needs reading first.
 - The social-class and cross-skill modifiers on skills (`getExtraClassRacialMods`,
-  `getSocialSkillMods`, `getExtraSocialMods`).
+  `getSocialSkillMods`, `getExtraSocialMods`). **DONE 2026-09-23** as the race and cross-skill
+  modifiers -- nothing in them reads Social Class; see `docs/sonnet/2026-09-23-social-skill-mods.md`.
 - The special races: Changeling (a form swap, `roll_changeling_swap_attrbs`), Formless (a host
   body) and Famorian (evokes).
 - Racial skills rolled rather than chosen, which the Player's Guide leaves to the Game Master.

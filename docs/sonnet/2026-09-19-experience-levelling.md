@@ -70,7 +70,8 @@ The levelling system is built: `tools/extract/extract_advancement_tables.py` →
   says nothing about two. A rules question for the developer.
 - **His social-class and cross-skill modifiers** (`getExtraClassRacialMods`, `getSocialSkillMods`)
   still absent, so a skill's ability is core +30 and class modifiers only — the same gap character
-  generation and the class-skill grant have.
+  generation and the class-skill grant have. **DONE 2026-09-23** as the race and cross-skill
+  modifiers (nothing in them reads Social Class); see `docs/sonnet/2026-09-23-social-skill-mods.md`.
 - **Experience awards**, if the user ever changes their mind: `calcCreatureExp` values a creature by
   title, attributes, Endurance, resistances, skills and powers, and `handleSplitExp` divides by party
   size with a difficulty multiplier.

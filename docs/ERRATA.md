@@ -104,6 +104,19 @@ the port knowingly building a figure he has since corrected.
   does not model.
 - **Undead** (`Epitaph.txt`) — shadowform vs phaseable form by alignment. Relevant to the undead
   transformations noted as absent on 2026-09-21.
+- **Race modifiers on social skills — APPLIED 2026-09-23.** `Aspects.txt` "Pg 23(After)",
+  `Epitaph.txt` "Pg: 57 (After)" and `Legends.txt` "Pg. 71" carry his race-by-social-skill tables.
+  All 215 entries were compared with his `socialskillmoddict`; **13 differ**, and the errata's figure
+  is used: Brok Climatology +5 (sheet +10) and Astronomy +5 (none); Gaunt Astronomy +10 and
+  Undertaking +10 (both +5); Changeling Dancing +15 (+10); Fairy(Dark) Dancing +10 (+5) and
+  Pyrotechnics +5 (+10); Dryad History +5 (none); Katara — the errata's Lamia — Wood Working +5
+  (+15); Ratahl Mining/Tunneling +20 (+10); Se’eth Torturing +20 (+5); Sylph Heavy Drinking
+  **BLOCKED** (allowed); Equara Running +20 (none). A race the errata leaves out of a skill keeps the
+  sheet's value — the Dread Elf row plainly omits the generic Elf entries. The thirteen are a
+  committed list in `tools/extract/extract_social_skill_tables.py` (`ERRATA_CHANGES`), since these
+  files are not committed; when they are present the extractor re-reads all three and reports any
+  entry that no longer agrees. `Legends.txt` Pg 42's "Grants Swimming Social Skill at +50%" is read as
+  his code reads it (+50 when Swimming is taken), pending his answer.
 
 ## Next step
 
