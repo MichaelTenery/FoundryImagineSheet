@@ -36,16 +36,22 @@ one wins. See `DECISIONS.md` 2026-09-22 "The Sonnet backlog, worked through".
    says ask first.
 5. **Creature attacks get no lore modifier** (`2026-09-12-lore-corrections.md` item 2) — a design
    pass, not mechanical.
-6. **Racial bonuses to social skills** — his `getRaceClassSocialMod` table (sheet-worker.js:57649)
-   is not ported, and his caller looks broken (`UPSTREAM-ISSUES.md` item 52). Porting it waits on his
-   answer.
+6. **DONE 2026-09-23 (`docs/sonnet/2026-09-23-social-skill-mods.md`).** **Racial bonuses to social
+   skills** — this line ran two things together. The race's own modifier on a social skill (his
+   `socialskillmoddict`, read by `getSocialSkillMods`) was never a question for him. A racial or
+   class skill lifting a social skill (his `getRaceClassSocialMod` table, sheet-worker.js:57649) is
+   the one whose caller looks broken (`UPSTREAM-ISSUES.md` item 52). Both are ported now, with the
+   rest of the race and cross-skill modifiers; item 52 is answered in the port, pending his reply.
 
 ## Waiting on the developer (nothing to do until he answers)
 
 `UPSTREAM-ISSUES.md` items 21 (projectile lore), 25 (magical flight), 28/29 (multi-missile), 30
 (Language Lore / racial-slot sacrifice), 40 (starting money — built 2026-09-23 on the user's ruling; the
-Fortune comparison stays open with him but no longer blocks anything), 51 (Mixed flexibility), 52 (social skills). The four missing class
-templates (`2026-09-12-elemental-dancer.md` items 1–2) need his `.doc` files.
+Fortune comparison stays open with him but no longer blocks anything), 51 (Mixed flexibility), 52
+(social skills — applied in the port 2026-09-23; his reply is still wanted, but nothing waits on
+it). The four class templates once thought missing (`2026-09-12-elemental-dancer.md` items 1–2) need
+nothing more: Elementalist, Inquisitor, Summoner and GME have been built from his inline rows since
+2026-09-18 (`DECISIONS.md`, "Every class's skills by title, class paths as documents, and GME").
 
 ## Only in a running Foundry V14
 

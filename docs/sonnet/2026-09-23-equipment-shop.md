@@ -46,6 +46,9 @@ the two "10 X" packets, the fairy bolts' launchers, typed Costs). Nothing below 
 
 ## 1. Release it
 
+**The paste is DONE 2026-09-24, at the 0.20 integration** (DECISIONS, UPSTREAM 77-82, PROGRESS, and
+the CHANGELOG text under "## Unreleased"). The version bump and the `dist/` build remain.
+
 **What to do.** Paste the CHANGELOG entry, DECISIONS entry, UPSTREAM items and PROGRESS changes this pass
 returned (they were not written into those files, because other streams were editing them the same
 day). Bump `system.json` to the next minor version (a new generator step and a new world setting), and run

@@ -238,7 +238,7 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 	// Every other type takes all of it -- breath, gaze and area attacks included, as his code does,
 	// though the Player's Guide (p.179) speaks of body weight "when the character attacks with any
 	// melee weapon". Whether he meant a dragon's breath to carry its +20 for weight is asked of him in
-	// docs/UPSTREAM-ISSUES.md (2026-09-23); until he answers, the sheet is followed -- the provisional
+	// docs/UPSTREAM-ISSUES.md item 90; until he answers, the sheet is followed -- the provisional
 	// D2 of the creature audit.
 	//
 	//   tmpinput = {
@@ -313,7 +313,7 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 	// die. (The port does give a character's WEAPON Jump's die, on the book's word that it "can be
 	// applied to weapon attacks as well as martial attacks" -- MARTIAL_MOVE_CORRECTIONS. A natural attack
 	// is neither, so that reason does not reach it. Provisional, 2026-09-23: see docs/DECISIONS.md, and
-	// asked of him in docs/UPSTREAM-ISSUES.md of that date.)
+	// asked of him in docs/UPSTREAM-ISSUES.md item 93.)
 	//
 	// (The tmp_extra_dice and tmp_extra_per_die his damage block ALSO reads, at 179961-179968, are not
 	// the moves at all: his own comment there is "Add dice for temporary modifiers". They are the Game

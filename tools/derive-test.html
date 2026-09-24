@@ -2113,8 +2113,8 @@ check("both Podling forms jog -6 a second, not -60 (PG errata p.36: ten seconds 
 // The same errata line settles every rate: ten seconds is ten times one. Two of his rows still break it
 // in the RUN column (sheet-worker.js:34098, 34117). They are NOT repaired: they were not in the list the
 // 2026-09-23 provisional ruling covered and no book was checked for them. This pass raises them as a new
-// upstream item, "Two more rows break the ten-times movement rule" (docs/UPSTREAM-ISSUES.md, added when
-// this work is merged), and docs/sonnet/2026-09-23-skill-results-repairs.md item 1 says how to settle
+// upstream item, "Two more rows break the ten-times movement rule" (docs/UPSTREAM-ISSUES.md item
+// 100), and docs/sonnet/2026-09-23-skill-results-repairs.md item 1 says how to settle
 // them. Listed here so a third cannot appear unnoticed.
 check("every other rate keeps ten seconds at ten times one second, bar the two run slips reported",
 	raceDocs.flatMap(d => ["walk", "jog", "run"].filter(m => d.system.movement[m].tenSec != 10 * d.system.movement[m].oneSec)

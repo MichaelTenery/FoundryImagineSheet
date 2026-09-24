@@ -252,7 +252,7 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	// still adds combat_mod_damage to that "0" (179919-179925), so a creature's damage-less gaze would do
 	// its Strength and weight in damage -- +17 for a buffalo's stare. That cannot be meant, and the port
 	// has never done it; it is part of the question put to him about which attacks the standing damage
-	// belongs on (docs/UPSTREAM-ISSUES.md, 2026-09-23).
+	// belongs on (docs/UPSTREAM-ISSUES.md items 90 and 91).
 	var tmpdamage = null;
 	var tmphasdamage = hasCreatureAttackDamage(tmpa.damage);
 	// A damage that is not dice ("2d6 poison", "special") is not handed to Roll, which would throw

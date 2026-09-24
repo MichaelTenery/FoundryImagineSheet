@@ -148,7 +148,7 @@ These need judgement or a decision first, so do not pick them up as Sonnet work:
   has them in the port. This is not mechanical, because his own code has two slips here:
   `setExtraCombatDamageModifiers` reads the per-die INPUT from `tmp_extra_dice_input` (124615), and his
   martial damage multiplies the per-die figure by the die's SIDES, not the number of dice (66758, 66956).
-  Both are asked of him in UPSTREAM-ISSUES.
+  Both are asked of him in UPSTREAM-ISSUES item 97.
 - Renaming a body area starts its wound count again. The sheet says so under the editor. Carrying the
   wounds across a rename would need `_processFormData` to match old rows to new. A repeated name is
   also keyed by its place ("Tentacle (2)", `parseBodyChart`), so removing the first shifts the rest.

@@ -18,8 +18,8 @@ depends on it). **Everything in "Already decided" is settled; do not re-open it.
   combinations) are his own inline readers too and are not skill rolls. Do not merge any of them.
 - **A skill's half rounds UP** (`parseInt((chance+1)/2)`); a save's rounds DOWN with a minimum of 1.
   Both are his. **No natural-01 success** on a skill roll: his function has none, the sheet outranks
-  the book (PG p.326), and it is a question for him (the new upstream item "A natural 01 on a skill
-  roll"), not a gap to fill.
+  the book (PG p.326), and it is a question for him (UPSTREAM 98, "A natural 01 on a skill roll"),
+  not a gap to fill.
 - **A card says the result and whether it passed** (`describeSkillResult`): "Made by half (succeeded)",
   "Rolled 100 (failed)", as his cards end "Result=... Succeeded? = ...".
 - **Repairs are data, printed every run, and step aside for a corrected sheet.**
@@ -52,8 +52,8 @@ depends on it). **Everything in "Already decided" is settled; do not re-open it.
   34117). Look each up in the book text (Town Midfolk, Player's Guide p.23; Testudara, Mysteries of the
   Planes). If the book prints `-1/-10/-1`, add a `RACE_VALUE_REPAIRS` entry (`run1Sec`, `-10`, `-1`,
   "PG errata p.36 ...; <book> p.N prints -1/-10/-1") and empty the test's expected list. If the book
-  prints something else, leave the data alone and add the finding to the new upstream item on these
-  two rows, "Two more rows break the ten-times movement rule: Midfolk(Town) and Testudara".
+  prints something else, leave the data alone and add the finding to UPSTREAM 100, "Two more rows
+  break the ten-times movement rule: Midfolk(Town) and Testudara".
 - **Files:** `tools/extract/column_maps.py`, then `python tools/extract/build_documents.py --write` (in
   the main checkout, see above); `tools/derive-test.html`.
 - **Done looks like:** the build prints the new REPAIRED lines; the derive check "every other rate keeps
@@ -76,6 +76,9 @@ depends on it). **Everything in "Already decided" is settled; do not re-open it.
   still pass.
 
 ## 3. Record the status changes in UPSTREAM-ISSUES.md
+
+**DONE 2026-09-24, at the 0.20 integration.** Items 2 and 4 are marked answered; 24, 39.1, 42 and 47
+carry a dated line saying what the port now does; the three new items are 98, 99 and 100.
 
 - **What:** this pass settles or acts on six items. Add to each a line dated 2026-09-23 saying what the
   port now does and on what evidence, as below, and change item 4's status to answered by his own code.

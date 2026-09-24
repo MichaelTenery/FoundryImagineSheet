@@ -58,7 +58,7 @@ import { BODY_AREA_TYPES, HIDE_CAP, HIDE_CAP_EXEMPT_TYPES, HIDE_CAP_EXEMPT_SIZES
 	// His Fortune "+mod" also reads the chance as TEXT and adds the modifier to it -- "16" plus 5 is
 	// "165", Roll20 handing attribute values back as text (24625) -- and then holds it to 1-99, so
 	// his modified Fortune roll is almost always at 99. That is plainly a slip
-	// (docs/UPSTREAM-ISSUES.md, 2026-09-23); the modifier is added as a number here and not held to
+	// (docs/UPSTREAM-ISSUES.md item 95); the modifier is added as a number here and not held to
 	// 1-99, as none of his other characteristic rolls are.
 	//
 	// Returns { key, chance, single, roll, outcome, good, bad, label } or null for a key it does not know.
