@@ -47,3 +47,6 @@ graphify-out/
 
 # tools/run-tests.mjs writes each suite beside its page for a moment, then removes it
 tools/.run-*.mjs
+
+# Private working files: letters to the author, notes not meant for the public repository.
+docs/local/
