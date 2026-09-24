@@ -41,6 +41,7 @@ import { provideStartingLore } from "./starting-lore.mjs";
 import { importAllContent } from "./content-importer.mjs";
 import { grantClassSkills, registerClassAdvancement } from "./class-advancement.mjs";
 import { grantNaturalWeapons, registerNaturalWeapons } from "./natural-weapons.mjs";
+import { registerRolledStartingEndurance } from "./race-endurance.mjs";
 import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
@@ -421,6 +422,11 @@ Hooks.once("init", function () {
 	// @MARKER NATURAL WEAPONS
 	// Gives a character their race's natural weapons when the race is added. See module/natural-weapons.mjs.
 	registerNaturalWeapons();
+
+	// @MARKER ROLLED STARTING ENDURANCE
+	// Rolls a race's starting Endurance die (Gaunt's -1d4, Epitaph p.7) when the race is added to a
+	// character. See module/race-endurance.mjs.
+	registerRolledStartingEndurance();
 
 	// @MARKER CHANGELOG
 	// The What's New window and its Configure Settings button. See module/changelog.mjs.

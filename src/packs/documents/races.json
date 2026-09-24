@@ -35,6 +35,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -79,6 +80,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 4,
@@ -233,6 +246,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -278,6 +292,18 @@
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
           "oneSecMod": 4
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
         },
         "jumpStand": 2,
         "jumpUp": 1
@@ -445,6 +471,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -489,6 +516,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 3,
@@ -627,6 +666,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -671,6 +711,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 3,
@@ -841,6 +893,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -885,6 +938,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 3,
@@ -1027,6 +1092,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -1071,6 +1137,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0,
@@ -1238,6 +1316,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -1274,6 +1353,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -1441,6 +1532,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -1485,6 +1577,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": -5,
@@ -1643,6 +1747,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -1679,6 +1784,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -1828,6 +1945,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -4,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -1864,6 +1982,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -2035,6 +2165,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -2079,6 +2210,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0,
@@ -2237,6 +2380,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -2273,6 +2417,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -2435,6 +2591,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -2471,6 +2628,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -2587,6 +2756,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -2623,6 +2793,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -2785,6 +2967,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -2821,6 +3004,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -2988,6 +3183,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
         "titleMax": 6,
@@ -3024,6 +3220,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -3171,6 +3379,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -3215,6 +3424,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 2,
@@ -3355,6 +3576,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRolled": false,
         "titleFormula": "1d3+1",
         "titleDice": "1",
         "titleMax": 3,
@@ -3391,6 +3613,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -3555,6 +3789,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -3591,6 +3826,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -3761,6 +4008,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -3797,6 +4045,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -3968,6 +4228,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -4004,6 +4265,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -4180,6 +4453,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRolled": false,
         "titleFormula": "1d6+3",
         "titleDice": "1",
         "titleMax": 6,
@@ -4216,6 +4490,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -4411,6 +4697,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -4447,6 +4734,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -4621,6 +4920,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
         "titleMax": 6,
@@ -4657,6 +4957,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -4857,6 +5169,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -4893,6 +5206,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -5081,6 +5406,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -5117,6 +5443,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -5302,6 +5640,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -5338,6 +5677,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -5509,6 +5860,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -5545,6 +5897,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -5712,6 +6076,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -5748,6 +6113,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -5916,6 +6293,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -5931,10 +6309,10 @@
         "illusion": 0,
         "control": 20,
         "poison": -10,
-        "disease": 0
+        "disease": -10
       },
       "movement": {
-        "speedMultiplier": -10,
+        "speedMultiplier": 0,
         "walk": {
           "hourly": 1,
           "tenSec": 10,
@@ -5952,6 +6330,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -6125,6 +6515,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -6140,10 +6531,10 @@
         "illusion": 0,
         "control": 20,
         "poison": -10,
-        "disease": 0
+        "disease": -10
       },
       "movement": {
-        "speedMultiplier": -10,
+        "speedMultiplier": 0,
         "walk": {
           "hourly": 1,
           "tenSec": 10,
@@ -6169,6 +6560,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 2,
@@ -6344,6 +6747,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -6380,6 +6784,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -6569,6 +6985,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1",
         "titleDice": "1d4",
         "titleMax": 4,
@@ -6605,6 +7022,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -6794,6 +7223,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -6830,6 +7260,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -7018,6 +7460,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -7054,6 +7497,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -7238,6 +7693,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -7274,6 +7730,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -7424,6 +7892,7 @@
       "endurance": {
         "startFormula": "-1d4=",
         "startMod": 0,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -7460,6 +7929,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -7636,6 +8117,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -7672,6 +8154,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -7834,6 +8328,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 8,
+        "startRolled": false,
         "titleFormula": "2d4+1",
         "titleDice": "2",
         "titleMax": 4,
@@ -7870,6 +8365,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -8042,6 +8549,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 8,
+        "startRolled": false,
         "titleFormula": "2d4+1",
         "titleDice": "2",
         "titleMax": 4,
@@ -8078,6 +8586,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -8250,6 +8770,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 10,
+        "startRolled": false,
         "titleFormula": "2d6+2",
         "titleDice": "2",
         "titleMax": 6,
@@ -8286,6 +8807,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -8473,6 +9006,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -8509,6 +9043,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -8703,6 +9249,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -8739,6 +9286,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -8921,6 +9480,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -8957,6 +9517,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -9115,6 +9687,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -9151,6 +9724,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -9318,6 +9903,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -9354,6 +9940,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -9520,6 +10118,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -9556,6 +10155,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -9715,6 +10326,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -9759,6 +10371,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0,
@@ -9967,6 +10591,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -10003,6 +10628,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -10154,6 +10791,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -10198,6 +10836,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 2,
@@ -10357,6 +11007,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -10393,6 +11044,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -10561,6 +11224,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
         "titleMax": 6,
@@ -10597,6 +11261,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -10767,6 +11443,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -10803,6 +11480,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -11000,6 +11689,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -11036,6 +11726,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -11232,6 +11934,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -11268,6 +11971,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -11465,6 +12180,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -11501,6 +12217,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -11674,6 +12402,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -11710,6 +12439,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -11899,6 +12640,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -11935,6 +12677,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -12081,6 +12835,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -12117,6 +12872,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -12277,6 +13044,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
         "titleMax": 4,
@@ -12321,6 +13089,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0,
@@ -12479,6 +13259,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -12523,6 +13304,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 3,
@@ -12672,6 +13465,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -12708,6 +13502,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -12875,6 +13681,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -12911,6 +13718,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -13064,6 +13883,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -13100,6 +13920,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -13279,6 +14111,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -13315,6 +14148,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -13467,6 +14312,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -13503,6 +14349,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -13654,6 +14512,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -13690,6 +14549,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -13840,6 +14711,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -13876,6 +14748,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -14026,6 +14910,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -14070,6 +14955,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0,
@@ -14217,6 +15114,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d4+3",
         "titleDice": "1",
         "titleMax": 4,
@@ -14253,6 +15151,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -14436,6 +15346,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
         "titleMax": 4,
@@ -14472,6 +15383,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -14631,6 +15554,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -14675,6 +15599,18 @@
           "tenSecMod": 0,
           "oneSec": "INT",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": -4,
@@ -14854,6 +15790,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -14898,6 +15835,18 @@
           "tenSecMod": 0,
           "oneSec": "INT",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": -4,
@@ -15082,6 +16031,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -15126,6 +16076,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0,
@@ -15304,6 +16266,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -15340,6 +16303,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -15527,6 +16502,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -15563,6 +16539,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -15738,6 +16726,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -3,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -15774,6 +16763,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -15949,6 +16950,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -15993,6 +16995,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "Swim:",
+        "secondSpecial": {
+          "hourly": "Walk",
+          "hourlyMultiplier": 5,
+          "hourlyMod": 0,
+          "tenSec": "Walk",
+          "tenSecMultiplier": 5,
+          "tenSecMod": 0,
+          "oneSec": "Walk",
+          "oneSecMultiplier": 5,
           "oneSecMod": 0
         },
         "jumpStand": -4,
@@ -16164,6 +17178,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -16200,6 +17215,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -16368,6 +17395,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -16404,6 +17432,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -16571,6 +17611,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -16607,6 +17648,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -16783,6 +17836,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -16819,6 +17873,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -16967,6 +18033,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -17003,6 +18070,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -17168,6 +18247,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -17204,6 +18284,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -17375,6 +18467,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
         "titleMax": 6,
@@ -17411,6 +18504,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -17574,6 +18679,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -17610,6 +18716,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -17776,6 +18894,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -17812,6 +18931,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -17990,6 +19121,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 5,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -18035,6 +19167,18 @@
           "oneSec": "Walk",
           "oneSecMultiplier": 4,
           "oneSecMod": 4
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
         },
         "jumpStand": 2,
         "jumpUp": 1
@@ -18191,6 +19335,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -18235,6 +19380,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 0.25,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0,
@@ -18398,6 +19555,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -18442,6 +19600,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0.5,
@@ -18585,6 +19755,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -18629,6 +19800,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0.5,
@@ -18801,6 +19984,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -18845,6 +20029,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0.5,
@@ -19006,6 +20202,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -19042,6 +20239,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -19200,6 +20409,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -1,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -19244,6 +20454,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 2,
@@ -19396,6 +20618,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
         "titleMax": 6,
@@ -19432,6 +20655,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -19582,6 +20817,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d6",
         "titleDice": "1",
         "titleMax": 6,
@@ -19618,6 +20854,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -19758,6 +21006,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
         "titleMax": 4,
@@ -19794,6 +21043,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -19941,6 +21202,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
         "titleMax": 4,
@@ -19977,6 +21239,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -20156,6 +21430,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 6,
+        "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
         "titleMax": 6,
@@ -20192,6 +21467,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -20338,6 +21625,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -20374,6 +21662,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -20533,6 +21833,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d3",
         "titleDice": "1",
         "titleMax": 3,
@@ -20569,6 +21870,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -20717,6 +22030,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -20761,6 +22075,18 @@
           "tenSecMod": 0,
           "oneSec": "Walk",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": 0.5,
@@ -20910,6 +22236,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -20946,6 +22273,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -21123,6 +22462,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -21159,6 +22499,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -21330,6 +22682,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -21366,6 +22719,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -21530,6 +22895,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -21566,6 +22932,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -21729,6 +23107,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -21773,6 +23152,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": -4,
@@ -21953,6 +23344,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -6,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -21989,6 +23381,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -22185,6 +23589,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -4,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -22229,6 +23634,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": -4,
@@ -22397,6 +23814,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -4,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -22433,6 +23851,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -22613,6 +24043,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -22640,7 +24071,7 @@
         "jog": {
           "hourly": -6,
           "tenSec": -60,
-          "oneSec": -60
+          "oneSec": -6
         },
         "run": {
           "hourly": -9,
@@ -22657,6 +24088,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": -4,
@@ -22844,6 +24287,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -22871,7 +24315,7 @@
         "jog": {
           "hourly": -6,
           "tenSec": -60,
-          "oneSec": -60
+          "oneSec": -6
         },
         "run": {
           "hourly": -9,
@@ -22880,6 +24324,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -23075,6 +24531,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -23119,6 +24576,18 @@
           "tenSecMod": 0,
           "oneSec": "Run",
           "oneSecMultiplier": 3,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
           "oneSecMod": 0
         },
         "jumpStand": -4,
@@ -23293,6 +24762,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": -2,
+        "startRolled": false,
         "titleFormula": "1d2",
         "titleDice": "1",
         "titleMax": 2,
@@ -23329,6 +24799,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -23511,6 +24993,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+1",
         "titleDice": "1",
         "titleMax": 4,
@@ -23547,6 +25030,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -23710,6 +25205,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 4,
+        "startRolled": false,
         "titleFormula": "1d6+2",
         "titleDice": "1",
         "titleMax": 6,
@@ -23746,6 +25242,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -23909,6 +25417,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 3,
+        "startRolled": false,
         "titleFormula": "1d6+1",
         "titleDice": "1",
         "titleMax": 6,
@@ -23945,6 +25454,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -24108,6 +25629,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 2,
+        "startRolled": false,
         "titleFormula": "1d4+2",
         "titleDice": "1",
         "titleMax": 4,
@@ -24144,6 +25666,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -24307,6 +25841,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 0,
+        "startRolled": false,
         "titleFormula": "1",
         "titleDice": "1",
         "titleMax": 1.0,
@@ -24343,6 +25878,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,
@@ -24581,6 +26128,7 @@
       "endurance": {
         "startFormula": "",
         "startMod": 1,
+        "startRolled": false,
         "titleFormula": "1d4",
         "titleDice": "1",
         "titleMax": 4,
@@ -24617,6 +26165,18 @@
         },
         "specialName": "None:",
         "special": {
+          "hourly": "",
+          "hourlyMultiplier": 0,
+          "hourlyMod": 0,
+          "tenSec": "",
+          "tenSecMultiplier": 0,
+          "tenSecMod": 0,
+          "oneSec": "",
+          "oneSecMultiplier": 0,
+          "oneSecMod": 0
+        },
+        "secondSpecialName": "",
+        "secondSpecial": {
           "hourly": "",
           "hourlyMultiplier": 0,
           "hourlyMod": 0,

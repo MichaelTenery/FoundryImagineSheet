@@ -245,6 +245,9 @@ export default class ImagineSituationalMods extends HandlebarsApplicationMixin(A
 		var tmpmod = parseInt(this.element?.querySelector("input[name='rollMod']")?.value) || 0;
 		var tmptotal = tmpchance + (tmpweapon?.skillsMod ?? 0) + tmpmod;
 
+		// The four-result reader, NOT the eight-result one every other skill roll now uses: his
+		// situational handlers read their own dice inline (roll_critical_sit, sheet-worker.js:19112)
+		// with no Grandmaster, no 100 rule and no made by half. See skills-rules.mjs.
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveSkillOutcome(tmptotal, tmproll.total);
 

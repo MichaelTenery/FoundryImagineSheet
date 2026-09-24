@@ -335,3 +335,62 @@ ROW_REPAIRS = {
         "2026-09-16: 'sounds like the right fix'. See docs/UPSTREAM-ISSUES.md item 1."
     ),
 }
+
+
+# ---------------------------------------------------------------------------
+# @MARKER RACE VALUE REPAIRS
+# ---------------------------------------------------------------------------
+# A cell in one of his race rows that is a slip, where his errata or his books settle what it
+# should have been -- as against ROW_REPAIRS above, which he confirmed himself. These are taken on
+# the user's provisional ruling of 2026-09-23 ("apply the fixes the books and errata already
+# settle, each a logged repair printed on every build"), and each is reported every run by
+# build_documents.py, beside the value his row actually carries.
+#
+# Each repair names the value it expects to FIND. If his row no longer reads that -- he has sent a
+# corrected sheet -- the repair is reported as no longer needed and his new value is used, so a
+# correction from him is picked up rather than overwritten.
+#
+# Keyed by HIS race name, so a race the port splits into forms (Podling into Podling(Winged) and
+# Podling(Wingless)) is repaired in every form, from whichever of his rows the form was built from.
+# Field names are RACESTATSANDMOVEDETAILS's, above.
+#
+#   his race  -> [(field,               his value, repaired, evidence), ...]
+RACE_VALUE_REPAIRS = {
+    # UPSTREAM-ISSUES items 24 and 47. Every other Elf carries a disease modifier at index 37 and 0
+    # at 38; these two carry 0 and -10, one cell to the right. His own Formless copy of both rows
+    # (setFormlessStartingRace, sheet-worker.js:34880) has the speed multiplier as 0.
+    "Elf(Ice)": [
+        ("diseaseResistMod",  0,   -10, "Legends p.27, Ice Elf: 'Disease -10%'"),
+        ("speedMultiplier",   -10, 0,   "Legends p.27, Ice Elf: 'Movement: as Elven'; his Formless copy has 0"),
+    ],
+    "Elf(Sea)": [
+        ("diseaseResistMod",  0,   -10, "Legends p.28, Sea Elf: 'Disease -10%'"),
+        ("speedMultiplier",   -10, 0,   "Legends p.28, Sea Elf: 'Movement: as Elven'; his Formless copy has 0"),
+    ],
+    # UPSTREAM-ISSUES item 39.1. Player's Guide errata p.36: "All 10 second movement times now match
+    # 10x1 second movement." His 10-second jog is -60, so the 1-second one is -6 -- the -6/-60/-6
+    # every other small race prints (Legends pp.30-33). In both his branches of the row.
+    "Podling": [
+        ("jog1Sec",           -60, -6,  "PG errata p.36: 10-second movement is 10x the 1-second; his 10-second jog is -60"),
+    ],
+}
+
+# A second special movement, for a race the books give two of. His row has room for one; the one
+# race that needs another has it in his OWN data, in the Formless copy of its row.
+#
+# UPSTREAM-ISSUES item 47. Nixie's race row flies (Fly: Run x3); his Formless copy of the same race
+# swims instead (Swim: Walk x5). Legends p.33 gives a Nixie both: "Enhanced Swimming (5x walking
+# speed) ... Magical Flight". So the row keeps its flight and the copy's swim is carried beside it.
+# build_documents.py checks the Formless copy still reads this, and says so, every run.
+#
+#   his race  -> the second mode, in the same shape as the row's own special movement
+RACE_SECOND_SPECIAL_MOVEMENT = {
+    "Nixie": {
+        "name": "Swim:",
+        "hourly": "Walk", "hourlyMultiplier": 5, "hourlyMod": 0,
+        "tenSec": "Walk", "tenSecMultiplier": 5, "tenSecMod": 0,
+        "oneSec": "Walk", "oneSecMultiplier": 5, "oneSecMod": 0,
+        "evidence": "Legends p.33, Nixie: 'Enhanced Swimming (5x walking speed)' beside 'Magical "
+                    "Flight'; the figures are his Formless copy of the row (Swim: Walk x5)",
+    },
+}

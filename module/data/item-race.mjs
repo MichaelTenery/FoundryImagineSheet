@@ -73,9 +73,19 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 			// Endurance at creation, and how much is gained on each title advance. The title
 			// gain is rolled rather than fixed, which is why the dice and maximum are carried
 			// separately from the flat modifier.
+			//
+			// startFormula is a DIE only for Gaunt, whose starting Endurance is rolled: "-1d4="
+			// (Epitaph p.7, "Starting Endurance -1d4"; his row's modifier is the live expression
+			// 0-getDieRoll(4)). The race document carries startMod 0; when a character takes the
+			// race the die is rolled once, the result is written into THAT CHARACTER'S copy of the
+			// race as startMod, and startRolled is set so it is never rolled again -- which is what
+			// his sheet does by writing the rolled figure to race_start_tmp_end_mod. Every other race
+			// has a blank formula and nothing is rolled. See rollStartingEndurance, race-rules.mjs, and
+			// module/race-endurance.mjs for the three places it is rolled.
 			endurance: new fields.SchemaField({
 				startFormula: new fields.StringField({ required: true, initial: "" }),
 				startMod:     modField(),
+				startRolled:  new fields.BooleanField({ required: true, initial: false }),
 				titleFormula: new fields.StringField({ required: true, initial: "" }),
 				titleDice:    new fields.StringField({ required: true, initial: "" }),
 				titleMax:     new fields.NumberField({ required: true, integer: true, initial: 0 }),
@@ -109,6 +119,24 @@ export default class ImagineRaceData extends foundry.abstract.TypeDataModel {
 				run:  movementRateField(),
 				specialName: new fields.StringField({ required: true, initial: "" }),
 				special: new fields.SchemaField({
+					hourly:           new fields.StringField({ required: true, initial: "" }),
+					hourlyMultiplier: new fields.NumberField({ required: true, initial: 0 }),
+					hourlyMod:        new fields.NumberField({ required: true, initial: 0 }),
+					tenSec:           new fields.StringField({ required: true, initial: "" }),
+					tenSecMultiplier: new fields.NumberField({ required: true, initial: 0 }),
+					tenSecMod:        new fields.NumberField({ required: true, initial: 0 }),
+					oneSec:           new fields.StringField({ required: true, initial: "" }),
+					oneSecMultiplier: new fields.NumberField({ required: true, initial: 0 }),
+					oneSecMod:        new fields.NumberField({ required: true, initial: 0 })
+				}),
+				// A SECOND special movement, for a race the books give two of. His row has room for
+				// one; Legends p.33 gives a Nixie both "Enhanced Swimming (5x walking speed)" and
+				// "Magical Flight", and his own Formless copy of the Nixie row is the swim (Swim: Walk
+				// x5) where the race row is the flight. Blank for every other race, which is what the
+				// initial values give a race document made before this field existed. Same shape and
+				// same reading as `special`: see resolveSpecialMovement in combat-rules.mjs.
+				secondSpecialName: new fields.StringField({ required: true, initial: "" }),
+				secondSpecial: new fields.SchemaField({
 					hourly:           new fields.StringField({ required: true, initial: "" }),
 					hourlyMultiplier: new fields.NumberField({ required: true, initial: 0 }),
 					hourlyMod:        new fields.NumberField({ required: true, initial: 0 }),

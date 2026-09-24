@@ -4,7 +4,94 @@
     "function": "setWildernessEquipmentByRace",
     "line": 73810
   },
-  "_note": "His optional wilderness-equipment rule, taken INSTEAD of starting coins. raceKit maps a race to one of six kits; kits maps a kit and a social class to the alternatives for that band. More than one alternative means his code rolls a die to choose between them.",
+  "_note": "His optional wilderness-equipment rule, taken INSTEAD of starting coins. raceKit maps a race to one of six kits; kits maps a kit and a social class to the alternatives for that band. More than one alternative means his code rolls a die to choose between them. _repairs lists the bands given the break his switch is missing (UPSTREAM-ISSUES item 42).",
+  "_repairs": [
+    {
+      "kit": "setGiantWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        5
+      ],
+      "evidence": "same table as PG p.15"
+    },
+    {
+      "kit": "setGiantWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        12,
+        13
+      ],
+      "evidence": "same table as PG p.15"
+    },
+    {
+      "kit": "setGnomeWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        5
+      ],
+      "evidence": "MM p.26 Gnome"
+    },
+    {
+      "kit": "setGnomeWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        12,
+        13
+      ],
+      "evidence": "MM p.26 Gnome"
+    },
+    {
+      "kit": "setGoblinForestWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        5
+      ],
+      "evidence": "MM p.27 Forest Goblin"
+    },
+    {
+      "kit": "setGoblinForestWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        12,
+        13
+      ],
+      "evidence": "MM p.27 Forest Goblin"
+    },
+    {
+      "kit": "setLightChainWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        5
+      ],
+      "evidence": "PG p.15, p.21"
+    },
+    {
+      "kit": "setLightChainWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        12,
+        13
+      ],
+      "evidence": "PG p.15, p.21"
+    },
+    {
+      "kit": "setNoArmorCompressedSocialWildernessEquipment",
+      "kind": "band break",
+      "social": [
+        5
+      ],
+      "evidence": "MM errata p.30, Trolls"
+    },
+    {
+      "kit": "setStandardWildernessEquipment",
+      "kind": "die switch",
+      "social": [
+        12,
+        13
+      ],
+      "evidence": "PG errata p.31, Saurian, prints the choice"
+    }
+  ],
   "raceKit": {
     "Apocritara": "setStandardWildernessEquipment",
     "Arachen": "setNoArmorCompressedSocialWildernessEquipment",
@@ -128,15 +215,14 @@
       "5": [
         {
           "armorClothing": [
-            "Tunic(Leather)",
-            "Breeches(Leather)"
+            "Tunic(Leather)"
           ],
           "weapons": [
-            "Giant Dagger",
-            "Giant Quarterstaff"
+            "Giant Small Tree",
+            "Giant Knife"
           ],
           "generalEquipment": [
-            "Waterskin(1-week)"
+            "Waterskin(3-days)"
           ]
         }
       ],
@@ -275,22 +361,20 @@
       "12": [
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
           ],
           "weapons": [
             "Giant Spear",
-            "Giant Giant Medium Tree",
+            "Giant Medium Tree",
             "Giant Short Sword"
           ]
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -303,8 +387,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -317,8 +400,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -333,22 +415,20 @@
       "13": [
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
           ],
           "weapons": [
             "Giant Spear",
-            "Giant Giant Medium Tree",
+            "Giant Medium Tree",
             "Giant Short Sword"
           ]
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -361,8 +441,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -375,8 +454,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -799,12 +877,23 @@
       "5": [
         {
           "armorClothing": [
-            "Tunic(Leather)",
-            "Breeches(Leather)"
+            "Tunic(Leather)"
           ],
           "weapons": [
-            "Fairy Dagger",
-            "Fairy Staff"
+            "Fairy Club",
+            "Fairy Knife"
+          ],
+          "generalEquipment": [
+            "Waterskin(3-days)"
+          ]
+        },
+        {
+          "armorClothing": [
+            "Tunic(Leather)"
+          ],
+          "weapons": [
+            "Fairy Club",
+            "Fairy Knife"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -946,8 +1035,7 @@
       "12": [
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -960,8 +1048,7 @@
         },
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -974,8 +1061,7 @@
         },
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -988,8 +1074,7 @@
         },
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1004,8 +1089,7 @@
       "13": [
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1018,8 +1102,7 @@
         },
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1032,8 +1115,7 @@
         },
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1046,8 +1128,7 @@
         },
         {
           "armorClothing": [
-            "Armor(Hard Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1550,12 +1631,23 @@
       "5": [
         {
           "armorClothing": [
-            "Tunic(Leather)",
-            "Breeches(Leather)"
+            "Tunic(Leather)"
           ],
           "weapons": [
-            "Dagger",
-            "Quarterstaff"
+            "Club",
+            "Knife(Stone)"
+          ],
+          "generalEquipment": [
+            "Waterskin(3-days)"
+          ]
+        },
+        {
+          "armorClothing": [
+            "Tunic(Leather)"
+          ],
+          "weapons": [
+            "Club",
+            "Knife(Obsidian)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1697,8 +1789,7 @@
       "12": [
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1711,8 +1802,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1725,8 +1815,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1739,8 +1828,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1755,8 +1843,7 @@
       "13": [
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1769,8 +1856,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1783,8 +1869,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -1797,8 +1882,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Leather)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2221,12 +2305,23 @@
       "5": [
         {
           "armorClothing": [
-            "Tunic(Leather)",
-            "Breeches(Leather)"
+            "Tunic(Leather)"
           ],
           "weapons": [
-            "Dagger",
-            "Quarterstaff"
+            "Club",
+            "Knife(Stone)"
+          ],
+          "generalEquipment": [
+            "Waterskin(3-days)"
+          ]
+        },
+        {
+          "armorClothing": [
+            "Tunic(Leather)"
+          ],
+          "weapons": [
+            "Club",
+            "Knife(Obsidian)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2368,8 +2463,7 @@
       "12": [
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2382,8 +2476,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2396,8 +2489,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2410,8 +2502,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2426,8 +2517,7 @@
       "13": [
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2440,8 +2530,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2454,8 +2543,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2468,8 +2556,7 @@
         },
         {
           "armorClothing": [
-            "Armor Suit(Light Chain)",
-            "Shield(Medium/Wood)"
+            "Armor Suit(Leather)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"
@@ -2892,8 +2979,17 @@
       "5": [
         {
           "weapons": [
-            "Dagger",
-            "Quarterstaff"
+            "Club",
+            "Knife(Stone)"
+          ],
+          "generalEquipment": [
+            "Waterskin(3-days)"
+          ]
+        },
+        {
+          "weapons": [
+            "Club",
+            "Knife(Obsidian)"
           ],
           "generalEquipment": [
             "Waterskin(1-week)"

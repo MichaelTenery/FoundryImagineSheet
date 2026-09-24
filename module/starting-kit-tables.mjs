@@ -146,15 +146,14 @@ export const WILDERNESS_KITS = {
 		"5": [
 			{
 				"armorClothing": [
-					"Tunic(Leather)",
-					"Breeches(Leather)"
+					"Tunic(Leather)"
 				],
 				"weapons": [
-					"Giant Dagger",
-					"Giant Quarterstaff"
+					"Giant Small Tree",
+					"Giant Knife"
 				],
 				"generalEquipment": [
-					"Waterskin(1-week)"
+					"Waterskin(3-days)"
 				]
 			}
 		],
@@ -293,22 +292,20 @@ export const WILDERNESS_KITS = {
 		"12": [
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
 				],
 				"weapons": [
 					"Giant Spear",
-					"Giant Giant Medium Tree",
+					"Giant Medium Tree",
 					"Giant Short Sword"
 				]
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -321,8 +318,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -335,8 +331,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -351,22 +346,20 @@ export const WILDERNESS_KITS = {
 		"13": [
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
 				],
 				"weapons": [
 					"Giant Spear",
-					"Giant Giant Medium Tree",
+					"Giant Medium Tree",
 					"Giant Short Sword"
 				]
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -379,8 +372,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -393,8 +385,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -817,12 +808,23 @@ export const WILDERNESS_KITS = {
 		"5": [
 			{
 				"armorClothing": [
-					"Tunic(Leather)",
-					"Breeches(Leather)"
+					"Tunic(Leather)"
 				],
 				"weapons": [
-					"Fairy Dagger",
-					"Fairy Staff"
+					"Fairy Club",
+					"Fairy Knife"
+				],
+				"generalEquipment": [
+					"Waterskin(3-days)"
+				]
+			},
+			{
+				"armorClothing": [
+					"Tunic(Leather)"
+				],
+				"weapons": [
+					"Fairy Club",
+					"Fairy Knife"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -964,8 +966,7 @@ export const WILDERNESS_KITS = {
 		"12": [
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -978,8 +979,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -992,8 +992,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1006,8 +1005,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1022,8 +1020,7 @@ export const WILDERNESS_KITS = {
 		"13": [
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1036,8 +1033,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1050,8 +1046,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1064,8 +1059,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor(Hard Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1568,12 +1562,23 @@ export const WILDERNESS_KITS = {
 		"5": [
 			{
 				"armorClothing": [
-					"Tunic(Leather)",
-					"Breeches(Leather)"
+					"Tunic(Leather)"
 				],
 				"weapons": [
-					"Dagger",
-					"Quarterstaff"
+					"Club",
+					"Knife(Stone)"
+				],
+				"generalEquipment": [
+					"Waterskin(3-days)"
+				]
+			},
+			{
+				"armorClothing": [
+					"Tunic(Leather)"
+				],
+				"weapons": [
+					"Club",
+					"Knife(Obsidian)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1715,8 +1720,7 @@ export const WILDERNESS_KITS = {
 		"12": [
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1729,8 +1733,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1743,8 +1746,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1757,8 +1759,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1773,8 +1774,7 @@ export const WILDERNESS_KITS = {
 		"13": [
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1787,8 +1787,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1801,8 +1800,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -1815,8 +1813,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Leather)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2239,12 +2236,23 @@ export const WILDERNESS_KITS = {
 		"5": [
 			{
 				"armorClothing": [
-					"Tunic(Leather)",
-					"Breeches(Leather)"
+					"Tunic(Leather)"
 				],
 				"weapons": [
-					"Dagger",
-					"Quarterstaff"
+					"Club",
+					"Knife(Stone)"
+				],
+				"generalEquipment": [
+					"Waterskin(3-days)"
+				]
+			},
+			{
+				"armorClothing": [
+					"Tunic(Leather)"
+				],
+				"weapons": [
+					"Club",
+					"Knife(Obsidian)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2386,8 +2394,7 @@ export const WILDERNESS_KITS = {
 		"12": [
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2400,8 +2407,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2414,8 +2420,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2428,8 +2433,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2444,8 +2448,7 @@ export const WILDERNESS_KITS = {
 		"13": [
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2458,8 +2461,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2472,8 +2474,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2486,8 +2487,7 @@ export const WILDERNESS_KITS = {
 			},
 			{
 				"armorClothing": [
-					"Armor Suit(Light Chain)",
-					"Shield(Medium/Wood)"
+					"Armor Suit(Leather)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -2910,8 +2910,17 @@ export const WILDERNESS_KITS = {
 		"5": [
 			{
 				"weapons": [
-					"Dagger",
-					"Quarterstaff"
+					"Club",
+					"Knife(Stone)"
+				],
+				"generalEquipment": [
+					"Waterskin(3-days)"
+				]
+			},
+			{
+				"weapons": [
+					"Club",
+					"Knife(Obsidian)"
 				],
 				"generalEquipment": [
 					"Waterskin(1-week)"
@@ -4410,6 +4419,99 @@ export const WILDERNESS_KITS = {
 		]
 	}
 };
+
+// The bands given the `break` his switch is missing, so they keep their own kit
+// instead of taking the next band's (kind "band break"), and the one die roll whose
+// breakless cases are read as the choice they set out (kind "die switch"). Settled
+// by his errata and the books, not by us: see KIT_BREAK_REPAIRS and @MARKER DIE
+// SWITCH in the extractor, and UPSTREAM-ISSUES item 42.
+export const WILDERNESS_KIT_REPAIRS = [
+	{
+		"kit": "setGiantWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			5
+		],
+		"evidence": "same table as PG p.15"
+	},
+	{
+		"kit": "setGiantWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			12,
+			13
+		],
+		"evidence": "same table as PG p.15"
+	},
+	{
+		"kit": "setGnomeWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			5
+		],
+		"evidence": "MM p.26 Gnome"
+	},
+	{
+		"kit": "setGnomeWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			12,
+			13
+		],
+		"evidence": "MM p.26 Gnome"
+	},
+	{
+		"kit": "setGoblinForestWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			5
+		],
+		"evidence": "MM p.27 Forest Goblin"
+	},
+	{
+		"kit": "setGoblinForestWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			12,
+			13
+		],
+		"evidence": "MM p.27 Forest Goblin"
+	},
+	{
+		"kit": "setLightChainWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			5
+		],
+		"evidence": "PG p.15, p.21"
+	},
+	{
+		"kit": "setLightChainWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			12,
+			13
+		],
+		"evidence": "PG p.15, p.21"
+	},
+	{
+		"kit": "setNoArmorCompressedSocialWildernessEquipment",
+		"kind": "band break",
+		"social": [
+			5
+		],
+		"evidence": "MM errata p.30, Trolls"
+	},
+	{
+		"kit": "setStandardWildernessEquipment",
+		"kind": "die switch",
+		"social": [
+			12,
+			13
+		],
+		"evidence": "PG errata p.31, Saurian, prints the choice"
+	}
+];
 
 // @MARKER BY STATUS -- free clothing. Race to wardrobe, then wardrobe by
 // style, gender and the social class at or above which it is worn.

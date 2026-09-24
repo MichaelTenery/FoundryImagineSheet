@@ -363,10 +363,12 @@ check("a negative rate falls to the hourly floor", stumpy.movement.walk.hourly, 
 check("...the ten second floor",                   stumpy.movement.walk.tenSec, 10);
 check("...and the one second floor",               stumpy.movement.walk.oneSec, 1);
 
-// A NEGATIVE speed multiplier is not a coherent quantity and is ignored, not floored. Only
-// Elf(Sea) and Elf(Ice) carry one (-10), and it reads as a mis-keyed cell -- they are also the only
-// two elves of eleven with no disease-resistance modifier. Flooring them left a sea elf swimming at
-// 1 mile an hour; ignoring it lets them move like any other elf.
+// A NEGATIVE speed multiplier is not a coherent quantity and is ignored, not floored. Elf(Sea) and
+// Elf(Ice) carried one (-10) in his rows, a mis-keyed cell -- they were also the only two elves of
+// eleven with no disease-resistance modifier. Flooring them left a sea elf swimming at 1 mile an hour;
+// ignoring it let them move like any other elf. Since 2026-09-23 the build repairs the cell itself
+// (column_maps.RACE_VALUE_REPAIRS, Legends pp.27-28), so no shipped race carries one; the guard
+// stays for a homebrew race that does.
 const negMulti = makeCharacter({ agl: 15 }, 12,
 	[makeRace({ ...zeroMods, movement: { ...zeroMods.movement, speedMultiplier: -10 } })]);
 check("a negative speed multiplier is ignored",    negMulti.movement.walk.tenSec, 50);
@@ -438,9 +440,10 @@ check("a special multiplier of 0 means one",      plainSwim.movement.special.ten
 // which resolves normally, and the swim built on it is a real distance.
 check("a race with a zero walk modifier still swims", plainSwim.movement.special.hourly, 4);
 
-// Elf(Sea) is the race that made this matter: a Swim race carrying the -10. Flooring it gave a sea
-// elf a swim of 1 mile an hour, slower than it walks. Ignoring the multiplier gives it walk x 3,
-// the same shape every other swimming race has.
+// Elf(Sea) is the race that made this matter: a Swim race carrying the -10 (repaired in the data
+// since 2026-09-23, but the guard is still tested). Flooring it gave a sea elf a swim of 1 mile an
+// hour, slower than it walks. Ignoring the multiplier gives it walk x 3, the same shape every other
+// swimming race has.
 const seaElf = makeCharacter({ agl: 15 }, 12, [specialRace("Swim:", walkTimes(3), { speedMultiplier: -10 })]);
 check("a sea elf swims at three times its walk",  seaElf.movement.special.tenSec, 150);
 check("...and is not stuck at the floor",         seaElf.movement.special.hourly, 15);
@@ -1107,6 +1110,75 @@ check("two of the same outcome pick the wider margin",
 check("a single copy is simply itself",
 	S.pickBestSkillRoll([S.resolveSkillOutcome(50, 10)]).bestIndex, 0);
 check("no copies at all is not an error", S.pickBestSkillRoll([]).best, null);
+
+// --- his eight skill-roll results (handleSkillRollDetails, sheet-worker.js:29426) -------------
+// Every skill roll on his sheet reads its die through this one function. Half rounds UP
+// (parseInt((chance+1)/2)): 30 halves to 15, 35 to 18. A critical is a roll UNDER chance - 20.
+const SR = (chance, roll) => S.resolveSkillRoll(chance, roll).outcome;
+check("30%, rolled 12: made by half, not critical (12 is not under 10)", SR(30, 12), "Made by half");
+check("30%, rolled 9: critical AND made by half",                        SR(30, 9), "Critical Success and made by half");
+check("60%, rolled 35: critical but not by half (half is 30)",           SR(60, 35), "Critical Success");
+check("60%, rolled 30: critical and made by half, at the half exactly",  SR(60, 30), "Critical Success and made by half");
+check("60%, rolled 31: one over the half is a plain critical",           SR(60, 31), "Critical Success");
+check("60%, rolled 45: an ordinary success",                             SR(60, 45), "Success");
+check("60%, rolled 40: made by exactly 20 is not critical",              SR(60, 40), "Success");
+check("60%, rolled 60: at the chance succeeds",                          SR(60, 60), "Success");
+check("60%, rolled 61: one over fails",                                  SR(60, 61), "Failure");
+check("60%, rolled 80: missed by exactly 20 is an ordinary failure",     SR(60, 80), "Failure");
+check("60%, rolled 81: missed by 21 is a critical failure",              SR(60, 81), "Critical Failure");
+check("35%, rolled 18: half rounds UP -- 18 is made by half",            SR(35, 18), "Made by half");
+check("35%, rolled 19: ...and 19 is not",                                SR(35, 19), "Success");
+check("200%: Grandmaster, whatever the die",                             [SR(200, 1), SR(200, 100)], ["Grandmaster", "Grandmaster"]);
+check("199% is not a Grandmaster: rolled 100 still fails",               SR(199, 100), "Rolled 100");
+check("150%, rolled 100: a 100 always fails below 200%",                 SR(150, 100), "Rolled 100");
+check("60%, rolled 100: the 100 test comes before the critical failure", SR(60, 100), "Rolled 100");
+check("0%, rolled 1: no natural 01 success on his sheet (the book has one)", SR(0, 1), "Failure");
+check("a negative chance is a failure, not a throw",                     SR(-10, 50), "Critical Failure");
+check("the first five results are made, the last three are not",
+	S.SKILL_ROLL_ORDER.map(r => S.SKILL_ROLL_RESULTS[r].made),
+	[true, true, true, true, true, false, false, false]);
+check("the flags travel with the result",
+	(({ made, critical, byHalf, criticalFail }) => [made, critical, byHalf, criticalFail])(S.resolveSkillRoll(30, 9)),
+	[true, true, true, false]);
+check("...and a critical failure says so",
+	[S.resolveSkillRoll(60, 81).made, S.resolveSkillRoll(60, 81).criticalFail], [false, true]);
+// His cards end "Result=Made by half. Succeeded? = true" (63963): the result, then whether it passed.
+check("the card wording names the result and whether it passed; a Grandmaster's die is said not to matter",
+	[S.describeSkillRoll(S.resolveSkillRoll(30, 12)), S.describeSkillRoll(S.resolveSkillRoll(210, 57))],
+	["rolled 12 against 30% &mdash; <strong>Made by half</strong> (succeeded)",
+	 "rolled 57 against 210% &mdash; <strong>Grandmaster</strong> (succeeded, no roll needed)"]);
+check("...and a rolled 100 or a critical failure says it failed, since 'Rolled 100' does not",
+	[S.describeSkillResult(S.resolveSkillRoll(150, 100)), S.describeSkillResult(S.resolveSkillRoll(60, 81))],
+	["<strong>Rolled 100</strong> (failed)", "<strong>Critical Failure</strong> (failed)"]);
+check("nothing to describe is an empty string, not a throw",
+	[S.describeSkillResult(null), S.describeSkillRoll(undefined)], ["", ""]);
+
+// pickBestSkillRoll ranks his eight: by half beats plain, a critical by half beats a critical.
+check("a copy made by half beats a copy merely made",
+	S.pickBestSkillRoll([S.resolveSkillRoll(60, 50), S.resolveSkillRoll(40, 20)]).best.outcome, "Made by half");
+check("a critical by half beats a plain critical",
+	S.pickBestSkillRoll([S.resolveSkillRoll(90, 60), S.resolveSkillRoll(90, 40)]).bestIndex, 1);
+check("a Grandmaster copy beats any rolled copy",
+	S.pickBestSkillRoll([S.resolveSkillRoll(90, 5), S.resolveSkillRoll(200, 99)]).best.outcome, "Grandmaster");
+check("a rolled 100 beats only a critical failure",
+	[S.pickBestSkillRoll([S.resolveSkillRoll(60, 100), S.resolveSkillRoll(20, 90)]).best.outcome,
+	 S.pickBestSkillRoll([S.resolveSkillRoll(60, 100), S.resolveSkillRoll(60, 70)]).best.outcome],
+	["Rolled 100", "Failure"]);
+check("the four situational words rank at their twins' places",
+	["Critical success", "Succeeded", "Failed", "Critical failure"].map(S.getSkillResultRank),
+	["Critical Success", "Success", "Failure", "Critical Failure"].map(S.getSkillResultRank));
+check("a word neither reader knows ranks last",
+	S.getSkillResultRank("Nonsense"), S.SKILL_ROLL_ORDER.length);
+
+// --- attribute saves (his STR save, sheet-worker.js:42-58) --------------------------------------
+// Half rounds DOWN with a floor of 1 (divideWithMin, 25595) -- not the skill roll's half.
+const SV = (chance, roll) => S.resolveAttributeSave(chance, roll).outcome;
+check("a save at or under half is made by half",           [SV(45, 22), SV(45, 23)], ["Succeeded by half", "Succeeded"]);
+check("...at or under the chance succeeds",                SV(45, 45), "Succeeded");
+check("...and over it fails, with no critical tiers",      [SV(45, 46), SV(45, 99)], ["Failed", "Failed"]);
+check("a 1% save rolled 1 is made by half: the floor of 1", SV(1, 1), "Succeeded by half");
+check("a 0% save still fails on a 1, floor or no floor",   SV(0, 1), "Failed");
+check("a save has no 100 rule of its own: 100 under a 120% save succeeds", SV(120, 100), "Succeeded");
 
 // --- half races, against his applyHalfRaceToAttribs (sheet-worker.js:33770) -------------
 const RR = await import("../module/race-rules.mjs");
@@ -2016,6 +2088,137 @@ check("a GME, title 0, gets no title bonus",
 	makeCharacter(flat, 0, [mageLike([], true)]).characteristics.fortune.value, 12);
 check("Shock follows the class's Endurance bonus",
 	makeCharacter(flat, 1, [mageLike(["+5 Endurance"])]).body.shock, 51);
+
+// --- the race cells his errata and books settle (column_maps.RACE_VALUE_REPAIRS) -------------------
+// Each is a logged repair, printed by build_documents.py on every run. These read the BUILT packs,
+// so a rebuild that loses a repair is caught here.
+const raceItemFor = (n, patch) => ({ type: "race", name: n,
+	system: Object.assign(structuredClone(raceByName(n).system), patch ?? {}) });
+check("Sea and Ice Elves carry the book's Disease -10% (Legends pp.27-28), and a speed multiplier of 0",
+	["Elf(Sea)", "Elf(Ice)"].map(n => [raceByName(n).system.resistanceMods.disease, raceByName(n).system.movement.speedMultiplier]),
+	[[-10, 0], [-10, 0]]);
+check("...and no race document carries a negative speed multiplier any more",
+	raceDocs.filter(d => d.system.movement.speedMultiplier < 0).map(d => d.name), []);
+const elfAt15 = (n) => makeCharacter({ agl: 15 }, 12, [raceItemFor(n)]);
+const elfMoves = (n) => ["walk", "jog", "run"].map(m => raceByName(n).system.movement[m]);
+check("Sea and Ice Elves carry the Wood Elf's own movement modifiers -- 'Movement: as Elven'",
+	[elfMoves("Elf(Sea)"), elfMoves("Elf(Ice)")], [elfMoves("Elf(Wood)"), elfMoves("Elf(Wood)")]);
+check("...so a Sea Elf (Agility +2, as a Wood Elf) walks exactly as fast at the same rating",
+	["hourly", "tenSec", "oneSec"].map(s => elfAt15("Elf(Sea)").movement.walk[s]),
+	["hourly", "tenSec", "oneSec"].map(s => elfAt15("Elf(Wood)").movement.walk[s]));
+check("...and resists disease 5 worse than a Wood Elf (-10 against -5)",
+	elfAt15("Elf(Sea)").resistances.disease.value - elfAt15("Elf(Wood)").resistances.disease.value, -5);
+check("both Podling forms jog -6 a second, not -60 (PG errata p.36: ten seconds is ten times one)",
+	["Podling(Winged)", "Podling(Wingless)"].map(n => raceByName(n).system.movement.jog.oneSec), [-6, -6]);
+// The same errata line settles every rate: ten seconds is ten times one. Two of his rows still break it
+// in the RUN column; they are reported to him (UPSTREAM-ISSUES), not repaired, since no book was checked
+// for them in this pass. Listed here so a third cannot appear unnoticed.
+check("every other rate keeps ten seconds at ten times one second, bar the two run slips reported",
+	raceDocs.flatMap(d => ["walk", "jog", "run"].filter(m => d.system.movement[m].tenSec != 10 * d.system.movement[m].oneSec)
+		.map(m => `${d.name} ${m}`)),
+	["Midfolk(Town) run", "Testudara run"]);
+
+// A Nixie swims AND flies (Legends p.33). His row is the flight; his Formless copy of it is the swim.
+const nixieChar = makeCharacter({ agl: 11, int: 16 }, 12, [raceItemFor("Nixie")]);
+check("a Nixie has both: its row's flight and its Formless copy's swim",
+	[nixieChar.movement.specialName, nixieChar.movement.secondSpecialName], ["Fly:", "Swim:"]);
+check("...the swim at five times its walk, at every scale",
+	["hourly", "tenSec", "oneSec"].map(s => nixieChar.movement.secondSpecial[s]),
+	["hourly", "tenSec", "oneSec"].map(s => nixieChar.movement.walk[s] * 5));
+check("...and the flight is untouched by it",
+	nixieChar.movement.special.tenSec, makeCharacter({ agl: 11, int: 16 }, 12,
+		[raceItemFor("Nixie", { movement: { ...structuredClone(raceByName("Nixie").system.movement), secondSpecialName: "" } })])
+		.movement.special.tenSec);
+check("no race but Nixie has a second special movement",
+	raceDocs.filter(d => d.system.movement.secondSpecialName).map(d => d.name), ["Nixie"]);
+check("a race made before the field existed reads as having none",
+	makeCharacter({}, 12, [makeRace(zeroMods)]).movement.secondSpecialName, "");
+check("a half race takes the first race's second movement, as it takes its first",
+	[RR.combineHalfRace(raceByName("Nixie").system, raceByName("Fairy(Winged)").system).movement.secondSpecialName,
+	 RR.combineHalfRace(raceByName("Fairy(Winged)").system, raceByName("Nixie").system).movement.secondSpecialName],
+	["Swim:", ""]);
+
+// Gaunt's starting Endurance is -1d4 (Epitaph p.7; his row's [0-getDieRoll(4)] beside "-1d4="). The
+// document stays at 0; a character's own copy is rolled once.
+const gauntEnd = raceByName("Gaunt").system.endurance;
+check("the Gaunt document carries his formula with 0 beside it, unrolled",
+	[gauntEnd.startFormula, gauntEnd.startMod, gauntEnd.startRolled], ["-1d4=", 0, false]);
+check("his formula reads as one d4, taken away", RR.parseStartingEnduranceDie("-1d4="), { sign: -1, count: 1, sides: 4 });
+check("a blank formula, every other race's, has no die", RR.parseStartingEnduranceDie(""), null);
+check("no race but Gaunt has a die to roll",
+	raceDocs.filter(d => RR.parseStartingEnduranceDie(d.system.endurance.startFormula)).map(d => d.name), ["Gaunt"]);
+const gauntRolled = RR.rollStartingEndurance(gauntEnd, () => 3);
+check("rolled with a 3 it is -3, and marked rolled", [gauntRolled.startMod, gauntRolled.startRolled], [-3, true]);
+check("...leaving the document's own block alone", [gauntEnd.startMod, gauntEnd.startRolled], [0, false]);
+check("a copy already rolled is never rolled again", RR.rollStartingEndurance(gauntRolled, () => 1).startMod, -3);
+check("the die is held to 1..4 whatever the dice say",
+	[0, 9, NaN].map(f => RR.rollStartingEndurance(gauntEnd, () => f).startMod), [-1, -4, -1]);
+check("a Gaunt character's racial Endurance is its rolled -3",
+	makeCharacter(flat, 1, [raceItemFor("Gaunt", { endurance: gauntRolled })]).characteristics.endurance.raceMod, -3);
+check("...and a Gaunt half race averages the roll as his half race does (8147-8152)",
+	RR.combineHalfRace({ ...raceByName("Gaunt").system, endurance: gauntRolled },
+		raceByName("Human(Civilized:Village)").system).endurance.startMod,
+	RR.averageTwoFloatsRounded(-3, raceByName("Human(Civilized:Village)").system.endurance.startMod));
+// Which copies still want the die: asked by the generator, the createItem hook and the sheet's button
+// (race-endurance.mjs). A copy made before 2026-09-23 is unrolled; one rolled since is not.
+check("an unrolled Gaunt copy needs its roll; a rolled one, and every other race, does not",
+	[RR.needsStartingEnduranceRoll(raceByName("Gaunt").system),
+	 RR.needsStartingEnduranceRoll({ endurance: gauntRolled }),
+	 raceDocs.filter(d => RR.needsStartingEnduranceRoll(d.system)).map(d => d.name)],
+	[true, false, ["Gaunt"]]);
+check("...and a race with no endurance block at all needs nothing",
+	[RR.needsStartingEnduranceRoll({}), RR.needsStartingEnduranceRoll(null)], [false, false]);
+check("his formula reads without the '=' his sheet prints the result after",
+	[RR.getStartingEnduranceLabel("-1d4="), RR.getStartingEnduranceLabel(""), RR.getStartingEnduranceLabel(undefined)],
+	["-1d4", "", ""]);
+
+// --- the Foundry face of that roll (module/race-endurance.mjs), against stubs ----------------------
+// Rolled for a race dropped onto a character (the createItem hook) and from the header's button for a
+// Gaunt made before 2026-09-23. Stubbed here only after everything above has run, so nothing earlier
+// can lean on them.
+const RE = await import("../module/race-endurance.mjs");
+const postedFlavors = [];
+globalThis.Roll = class {
+	constructor(tmpformula) { this.formula = tmpformula; }
+	async evaluate() { this.dice = [{ results: [{ result: 2 }] }]; this.total = 2; return this; }
+	async toMessage(tmpmessage) { postedFlavors.push([this.formula, tmpmessage.flavor]); }
+};
+globalThis.ChatMessage = { getSpeaker: () => ({}) };
+globalThis.foundry.utils = { escapeHTML: (tmptext) => String(tmptext) };
+const fakeRaceItem = (tmpsystem, tmpparent) => {
+	const tmpitem = { type: "race", name: "Gaunt", system: structuredClone(tmpsystem), parent: tmpparent, updates: [] };
+	tmpitem.update = async (tmpupdate) => { tmpitem.updates.push(tmpupdate); };
+	return tmpitem;
+};
+const unrolledGaunt = fakeRaceItem(raceByName("Gaunt").system);
+await RE.rollRaceStartingEndurance({ name: "Vex" }, unrolledGaunt);
+check("the roll writes the figure and the tick to that character's copy of the race, rolling 1d4",
+	[unrolledGaunt.updates, postedFlavors.map(p => p[0])],
+	[[{ "system.endurance.startMod": -2, "system.endurance.startRolled": true }], ["1d4"]]);
+check("...and puts the roll in chat",
+	postedFlavors.map(p => p[1]), ["Vex: Gaunt starting Endurance -1d4 &mdash; <strong>-2</strong>, rolled once"]);
+const rolledGaunt = fakeRaceItem({ ...raceByName("Gaunt").system, endurance: gauntRolled });
+check("a copy already rolled is left alone, with nothing posted",
+	[await RE.rollRaceStartingEndurance({ name: "Vex" }, rolledGaunt), rolledGaunt.updates.length, postedFlavors.length],
+	[null, 0, 1]);
+check("...as is a race with nothing to roll, and something that is not a race",
+	[await RE.rollRaceStartingEndurance({}, fakeRaceItem(raceByName("Elf(Wood)").system)),
+	 await RE.rollRaceStartingEndurance({}, { type: "weapon", system: {} }), await RE.rollRaceStartingEndurance({}, null)],
+	[null, null, null]);
+// The hook rolls only for the user who added the race, and only onto a character.
+let createItemHook = null;
+globalThis.Hooks = { on: (tmpname, tmpfn) => { if (tmpname == "createItem") { createItemHook = tmpfn; } } };
+globalThis.game.user = { id: "me" };
+RE.registerRolledStartingEndurance();
+const droppedOnCharacter = fakeRaceItem(raceByName("Gaunt").system, { type: "character", name: "Vex" });
+const droppedByAnother   = fakeRaceItem(raceByName("Gaunt").system, { type: "character", name: "Vex" });
+const droppedOnCreature  = fakeRaceItem(raceByName("Gaunt").system, { type: "creature", name: "Grub" });
+createItemHook(droppedOnCharacter, {}, "me");
+createItemHook(droppedByAnother, {}, "another user");
+createItemHook(droppedOnCreature, {}, "me");
+await new Promise(tmpresolve => setTimeout(tmpresolve, 0));
+check("a Gaunt dropped onto a character is rolled at once; not by another user's client, not onto a creature",
+	[droppedOnCharacter.updates.length, droppedByAnother.updates.length, droppedOnCreature.updates.length], [1, 0, 0]);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;

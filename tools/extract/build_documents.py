@@ -33,6 +33,8 @@ from collections import Counter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from column_maps import CLASSREQUIREMENTSANDDETAILS  # noqa: E402 -- names the inline class rows too
 from column_maps import RACESTATSANDMOVEDETAILS      # noqa: E402 -- and the inline race rows
+from column_maps import RACE_VALUE_REPAIRS           # noqa: E402 -- the race cells the books settle
+from column_maps import RACE_SECOND_SPECIAL_MOVEMENT # noqa: E402 -- and Nixie's swim beside its flight
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAMED = os.path.join(HERE, "..", "..", "src", "packs", "named")
@@ -40,9 +42,18 @@ OUT = os.path.join(HERE, "..", "..", "src", "packs", "documents")
 
 issues = []
 
+# Every place this build CHANGES his data rather than reporting on it. Kept apart from the issues so
+# that each one is printed in full on every run, however many there are -- a repair that could scroll
+# out of a "first five" summary could pass for his own data.
+repairs = []
+
 
 def note(kind, where, detail):
     issues.append({"kind": kind, "where": where, "detail": detail})
+
+
+def repair(where, detail):
+    repairs.append({"where": where, "detail": detail})
 
 
 # @MARKER VALUE CONVERSION
@@ -894,6 +905,7 @@ def build_formless(tmpraceskills, tmpracefertile, tmpraceages, tmpformmap):
             # Starting Endurance comes from the host; the per-title roll is the psyche's own.
             "startFormula": "",
             "startMod": 0,
+            "startRolled": False,
             "titleFormula": clean_text(str(tmpmental.get("race_title_tmp_end_formula", ""))),
             "titleDice": clean_text(str(int(tmpmental.get("race_title_tmp_end_dice", 0) or 0))),
             "titleMax": mental("race_title_tmp_end_max"),
@@ -922,6 +934,8 @@ def build_formless(tmpraceskills, tmpracefertile, tmpraceages, tmpformmap):
             "special": {"hourly": "", "hourlyMultiplier": 0, "hourlyMod": 0,
                         "tenSec": "", "tenSecMultiplier": 0, "tenSecMod": 0,
                         "oneSec": "", "oneSecMultiplier": 0, "oneSecMod": 0},
+            "secondSpecialName": "",
+            "secondSpecial": dict(SPECIAL_MOVEMENT_BLANK),
             "jumpStand": 0, "jumpUp": 0,
         },
         "slightPhysique": {"hasVariant": False, "specialName": "", "special": {
@@ -1010,6 +1024,7 @@ def build_famorian(tmpraceskills, tmpracefertile, tmpraceages, tmpbodymap):
         "endurance": {
             "startFormula": clean_text(str(tmpbase.get("race_start_tmp_end_formula", ""))),
             "startMod": base("race_start_tmp_end_mod"),
+            "startRolled": False,
             "titleFormula": clean_text(str(tmpbase.get("race_title_tmp_end_formula", ""))),
             "titleDice": clean_text(str(tmpbase.get("race_title_tmp_end_dice", ""))),
             "titleMax": base("race_title_tmp_end_max"),
@@ -1038,6 +1053,8 @@ def build_famorian(tmpraceskills, tmpracefertile, tmpraceages, tmpbodymap):
             "special": {"hourly": "", "hourlyMultiplier": 0, "hourlyMod": 0,
                         "tenSec": "", "tenSecMultiplier": 0, "tenSecMod": 0,
                         "oneSec": "", "oneSecMultiplier": 0, "oneSecMod": 0},
+            "secondSpecialName": "",
+            "secondSpecial": dict(SPECIAL_MOVEMENT_BLANK),
             "jumpStand": 0, "jumpUp": 0,
         },
         "slightPhysique": {"hasVariant": False, "specialName": "", "special": {
@@ -1090,6 +1107,76 @@ def race_form_siblings(tmpfertile, tmpname, tmpkey, tmpmap):
         return tmpfertile
     return tmpfertile + [tmpsibling for tmpsibling in tmpmap.get(tmpkey, [])
                          if tmpsibling != tmpname and tmpsibling not in tmpfertile]
+
+
+# @MARKER RACE REPAIRS
+# The race cells his errata and books settle (column_maps.RACE_VALUE_REPAIRS), Nixie's second
+# movement (column_maps.RACE_SECOND_SPECIAL_MOVEMENT), and Gaunt's rolled starting Endurance. Each
+# is printed on every run by main(), in full.
+
+def apply_race_value_repairs(tmpname, tmpkey, tmprow):
+    """His race row with RACE_VALUE_REPAIRS laid over it. The row is copied, never changed in place:
+    two forms of one race can share a row."""
+    tmpout = dict(tmprow)
+    for tmpfield, tmpfrom, tmpto, tmpwhy in RACE_VALUE_REPAIRS.get(tmpkey, []):
+        tmphave = to_number(tmpout.get(tmpfield), "raceStatsAndMoveDetails/%s" % tmpname, tmpfield)
+        if tmphave == tmpfrom:
+            tmpout[tmpfield] = tmpto
+            repair(tmpname, "%s %s -> %s. %s" % (tmpfield, tmpfrom, tmpto, tmpwhy))
+        else:
+            repair(tmpname, "%s: NO LONGER NEEDED -- his row now reads %s, not %s, and his value is used"
+                   % (tmpfield, tmphave, tmpfrom))
+    return tmpout
+
+
+# His one live expression in the race rows: Gaunt's starting-Endurance modifier is
+# [0-getDieRoll(4)] (sheet-worker.js:34058), which his sheet rolls afresh each time the race is
+# applied and writes to the character's race_start_tmp_end_mod. The formula column beside it
+# reads "-1d4=", the label his sheet shows the result after. Epitaph of the Fallen p.7 agrees:
+# "Endurance Modifier: Starting Endurance -1d4". So the document carries startMod 0 and the
+# formula, and the roll is made ONCE, when a character takes the race (chargen-rules.mjs).
+ROLLED_ENDURANCE_MOD = re.compile(r'^\s*0\s*-\s*getDieRoll\(\s*(\d+)\s*\)\s*$')
+
+
+def rolled_endurance_sides(tmpvalue):
+    """The die of a `0-getDieRoll(N)` cell, or 0 for an ordinary one. The dictionary parser keeps a
+    live expression as {"__expr__": text}, inside the one-element array he wrote it in."""
+    for tmpcell in (tmpvalue if isinstance(tmpvalue, list) else [tmpvalue]):
+        if isinstance(tmpcell, dict) and "__expr__" in tmpcell:
+            tmpmatch = ROLLED_ENDURANCE_MOD.match(str(tmpcell["__expr__"]))
+            if tmpmatch:
+                return int(tmpmatch.group(1))
+    return 0
+
+
+# The special-movement fields of a race document, in its schema's order, and their blank values.
+SPECIAL_MOVEMENT_BLANK = {
+    "hourly": "", "hourlyMultiplier": 0, "hourlyMod": 0,
+    "tenSec": "", "tenSecMultiplier": 0, "tenSecMod": 0,
+    "oneSec": "", "oneSecMultiplier": 0, "oneSecMod": 0,
+}
+
+
+def second_special_movement(tmpname, tmpkey):
+    """(name, rates) of a race's SECOND special movement -- blank for all but the races
+    RACE_SECOND_SPECIAL_MOVEMENT lists. Where his Formless copy of the row is what the figures come
+    from, the build checks it still says so, so a change on his side is noticed."""
+    tmpsecond = RACE_SECOND_SPECIAL_MOVEMENT.get(tmpkey)
+    if not tmpsecond:
+        return "", dict(SPECIAL_MOVEMENT_BLANK)
+
+    tmpformless = load_named("formlessRace") or {}
+    tmpcopy = {d["field"]: d["formlessCopy"] for d in tmpformless.get("hostCopyDiffers", [])
+               if d.get("race") == tmpkey}
+    tmpagrees = (tmpcopy.get("specialMoveName") == tmpsecond["name"]
+                 and tmpcopy.get("special1Sec") == tmpsecond["oneSec"]
+                 and tmpcopy.get("special1SecMultiplier") == tmpsecond["oneSecMultiplier"])
+    repair(tmpname, "second special movement %s %s x%s added beside the row's own. %s. His Formless "
+           "copy %s." % (tmpsecond["name"], tmpsecond["oneSec"], tmpsecond["oneSecMultiplier"],
+                         tmpsecond["evidence"],
+                         "still reads the same" if tmpagrees else
+                         "NO LONGER READS THIS (%s) -- check the repair" % tmpcopy))
+    return tmpsecond["name"], {k: tmpsecond.get(k, v) for k, v in SPECIAL_MOVEMENT_BLANK.items()}
 
 
 def build_races():
@@ -1235,6 +1322,20 @@ def build_races():
         tmpfeatures = racefeatures.get(tmpkey, ["", "", ""])
         tmpages = raceages.get(tmpkey, {})
 
+        # @MARKER RACE REPAIRS, applied: the cells the books settle, then Gaunt's rolled Endurance.
+        tmprow = apply_race_value_repairs(tmpname, tmpkey, tmprow)
+        tmpendsides = rolled_endurance_sides(tmprow.get("startEnduranceMod"))
+        if tmpendsides:
+            tmpendformula = clean_text(str(tmprow.get("startEnduranceFormula", "")))
+            tmprow = dict(tmprow, startEnduranceMod=0)
+            repair(tmpname, "startEnduranceMod: his live 0-getDieRoll(%d) is carried as 0 beside the "
+                   "formula %r, and rolled once when a character takes the race (Epitaph p.7: "
+                   "'Starting Endurance -1d4')%s"
+                   % (tmpendsides, tmpendformula,
+                      "" if tmpendformula.rstrip("=").strip() == "-1d%d" % tmpendsides
+                      else " -- BUT THE FORMULA DOES NOT MATCH THE DIE; check the row"))
+        tmpsecondname, tmpsecondspecial = second_special_movement(tmpname, tmpkey)
+
         if tmpkey not in bodymap:
             note("race-body-type-defaulted", where, "no case in getRacialBodyType; using Humanoid")
         if tmpkey in conditional:
@@ -1298,6 +1399,8 @@ def build_races():
             "endurance": {
                 "startFormula": clean_text(str(tmprow.get("startEnduranceFormula", ""))),
                 "startMod": to_number(tmprow.get("startEnduranceMod"), where, "startEnduranceMod"),
+                # False on every document: a race is rolled on the CHARACTER's copy, never here.
+                "startRolled": False,
                 "titleFormula": clean_text(str(tmprow.get("titleEnduranceFormula", ""))),
                 "titleDice": clean_text(str(tmprow.get("titleEnduranceDice", ""))),
                 "titleMax": to_number(tmprow.get("titleEnduranceMax"), where, "titleEnduranceMax"),
@@ -1332,6 +1435,9 @@ def build_races():
                     "oneSecMultiplier": to_number(tmprow.get("special1SecMultiplier"), where, "special1SecMultiplier"),
                     "oneSecMod": to_number(tmprow.get("special1SecMod"), where, "special1SecMod"),
                 },
+                # Blank for every race his row describes fully; see second_special_movement.
+                "secondSpecialName": tmpsecondname,
+                "secondSpecial": tmpsecondspecial,
                 "jumpStand": to_number(tmprow.get("jumpStand"), where, "jumpStand"),
                 "jumpUp": to_number(tmprow.get("jumpUp"), where, "jumpUp"),
             },
@@ -2396,6 +2502,12 @@ def main():
 
     check_skill_references(tmpbuilt)
     check_race_references(tmpbuilt)
+
+    # Every change made to his data, in full, every run.
+    if repairs:
+        print(f"\n{len(repairs)} repair(s) made to his data -- settled by his errata or books, not by us:")
+        for tmprepair in repairs:
+            print(f"  REPAIRED {tmprepair['where']}: {tmprepair['detail']}")
 
     if args.write:
         tmpmarked = write_unattributed_report(tmpbuilt)

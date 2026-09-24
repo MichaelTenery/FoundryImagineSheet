@@ -23,7 +23,7 @@ import {
 } from "./martial-arts.mjs";
 import { MARTIAL_LORE_VALUES } from "../combat-tables.mjs";
 import { findActorCombatant } from "./combat-document.mjs";
-import { resolveSkillOutcome } from "../skills-rules.mjs";
+import { resolveSkillRoll, describeSkillRoll } from "../skills-rules.mjs";
 
 const { resolveAttack, resolveCriticalFumble } = CombatRules;
 
@@ -84,12 +84,16 @@ export function loadMartialTemplates() {
 	}
 
 	// This is the function which rolls one percentile skill check and words it.
+	//
+	// His martial knowledge and lore rolls -- attack, block, hold, throw, move and lore value
+	// (handleMartialAttackSkillRoll, sheet-worker.js:66168, and its siblings to 68725) -- all read
+	// the die through handleSkillRollDetails, so this does too: his eight results, "made" being
+	// the first five of them (resolveSkillRoll carries it).
 	async function rollSkillCheck(tmpchance) {
 		var tmproll = await rollFormula("1d100");
-		var tmpresult = resolveSkillOutcome(tmpchance, tmproll.total);
-		tmpresult.made = tmpresult.outcome == "Succeeded" || tmpresult.outcome == "Critical success";
+		var tmpresult = resolveSkillRoll(tmpchance, tmproll.total);
 		tmpresult.rollObject = tmproll;
-		tmpresult.text = `rolled ${tmpresult.roll} against ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`;
+		tmpresult.text = describeSkillRoll(tmpresult);
 		return tmpresult;
 	}
 

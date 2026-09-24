@@ -376,6 +376,11 @@
 			// Fly/Gallop/Scurry/Swim switch reads tempRaceStatMoves1, and so does the fallback
 			specialName: tmpMove1.specialName ?? "",
 			special:     structuredClone(tmpMove1.special ?? {}),
+			// ...and so does the second one, which his sheet has no field for at all (a Nixie's
+			// swim beside its flight, race-rules' callers and item-race.mjs): the body is the first
+			// race's, and so are the ways it moves.
+			secondSpecialName: tmpMove1.secondSpecialName ?? "",
+			secondSpecial:     structuredClone(tmpMove1.secondSpecial ?? {}),
 			jumpStand:   averageTwoFloatsRounded(tmpMove1.jumpStand, tmpMove2.jumpStand),
 			jumpUp:      averageTwoFloatsRounded(tmpMove1.jumpUp, tmpMove2.jumpUp)
 		};
@@ -425,6 +430,85 @@
 			page:               "",
 			description:        ""
 		};
+	}
+
+	// @MARKER ROLLED STARTING ENDURANCE
+	// One race's starting Endurance modifier is a die, not a number: Gaunt's, "Starting Endurance
+	// -1d4" (Epitaph of the Fallen p.7). His row carries it as the live expression [0-getDieRoll(4)]
+	// with the label "-1d4=" beside it (sheet-worker.js:34058), so his sheet rolls it afresh
+	// whenever the race is applied and writes the result to that character's
+	// race_start_tmp_end_mod (33722) -- the figure his half race then averages (8147-8152).
+	//
+	// The port keeps the race DOCUMENT's startMod at 0 with the formula beside it, and rolls once,
+	// when a character takes the race, into that character's own copy of the race: startMod holds
+	// the result and startRolled says it is done. Everything downstream -- the Endurance
+	// characteristic, the half-race average, a Formless host -- then reads startMod as it always
+	// has, and a copy that is already rolled is never rolled again. Until 2026-09-23 nothing rolled
+	// it at all, and every Gaunt started at 0 (UPSTREAM-ISSUES item 2).
+
+	// This is the function which reads the die out of his formula text: "-1d4=" is
+	// { sign: -1, count: 1, sides: 4 }. The trailing "=" is his label, where his sheet prints the
+	// result. Returns null for a formula with no die -- every race's but Gaunt's, all of them blank.
+	export function parseStartingEnduranceDie(tmpFormula) {
+		var tmpText = ("" + (tmpFormula ?? "")).trim();
+		var tmpMatch = tmpText.match(/^([+-]?)\s*(\d*)\s*d\s*(\d+)/i);
+		if (!tmpMatch) { return null; }
+		var tmpSides = parseInt(tmpMatch[3]) || 0;
+		if (tmpSides < 1) { return null; }
+		return {
+			sign:  tmpMatch[1] == "-" ? -1 : 1,
+			count: parseInt(tmpMatch[2]) || 1,
+			sides: tmpSides
+		};
+	}
+
+	// This is the function which rolls one race's starting Endurance, if it is a die and has not
+	// been rolled. Returns the race's endurance block for the character's copy -- a new object,
+	// the original untouched -- with startMod raised by the roll and startRolled set, or the block
+	// unchanged (as a copy) where there is nothing to roll.
+	//
+	//   tmpEndurance  the race document's system.endurance
+	//   tmpRoll       the dice, tmpRoll(sides) -> 1..sides
+	export function rollStartingEndurance(tmpEndurance, tmpRoll) {
+		var tmpOut = { ...(tmpEndurance ?? {}) };
+		if (tmpOut.startRolled) { return tmpOut; }
+		var tmpDie = parseStartingEnduranceDie(tmpOut.startFormula);
+		if (!tmpDie) { return tmpOut; }
+
+		var tmpTotal = 0;
+		for (var i = 0; i < tmpDie.count; i++) {
+			// Held to 1..sides, as every die-indexed pick in the generator is: a fixed preview die
+			// of 0 or a stray NaN must not become a Gaunt with no penalty or a NaN Endurance.
+			var tmpFace = parseInt(tmpRoll(tmpDie.sides)) || 1;
+			tmpTotal = tmpTotal + Math.max(1, Math.min(tmpDie.sides, tmpFace));
+		}
+		tmpOut.startMod = (parseInt(tmpOut.startMod) || 0) + (tmpDie.sign * tmpTotal);
+		tmpOut.startRolled = true;
+		return tmpOut;
+	}
+
+	// This is the function which says whether one race copy still has its starting Endurance to
+	// roll: a die in its formula, and not rolled yet. Three places ask it of a CHARACTER'S copy of a
+	// race, and each rolls when it is true:
+	//
+	//     the character generator     assembleCharacter (chargen-rules.mjs), before the actor exists
+	//     a race added to a character  the createItem hook in race-endurance.mjs -- a race dragged
+	//                                  onto the sheet, or made by a macro
+	//     the sheet's Roll button      beside Endurance in the header, for a Gaunt made before
+	//                                  2026-09-23, when nothing rolled it
+	//
+	// It is also true of the Gaunt race DOCUMENT, which is never rolled; only a copy on a character
+	// is. Takes the race's system data (a document's, or a plain object shaped like one).
+	export function needsStartingEnduranceRoll(tmpRaceSystem) {
+		var tmpEndurance = tmpRaceSystem?.endurance;
+		if (!tmpEndurance || tmpEndurance.startRolled) { return false; }
+		return parseStartingEnduranceDie(tmpEndurance.startFormula) != null;
+	}
+
+	// This is the function which gives the formula as a player reads it: his "-1d4=" is written with
+	// the "=" his sheet prints the result after, which a button label or a chat card does not want.
+	export function getStartingEnduranceLabel(tmpFormula) {
+		return ("" + (tmpFormula ?? "")).replace(/=\s*$/, "").trim();
 	}
 
 // @MARKER ADD NEW race rule functions HERE

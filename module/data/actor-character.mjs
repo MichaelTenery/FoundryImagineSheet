@@ -1505,6 +1505,19 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.movement.special.tenSec = tmpspecial.tenSec;
 		this.movement.special.oneSec = tmpspecial.oneSec;
 
+		// A second special rate, for the one race the books give two of: a Nixie swims AND flies
+		// (Legends p.33), and his row has room for only the flight -- the swim is his Formless copy
+		// of the same row. Read exactly as the first is. DERIVED ONLY, never stored: it has no field
+		// on the character, so an actor made before it existed needs nothing to load, and a race
+		// document made before it existed reads as blank (the schema's initial values).
+		var tmpsecondname = ("" + (tmpracemove.secondSpecialName ?? "")).trim();
+		if (tmpsecondname == "None:") { tmpsecondname = ""; }
+		this.movement.secondSpecialName = tmpsecondname;
+		this.movement.secondSpecial = tmpsecondname
+			? resolveSpecialMovement(tmpsecondname, tmpracemove.secondSpecial ?? {},
+				this.movement, tmpmulti, this.attributes.int.value)
+			: { hourly: 0, tenSec: 0, oneSec: 0 };
+
 		// For a slithering race the special rate is not an extra on top of walking, it is the whole
 		// of their movement -- "Slither is the only movement sssssnake people have", and they do
 		// not jump either. His sheet zeroes these after the fact too, so this runs last.
