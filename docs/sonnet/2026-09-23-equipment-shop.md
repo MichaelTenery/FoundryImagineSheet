@@ -5,10 +5,12 @@ The shop is built: `module/shop-rules.mjs` (Foundry-free rules), `module/shop-ta
 dictionaries), wired through `module/chargen-view.mjs` (@MARKER SHOP, the new Equipment step),
 `module/chargen-rules.mjs` (@MARKER PURCHASES in `assembleCharacter`), `module/apps/character-generator.mjs`
 (@MARKER SHOP, @MARKER SHOP ACTIONS), the `priceLevel` world setting in `module/imagine-rpg.mjs`, and the
-Equipment block of `templates/apps/character-generator.hbs`. Tests: `tools/shop-test.html` (100),
-`tools/chargen-test.html` (101, +12), `tools/starting-money-test.html` (60, +1). Every rules call was the
-research's recommended default, taken 2026-09-23 while the user was away -- see the DECISIONS text for
-this pass. Nothing below needs a rules judgement.
+Equipment block of `templates/apps/character-generator.hbs`. Tests: `tools/shop-test.html` (126),
+`tools/chargen-test.html` (107 on top of the 0.19.3 bug sweep, +12), `tools/starting-money-test.html`
+(60, +1), `tools/equip-test.html` (26, +5). Every rules call was the research's recommended default,
+taken 2026-09-23 while the user was away -- see the DECISIONS text for this pass. A review on
+2026-09-24 corrected six things, folded into the list below (barding, the Buy order, exact names first,
+the two "10 X" packets, the fairy bolts' launchers, typed Costs). Nothing below needs a rules judgement.
 
 **Already decided, do not re-open** (unless the user overrules one, in which case it is a one-place change):
 - Steps are Basics, Race, Attributes, Class, Skills, Details, **Equipment**, Review. Money and the starting
@@ -23,9 +25,22 @@ this pass. Nothing below needs a rules judgement.
 - Equipment and ammunition stack into one item with `system.quantity`; armour and other weapons are one
   item per copy. Ammunition is his `isProjectileWeapon` chain OR a Missile weapon with no speed.
 - Creature-hide armour (60 offers) is not sold. 15 names are aliased (`SHOP_NAME_ALIASES`); 3 offers are
-  left out with a reason (`catalog.left`).
+  left out with a reason (`SHOP_LEFT_OUT`, in `catalog.left` marked `known`). The fairy crossbow bolts are
+  bought as the pack's "Bolt(...)", so `MISSILE_LAUNCHER_MATCHES` (combat-rules.mjs) carries Bolt rows
+  beside his Arrow ones.
+- Every "N X" name in his panel is N of X wherever X is a document, "10 Nails" and "10 Needles(Assorted)"
+  included, because that is how his sheet reads it once bought (`getItemWithoutCount`, `getItemWeight`):
+  30 of his bundles plus the 2 ropes. A name is looked up by its exact spelling first and by
+  `normalizeItemName` only failing that (Leecher’s Tools .5 lb is not Leecher's Tools 2 lb).
+- A Buy is tried as a line of its own at the END of the list (his add_item pays from what the earlier
+  purchases left), and only then added to a paid line of the same thing.
+- Barding goes on only the body it was made for (`canBodyWearArmor`, equip-rules.mjs, his 76422-76428 and
+  104799), at creation and on the sheet's Equip Best Armour; bought barding the body cannot wear is
+  carried.
 - A document's own `system.cost` is its price at every level (per ONE; a bundle costs bundle x cost); a
-  document his panel does not list is sold under "Other (Game Master's)".
+  document his panel does not list is sold under "Other (Game Master's)". A Cost that is not a whole
+  number and one coin ("2 gp 5 sp", "1.5 gp", "5 gold") is not sold at all, and a Game Master at the
+  Equipment step is told, with everything else of his the world's compendiums lack (`describeShopGaps`).
 - Not applied at creation: Bartering/Haggling (p.148), the Master's Manual size and race multipliers,
   coin weight, any refusal on encumbrance. The load is shown only.
 
@@ -96,5 +111,21 @@ Campaign" appears under Other (Game Master's) in the generator's Equipment step.
 - **The shop's tooltip** shows his seven prices; the Game Master's per-line level select could show the
   line's price at each level beside its label.
 - **Not verified in a running Foundry V14:** the window, the Buy/remove buttons, the per-line level
-  select, the chat card after creation, the new setting in Configure Settings. The template was rendered
-  headlessly with Foundry's own Handlebars against the real packs for the Equipment and Review steps.
+  select, the chat card after creation, the new setting in Configure Settings, the offers box keeping its
+  scroll across a Buy (`scrollable` now names `.chargen-shop-offers`), and the Game Master's line of what
+  the shop cannot sell. The template was rendered headlessly with Foundry's own Handlebars against the
+  real packs for the Equipment and Review steps.
+
+## 6. Barding put on by hand
+
+**What to do.** Equip Best Armour and the generator now refuse barding a body was not made for
+(`canBodyWearArmor`, `module/equip-rules.mjs`), but a player can still set any armour's location to
+Equipped by hand, with the Location select on the armour's own sheet (`templates/item/item-armor.hbs`),
+which checks nothing (no layering either). Where that change is made for an owned armour item (the
+armour item sheet's submit, or a `_preUpdate` on `module/data/item-armor.mjs`), refuse it for barding
+`canBodyWearArmor(item.name, actor.system.body.type)` rejects, with a warning in his words ("cannot
+equip barding on normal non 'taur' races", sheet-worker.js:104799), and leave it carried.
+
+**Done looks like.** On a Human, choosing Equipped for Barding(Padding) warns and leaves it Carried; on a
+Centaur, Centaur Barding(Cloth) can be equipped. A check in `tools/equip-test.html` for the rule; the
+wiring is Foundry-side and needs a browser.

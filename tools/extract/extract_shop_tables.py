@@ -25,9 +25,10 @@ READ FROM sheet-worker.js, AS UTF-8. src/packs/raw/*costlist.json holds the same
 own spelling is kept -- ’ and “ included; module/shop-rules.mjs normalizeItemName is what matches
 it to the pack documents, which spell some names with ' where he wrote ’ or a backtick.
 
-DUPLICATE KEYS. A JavaScript object literal keeps the LAST of two rows with the same name, and nine of
-his rows are repeated -- one of them, Boots(Leather), with different prices. The table written here
-keeps the one his sheet actually uses, and writes the other out as a comment saying so.
+DUPLICATE KEYS. A JavaScript object literal keeps the LAST of two rows with the same name, and eight of
+his rows are repeated (two weapons, five equipment, one armour; the report below counts them) -- some
+with different prices, Boots(Leather) among them. The table written here keeps the one his sheet
+actually uses, and writes the other out as a comment saying so.
 
 Usage:
     python tools/extract/extract_shop_tables.py
@@ -157,6 +158,20 @@ def report(tmptables, tmppanel):
           "/".join(str(len(tmppanel[t])) for (_, t) in PANEL_BLOCKS), len(tmpoffers)))
     for (tmpconst, tmprows) in tmptables:
         print("  %s: %d rows, %d distinct names" % (tmpconst, len(tmprows), len(set(r[0] for r in tmprows))))
+    # The rows written out as DUPLICATE comments: every row after the first of its name. Printed, name by
+    # name and with whether the prices differ, so the count in the prose can be checked against it.
+    tmpduplicates = []
+    for (tmpconst, tmprows) in tmptables:
+        tmpfirst = {}
+        for (tmpname, tmpprices, tmpline) in tmprows:
+            if tmpname in tmpfirst:
+                tmpduplicates.append("%s %s (lines %d and %d)%s" % (tmpconst, tmpname, tmpfirst[tmpname][1], tmpline,
+                                     "" if tmpfirst[tmpname][0] == tmpprices else ": the prices differ"))
+            else:
+                tmpfirst[tmpname] = (tmpprices, tmpline)
+    print("  duplicate rows (JavaScript keeps the later): %d" % len(tmpduplicates))
+    for tmpline in tmpduplicates:
+        print("    " + tmpline)
     print("  malformed prices: %d" % len(tmpissues))
     for tmpline in tmpissues:
         print("    " + tmpline)

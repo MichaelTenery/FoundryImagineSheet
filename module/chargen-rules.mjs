@@ -552,8 +552,10 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 		// The same choice his sheet's Equip Best Armour button makes -- see equipBestArmorInPlace,
 		// just below -- applied once here because the starting kit and the purchases above are the only
 		// places armour ever enters a new character, and there is no armour on it to choose between
-		// until both are in. (docs/sonnet/2026-09-19-equip-buttons.md item 1.)
-		equipBestArmorInPlace(tmpItems);
+		// until both are in. (docs/sonnet/2026-09-19-equip-buttons.md item 1.) On the character's body:
+		// the generator's combined race gives it (a Half Race's is its first race's, a Formless's its
+		// host's), and failing that the first race's, as the character model itself falls back.
+		equipBestArmorInPlace(tmpItems, tmpChoices.bodyType || tmpFirstRace.bodyType || "Humanoid");
 
 		return { actor: tmpActor, items: tmpItems, issues: tmpIssues };
 	}
@@ -569,10 +571,14 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 	// a character in. Weapons and shields are left untouched, for the same reason the sheet leaves
 	// them alone -- which hand holds what is the player's call, not something to decide for them.
 	//
+	// tmpBodyType is the character's body type, so barding is only put on the body it was made for
+	// (canBodyWearArmor, equip-rules.mjs): a Human who bought horse barding carries it. Left out, no
+	// piece is refused for the body.
+	//
 	// Mutates tmpItems' armour entries in place (sets system.location and system.layer on the ones
 	// chosen) and returns nothing; called for its side effect, same as updateEmbeddedDocuments would
 	// be on an actor already on the table.
-	export function equipBestArmorInPlace(tmpItems) {
+	export function equipBestArmorInPlace(tmpItems, tmpBodyType) {
 		var tmpArmorItems = (tmpItems ?? []).filter(tmpEntry => tmpEntry.type == "armor" && !tmpEntry.system?.isShield);
 		if (!tmpArmorItems.length) { return; }
 
@@ -581,7 +587,7 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 		// choice is read back.
 		tmpArmorItems.forEach((tmpEntry, tmpIndex) => { tmpEntry._chargenId = "kitArmor" + tmpIndex; });
 		var tmpBestArmor = chooseBestArmor(tmpArmorItems.map(tmpEntry =>
-			({ id: tmpEntry._chargenId, name: tmpEntry.name, type: tmpEntry.type, system: tmpEntry.system })));
+			({ id: tmpEntry._chargenId, name: tmpEntry.name, type: tmpEntry.type, system: tmpEntry.system })), tmpBodyType);
 		for (const tmpEntry of tmpArmorItems) {
 			if (tmpBestArmor.worn.includes(tmpEntry._chargenId)) {
 				tmpEntry.system.location = "equipped";

@@ -27,7 +27,7 @@ import { ATTRIBUTE_TABLES } from "./config-tables.mjs";
 import { resolveEncumbrance } from "./combat/combat-rules.mjs";
 import { buildShopCatalog, priceCart, buildPurchasedEntries, listShopOffers, getOfferPrice, describeOfferPrices,
 	describeCoins, describeCartLine, describeValue, getPurseValue, getPriceLevelLabel, PRICE_LEVELS, DEFAULT_PRICE_LEVEL, FREE_LEVEL,
-	FREE_LABEL, SHOP_TYPES, SHOP_TYPE_ORDER } from "./shop-rules.mjs";
+	FREE_LABEL, SHOP_TYPES, SHOP_TYPE_ORDER, describeShopGaps } from "./shop-rules.mjs";
 import { combineHalfRace, isClassBlockedForRaces, applySlightPhysique, resolvePhysiqueLock,
 	readFormlessPair, combineFormless } from "./race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget } from "./famorian-rules.mjs";
@@ -581,7 +581,11 @@ import {
 			purse: describeCoins(tmpState.wealth) || "empty",
 			purseAfter: describeCoins(tmpCart.purse) || "nothing",
 			spent: describeValue(tmpCart.spent) || "nothing",
-			blocked: tmpCart.blocked
+			blocked: tmpCart.blocked,
+			// For a Game Master only: what the shop would sell and cannot, in this world -- one of his
+			// items missing from its compendiums, or an item whose own Cost cannot be read. A player can
+			// do nothing about either.
+			gaps: tmpIsGM ? describeShopGaps(tmpD.catalog) : ""
 		};
 
 		// The list, as priced. A Game Master may set any line's level, his Free included; a player shops
@@ -657,7 +661,9 @@ import {
 			purchases: tmpState.startingKit?.byCulture ? [] : (tmpDerived.purchases ?? []),
 			startingKit: tmpState.startingKit, clothingStyle: tmpState.clothingStyle,
 			socialClass: getKitSocialClass(tmpState, tmpDerived),
-			maxAge: tmpDerived.race?.ages?.maxAge ?? ""
+			maxAge: tmpDerived.race?.ages?.maxAge ?? "",
+			// The body the armour is put on at creation -- barding only on the body it was made for.
+			bodyType: tmpDerived.race?.bodyType ?? ""
 		};
 	}
 

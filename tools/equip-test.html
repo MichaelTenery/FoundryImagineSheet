@@ -81,6 +81,23 @@ a = [piece("Heavy", "Flexible", 5), piece("Light", "Flexible", 5)];
 a[0].system.penalties.speed = -3;
 check("ties are broken by the lesser penalty (only one fits by name? both do -- both worn)", E.chooseBestArmor(a).worn.length, 2);
 
+// --- barding: only on the body it was made for (his 76422-76428 and equipArmor 104799) ------------
+check("anything that is not barding may be worn by any body",
+	[E.canBodyWearArmor("Chain Shirt", "Humanoid"), E.canBodyWearArmor("Chain Shirt", "Centaur"), E.canBodyWearArmor("Chain Shirt", "")],
+	[true, true, true]);
+check("full horse barding is worn by no one", ["Humanoid", "Centaur", "Arachen", "Snake(Arms)"].map(b => E.canBodyWearArmor("Barding(Padding)", b)),
+	[false, false, false, false]);
+check("Centaur Barding only on a Centaur body; Insectaur Barding only on an Arachen, Scethen or Brachara one",
+	[["Centaur Barding(Cloth)", "Centaur"], ["Centaur Barding(Cloth)", "Arachen"], ["Centaur Barding(Cloth)", "Humanoid(Hooves)"],
+	 ["Insectaur Barding(Cloth)", "Scethen"], ["Insectaur Barding(Cloth)", "Brachara"], ["Insectaur Barding(Cloth)", "Centaur"],
+	 ["Insectaur Barding(Cloth)", "Insectoid(Wings)"]].map(([n, b]) => E.canBodyWearArmor(n, b)),
+	[true, false, false, true, true, false, false]);
+a = [piece("Barding(Padding)", "Flexible", 3, ["head", "neck", "torsoUpper", "torsoMid", "torsoLower"]), piece("Gambeson", "Flexible", 2)];
+r = E.chooseBestArmor(a, "Humanoid");
+check("given a Humanoid body, Equip Best Armour leaves the stronger horse barding off, saying why",
+	[names(a, r.worn), r.left.map(l => [l.name, l.why])], [["Gambeson"], [["Barding(Padding)", "is barding this body cannot wear"]]]);
+check("...given no body, it refuses nothing for the body, as before", names(a, E.chooseBestArmor(a).worn).sort(), ["Barding(Padding)", "Gambeson"]);
+
 // --- the real pack: every real kit gets a legal answer --------------------------------------------
 const pack = await (await fetch("../src/packs/documents/armor.json")).json();
 const real = (Array.isArray(pack) ? pack : Object.values(pack)).map((x, i) => ({ id: "real" + i, ...x }));

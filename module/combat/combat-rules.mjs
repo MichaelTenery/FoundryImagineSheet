@@ -1907,6 +1907,13 @@ export const MODE_DAMAGE_TYPES = {
 		["Arrow(Fairy Hand Crossbow", ["Fairy Hand Crossbow"]],
 		["Arrow(Fairy Heavy Crossbow", ["Fairy Heavy Crossbow"]],
 		["Arrow(Fairy Crossbow", ["Fairy Crossbow"]],
+		// Not in his chain. His panel and his prices call the fairy crossbow bolts "Arrow(Fairy ...
+		// Crossbow/...)", and so does this chain; his VALUES call them "Bolt(...)" (79792 on), and the
+		// weapons pack, built from his values, holds only the Bolt spelling. So the Bolt that is actually
+		// bought or dropped on a sheet finds its crossbow too (module/shop-rules.mjs @MARKER NAME ALIASES).
+		["Bolt(Fairy Hand Crossbow", ["Fairy Hand Crossbow"]],
+		["Bolt(Fairy Heavy Crossbow", ["Fairy Heavy Crossbow"]],
+		["Bolt(Fairy Crossbow", ["Fairy Crossbow"]],
 		["Pebble(Fairy Sling)", ["Fairy Sling"]],
 		["Bullet(Fairy Sling)", ["Fairy Sling"]],
 		["Arrow(Giant Short Bow", ["Giant Short Bow"]],

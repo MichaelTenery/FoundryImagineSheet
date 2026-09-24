@@ -308,6 +308,7 @@
 		      time this is drawn, so a line the purse can no longer cover is marked, and Next waits until
 		      it is removed or cut down. Everything bought is carried; armour is put on at creation. --}}
 		<h3>Shop <span class="muted">{{shop.priceLevelLabel}} prices, the Game Master&rsquo;s to set</span></h3>
+		{{#if shop.gaps}}<p class="muted"><i class="fa-solid fa-circle-info"></i> {{shop.gaps}}</p>{{/if}}
 		{{#if shop.byCulture}}
 		<p class="muted">Gear by culture is taken <em>instead of</em> starting coins, so there is nothing to buy with.
 			{{#if shop.keptCount}}The shopping list is kept, and comes back if it is unticked.{{/if}}</p>

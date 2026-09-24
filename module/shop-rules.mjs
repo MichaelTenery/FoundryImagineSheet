@@ -29,6 +29,7 @@
 //     - fifteen names his panel spells differently from his values are aliased     @MARKER NAME ALIASES
 //     - creature-hide armour is not sold: his panel needs a creature and a value   @MARKER CREATURE HIDE
 //     - a document's own system.cost is its price, so homebrew can be sold          @MARKER HOMEBREW
+//     - ...but a Cost his reading would misread is not sold, and a GM is told      @MARKER GAPS
 //==================================================================================================================
 
 import { SHOP_CATEGORIES, WEAPON_COSTS, EQUIPMENT_COSTS, ARMOR_COSTS } from "./shop-tables.mjs";
@@ -99,6 +100,12 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 	// (his value table has Bolt(Fairy Crossbow/Normal) twice, 79794 and 79796, the second perhaps meant
 	// for True Flight), and Arrow(Horn Bow/True Flight/Far Flight) has values (79537) and no price.
 	// All eighteen are filed with him. The recommended default, taken 2026-09-23 while the user was away.
+	//
+	// His launcher code knows the fairy crossbow bolts only by his panel's spelling -- "Arrow(Fairy Hand
+	// Crossbow" (getLauncherFromProjectile 86842, and the ammunition test at 86547) -- so bought under the
+	// pack's "Bolt(...)" they would be valued and never matched to their crossbow. The port's launcher
+	// table (MISSILE_LAUNCHER_MATCHES, module/combat/combat-rules.mjs) carries the Bolt spelling beside his
+	// Arrow one for that reason, and tools/shop-test.html checks a bought bolt finds its crossbow.
 	export const SHOP_NAME_ALIASES = {
 		// his shop name                                  the pack's document
 		"Arrow(Fairy Crossbow/Far Flight)":               "Bolt(Fairy Crossbow/Far Flight)",
@@ -118,11 +125,24 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 		"Gauntlets(Stainless Steel)":                     "Gauntlets(Stainless Steel"
 	};
 
+	// The three offers left out on purpose, named above. They are in the catalog's left like anything
+	// else the shop does not sell, marked known, so a Game Master is only told about what is missing
+	// from THEIR world (describeShopGaps), not about his data every time.
+	export const SHOP_LEFT_OUT = [
+		"Arrow(Fairy Crossbow/True Flight)",
+		"Arrow(Fairy Long Bow/True Flight)",
+		"Arrow(Horn Bow/True Flight/Far Flight)"
+	];
+
 	// @MARKER BUNDLES
-	// Twenty-eight of his equipment names are bundles -- "10 Arrow Head", "7 Rations(per day)", "50 Twine(per
+	// Thirty of his equipment names are bundles -- "10 Arrow Head", "7 Rations(per day)", "50 Twine(per
 	// ’)" -- and his price row for each is the price of the BUNDLE. A bundle is found in the packs by its
-	// name less the count, and buying one gives that many of the item. ("10 Nails" and "10 Needles(Assorted)"
-	// look like bundles but are items of their own in his values, a packet each, and are sold as that.)
+	// name less the count, and buying one gives that many of the item. That is how his own sheet reads one
+	// once bought: add_item stores the name as it is, "10 Nails", and everything that reads it afterwards
+	// takes the count off the front first (getNumOfItems 76336, getItemWithoutCount 76359, getItemWeight
+	// 81938). So "10 Nails" and "10 Needles(Assorted)" are ten Nails and ten Needles(Assorted) like the
+	// rest, although his values also carry a "10 Nails" row (.06 lb) and a "10 Needles(Assorted)" row
+	// (.03 lb) that nothing on his sheet reaches through a purchase.
 	//
 	// Two more are sold one foot at a time on his sheet, at the prices the book gives for FIFTY feet:
 	// "Rope, Hemp (per 50 feet) 2 sp 4 sp 6 sp 10 lb." and silk 3/5/8 gp (p.212). His weight agrees with
@@ -179,7 +199,15 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 	//               it there. Read as gp, the coin of every other column of that row.
 	// The recommended default, taken 2026-09-23 while the user was away.
 	//
-	// Returns { amount, coin, copper, text, raw, issue }, or null when there is no price.
+	// A price a Game Master TYPES -- an item's Cost field, @MARKER HOMEBREW -- can be something none of
+	// his strings is, and that his getCoins and getCoinType would misread without a word:
+	//     "2 gp 5 sp"   more than one coin: his order finds "sp" first and charges 2 sp
+	//     "1.5 gp"      a fraction: his parseInt stops at the point and charges 1 gp
+	// These are still read his way, so his reading and the port's never part, but marked doubtful with
+	// the reason in issue. The shop will not sell at a doubtful price (readDocumentCost) and says why
+	// instead. None of his own price strings is either.
+	//
+	// Returns { amount, coin, copper, text, raw, issue, doubtful }, or null when there is no price.
 	export function parsePrice(tmpText) {
 		var tmpRaw = ("" + (tmpText ?? "")).trim();
 		if (!tmpRaw) { return null; }
@@ -202,10 +230,36 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 		}
 		if (!tmpCoin) { return null; }
 		var tmpAmount = parseInt(tmpNumber[1]) || 0;
+		// the two misreadings above
+		var tmpDoubt = "";
+		if ((tmpClean.match(/cp|sp|gp|pp/g) ?? []).length > 1) {
+			tmpDoubt = `"${tmpRaw}" names more than one coin, and would be charged as ${formatCoins(tmpAmount, tmpCoin)}; `
+				+ `write it in one coin, such as "25 sp" for 2 gp 5 sp.`;
+		} else if (/^\d+[.,]\d/.test(tmpClean)) {
+			tmpDoubt = `"${tmpRaw}" is not a whole number of coins, and would be charged as ${formatCoins(tmpAmount, tmpCoin)}; `
+				+ `write it in a smaller coin, such as "15 sp" for 1.5 gp.`;
+		}
 		return {
 			amount: tmpAmount, coin: tmpCoin, copper: tmpAmount * COIN_VALUES[tmpCoin],
-			text: formatCoins(tmpAmount, tmpCoin), raw: tmpRaw, issue: tmpIssue
+			text: formatCoins(tmpAmount, tmpCoin), raw: tmpRaw, issue: tmpDoubt || tmpIssue, doubtful: !!tmpDoubt
 		};
+	}
+
+	// This is the function which reads a document's own Cost -- the price a Game Master gave it, see
+	// @MARKER HOMEBREW. Returns { price, problem }: price is parsePrice's reading, or null when the field
+	// is empty or cannot be charged as written; problem says why, when it is not empty and cannot. An
+	// item whose Cost has a problem is not sold at all (joinShopCatalog) -- neither at the misread price
+	// nor at his table's, which is not the price the Game Master meant either -- and the Game Master is
+	// told (describeShopGaps).
+	export function readDocumentCost(tmpDoc) {
+		var tmpRaw = ("" + (tmpDoc?.system?.cost ?? "")).trim();
+		if (!tmpRaw) { return { price: null, problem: "" }; }
+		var tmpPrice = parsePrice(tmpRaw);
+		if (!tmpPrice) {
+			return { price: null, problem: `its Cost, "${tmpRaw}", is not a whole number and a coin (cp, sp, gp or pp), such as "5 gp"` };
+		}
+		if (tmpPrice.doubtful) { return { price: null, problem: `its Cost: ${tmpPrice.issue}` }; }
+		return { price: tmpPrice, problem: "" };
 	}
 
 	// This is the function which writes an amount of one coin the way his tables do: "7 gp".
@@ -464,9 +518,12 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 	//     homebrew     true for a document his panel does not list, sold at its own cost
 	//
 	// Returns { offers, byKey, categories, left }: categories is each Type's kinds for the shop's Kind
-	// select, and left is what his panel offers that the shop does not, with the reason, so a Game Master
-	// can be told rather than finding it silently missing. The joining is done once per content and kept;
-	// the content switches are applied afresh each call, as a Game Master may change them at any time.
+	// select, and left is what the shop does not sell that it otherwise would -- his offers, and items
+	// with a Cost of their own it cannot read -- each { key, type, name, reason, known }, so a Game Master
+	// can be told rather than finding it silently missing (describeShopGaps, shown on the Equipment step).
+	// known marks the ones left out on purpose, the same in every world: creature hide and SHOP_LEFT_OUT.
+	// The joining is done once per content and kept; the content switches are applied afresh each call,
+	// as a Game Master may change them at any time.
 	const CATALOG_MEMO = new WeakMap();
 	export function buildShopCatalog(tmpContent, tmpIsAvailable) {
 		var tmpAvail = tmpIsAvailable ?? (() => true);
@@ -494,18 +551,31 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 		var tmpOffers = [];
 		var tmpByKey = {};
 		var tmpLeft = [];
-		// @MARKER HOMEBREW (the documents his panel already sells, so they are not listed twice)
+		// @MARKER HOMEBREW (the documents his panel already sells, so they are not listed twice -- the documents
+		// themselves, not their names: Leecher's Tools is not the Leecher’s Tools his panel sells)
 		var tmpSold = {};
 
 		for (const tmpType of SHOP_TYPE_ORDER) {
 			var tmpDef = SHOP_TYPES[tmpType];
 			var tmpDocs = tmpContent[tmpDef.content] ?? [];
-			// The first document of each spelling wins, as a name lookup would find it.
+			// Two indexes of the documents: by exact name, and by normalizeItemName. A name is looked up
+			// exactly first, and only failing that by its normalized spelling. The packs hold many items
+			// twice, once with his ’ and once with a plain ' (where his values wrote a backtick), and three
+			// such pairs are NOT the same item -- Leecher’s Tools is .5 lb and Leecher's Tools 2 lb (his values,
+			// sheet-worker.js:80774 and 81342), and so with Canvas(Waterproof/sq.’) and Leather Cord(1’).
+			// His panel sells the ’ one, and the ’ one is what his add_item adds. Within each index the
+			// first of a name wins, but that is never what decides between the pair: a world's compendium
+			// does not keep the order the packs were written in (the importer gives every document a new
+			// id), so which of two spellings comes first cannot be relied on.
+			var tmpExact = new Map();
 			var tmpIndex = new Map();
 			for (const tmpDoc of tmpDocs) {
-				var tmpNorm = normalizeItemName(tmpDoc?.name);
+				var tmpDocName = "" + (tmpDoc?.name ?? "");
+				if (tmpDocName && !tmpExact.has(tmpDocName)) { tmpExact.set(tmpDocName, tmpDoc); }
+				var tmpNorm = normalizeItemName(tmpDocName);
 				if (tmpNorm && !tmpIndex.has(tmpNorm)) { tmpIndex.set(tmpNorm, tmpDoc); }
 			}
+			var tmpFind = (tmpWanted) => tmpExact.get(tmpWanted) ?? tmpIndex.get(normalizeItemName(tmpWanted)) ?? null;
 			tmpSold[tmpType] = new Set();
 
 			for (const [tmpSubtype, tmpSubLabel, tmpNames] of SHOP_CATEGORIES[tmpType] ?? []) {
@@ -517,18 +587,21 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 					}
 					if (tmpLeft.some(tmpEntry => tmpEntry.key == tmpKey)) { continue; }
 
-					// The document: through an alias, then by his name whole, then -- for a bundle --
-					// by his name less its count. Whole first, because "10 Nails" is a document of its
-					// own in his values (a packet, .06 lb) as well as a bundle-shaped name.
+					// The document: through an alias; or, for a name that starts with a count, by his
+					// name less the count, that many at a time (@MARKER BUNDLES -- as his own sheet reads
+					// "10 Nails" once bought); or by his name whole.
 					var tmpAlias = SHOP_NAME_ALIASES[tmpName] ?? "";
-					var tmpDoc = tmpIndex.get(normalizeItemName(tmpAlias || tmpName)) ?? null;
+					var tmpDoc = null;
 					var tmpBundle = 1;
-					if (!tmpDoc && !tmpAlias) {
+					if (tmpAlias) {
+						tmpDoc = tmpFind(tmpAlias);
+					} else {
 						var tmpCount = tmpName.match(/^(\d+) (.+)$/);
 						if (tmpCount) {
-							tmpDoc = tmpIndex.get(normalizeItemName(tmpCount[2])) ?? null;
-							tmpBundle = parseInt(tmpCount[1]) || 1;
+							tmpDoc = tmpFind(tmpCount[2]);
+							if (tmpDoc) { tmpBundle = parseInt(tmpCount[1]) || 1; }
 						}
+						if (!tmpDoc) { tmpDoc = tmpFind(tmpName); }
 					}
 					if (SHOP_BUNDLE_OVERRIDES[tmpName]) { tmpBundle = SHOP_BUNDLE_OVERRIDES[tmpName]; }
 					var tmpPrices = tmpDef.costs[tmpName] ?? (tmpAlias ? tmpDef.costs[tmpAlias] : null) ?? null;
@@ -540,14 +613,23 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 						tmpWhy = "not in the compendium";
 					} else if (!tmpPrices) {
 						tmpWhy = "no price in his tables";
+					} else {
+						// A Game Master gave it a Cost of its own that cannot be charged as written. The
+						// document counts as his panel's all the same, so it is not reported twice below.
+						tmpWhy = readDocumentCost(tmpDoc).problem;
+						if (tmpWhy) { tmpSold[tmpType].add(tmpDoc); }
 					}
-					if (tmpWhy) { tmpLeft.push({ key: tmpKey, type: tmpType, name: tmpName, reason: tmpWhy }); continue; }
+					if (tmpWhy) {
+						tmpLeft.push({ key: tmpKey, type: tmpType, name: tmpName, reason: tmpWhy,
+							known: (tmpType == "Armor" && isCreatureHide(tmpName)) || SHOP_LEFT_OUT.includes(tmpName) });
+						continue;
+					}
 
 					var tmpOffer = makeOffer(tmpType, tmpName, tmpSubtype, tmpDoc, tmpBundle, tmpPrices, false);
 					tmpOffer.label = SHOP_BUNDLE_OVERRIDES[tmpName] ? `${tmpBundle} ${tmpName}` : tmpName;
 					tmpOffers.push(tmpOffer);
 					tmpByKey[tmpKey] = tmpOffer;
-					tmpSold[tmpType].add(normalizeItemName(tmpDoc.name));
+					tmpSold[tmpType].add(tmpDoc);
 				}
 			}
 
@@ -558,13 +640,19 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 			// without one), and it is why prices live in this module and not on the pack documents: a
 			// world only takes new document data when its Game Master re-imports the content. The
 			// recommended default, taken 2026-09-23 while the user was away.
+			// A Cost that cannot be charged as written ("5 gold", "2 gp 5 sp") keeps the item off the
+			// shelf, and goes in left to be told to the Game Master, rather than being sold at a misreading.
 			for (const tmpDoc of tmpDocs) {
-				var tmpCost = parsePrice(tmpDoc?.system?.cost);
-				if (!tmpCost || tmpSold[tmpType].has(normalizeItemName(tmpDoc.name))) { continue; }
+				var tmpCost = readDocumentCost(tmpDoc);
+				if ((!tmpCost.price && !tmpCost.problem) || tmpSold[tmpType].has(tmpDoc)) { continue; }
 				var tmpHomeKey = tmpType + "|" + tmpDoc.name;
-				if (tmpByKey[tmpHomeKey]) { continue; }
+				if (tmpByKey[tmpHomeKey] || tmpLeft.some(tmpEntry => tmpEntry.key == tmpHomeKey)) { continue; }
+				if (tmpCost.problem) {
+					tmpLeft.push({ key: tmpHomeKey, type: tmpType, name: tmpDoc.name, reason: tmpCost.problem, known: false });
+					continue;
+				}
 				var tmpHome = makeOffer(tmpType, tmpDoc.name, OTHER_SUBTYPE, tmpDoc, 1,
-					Array(PRICE_LEVELS.length).fill(tmpCost.text), true);
+					Array(PRICE_LEVELS.length).fill(tmpCost.price.text), true);
 				tmpOffers.push(tmpHome);
 				tmpByKey[tmpHomeKey] = tmpHome;
 			}
@@ -607,7 +695,10 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 		if (tmpLevel == FREE_LEVEL) {
 			return { amount: 0, coin: "copper", copper: 0, text: FREE_LABEL, raw: FREE_LABEL, issue: "", free: true };
 		}
-		var tmpOwn = parsePrice(tmpOffer.doc?.system?.cost);
+		// A Cost that cannot be charged as written is never charged at all -- see readDocumentCost.
+		var tmpOwnCost = readDocumentCost(tmpOffer.doc);
+		if (tmpOwnCost.problem) { return null; }
+		var tmpOwn = tmpOwnCost.price;
 		if (tmpOwn) {
 			var tmpBundle = parseInt(tmpOffer.bundle) || 1;
 			var tmpAmount = tmpOwn.amount * tmpBundle;
@@ -628,7 +719,7 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 	// (72846) -- the shop's tooltip.
 	export function describeOfferPrices(tmpOffer) {
 		if (!tmpOffer) { return ""; }
-		var tmpOwn = parsePrice(tmpOffer.doc?.system?.cost);
+		var tmpOwn = readDocumentCost(tmpOffer.doc).price;
 		if (tmpOwn) { return `Its own price, at every level: ${tmpOwn.text}${(tmpOffer.bundle ?? 1) > 1 ? " each" : ""}`; }
 		return PRICE_LEVELS.map(([tmpKey, tmpLabel, tmpColumn]) =>
 			`${tmpLabel} ${(tmpOffer.prices ?? [])[tmpColumn] ?? "--"}`).join(" · ");
@@ -646,6 +737,26 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 			&& tmpWords.every(tmpWord => normalizeItemName(tmpOffer.label).toLowerCase().includes(tmpWord)));
 		var tmpCap = parseInt(tmpLimit) || 60;
 		return { offers: tmpMatches.slice(0, tmpCap), total: tmpMatches.length };
+	}
+
+	// @MARKER GAPS
+	// This is the function which says, for a Game Master, what the shop is not selling in THIS world that
+	// it otherwise would -- the catalog's left, less what is left out on purpose everywhere (creature
+	// hide, SHOP_LEFT_OUT): one of his items missing from the world's compendiums (not imported since a
+	// build, or deleted), or an item whose own Cost cannot be charged as written (readDocumentCost). At
+	// most tmpLimit are named. Returns "" when there is nothing to say.
+	export function describeShopGaps(tmpCatalog, tmpLimit) {
+		var tmpGaps = (tmpCatalog?.left ?? []).filter(tmpEntry => !tmpEntry.known);
+		if (!tmpGaps.length) { return ""; }
+		var tmpCap = parseInt(tmpLimit) || 5;
+		var tmpNamed = tmpGaps.slice(0, tmpCap).map(tmpEntry => `${tmpEntry.name} (${tmpEntry.reason})`);
+		var tmpMore = tmpGaps.length - tmpNamed.length;
+		var tmpText = `The shop is not selling ${tmpGaps.length} item${tmpGaps.length == 1 ? "" : "s"} it otherwise would: `
+			+ tmpNamed.join("; ") + (tmpMore > 0 ? `; and ${tmpMore} more` : "") + ".";
+		if (tmpGaps.some(tmpEntry => tmpEntry.reason == "not in the compendium")) {
+			tmpText += " Importing the Imagine content again (game.imagine.importContent()) restores what the system ships.";
+		}
+		return tmpText;
 	}
 
 	// @MARKER THE CART
@@ -712,8 +823,23 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 
 	// @MARKER BUY
 	// This is the function which puts something on the list, if it can be paid for after everything
-	// already on it. Buying more of something already on the list at the same level adds to that line, as
-	// his addEquipmentItems adds to the count of an item already carried (76233).
+	// already on it -- his add_item pays each purchase from the purse the purchases before it left
+	// (14285-14293), so the new copies are tried as a line of their own at the END of the list, whatever
+	// is already on it. If they can be paid for there, they are then added to a paid line of the same
+	// thing at the same level, if there is one, as his addEquipmentItems adds to the count of an item
+	// already carried (76233).
+	//
+	// Adding to the earlier line first and pricing that would pay the new copies at the earlier line's
+	// place, ahead of everything bought since: with 14 gp and a Dagger and then a Long Sword on the list,
+	// five more Daggers would be taken, and the Long Sword the player already had would be the line that
+	// could no longer be paid. His sheet says "couldn`t afford 5 Dagger" there. Tried at the end, it says
+	// the same, whatever order the list is in. Moving them up to the earlier line afterwards never leaves
+	// a line unpaid that was paid before: whether a line can be paid depends only on what the purse is
+	// WORTH when its turn comes (payPrice changes coins up or down as needed), and every paid line from
+	// the earlier one on still has what it needs, since what was left at the end covered the new copies.
+	// A line of the same thing that is NOT paid (the purse was re-rolled since) is not added to: the new
+	// copies would go unpaid with it, although they were just shown to be affordable. They take a line of
+	// their own.
 	//
 	// Refused, it says so in his words -- "<name> couldn`t afford N X. Nothing done." (add_item, 14312) --
 	// and the list is left as it was. Returns { ok, purchases, message }.
@@ -725,14 +851,19 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 		if (!tmpOffer) { return { ok: false, purchases: tmpPurchases ?? [], message: "Nothing was selected to add. Nothing done." }; }
 		if (tmpNumber < 1) { return { ok: false, purchases: tmpPurchases ?? [], message: "Can`t add less than one item. Nothing done." }; }
 		var tmpLineLevel = tmpOptions?.isGM ? (tmpOptions?.level ?? "") : "";
-		var tmpAt = tmpList.findIndex(tmpPurchase => tmpPurchase.key == tmpKey && (tmpPurchase.level ?? "") == tmpLineLevel);
-		if (tmpAt >= 0) { tmpList[tmpAt].count = (parseInt(tmpList[tmpAt].count) || 0) + tmpNumber; }
-		else { tmpAt = tmpList.length; tmpList.push({ key: tmpKey, count: tmpNumber, level: tmpLineLevel }); }
-		var tmpPriced = priceCart(tmpPurse, tmpList, tmpCatalog, tmpLevel, tmpOptions);
-		if (!tmpPriced.lines[tmpAt]?.ok) {
+		// Paid for after everything already on the list?
+		var tmpTrial = tmpList.concat([{ key: tmpKey, count: tmpNumber, level: tmpLineLevel }]);
+		var tmpPriced = priceCart(tmpPurse, tmpTrial, tmpCatalog, tmpLevel, tmpOptions);
+		if (!tmpPriced.lines[tmpTrial.length - 1]?.ok) {
 			return { ok: false, purchases: tmpPurchases ?? [],
 				message: `${tmpName} couldn\`t afford ${tmpNumber} ${tmpOffer.label}. Nothing done.` };
 		}
+		// Yes: onto a paid line of the same thing at the same level, or a line of its own. (Every line
+		// before the trial one is priced exactly as the list stands, so its ok is the list's own.)
+		var tmpAt = tmpList.findIndex((tmpPurchase, tmpIndex) => tmpPurchase.key == tmpKey
+			&& (tmpPurchase.level ?? "") == tmpLineLevel && tmpPriced.lines[tmpIndex]?.ok);
+		if (tmpAt >= 0) { tmpList[tmpAt].count = (parseInt(tmpList[tmpAt].count) || 0) + tmpNumber; }
+		else { tmpList.push({ key: tmpKey, count: tmpNumber, level: tmpLineLevel }); }
 		return { ok: true, purchases: tmpList,
 			message: `${tmpName} bought or added ${tmpNumber} ${tmpOffer.label}. It was added to Carried items.` };
 	}

@@ -1045,8 +1045,11 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 		// toObject() is the stored data alone; the campaign's availability (a sourcebook switched off) is
 		// worked out on the item, so it is passed on beside it for chooseBestArmor to honour.
+		// On the character's own body, as the model works it out (body.type): barding only goes on the
+		// body it was made for, as his equipArmor has it (equip-rules.mjs canBodyWearArmor).
 		var tmpbest = chooseBestArmor(tmparmor.map(tmpitem => ({ id: tmpitem.id, name: tmpitem.name,
-			type: tmpitem.type, system: { ...tmpitem.system.toObject(), available: tmpitem.system.available } })));
+			type: tmpitem.type, system: { ...tmpitem.system.toObject(), available: tmpitem.system.available } })),
+			this.document.system.body?.type || "Humanoid");
 		var tmpupdates = tmparmor.map(tmpitem => {
 			var tmpwear = tmpbest.worn.includes(tmpitem.id);
 			var tmpchange = { _id: tmpitem.id, "system.location": tmpwear ? "equipped" : "carried" };

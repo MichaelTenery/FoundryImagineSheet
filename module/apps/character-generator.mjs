@@ -63,7 +63,9 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 	};
 
 	static PARTS = {
-		body: { template: "systems/imagine-rpg/templates/apps/character-generator.hbs", scrollable: [".chargen-body"] }
+		// The shop's offers are a scroll box of their own, and every Buy redraws the window: Foundry keeps
+		// the scroll of each box named here across a redraw, and of no other.
+		body: { template: "systems/imagine-rpg/templates/apps/character-generator.hbs", scrollable: [".chargen-body", ".chargen-shop-offers"] }
 	};
 
 	#state = newGeneratorState();

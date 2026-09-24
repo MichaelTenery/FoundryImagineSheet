@@ -35,6 +35,15 @@ check("blank, and his '0' for a name missing from his tables, are no price at al
 	[S.parsePrice(""), S.parsePrice("0"), S.parsePrice(undefined)], [null, null, null]);
 check("platinum is ten gold, gold ten silver, silver ten copper (p.207)",
 	["1 pp", "1 gp", "1 sp", "1 cp"].map(t => S.parsePrice(t).copper), [1000, 100, 10, 1]);
+// What a Game Master might type into an item's Cost that his reading would misread without a word.
+check("'2 gp 5 sp' is read his way, as 2 sp, but marked doubtful and says why",
+	(p => [p.text, p.doubtful, p.issue.includes("more than one coin")])(S.parsePrice("2 gp 5 sp")), ["2 sp", true, true]);
+check("'1.5 gp' is read his way, as 1 gp, but marked doubtful and says why",
+	(p => [p.text, p.doubtful, p.issue.includes("not a whole number")])(S.parsePrice("1.5 gp")), ["1 gp", true, true]);
+check("a Cost with no coin he knows is no price, and readDocumentCost says so",
+	[S.parsePrice("5 gold"), S.readDocumentCost({ system: { cost: "5 gold" } }).problem.includes("not a whole number and a coin")], [null, true]);
+check("an empty Cost is no price and no problem; '5 gp' is a price",
+	[S.readDocumentCost({ system: { cost: "" } }), S.readDocumentCost({ system: { cost: "5 gp" } }).price.copper], [{ price: null, problem: "" }, 500]);
 
 // --- paying: his payForItOpen with the ceil fix, then the change-up -------------------------------
 // Each row: purse, number, price, what the port leaves. His sheet's own result is kept in the comment:
@@ -100,6 +109,8 @@ check("his three price dictionaries: 595 weapons, 606 equipment, 706 armour",
 	[T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS].map(d => Object.keys(d).length), [595, 606, 706]);
 check("every price row has his seven columns",
 	[T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS].flatMap(d => Object.values(d)).filter(r => r.length != 7).length, 0);
+check("none of his own price strings is doubtful: the check only ever catches what a Game Master types",
+	[T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS].flatMap(d => Object.values(d)).flat().filter(t => S.parsePrice(t)?.doubtful), []);
 check("his spelling is kept, ’ and all", !!T.EQUIPMENT_COSTS["Rope(Hemp per’)"], true);
 check("of a repeated row, the one JavaScript keeps: his later Boots(Leather), 8 sp at Medium", T.ARMOR_COSTS["Boots(Leather)"][3], "8 sp");
 check("the book's Low/Medium/High for a long sword, a dagger and a lantern (pp.208-212)",
@@ -140,6 +151,15 @@ check("sixty of those are creature hide, which his sheet will not sell without a
 check("...and the other three are the ones with nothing true to sell",
 	cat.left.filter(l => !l.reason.startsWith("creature hide")).map(l => l.name).sort(),
 	["Arrow(Fairy Crossbow/True Flight)", "Arrow(Fairy Long Bow/True Flight)", "Arrow(Horn Bow/True Flight/Far Flight)"]);
+check("all sixty-three are left out on purpose, the same in every world, so a Game Master is told of none of them",
+	[cat.left.every(l => l.known), S.describeShopGaps(cat)], [true, ""]);
+const gappy = S.buildShopCatalog({ ...content, weapons: weapons.filter(d => d.name != "Long Sword") }, () => true);
+check("but one of his items missing from the world's compendium is told, with how to bring it back",
+	[gappy.left.filter(l => !l.known).map(l => [l.name, l.reason]), S.describeShopGaps(gappy)],
+	[[["Long Sword", "not in the compendium"]], "The shop is not selling 1 item it otherwise would: Long Sword (not in the compendium). "
+		+ "Importing the Imagine content again (game.imagine.importContent()) restores what the system ships."]);
+check("...naming at most five, and counting the rest: no weapons at all is his 596 less the three known, less five named",
+	S.describeShopGaps(S.buildShopCatalog({ ...content, weapons: [] }, () => true)).match(/and (\d+) more\./)?.[1], "588");
 check("no creature hide is on sale", cat.offers.filter(o => S.isCreatureHide(o.name) && o.type == "Armor").length, 0);
 check("every offer on sale has a readable price at all seven levels",
 	cat.offers.filter(o => S.PRICE_LEVELS.some(([k]) => !S.getOfferPrice(o, k))).map(o => o.key), []);
@@ -151,17 +171,45 @@ check("every one of the fifteen aliases reaches a real document by its pack name
 check("...so a fairy hand crossbow's 'Arrow' is its Bolt, at the Arrow's price",
 	[cat.byKey["Weapon|Arrow(Fairy Hand Crossbow/Normal)"].docName, S.getOfferPrice(cat.byKey["Weapon|Arrow(Fairy Hand Crossbow/Normal)"], "medium").text],
 	["Bolt(Fairy Hand Crossbow/Normal)", "3 cp"]);
+// His launcher code knows these bolts only by his "Arrow(Fairy ... Crossbow" spelling; the pack's Bolt they are
+// bought as must still find its crossbow (combat-rules.mjs MISSILE_LAUNCHER_MATCHES).
+const CR = await import("../module/combat/combat-rules.mjs");
+const fairyBolts = Object.values(S.SHOP_NAME_ALIASES).filter(n => n.startsWith("Bolt(Fairy"));
+const fairyLauncher = (bolt) => bolt.match(/^Bolt\((Fairy (?:Hand |Heavy )?Crossbow)\//)[1];
+check("every fairy crossbow bolt the shop sells is fired from its own fairy crossbow, and from nothing else",
+	fairyBolts.filter(b => JSON.stringify(CR.getLaunchersForProjectile(b)) != JSON.stringify([fairyLauncher(b)])), []);
+check("...so a bought Bolt(Fairy Hand Crossbow/Normal) goes with a Fairy Hand Crossbow, as his Arrow spelling does",
+	[CR.isValidMissileCombo("Fairy Hand Crossbow", "Bolt(Fairy Hand Crossbow/Normal)"),
+	 CR.isValidMissileCombo("Fairy Hand Crossbow", "Arrow(Fairy Hand Crossbow/Normal)"),
+	 CR.isValidMissileCombo("Fairy Crossbow", "Bolt(Fairy Heavy Crossbow/Normal)"),
+	 CR.isValidMissileCombo("Crossbow(Hand)", "Bolt(Fairy Hand Crossbow/Normal)")], [true, true, false, false]);
 check("...and Gauntlets(Stainless Steel) finds his unclosed 'Gauntlets(Stainless Steel' for both price and item",
 	[cat.byKey["Armor|Gauntlets(Stainless Steel)"].docName, S.getOfferPrice(cat.byKey["Armor|Gauntlets(Stainless Steel)"], "medium").text],
 	["Gauntlets(Stainless Steel", "20 gp"]);
 const bundles = cat.offers.filter(o => o.bundle > 1);
-check("thirty bundles, each carrying its count -- twenty-eight of his, and the two ropes",
+check("thirty-two bundles, each carrying its count -- thirty of his, and the two ropes",
 	[bundles.length, cat.byKey["Equipment|10 Arrow Head"].bundle, cat.byKey["Equipment|7 Rations(per day)"].bundle,
-	 cat.byKey["Equipment|50 Twine(per ’)"].bundle], [30, 10, 7, 50]);
+	 cat.byKey["Equipment|50 Twine(per ’)"].bundle], [32, 10, 7, 50]);
 check("a bundle is the document less its count: '10 Arrow Head' sells 'Arrow Head'",
 	cat.byKey["Equipment|10 Arrow Head"].docName, "Arrow Head");
-check("but '10 Nails' is a document of its own in his values, so it is sold whole",
-	[cat.byKey["Equipment|10 Nails"].docName, cat.byKey["Equipment|10 Nails"].bundle], ["10 Nails", 1]);
+check("'10 Nails' is ten Nails, as his sheet reads it once bought (getItemWithoutCount, getItemWeight) -- not his '10 Nails' row",
+	[cat.byKey["Equipment|10 Nails"].docName, cat.byKey["Equipment|10 Nails"].bundle, cat.byKey["Equipment|10 Nails"].weight],
+	["Nails", 10, 0.1]);
+check("...and '10 Needles(Assorted)' ten Needles(Assorted)",
+	[cat.byKey["Equipment|10 Needles(Assorted)"].docName, cat.byKey["Equipment|10 Needles(Assorted)"].bundle], ["Needles(Assorted)", 10]);
+
+// Exact spelling first. Three pairs in the packs look the same once normalized and are not the same item;
+// his panel sells the ’ one. A world's compendium does not keep the packs' order, so the pair is reversed
+// here to show the order is not what decides.
+const twinNames = ["Equipment|Leecher’s Tools", "Equipment|Canvas(Waterproof/sq.’)", "Equipment|Leather Cord(1’)"];
+const reversedCat = S.buildShopCatalog({ ...content, equipment: [...equipment].reverse() }, () => true);
+check("his ’ spelling finds his ’ document, whichever of the pair comes first: Leecher’s Tools .5 lb, not Leecher's Tools 2 lb",
+	[twinNames.map(k => [cat.byKey[k].docName, cat.byKey[k].unitWeight]), twinNames.map(k => [reversedCat.byKey[k].docName, reversedCat.byKey[k].unitWeight])],
+	[[["Leecher’s Tools", 0.5], ["Canvas(Waterproof/sq.’)", 2], ["Leather Cord(1’)", 0.06]],
+	 [["Leecher’s Tools", 0.5], ["Canvas(Waterproof/sq.’)", 2], ["Leather Cord(1’)", 0.06]]]);
+check("...and a name with only the other spelling in the world is still found by its normalized one",
+	S.buildShopCatalog({ ...content, equipment: equipment.filter(d => d.name != "Rope(Hemp per’)") }, () => true)
+		.byKey["Equipment|Rope(Hemp per’)"].docName, "Rope(Hemp per')");
 const rope = cat.byKey["Equipment|Rope(Hemp per’)"];
 check("hemp rope is sold fifty feet at a time, at his 4 sp -- the book's price and weight for fifty feet (p.212)",
 	[rope.label, rope.bundle, S.getOfferPrice(rope, "medium").text, rope.weight], ["50 Rope(Hemp per’)", 50, "4 sp", 10]);
@@ -198,6 +246,17 @@ check("a document's own cost overrides his table at every level, and it is not l
 const arrowHeadCost = S.buildShopCatalog({ ...content, equipment: equipment.map(d => d.name == "Arrow Head" ? { ...d, system: { ...d.system, cost: "2 cp" } } : d) }, () => true);
 check("a document's cost is for ONE, so a bundle of ten costs ten of it",
 	S.getOfferPrice(arrowHeadCost.byKey["Equipment|10 Arrow Head"], "medium").text, "20 cp");
+// A Cost that cannot be charged as written: not sold at the misreading, nor at his price, and the Game Master is told.
+const badCosts = S.buildShopCatalog({ ...content,
+	equipment: [...equipment, { name: "Ghost Lantern", type: "equipment", system: { weight: 2, cost: "5 gold" } },
+	            { name: "Ghost Candle", type: "equipment", system: { weight: 1, cost: "2 gp 5 sp" } }],
+	weapons: weapons.map(d => d.name == "Long Sword" ? { ...d, system: { ...d.system, cost: "1.5 gp" } } : d) }, () => true);
+check("a homebrew Cost of '5 gold' or '2 gp 5 sp', or a stock one of '1.5 gp', is not sold",
+	["Equipment|Ghost Lantern", "Equipment|Ghost Candle", "Weapon|Long Sword"].map(k => !!badCosts.byKey[k]), [false, false, false]);
+check("...each is in left, not known, with its reason",
+	badCosts.left.filter(l => !l.known).map(l => [l.name, l.reason.startsWith("its Cost")]),
+	[["Long Sword", true], ["Ghost Lantern", true], ["Ghost Candle", true]]);
+check("...and the Game Master is told", S.describeShopGaps(badCosts).startsWith("The shop is not selling 3 items it otherwise would: Long Sword (its Cost:"), true);
 
 // Browsing.
 check("a kind lists its offers in his order", S.listShopOffers(cat, "Weapon", "Blades", "", 3).offers.map(o => o.name),
@@ -241,6 +300,24 @@ check("buying the same thing again adds to its line, as his addEquipmentItems ad
 check("...but not if the whole line would then be more than the purse", S.addPurchase(P(0, 1, 0, 0), [buy("Weapon|Dagger", 1)], cat, "medium", "Weapon|Dagger", 1, {}).ok, false);
 check("a Game Master's Buy can be at a level of its own, a line of its own",
 	S.addPurchase(P(0, 0, 0, 0), [], cat, "medium", "Weapon|Long Sword", 1, { isGM: true, level: "free" }).purchases, [buy("Weapon|Long Sword", 1, "free")]);
+// The new copies are paid for from what everything already on the list leaves, as his add_item pays each
+// purchase from the purse the ones before it left -- whatever order the list is in. 14 gp, a dagger (7 sp)
+// and a long sword (10 gp) leave 3 gp 3 sp; five more daggers are 35 sp.
+const daggerFirst = [buy("Weapon|Dagger", 1), buy("Weapon|Long Sword", 1)];
+const swordFirst = [buy("Weapon|Long Sword", 1), buy("Weapon|Dagger", 1)];
+check("five more daggers than 3 gp 3 sp covers are refused in his words, the dagger line first on the list or second",
+	[daggerFirst, swordFirst].map(list => (r => [r.ok, r.message, r.purchases])(S.addPurchase(P(0, 14, 0, 0), list, cat, "medium", "Weapon|Dagger", 5, {}, "Aelwen"))),
+	[[false, "Aelwen couldn`t afford 5 Dagger. Nothing done.", daggerFirst], [false, "Aelwen couldn`t afford 5 Dagger. Nothing done.", swordFirst]]);
+check("...and the long sword already on the list is never the line that stops being paid for",
+	S.priceCart(P(0, 14, 0, 0), S.addPurchase(P(0, 14, 0, 0), daggerFirst, cat, "medium", "Weapon|Dagger", 5, {}).purchases, cat, "medium", {}).blocked, false);
+check("four more, 28 sp, are covered: they join the dagger line, and everything on the list is still paid for",
+	(r => [r.ok, r.purchases, S.priceCart(P(0, 14, 0, 0), r.purchases, cat, "medium", {}).lines.map(l => l.ok)])(
+		S.addPurchase(P(0, 14, 0, 0), daggerFirst, cat, "medium", "Weapon|Dagger", 4, {})),
+	[true, [buy("Weapon|Dagger", 5), buy("Weapon|Long Sword", 1)], [true, true]]);
+check("a line of the same thing the purse no longer covers is not added to: the new copies, which it does cover, get their own",
+	(r => [r.ok, r.purchases, S.priceCart(P(0, 1, 0, 0), r.purchases, cat, "medium", {}).lines.map(l => l.ok)])(
+		S.addPurchase(P(0, 1, 0, 0), [buy("Weapon|Dagger", 2)], cat, "medium", "Weapon|Dagger", 1, {})),
+	[true, [buy("Weapon|Dagger", 2), buy("Weapon|Dagger", 1)], [false, true]]);
 
 // What is bought, as items to create.
 const entries = S.buildPurchasedEntries(S.priceCart(P(0, 40, 0, 0),
@@ -279,6 +356,23 @@ check("twenty arrows are one item of twenty", named("Arrow(Long Bow/Normal)").ma
 check("a bought leather suit is put on, as the book's step 10 has it", named("Armor Suit(Leather)").map(i => i.system.location), ["equipped"]);
 check("the purse is what was left", made.actor.system.wealth, P(0, 2, 0, 0));
 check("a document no longer in the content is reported, not made", [named("Nonesuch").length, made.issues.some(i => i.includes("Nonesuch"))], [0, true]);
+
+// Barding is only put on the body it was made for: his stacking test (76422-76428) and his equipArmor
+// (104799) refuse it everywhere else. Bought, it is carried out of the shop like anything else.
+const bardingBuy = (raceName, bodyType) => {
+	const b = C.assembleCharacter({ name: "Rider", raceNames: [raceName], className: "", ratings: {}, wealth: P(0, 0, 0, 0), bodyType,
+		purchases: ["Barding(Padding)", "Centaur Barding(Cloth)", "Insectaur Barding(Cloth)"]
+			.map(n => ({ docName: n, docType: "armor", quantity: 1, split: true })) }, content, () => 1);
+	return ["Barding(Padding)", "Centaur Barding(Cloth)", "Insectaur Barding(Cloth)"].map(n => b.items.find(i => i.name == n).system.location);
+};
+check("a Human who buys horse, centaur and insectaur barding carries all three, and wears none",
+	bardingBuy("Human(Civilized:Village)", "Humanoid"), ["carried", "carried", "carried"]);
+check("...a Centaur wears its own Centaur Barding and carries the other two",
+	bardingBuy("Centaur", "Centaur"), ["carried", "equipped", "carried"]);
+check("...an Arachen wears its Insectaur Barding and carries the other two",
+	bardingBuy("Arachen", "Arachen"), ["carried", "carried", "equipped"]);
+check("...and with no body type given, the race's own is used (a Human's is Humanoid)",
+	bardingBuy("Human(Civilized:Village)", undefined), ["carried", "carried", "carried"]);
 
 // --- the generator's Equipment step ----------------------------------------------------------------------
 check("Equipment sits between Details and Review", V.STEPS.slice(V.STEPS.indexOf("Details"), V.STEPS.indexOf("Details") + 3),
@@ -341,6 +435,20 @@ check("...and the sword among the items", r1.items.some(i => i.name == "Long Swo
 const made1 = C.assembleCharacter(V.choicesFromState(s1, derive(s1)), content, () => 1);
 check("the character is made with the sword, and 4 gp", [made1.items.filter(i => i.name == "Long Sword").length, made1.actor.system.wealth],
 	[1, P(0, 4, 0, 0)]);
+const s5 = makeState();
+s5.wealth = P(0, 100, 0, 0);
+s5.purchases = [buy("Armor|Barding(Padding)", 1)];
+const made5 = C.assembleCharacter(V.choicesFromState(s5, derive(s5)), content, () => 1);
+check("the generator hands the character's body over, and a Human's bought horse barding is carried, not worn",
+	[V.choicesFromState(s5, derive(s5)).bodyType, made5.items.filter(i => i.name == "Barding(Padding)").map(i => i.system.location)],
+	["Humanoid", ["carried"]]);
+
+// What the shop cannot sell in this world is told to a Game Master, and only to one.
+const gapContent = { ...content, weapons: weapons.filter(d => d.name != "Long Sword") };
+check("a Game Master is told what this world's compendiums are missing; a player is not",
+	[V.buildGeneratorView(makeState(), gapContent, () => true, { isGM: true }).shop.gaps.includes("Long Sword (not in the compendium)"),
+	 V.buildGeneratorView(makeState(), gapContent, () => true, { isGM: false }).shop.gaps,
+	 V.buildGeneratorView(makeState(), content, () => true, { isGM: true }).shop.gaps], [true, "", ""]);
 
 // Gear by culture is taken instead of coins: nothing to buy with, and nothing bought.
 const s4 = makeState();

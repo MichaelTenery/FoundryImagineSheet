@@ -161,7 +161,11 @@ write one -- a whole number and a coin, `"5 gp"`, `"12 sp"`, `"3 pp"`:
 - a stock item given a `cost` (through `"_override": true`) is sold at that price instead of his, at
   every level;
 - the cost is for ONE: a stock bundle ("10 Arrow Head") of an item with a cost of `"2 cp"` sells for
-  20 cp.
+  20 cp;
+- a cost that is not a whole number and ONE coin -- `"2 gp 5 sp"`, `"1.5 gp"`, `"5 gold"` -- is not
+  sold at all, rather than at a misreading (his reading would charge the first two as 2 sp and 1 gp).
+  A Game Master opening the generator's Equipment step is told which items those are, and why;
+  write `"25 sp"` or `"15 sp"` instead.
 
 The crowbar above has no `cost`, so the shop does not sell it; `"cost": "3 sp"` would. **Known gap:**
 the generator reads only the system's own Imagine compendiums, so an item kept in a Game Master's
