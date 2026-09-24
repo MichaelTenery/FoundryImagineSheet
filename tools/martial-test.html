@@ -296,6 +296,23 @@ check("floored at zero before multiplying", M.resolveMartialAttackDamage({ rolle
 	strength: -5, skillMade: true }).total, 0);
 check("a called shot that missed halves too", M.resolveMartialAttackDamage({ rolled: 6, dice: "2d4",
 	skillMade: true, halve: true }).total, 3);
+// Body weight: his getMartialDamageDetails adds combat_mod_dam_weight beside Strength (66807-66811), for
+// both actor types -- signed for a character, never below 0 for a creature (82173). martial-attack.mjs
+// passes getWeightDamageAdjust(weight, isCreature).
+const CR = await import("../module/combat/combat-rules.mjs");
+check("a character's martial attack takes its SIGNED weight: a 20 lb fairy's Martial Punch, 5 rolled, -4",
+	M.resolveMartialAttackDamage({ rolled: 5, dice: "1d6", strength: 0,
+		weight: CR.getWeightDamageAdjust(20, false), skillMade: true }).total, 1);
+check("...a 150 lb human's, nothing", M.resolveMartialAttackDamage({ rolled: 5, dice: "1d6",
+	weight: CR.getWeightDamageAdjust(150, false), skillMade: true }).total, 5);
+check("a creature's takes its floored weight: a 1,200 lb creature's, +12 on 5 rolled with STR +5",
+	M.resolveMartialAttackDamage({ rolled: 5, dice: "1d6", strength: 5,
+		weight: CR.getWeightDamageAdjust(1200, true), skillMade: true }).total, 22);
+check("...and a 20 lb creature's is 0, not -4", M.resolveMartialAttackDamage({ rolled: 5, dice: "1d6",
+	weight: CR.getWeightDamageAdjust(20, true), skillMade: true }).total, 5);
+check("the weight is in the sum before the floor at zero and the halving",
+	[M.resolveMartialAttackDamage({ rolled: 2, dice: "1d6", weight: -5, skillMade: true }).total,
+	 M.resolveMartialAttackDamage({ rolled: 5, dice: "1d6", weight: 12, skillMade: false }).total], [0, 9]);
 check("Scissor Strike doubles only when the skill is made and both land",
 	[M.isScissorStrikeDoubled(true, true, true), M.isScissorStrikeDoubled(true, true, false),
 	 M.isScissorStrikeDoubled(false, true, true)], [true, false, false]);

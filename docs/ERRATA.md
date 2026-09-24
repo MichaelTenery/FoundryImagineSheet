@@ -100,8 +100,9 @@ the port knowingly building a figure he has since corrected.
 - **Brownie STR max 13** (`Aspects.txt`) — an attribute limit, which the port reads from his row.
 - **Race trait changes across Legends, Aspects, Epitaph and Mysteries** — abilities, disabilities and
   immunities added or renamed on individual races.
-- **A creature-wide hide cap of 5 × level** (`Aspects.txt`, `aspectsfixes.txt`) — a rule the port
-  does not model.
+- **A creature-wide hide cap of 5 × level** (`Aspects.txt`, `aspectsfixes.txt`, and `MM.txt` "Pg: 290") —
+  **modelled 2026-09-23 as a warning, not a clamp**: `body.hideMax`/`hideOverCap` on the creature, flagged
+  on its sheet; plants, magical plants and the new Titanic size exempt (DECISIONS 2026-09-23, D4).
 - **Undead** (`Epitaph.txt`) — shadowform vs phaseable form by alignment. Relevant to the undead
   transformations noted as absent on 2026-09-21.
 

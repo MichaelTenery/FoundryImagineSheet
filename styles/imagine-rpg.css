@@ -1740,3 +1740,24 @@ input.source-unknown {
 	border: 1px solid currentColor;
 	white-space: nowrap;
 }
+
+/* ---- Authoring a creature on its sheet (actor-creature-sheet.mjs, @MARKER AUTHORING) ---------- */
+/* The body chart's own rows, the modifiers panel and the notes under the attacks. Inputs fill their
+   cells, as the race sheet's movement rows do (.edit-move-table). */
+.imagine.sheet .body-chart-controls { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-size: 11px; }
+.imagine.sheet .body-chart-controls button { width: auto; padding: 1px 8px; font-size: 11px; }
+.imagine.sheet .body-chart-editor td { padding: 1px 4px; }
+.imagine.sheet .edit-move-table .col-row-actions,
+.imagine.sheet .body-chart-editor .col-row-actions { width: 1%; white-space: nowrap; text-align: right; }
+.imagine.sheet .body-chart-editor input[type="text"],
+.imagine.sheet .body-chart-editor select { width: 100%; box-sizing: border-box; height: 22px; }
+.imagine.sheet .body-chart-warning,
+.imagine.sheet .body-chart-note { margin: 2px 0 6px; font-size: 11px; }
+.imagine.sheet .creature-modifiers-toggle {
+	width: auto; padding: 0 6px; border: none; background: none;
+	font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit;
+}
+.imagine.sheet .modifier-table td { padding: 1px 4px; font-size: 12px; }
+.imagine.sheet .modifier-table input[type="number"] { width: 4.5em; text-align: center; }
+.imagine.sheet .creature-note { display: block; margin: 4px 0; font-size: 11px; color: var(--imagine-muted); }
+.imagine.sheet .creature-note input, .imagine.sheet .creature-note textarea { display: block; width: 100%; box-sizing: border-box; }

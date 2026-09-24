@@ -57,6 +57,8 @@ const { default: ImagineCreatureData } = await import("../module/data/actor-crea
 const R = await import("../module/combat/combat-rules.mjs");
 const C = await import("../module/combat/creature-rules.mjs");
 const T = await import("../module/creature-tables.mjs");
+const S = await import("../module/creature-sheet-rules.mjs");
+const CT = await import("../module/combat-tables.mjs");
 
 Handlebars.registerHelper("eq", (a, b) => a === b);
 Handlebars.registerHelper("gt", (a, b) => a > b);
@@ -135,7 +137,7 @@ for (const k of Object.keys(ratings)) attributes[k] = { rating: ratings[k], perm
 const resistance = (entered, immune = false) => ({ entered, tempMod: 0, permMod: 0, immune });
 
 const creature = new ImagineCreatureData({
-	identity: { creatureType: "Magical Animal", subtype: "Wyrm", level: 12,
+	identity: { creatureType: "Magical Animal", subtype: "Wyrm", level: 12, size: "Gargantuan",
 	            lifecycle: "Solitary, hibernates in winter", habitat: "Cold mountains",
 	            alignment: "Neutral", tendencies: "Territorial", expValue: 4200, expNote: "" },
 	attributes,
@@ -150,14 +152,18 @@ const creature = new ImagineCreatureData({
 		poison: resistance(0, true), disease: resistance(40)
 	},
 	body: {
-		bodyType: "Quadruped(Tail/Wings)", bodyChart: "", hide: 14,
+		// A chart of its own, a stock one with a third wing -- so the Combat tab's area editor renders.
+		// Hide 70 is over the errata's cap of 60 at level 12, so the header shows the warning.
+		bodyType: "Quadruped(Tail/Wings)",
+		bodyChart: CT.BODY_CHARTS["Quadruped(Tail/Wings)"] + ",Vestigial Wing(Wing:x1/4)",
+		hide: 70,
 		wounds: { "Left Wing": 6, "Head": 22 }, armorDamage: {}
 	},
 	movement: { modes: [
 		{ name: "Walk", hourly: 12, tenSec: 30, oneSec: 3 },
 		{ name: "Run", hourly: 30, tenSec: 90, oneSec: 9 },
 		{ name: "Fly", hourly: 90, tenSec: 300, oneSec: 30 }
-	], jumpStand: 8, jumpUp: 4 },
+	], jumpStand: 0, jumpUp: 0, jumpStandMod: 1, jumpUpMod: 0 },
 	physical: { heightFeet: 14, heightInches: 0, weight: 3800 },
 	skills: ImagineCreatureData.parseSkillList(
 		"Ambush 55%, Blend 40%, Listen 60%, Smell 65%, Weapon Lore 35%, Intimidate 50%, "
@@ -194,6 +200,18 @@ for (const [group, keys] of groups) for (const key of keys) {
 	                mods: Object.entries(a.mods ?? {}).map(([k, v]) => ({ key: k, value: v })) });
 }
 const skillRows = creature.skills.map((s, i) => ({ index: i, name: s.name, chance: s.chance }));
+// Kept in sync with #buildMovementRows, #buildBodyChart and #buildModifierRows in actor-creature-sheet.mjs.
+const movementRows = creature.movement.modes.map((m, i, all) => ({ index: i, ...m, first: i == 0, last: i == all.length - 1 }));
+const bodyChart = { own: !!creature.body.bodyChart, hasStock: true, isCustom: false,
+	rows: S.readBodyChartRows(creature.body.bodyChart).map((r, i) => ({ ...r, index: i })),
+	duplicates: S.getDuplicateBodyAreaNames(S.readBodyChartRows(creature.body.bodyChart)) };
+const modifiers = {
+	attributes: Object.keys(ratings).map(k => ({ key: k, label: k, permMod: 0, tempMod: k == "str" ? 1 : 0 })),
+	characteristics: ["endurance", "perception", "affinity", "fortune"].map(k => ({ key: k, label: k, tempMod: 0 })),
+	resistances: Object.keys(creature.resistances).map(k => ({ key: k, label: k, tempMod: 0, permMod: 0 })),
+	combat: [["meleeMisc", "Melee to hit"], ["missileMisc", "Missile to hit"], ["damageMisc", "Damage"],
+	         ["defenseMisc", "Defence"], ["initiativeMisc", "Initiative"]].map(([k, l]) => ({ key: k, label: l, note: "", value: 0 }))
+};
 const attackRows = items.filter(i => i.type === "creatureAttack").map(i => ({
 	id: i.id, name: i.name, attackType: i.system.attackType, damage: i.system.damage,
 	damageType: i.system.damageType, speed: i.system.speed, minSpeed: i.system.effectiveMinSpeed,
@@ -223,7 +241,11 @@ const ctx = {
 	powers: powerRows,
 	gear: [],
 	config: { creatureTypes: T.CREATURE_TYPES, bodyTypes: T.CREATURE_BODY_TYPES,
-	          attackCharts: T.CREATURE_ATTACK_CHARTS },
+	          attackCharts: T.CREATURE_ATTACK_CHARTS, sizes: T.CREATURE_SIZES,
+	          bodyAreaTypes: T.BODY_AREA_TYPES, bodyMultipliers: S.BODY_AREA_MULTIPLIERS.map(([l]) => l) },
+	movementRows, bodyChart, modifiers,
+	// Open, so the preview shows the panel; ?modifiers=closed shows it shut.
+	modifiersOpen: new URLSearchParams(location.search).get("modifiers") != "closed",
 	// Mirrors the sheet's own two lines, built by the same functions.
 	situationLine: SV.describeSituationalTotals(creature.combat.situational),
 	martial: MV.buildMartialPanel(creature, true),
@@ -270,7 +292,9 @@ const mods = C.getCreatureToHitModifiers({
 	mods: behaviour.mods,
 	attacker: { meleeAttack: creature.combat.meleeAttack, missileAttack: creature.combat.missileAttack,
 	            meleeMisc: 0, missileMisc: 0 },
-	target: { defensiveAdjust: -2 }, situational: 0
+	target: { defensiveAdjust: -2 }, situational: 0,
+	// Its Weapon Lore's +2 on a melee-kind attack, as rollCreatureAttack passes it.
+	lore: behaviour.mods == "missile" ? creature.combat.loreMissile : creature.combat.loreMelee
 });
 const result = R.resolveAttack({ natural: 13, mods: mods.total, skill: creature.combat.attackSkill,
                                  calledShot: false });
@@ -284,8 +308,14 @@ document.getElementById("chat").innerHTML = await render("../templates/chat/crea
 	targetName: "Orc Raider", aim: "Upper Torso",
 	result, mods, speed: breath.system.speed, speedSpecial: false,
 	shape, effects, resolveKind: behaviour.resolve,
-	damage: result.isHit ? { dice: breath.system.damage, misc: 0, rolled: 24, multiplier: 1,
-	                         total: 24, type: breath.system.damageType } : null,
+	// The standing damage by name, as rollCreatureAttack lists it: the wyrm's Strength, weight and
+	// Weapon Lore all reach its breath (the provisional D2 of the creature audit).
+	damage: result.isHit ? (() => {
+		const dm = C.getCreatureDamageMods({ resolve: behaviour.resolve, strength: creature.combat.meleeDamage,
+			weight: creature.combat.weightDamage, lore: creature.combat.loreDamage, damageMisc: 0 });
+		return { dice: breath.system.damage, misc: dm.total, list: dm.list, rolled: 24 + dm.total, multiplier: 1,
+		         total: 24 + dm.total, situationMulti: 1, martialMulti: 1, type: breath.system.damageType };
+	})() : null,
 	fumble: null, applied: false, inCombat: true
 });
 </script>

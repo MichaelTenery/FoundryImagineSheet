@@ -128,5 +128,37 @@ export const EFFECT_DURATION_TYPES = [
 // (handleCreatureFinish, sheet-worker.js:174825-174833) and his Configurator authors three.
 export const MAX_ATTACK_EFFECTS = 3;
 
+// @MARKER CREATURE SIZES
+// How big a creature is. His sheet has no size field at all; the books carry one in every body line
+// ("Body Type: Huge (quadruped)"), and the Master's Manual lists the classes, smallest first, in its
+// creature-design Strength table (p.295, "Body Size"). That table is the list here, so every size a
+// stat block prints is on it -- Medium Small and Very Large included, which the size rules of p.127
+// leave out. Blank is "not given", which is what every creature made before this field existed has.
+//
+// Only one size does anything yet: a Titanic creature is exempt from the errata's hide cap (below).
+// The rest are carried for the Game Master and for the size rules still to come (Master's Manual
+// p.127: Bear Hug, Smash and Squish for the huge and larger).
+export const CREATURE_SIZES = [
+	"Tiny", "Small", "Medium Small", "Medium", "Medium Large", "Large", "Very Large",
+	"Huge", "Giant", "Mammoth", "Gargantuan", "Titanic", "Divine Being"
+];
+
+// @MARKER HIDE CAP
+// His errata (Master's Manual errata "Pg: 290", and the Aspects of the Wild errata's first item),
+// which outranks both his sheet and the books: "Hide has a maximum value of 5 points per level of the
+// creature regardless of the type of hide. 0 level counts as level 1. This is ignored for creatures of
+// size titanic ... this does not apply to plants and magical plants which can have thicker bark."
+// His sheet has no such cap (it predates the errata); docs/ERRATA.md recorded it as not modelled.
+//
+// The cap is WARNED about on the sheet, not enforced -- the provisional D4 of the creature audit
+// (docs/DECISIONS.md 2026-09-23): a Game Master authoring a custom creature may mean the figure, and a
+// silent clamp would hide it. Data brought in from a stat block is where the clamp belongs.
+//
+//                        points per level   the lowest level counted
+export const HIDE_CAP = { perLevel: 5,       minimumLevel: 1 };
+// Who the errata exempts: creature types, then sizes.
+export const HIDE_CAP_EXEMPT_TYPES = ["Plant", "Magical Plant"];
+export const HIDE_CAP_EXEMPT_SIZES = ["Titanic"];
+
 // @MARKER ADD NEW creature lookup tables HERE
 // @END (CODE)

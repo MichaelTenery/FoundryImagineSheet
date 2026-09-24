@@ -20,7 +20,7 @@ import {
 	getInitiativeModifier, getAreaArmor, getAreaShield, getNextAttackSkill, hasLore, parseLoreList,
 	getMovementBase, resolveMovementRate, resolveSpecialMovement, specialMovementReplacesOther,
 	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement,
-	getSecondWeaponSlots, resolveSituationalMods
+	getSecondWeaponSlots, resolveSituationalMods, getShockBar
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
@@ -953,6 +953,10 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
 		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
 		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
+		// What a token's resource bar draws, Shock less the total wounds -- the same "body.shockBar" a
+		// creature carries (getShockBar in combat-rules.mjs; CONFIG.Actor.trackableAttributes in
+		// imagine-rpg.mjs). Added 2026-09-23 with the creature's, so both actor types have a bar.
+		this.body.shockBar = getShockBar(this.body.shock, this.body.totalWounds);
 	}
 
 	// This is the function which totals carried weight and works out how encumbered the

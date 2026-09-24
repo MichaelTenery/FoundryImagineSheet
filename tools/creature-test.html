@@ -32,6 +32,8 @@ globalThis.game = { imagine: { getAvailabilityRules: () => null } };
 const { default: ImagineCreatureData } = await import("../module/data/actor-creature.mjs");
 const R = await import("../module/combat/combat-rules.mjs");
 const C = await import("../module/combat/creature-rules.mjs");
+const S = await import("../module/creature-sheet-rules.mjs");
+const T = await import("../module/combat-tables.mjs");
 
 const results = [];
 function check(label, actual, expected) {
@@ -56,7 +58,7 @@ function makeCreature(options = {}) {
 			creatureType: options.creatureType ?? "Animal",
 			subtype: "", level: options.level ?? 1,
 			lifecycle: "", habitat: "", alignment: "", tendencies: "", expValue: 0, expNote: "",
-			handedness: options.handedness ?? ""
+			handedness: options.handedness ?? "", size: options.size ?? ""
 		},
 		attributes,
 		characteristics: {
@@ -77,12 +79,13 @@ function makeCreature(options = {}) {
 			hide: options.hide ?? 0,
 			wounds: options.wounds ?? {}, armorDamage: {}, overallWounds: options.overallWounds ?? 0
 		},
-		movement: { modes: options.movement ?? [], jumpStand: 0, jumpUp: 0 },
+		movement: { modes: options.movement ?? [], jumpStand: options.jumpStand ?? 0, jumpUp: 0,
+		            jumpStandMod: options.jumpStandMod ?? 0, jumpUpMod: options.jumpUpMod ?? 0 },
 		physical: { heightFeet: 0, heightInches: 0, weight: options.weight ?? 0 },
 		skills: options.skills ?? [],
 		combat: {
 			attackChart: options.attackChart ?? "None", attackNotes: "",
-			meleeMisc: 0, missileMisc: 0, damageMisc: 0,
+			meleeMisc: 0, missileMisc: 0, damageMisc: options.damageMisc ?? 0,
 			defenseMisc: 0, initiativeMisc: options.initiativeMisc ?? 0, skillMisc: 0,
 			situation: options.situation ?? { kind: "", selected: [], weaponId: "" }
 		},
@@ -540,7 +543,10 @@ check("it is labelled in the modifier list",
 		.list.some(m => m.label == "Off Hand"), true);
 
 // --- damage modifiers ----------------------------------------------------------
-// A creature gets no Strength damage bonus: the dice on its stat block are the whole of it.
+// CORRECTED 2026-09-23. This block used to open "a creature gets no Strength damage bonus: the dice on
+// its stat block are the whole of it". It does get one -- his handleCreatureAttack adds combat_mod_damage
+// (Strength, weight, Weapon Lore, the temporary modifier) to every attack but a touch -- and the checks
+// for that are in the STRENGTH AND WEIGHT block further down. These three are the plain arithmetic.
 check("damage modifiers total the standing and situational figures",
 	C.getCreatureDamageMods({ damageMisc: 2, situational: 3 }).total, 5);
 check("no damage modifiers means none listed",
@@ -584,6 +590,305 @@ check("...and a called shot does not slow it either, there being nothing to slow
 	C.getCreatureAttackSeconds({ speed: 4, speedSpecial: true }, true), 0);
 check("an attack with no speed at all reads as nothing, not as NaN",
 	C.getCreatureAttackSeconds({}, false), 0);
+
+//==================================================================================================================
+// 2026-09-23 -- the creature audit's gaps G2, G4, G7, G10, G11: damage, rolls, the hide cap, jumps, the bar
+//==================================================================================================================
+
+// --- body weight damage: his getWeightDamageAdj, walked weight by weight ------------------------------
+// His function, copied here as he wrote it (sheet-worker.js:83259-83301), slip and all -- the 350-399
+// branch reads "tempweight>249" -- so the port's table is checked against his code and not against a
+// retyping of it.
+function hisWeightDamageAdj(tempweight) {
+	var calcWeightDamageAdjust = 0;
+	if (tempweight <= 0) { calcWeightDamageAdjust = 0; }
+	else if (tempweight > 0 && tempweight < 11) { calcWeightDamageAdjust = -5; }
+	else if (tempweight > 10 && tempweight < 26) { calcWeightDamageAdjust = -4; }
+	else if (tempweight > 25 && tempweight < 51) { calcWeightDamageAdjust = -3; }
+	else if (tempweight > 50 && tempweight < 76) { calcWeightDamageAdjust = -2; }
+	else if (tempweight > 75 && tempweight < 100) { calcWeightDamageAdjust = -1; }
+	else if (tempweight > 99 && tempweight < 200) { calcWeightDamageAdjust = 0; }
+	else if (tempweight > 199 && tempweight < 250) { calcWeightDamageAdjust = 1; }
+	else if (tempweight > 249 && tempweight < 300) { calcWeightDamageAdjust = 2; }
+	else if (tempweight > 299 && tempweight < 350) { calcWeightDamageAdjust = 3; }
+	else if (tempweight > 249 && tempweight < 400) { calcWeightDamageAdjust = 4; }
+	else if (tempweight > 399 && tempweight < 500) { calcWeightDamageAdjust = 5; }
+	else if (tempweight > 499 && tempweight < 600) { calcWeightDamageAdjust = 6; }
+	else if (tempweight > 599 && tempweight < 800) { calcWeightDamageAdjust = 8; }
+	else if (tempweight > 799 && tempweight < 1200) { calcWeightDamageAdjust = 10; }
+	else if (tempweight > 1199 && tempweight < 2000) { calcWeightDamageAdjust = 12; }
+	else if (tempweight > 1999 && tempweight < 4000) { calcWeightDamageAdjust = 14; }
+	else if (tempweight > 3999 && tempweight < 8000) { calcWeightDamageAdjust = 16; }
+	else if (tempweight > 7999 && tempweight < 10000) { calcWeightDamageAdjust = 18; }
+	else if (tempweight > 9999) { calcWeightDamageAdjust = 20; }
+	return calcWeightDamageAdjust;
+}
+const weightMismatches = [];
+for (let w = 0; w <= 12000; w++) {
+	if (R.getWeightDamageAdjust(w, false) !== hisWeightDamageAdj(w)) { weightMismatches.push(w); }
+}
+for (const w of [0.5, 10.5, 25.5, 75.9, 99.5, 199.5, 349.5, 1199.9, 9999.5]) {
+	if (R.getWeightDamageAdjust(w, false) !== hisWeightDamageAdj(w)) { weightMismatches.push(w); }
+}
+check("the weight table agrees with his function at every pound from 0 to 12,000, and at the band edges' fractions",
+	weightMismatches, []);
+check("the band edges: 10/11, 99/100, 199/200, 1199/1200, 9999/10000",
+	[10, 11, 99, 100, 199, 200, 1199, 1200, 9999, 10000].map(w => R.getWeightDamageAdjust(w, false)),
+	[-5, -4, -1, 0, 0, 1, 10, 12, 18, 20]);
+check("no weight at all, or a blank one, adjusts nothing",
+	[R.getWeightDamageAdjust(0, false), R.getWeightDamageAdjust("", false), R.getWeightDamageAdjust(undefined, false)], [0, 0, 0]);
+// "weight is already factored into smaller creature damage modifiers" (82173): a creature's is floored.
+check("a creature's weight adjustment is never below 0 (a 10 lb creature: 0, not -5)",
+	R.getWeightDamageAdjust(10, true), 0);
+check("...but a heavy creature's counts in full (1,200 lb: +12)", R.getWeightDamageAdjust(1200, true), 12);
+
+// --- STRENGTH AND WEIGHT on a creature's natural attacks ---------------------------------------------
+// The buffalo from Aspects of the Wild (PDF page 58): Strength 19 and 1,200 lb, printed "Damage +17".
+// Only the two figures are used, so no book text is in this test.
+const buffalo = makeCreature({ ratings: { str: 19 }, level: 1, weight: 1200 });
+check("a Strength 19, 1,200 lb creature has STR +5 and weight +12", [buffalo.combat.meleeDamage, buffalo.combat.weightDamage], [5, 12]);
+check("...and a standing damage bonus of +17, the stat line's 'Damage +17'", buffalo.combat.damageBonus, 17);
+const hornMods = C.getCreatureDamageMods({ resolve: "chart", strength: buffalo.combat.meleeDamage,
+	weight: buffalo.combat.weightDamage, lore: buffalo.combat.loreDamage, damageMisc: buffalo.combat.damageMisc });
+check("its horns carry STR +5 and Weight +12, by name", hornMods.list,
+	[{ label: "STR", value: 5 }, { label: "Weight", value: 12 }]);
+check("...17 in all", hornMods.total, 17);
+// Every type but a Touch takes it -- the provisional D2. An auto-hit gaze and a breath do too.
+check("a gaze (no roll) takes it as well",
+	C.getCreatureDamageMods({ resolve: "auto", strength: 5, weight: 12 }).total, 17);
+// A touch rolls its bare dice (179773-179779): no Strength, weight, lore, temporary modifier, martial or
+// Situation Mods -- only the off-hand penalty and the number typed for this attack.
+const touchMods = C.getCreatureDamageMods({ resolve: "touch", strength: 5, weight: 12, lore: 4, damageMisc: 2,
+	martial: 3, situation: 6, offhand: -2, situational: 1 });
+check("a touch takes none of the standing damage", touchMods.list,
+	[{ label: "Off Hand", value: -2 }, { label: "Modifier", value: 1 }]);
+check("every label, in order, on anything else", C.getCreatureDamageMods({ resolve: "chart", strength: 5,
+	weight: 12, lore: 4, damageMisc: 2, martial: 3, offhand: -2, situation: 6, situational: 1 }).list.map(m => m.label),
+	["STR", "Weight", "Lore", "Damage Other", "Martial", "Off Hand", "Situational", "Modifier"]);
+
+// An attack with no damage does none: nothing entered and "0" alike, as his touch branch (179775) and
+// his other branch's "" -> "0" (179920) treat them. A "0" gaze must not roll "0 + Strength + weight".
+check("a blank damage is no damage", C.hasCreatureAttackDamage(""), false);
+check("...and so is \"0\", as stat blocks write it for a gaze or a breath", C.hasCreatureAttackDamage("0"), false);
+check("...with stray spaces too", C.hasCreatureAttackDamage(" 0 "), false);
+check("...and a missing field", C.hasCreatureAttackDamage(undefined), false);
+check("dice are damage", C.hasCreatureAttackDamage("6d6"), true);
+check("a flat 1 is damage", C.hasCreatureAttackDamage("1"), true);
+check("\"10\" is damage (only a string of noughts is none)", C.hasCreatureAttackDamage("10"), true);
+
+// A small creature: his changeAttribs floors a creature's Strength to-hit and damage at 0
+// (sheet-worker.js:29694-29697, "low STR is already factored into creature melee damage modifiers"), as
+// setCombatModifierValues floors its weight. The bestiaries agree -- a Strength 7 badger is printed
+// "Melee +0, Damage +0" where the Strength table gives -2 and -4.
+const badger = makeCreature({ ratings: { str: 7 }, level: 1, weight: 25 });
+check("a Strength 7, 25 lb creature: STR 0 (not -4), weight 0 (not -4), standing damage 0",
+	[badger.combat.meleeDamage, badger.combat.weightDamage, badger.combat.damageBonus], [0, 0, 0]);
+check("...and its Strength melee to-hit is 0, not the table's -2", badger.combat.meleeAttack, 0);
+const CFG = await import("../module/config-tables.mjs");
+check("...on the Stats tab too, where Strength's own modifiers read 0 -- and the shared table row keeps its -2 and -4",
+	[badger.attributes.str.mods.meleeAttack, badger.attributes.str.mods.meleeDamage,
+	 CFG.ATTRIBUTE_TABLES.str[7].meleeAttack, CFG.ATTRIBUTE_TABLES.str[7].meleeDamage], [0, 0, -2, -4]);
+check("a Strength 0 creature's figures stop at 0 too (the table's -8 and -12)",
+	[makeCreature({ ratings: { str: 0 }, level: 1, weight: 25 }).combat.meleeAttack,
+	 makeCreature({ ratings: { str: 0 }, level: 1, weight: 25 }).combat.meleeDamage], [0, 0]);
+check("a strong creature's figures are the table's in full (Strength 19: +2 to hit, +5 damage)",
+	[buffalo.combat.meleeAttack, buffalo.combat.meleeDamage], [2, 5]);
+check("the floor is on the parts, not the whole: a -3 temporary modifier still takes a weak creature below 0",
+	makeCreature({ ratings: { str: 7 }, level: 1, weight: 25, damageMisc: -3 }).combat.damageBonus, -3);
+check("the temporary damage modifier is in the standing figure",
+	makeCreature({ ratings: { str: 19 }, level: 1, weight: 1200, damageMisc: 3 }).combat.damageBonus, 20);
+
+// --- Weapon Lore and Missile Lore: the general figures, held at all ---------------------------------
+// His creature branch of setCombatModifierValues (82262-82307): the creature's own chance for the skill
+// by its exact name, and its level against an acquisition level of 1.
+const lored = makeCreature({ level: 3, skills: [{ name: "Weapon Lore", chance: 40 }] });
+check("Weapon Lore: +2 to hit in melee, +4 damage, nothing for missiles",
+	[lored.combat.loreMelee, lored.combat.loreDamage, lored.combat.loreMissile], [2, 4, 0]);
+check("...and the +4 is in the standing damage", lored.combat.damageBonus - makeCreature({ level: 3 }).combat.damageBonus, 4);
+const missileLored = makeCreature({ level: 3, skills: [{ name: "Missile Lore", chance: 40 }] });
+check("Missile Lore: +2 to hit with missiles, no damage",
+	[missileLored.combat.loreMelee, missileLored.combat.loreDamage, missileLored.combat.loreMissile], [0, 0, 2]);
+check("a level 0 creature gets nothing from Weapon Lore -- '(currentTitle+1)>1' is false at 0",
+	makeCreature({ level: 0, skills: [{ name: "Weapon Lore", chance: 40 }] }).combat.loreDamage, 0);
+check("Weapon Lore at 0% is not held", makeCreature({ level: 3, skills: [{ name: "Weapon Lore", chance: 0 }] }).combat.loreDamage, 0);
+check("Second Weapon Lore is not Weapon Lore -- his match is on the exact name",
+	makeCreature({ level: 3, skills: [{ name: "Second Weapon Lore", chance: 40 }] }).combat.loreDamage, 0);
+check("the lore to-hit is listed by name",
+	C.getCreatureToHitModifiers({ mods: "melee", attacker: {}, lore: 2 }).list, [{ label: "Lore", value: 2 }]);
+
+// --- martial arts on a natural attack: to hit by kind, damage whatever the kind, nothing on a touch ----
+// The monk above: Strike as wind held, Jump made. His handleCreatureAttack reads the missile figures
+// for a missile-kind attack (179761-179762) and the melee ones otherwise (179768-179769), and adds the
+// flat martial damage to everything but a touch (179927-179929). Its extra dice come from the STANCE's
+// special alone (179932-179945): a move's "+1 Die Dam" or "+2 per Die" sits in martial_arts_mod_special,
+// which that path never reads. (tmp_extra_dice at 179961 is the Game Master's temporary modifier, not a
+// move.)
+const M = await import("../module/combat/martial-arts.mjs");
+const monkMelee = C.getCreatureMartialModifiers(monk.martial.state, C.getCreatureAttackBehaviour("Melee"));
+check("a melee attack takes the stance's melee +3 and Jump's +2",
+	monkMelee.list, [{ label: "Stance (Strike as wind)", value: 3 }, { label: "Martial Moves", value: 2 }]);
+check("...and the flat martial damage, the stance's 3 and Jump's 1 -- but not Jump's extra die",
+	[monkMelee.damage.flat, monkMelee.damage.extraDice, monkMelee.damage.perDie], [4, 0, 0]);
+check("...which the card says it left out",
+	monkMelee.special.some(s => s.startsWith("Not on a natural attack: a move's extra die")), true);
+const monkGlob = C.getCreatureMartialModifiers(monk.martial.state, C.getCreatureAttackBehaviour("Glob"));
+check("a glob takes the stance's MISSILE figure only, no moves",
+	monkGlob.list, [{ label: "Stance (Strike as wind)", value: 3 }]);
+check("...but the flat martial damage all the same -- his damage block does not ask the kind",
+	[monkGlob.damage.flat, monkGlob.damage.extraDice], [4, 0]);
+const monkTouch = C.getCreatureMartialModifiers(monk.martial.state, C.getCreatureAttackBehaviour("Touch"));
+check("a touch takes nothing from martial arts", [monkTouch.list, monkTouch.damage],
+	[[], { flat: 0, extraDice: 0, perDie: 0, multiplier: 1 }]);
+check("under Jump, a natural attack rolls its own dice: 6d6 stays 6d6",
+	R.getNumberOfDice(M.addMartialDice("6d6", monkMelee.damage.extraDice)), 6);
+check("...where a character's weapon under the same Jump takes the die (the book's word, MARTIAL_MOVE_CORRECTIONS)",
+	M.getMartialAttackModifiers(monk.martial.state, { mode: "smash", martialAttack: false }).damage.extraDice, 1);
+const spinState = M.resolveMartialState({ stance: "", activeMoves: "Spinning", hasLore: false });
+check("Spinning's +2 per die does not reach a natural attack",
+	C.getCreatureMartialModifiers(spinState, C.getCreatureAttackBehaviour("Melee")).damage.perDie, 0);
+check("...though it reaches a weapon", M.getMartialAttackModifiers(spinState, { mode: "smash" }).damage.perDie, 2);
+const flyState = M.resolveMartialState({ stance: "", activeMoves: "Flying", hasLore: false });
+check("a Flying move's x2 does reach a natural attack -- martial_arts_mod_damage_multi (180003-180010)",
+	C.getCreatureMartialModifiers(flyState, C.getCreatureAttackBehaviour("Melee")).damage.multiplier, 2);
+const drunkState = M.resolveMartialState({ stance: "Drunken fighting", mastered: "", activeMoves: "", intoxication: 1 });
+check("the held stance's dice do: Drunken fighting's +1 per die (read per die, as on a weapon)",
+	C.getCreatureMartialModifiers(drunkState, C.getCreatureAttackBehaviour("Melee")).damage.perDie, 1);
+check("no martial arts at all is no martial anything",
+	C.getCreatureMartialModifiers(undefined, C.getCreatureAttackBehaviour("Melee")),
+	{ noAttack: false, noAttackReason: "", list: [], special: [], damage: { flat: 0, extraDice: 0, perDie: 0, multiplier: 1 } });
+
+// --- jumps from Agility: his switch, case by case ---------------------------------------------------
+// setCreatureMovementValues (178893-179003), transcribed here as its own table so the port -- which
+// reads the character's MOVEMENT_BASE, the same figures -- is checked against his creature switch.
+//                   agl: [stand, up]
+const hisJumps = {
+	0: [0, 0], 1: [0, 0], 2: [1, .5], 3: [1, .5], 4: [1, .5], 5: [2, .5], 6: [3, 1], 7: [3, 1],
+	8: [4, 1.5], 9: [4, 1.5], 10: [5, 2], 11: [5, 2], 12: [5, 2], 13: [6, 2.5], 14: [6, 2.5], 15: [6, 2.5],
+	16: [7, 3], 17: [7, 3], 18: [8, 3.5], 19: [8, 3.5], 20: [9, 4], 21: [10, 4.5], 22: [11, 5], 23: [11, 5],
+	24: [11, 5], 25: [12, 5.5], 26: [12, 5.5], 27: [13, 6], 28: [13, 6], 29: [14, 6.5], 30: [15, 7]
+};
+const jumpMismatches = [];
+for (let a = 0; a <= 30; a++) {
+	const j = S.getCreatureJumps(a, 0, 0);
+	if (j.stand !== hisJumps[a][0] || j.up !== hisJumps[a][1]) { jumpMismatches.push(a); }
+}
+check("every Agility from 0 to 30 jumps as his creature switch says", jumpMismatches, []);
+check("his jump modifiers add, in feet", [S.getCreatureJumps(14, 1.5, -1).stand, S.getCreatureJumps(14, 1.5, -1).up], [7.5, 1.5]);
+check("a modifier cannot take a jump below nothing", S.getCreatureJumps(2, -5, -5).stand, 0);
+const jumper = makeCreature({ ratings: { agl: 18 }, level: 20, jumpStandMod: 2, jumpStand: 99 });
+check("a creature's jumps are worked out, with the modifier, over whatever was stored",
+	[jumper.movement.jumpStand, jumper.movement.jumpUp, jumper.movement.jumpStandBase], [10, 3.5, 8]);
+
+// --- the errata's hide cap: warned about, never applied ---------------------------------------------
+check("5 hide per level", S.getCreatureHideMax(3, "Animal", ""), 15);
+check("level 0 counts as level 1", S.getCreatureHideMax(0, "Animal", ""), 5);
+check("plants and magical plants have no cap", [S.getCreatureHideMax(3, "Plant", ""), S.getCreatureHideMax(3, "Magical Plant", "")], [null, null]);
+check("nor has anything Titanic", S.getCreatureHideMax(3, "Animal", "Titanic"), null);
+check("Gargantuan is not exempt", S.getCreatureHideMax(3, "Animal", "Gargantuan"), 15);
+const thickHide = makeCreature({ level: 3, hide: 20 });
+check("a level 3 creature with 20 hide is over the cap of 15", [thickHide.body.hideMax, thickHide.body.hideOverCap], [15, true]);
+check("...and its hide is still 20 -- flagged, not clamped (the provisional D4)", thickHide.body.hide, 20);
+check("15 hide at level 3 is not over", makeCreature({ level: 3, hide: 15 }).body.hideOverCap, false);
+check("a Titanic creature is never over", makeCreature({ level: 3, hide: 80, size: "Titanic" }).body.hideOverCap, false);
+
+// --- the token bar: Shock less the wounds --------------------------------------------------------------
+check("the bar is what is left before shock", R.getShockBar(120, 28), { value: 92, max: 120, wounds: 28 });
+check("past shock it is empty, not negative", R.getShockBar(30, 31).value, 0);
+check("a being immune to shock has a bar of no size, which Foundry does not draw", R.getShockBar(0, 5).max, 0);
+const barred = makeCreature({ bodyType: "Bird", endurance: 20, wounds: { "Head": 25, "Neck": 3 } });
+check("a creature carries it as body.shockBar", barred.body.shockBar, { value: 32, max: 60, wounds: 28 });
+
+// --- Perception, Affinity and Fortune rolls -------------------------------------------------------------
+// The three bands the character sheet's buttons read: at or under the chance, over 100 less the single
+// chance, and neither.
+const per40 = (roll, dbl, mod) => S.resolveCharacteristicRoll("perception", 40, roll, dbl, mod).outcome;
+check("Perception 40: a 40 perceives, a 50 perceives nothing, a 61 is inattentive",
+	[per40(40), per40(50), per40(61)], ["Perceived", "Nothing Perceived", "Inattentive"]);
+check("double Perception doubles only the chance: a 61 now perceives, an 81 is inattentive (100 - the single 40)",
+	[per40(61, true), per40(81, true), S.resolveCharacteristicRoll("perception", 40, 81, true).chance], ["Perceived", "Inattentive", 80]);
+check("a modifier moves the chance and the bad band with it: at +10, a 50 perceives and a 51 is inattentive",
+	[per40(50, false, 10), per40(51, false, 10)], ["Perceived", "Inattentive"]);
+check("Fortune reads fortunate / misfortunate / neither",
+	[20, 50, 90].map(r => S.resolveCharacteristicRoll("fortune", 20, r, false, 0).outcome),
+	["Fortunate", "Neither fortunate nor misfortunate", "Misfortunate"]);
+check("Affinity's words", S.resolveCharacteristicRoll("affinity", 30, 10, false, 0).outcome, "Affinity ensues");
+check("a characteristic it does not know gives nothing", S.resolveCharacteristicRoll("endurance", 30, 10), null);
+// The words themselves, as literals -- a changed word in the table fails here.
+check("the three answers of each roll, word for word", S.CHARACTERISTIC_RESULTS, {
+	perception: ["Perceived", "Inattentive", "Nothing Perceived"],
+	affinity:   ["Affinity ensues", "Enmity ensues", "Neither Affinity or Enmity"],
+	fortune:    ["Fortunate", "Misfortunate", "Neither fortunate nor misfortunate"] });
+// The character sheet still keeps its own copy (ImagineCharacterSheet.CHARACTERISTIC_RESULTS) until the
+// Sonnet note's item 3 makes it call resolveCharacteristicRoll. The sheet class cannot be imported without
+// Foundry, so its table is read out of the source text and compared, which keeps the two copies from
+// drifting apart in the meantime.
+const charSheetText = await (await fetch("../module/sheets/actor-character-sheet.mjs")).text();
+const charTableText = (charSheetText.match(/static CHARACTERISTIC_RESULTS = \{([\s\S]*?)\};/) ?? [])[1] ?? "";
+const charTable = {};
+for (const [, key, row] of charTableText.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {
+	charTable[key] = [...row.matchAll(/"([^"]*)"/g)].map(m => m[1]);
+}
+check("the same words as the character sheet's own table, read from its source", charTable, S.CHARACTERISTIC_RESULTS);
+
+// --- the body chart, as rows and back -----------------------------------------------------------------
+// Every stock chart must come back from rows exactly as it went in, so opening the editor never
+// rewrites his data, and the body it describes must be unchanged.
+const chartMismatches = [];
+for (const [type, chart] of Object.entries(T.BODY_CHARTS)) {
+	const again = S.serializeBodyChart(S.readBodyChartRows(chart));
+	if (again !== chart) { chartMismatches.push(type); continue; }
+	if (JSON.stringify(R.parseBodyChart(again)) !== JSON.stringify(R.parseBodyChart(chart))) { chartMismatches.push(type + " (areas)"); }
+}
+check("all 45 stock charts round-trip through the editor's rows unchanged",
+	[Object.keys(T.BODY_CHARTS).length, chartMismatches], [45, []]);
+check("a Wing stays a Wing in the editor, though the wounds arithmetic reads it as a Limb",
+	[S.readBodyChartRows(T.BODY_CHARTS["Bird"]).find(r => r.name == "Left Wing").type,
+	 R.parseBodyChart(T.BODY_CHARTS["Bird"]).find(a => a.name == "Left Wing").type], ["Wing", "Limb"]);
+check("a comma, bracket or full stop in a name cannot break the string; a blank name drops the row",
+	S.serializeBodyChart([{ name: "Tail, barbed (end) no.2", type: "Limb", multiplier: "x1/2" }, { name: "  ", type: "Vital", multiplier: "x1" }]),
+	"Tail barbed end no 2(Limb:x1/2)");
+check("an unknown kind is a Limb and an unknown multiplier x1, as the reading side falls back",
+	S.serializeBodyChart([{ name: "Core", type: "Nonsense", multiplier: "x99" }]), "Core(Limb:x1)");
+check("every multiplier his builder offers reads back as itself",
+	S.BODY_AREA_MULTIPLIERS.map(([label, value]) => R.getAreaMultiplier(`Vital:${label}`) === value), S.BODY_AREA_MULTIPLIERS.map(() => true));
+check("Custom has no stock chart to copy", [S.getStockBodyChart("Custom"), S.getStockBodyChart("Bird") === T.BODY_CHARTS["Bird"]], ["", true]);
+const ownChart = makeCreature({ bodyType: "Custom", endurance: 20,
+	bodyChart: S.serializeBodyChart([{ name: "Core", type: "Vital", multiplier: "x2" }, { name: "Pseudopod", type: "Limb", multiplier: "x1/2" }]) });
+check("a chart built in the editor is the creature's body", ownChart.body.areas.map(a => [a.name, a.endurance]), [["Core", 40], ["Pseudopod", 10]]);
+
+// Area names. Wounds are kept by name, and a repeated name is told apart only by its place ("Name (2)",
+// parseBodyChart), so the editor's Add gives each new area a name of its own, and a name two areas share
+// is warned about -- never renamed, since his own Segmented Worm repeats two.
+const coreRows = [{ name: "Core" }, { name: "New Area" }, { name: "New Area 2" }];
+check("a new area is called New Area while no area has that name", S.getNewBodyAreaName([{ name: "Core" }]), "New Area");
+check("...then New Area 2, 3 and on -- the first free number", S.getNewBodyAreaName(coreRows), "New Area 3");
+check("clicking Add twice gives two different names", (() => {
+	const rows = [{ name: "Core" }];
+	rows.push({ name: S.getNewBodyAreaName(rows) });
+	rows.push({ name: S.getNewBodyAreaName(rows) });
+	return rows.map(r => r.name);
+})(), ["Core", "New Area", "New Area 2"]);
+check("a name shared by two areas is found, once, as it will be written",
+	S.getDuplicateBodyAreaNames([{ name: "Tentacle" }, { name: "Tentacle." }, { name: "Tentacle" }, { name: "Maw" }]), ["Tentacle"]);
+check("his Segmented Worm repeats Left Foot12 and Right Foot12, and is left as it is",
+	S.getDuplicateBodyAreaNames(S.readBodyChartRows(T.BODY_CHARTS["Segmented Worm"])), ["Left Foot12", "Right Foot12"]);
+check("no stock chart but the worm has a shared name",
+	Object.entries(T.BODY_CHARTS).filter(([type, chart]) => S.getDuplicateBodyAreaNames(S.readBodyChartRows(chart)).length).map(([type]) => type),
+	["Segmented Worm"]);
+const twinChart = makeCreature({ bodyType: "Custom", endurance: 20,
+	bodyChart: "Core(Vital:x1),Tentacle(Limb:x1/2),Tentacle(Limb:x1/2)", wounds: { Tentacle: 4 } });
+check("two areas of one name are two areas, the second 'Tentacle (2)', each counted once in the total",
+	[twinChart.body.areas.map(a => [a.name, a.wounds]), twinChart.body.totalWounds],
+	[[["Core", 0], ["Tentacle", 4], ["Tentacle (2)", 0]], 4]);
+
+// --- list rows: movement modes up, down and out ---------------------------------------------------------
+const modes = ["Walk", "Run", "Fly"];
+check("up one", S.moveListEntry(modes, 1, -1), ["Run", "Walk", "Fly"]);
+check("down one", S.moveListEntry(modes, 1, 1), ["Walk", "Fly", "Run"]);
+check("off either end does nothing", [S.moveListEntry(modes, 0, -1), S.moveListEntry(modes, 2, 1)], [modes, modes]);
+check("removed", S.removeListEntry(modes, 1), ["Walk", "Fly"]);
+check("a bad index removes nothing", S.removeListEntry(modes, 7), modes);
+check("the list given is never changed", modes, ["Walk", "Run", "Fly"]);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =

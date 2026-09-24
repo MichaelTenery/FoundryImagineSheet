@@ -928,16 +928,24 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 
 	// This is the function which works out a martial attack's damage from the dice already rolled.
 	// Ported from getMartialDamageDetails (sheet-worker.js:66718), in his order:
-	//   1. the dice, plus Strength, plus every flat modifier, plus anything per die rolled
+	//   1. the dice, plus Strength, plus body weight, plus every flat modifier, plus anything per die
+	//      rolled
 	//   2. floored at zero
 	//   3. multiplied -- never past x3
 	//   4. HALVED, rounding up, if the Martial Knowledge roll for the attack was failed or a called
 	//      shot missed -- the book's "1/2 damage is still done if the roll to hit was successful"
 	//
+	// Body weight is his tmpCombatWeightDamMod, combat_mod_dam_weight, which every martial attack
+	// button passes in (20341-20342 and its siblings) and getMartialDamageDetails adds beside Strength
+	// (66807-66811, and "damageRolled+tmpCombatSTRDamMod+tmpCombatWeightDamMod+..." when not verbose).
+	// It is getWeightDamageAdjust's figure: signed for a character, floored at 0 for a creature (82173).
+	// No move touches it -- Snap takes away Strength, and weight is not Strength.
+	//
 	//   tmpinput = {
 	//       rolled:      what the dice came to
 	//       dice:        the dice string rolled, for the per-die bonuses
 	//       strength:    the Strength damage modifier, already through getMartialStrengthDamage
+	//       weight:      the body-weight damage adjustment, getWeightDamageAdjust
 	//       flat:        every other flat modifier (martial, stance, situational)
 	//       perDie:      damage per die rolled
 	//       multipliers: [x2, ...] -- a Flying move, a Scissor Strike landing both blows
@@ -950,7 +958,7 @@ import { MELEE_MODES, getWeaponSpeed, getNumberOfDice, combineDamageMultipliers 
 		var tmpdice = getNumberOfDice(tmpinput?.dice);
 		var tmpperdie = (parseInt(tmpinput?.perDie) || 0) * tmpdice;
 		var tmpbase = (parseInt(tmpinput?.rolled) || 0) + (parseInt(tmpinput?.strength) || 0)
-		            + (parseInt(tmpinput?.flat) || 0) + tmpperdie;
+		            + (parseInt(tmpinput?.weight) || 0) + (parseInt(tmpinput?.flat) || 0) + tmpperdie;
 		if (tmpbase < 0) { tmpbase = 0; }
 
 		var tmpmultiplier = combineDamageMultipliers(tmpinput?.multipliers ?? []);
