@@ -119,14 +119,25 @@ the port knowingly building a figure he has since corrected.
   entry that no longer agrees. `Legends.txt` Pg 42's "Grants Swimming Social Skill at +50%" is read as
   his code reads it (+50 when Swimming is taken), pending his answer.
 
-- **The Wilder's Aura Control — APPLIED 2026-09-24.** `MM.txt` "Pg: 47 (Wilder Class)", "Should
-  Read": "All Aura Control modifiers are halved (round down); apply to dual class Wilders as well."
-  His sheet halves only the figure per title (a Wilder's `getAuraControlTitleMod` is 1, a Mage's 2)
-  and adds Intelligence, Metaphysics and the boost in full. The errata's figure is used: every
-  modifier halved on its own, the fraction dropped, a dual-classed Wilder's other class too, then
-  Winds of Wild Magic doubles the total (`module/casting-rules.mjs`, THE WILDER'S HALVING). A Wilder
-  at title 5 with Intelligence +2 and Winds is 12, where his sheet gives 14. The readings (each part on
-  its own, a penalty toward 0, doubling after) are the port's and asked upstream.
+- **The Wilder's Aura Control — NOT APPLIED; a ruling is needed (2026-09-24).** `MM.txt` "Pg: 47
+  (Wilder Class)", "Should Read", includes "All Aura Control modifiers are halved (round down); apply
+  to dual class Wilders as well." That sentence is **word for word the book's own p.47**
+  (`masters-manual-fulltext.txt:7119`), and the same page gives "Title Advancement: +1 Aura Control per
+  Title". What the errata block actually changes on p.47 is elsewhere: the "18 skill points, +1 WIL 5%,
+  +1 AUR 5%" move to Goal Advancement, and the animal Affinity is reworded. His sheet encodes the page
+  as +1 a title for a Wilder (`getAuraControlTitleMod`, sheet-worker.js:96291, where a Mage has 2) and
+  adds Intelligence, Metaphysics and the boost in full (96729-96733).
+  - A first port on 2026-09-24 applied the halving to every modifier as "errata over sheet". It was
+    withdrawn on review before merging: the errata restates the book here rather than correcting it,
+    and the sheet, which outranks the book, had already read the same sentence.
+  - **The question for the user:** does restated, unchanged book text in the errata count as "errata
+    disagreeing with the sheet" under the 2026-09-21 ruling? Until that is answered his sheet is
+    followed, as it was before 2026-09-24 (`module/casting-rules.mjs`, THE WILDER'S HALVING).
+  - What applying it would change: a Wilder at title 5 with Intelligence +2 and Winds of Wild Magic is
+    14 on his sheet, and would be 12 with every modifier halved. "Round down" would be `Math.floor`, so
+    a penalty halves away from 0 (Intelligence -3 to -2).
+  - The separate fix beside it stands, and is his sheet's own: a Wilder never takes Spell Lore's +2
+    (his setMagicDivineLore sets spellLoreBonus 0 for a Wilder, 96663-96670).
 
 ## Next step
 

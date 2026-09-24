@@ -11,11 +11,16 @@ the parallel branch `wip/magic-m1` had and main lacked. The decisions are in `do
 - **Main's rule readings stand** where the two disagreed and his sheet was clear: Spell Lore's +2
   twice (UPSTREAM 71), Piety Control's start-title figure as his code counts it, his gate order (the
   failure roll first), his regeneration branches, an invocation's uses starting at 0.
-- **Two of main's readings were corrected**, because his errata or sheet says otherwise: a Wilder has
-  every Aura Control modifier halved (his MM errata p.47), and a Wilder never has Spell Lore's +2.
+- **One of main's readings was corrected**, because his sheet says otherwise: a Wilder never has Spell
+  Lore's +2. The Wilder's halving from the MM errata p.47 was **not** applied: that errata sentence
+  repeats the book word for word, and his sheet already reads it as +1 a title. It waits for the user's
+  ruling (docs/ERRATA.md); do not apply it in a mechanical pass.
 - **21 magic switches**; the retired `bardic` and `herbalism` are read as their successors, never
-  stored again. A lore kind's learn/use skill answers to its kind's switch; every other magical skill
-  to its types', as the 2026-09-11 entry had it.
+  stored again. Every magical skill answers to its types' switches, as the 2026-09-11 entry has it; a
+  lore kind's learn/use skill answers to its kind's switch **as well** (added, never instead).
+- **A title's power answers to no switch.** The Arch Mortal invulnerability is created with
+  `subsystem: "none"`; one made before is recognised by his wording (`isTitlePower`). It is created
+  before the weaker wording is deleted, so a refused creation keeps the old one.
 - **A spell's days are null until counted**, read as the full count while memorized. Unticking writes
   0 (his clearSpellDays); so does Loss of Spell.
 - **A mishap's AUR, WIL and Burnout wait for an Apply button**, once only, AUR/WIL onto `permMod`.
@@ -63,4 +68,5 @@ the parallel branch `wip/magic-m1` had and main lacked. The decisions are in `do
 - **The optional casting rules** (`MAGIC_RULES`, availability.mjs) are an empty table with a world
   setting behind it. The first rule to fill it is a design call (tuning, the High Aura save).
 - **UPSTREAM items** for the Wilder's halving, Piety Control's start title and the "Reduce by" sign
-  need his answers.
+  need his answers. The Wilder's halving also needs the user's ruling on whether restated book text in
+  the errata outranks the sheet.

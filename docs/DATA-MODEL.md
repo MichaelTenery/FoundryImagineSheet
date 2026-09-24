@@ -519,8 +519,10 @@ invocation Item system:   # one row of his invocationslist, 460 of them
   sourcebook, page, description
 
 power Item system (2026-09-24 addition):
-  subsystem    "powers" | "enchanting" | "divineItems"   # which magic switch reaches it; one stored
-                          # before this reads its powerKind (migrateData)
+  subsystem    "powers" | "enchanting" | "divineItems" | "none"   # which magic switch reaches it; one
+                          # stored before this reads its powerKind (migrateData). "none" is a title's
+                          # benefit, not magic -- the Arch Mortal invulnerability -- and no switch,
+                          # not even "all magic off", reaches it (availability.mjs isTitlePower)
 ```
 
 ## 4f. Casting and invoking (2026-09-24)
@@ -546,7 +548,7 @@ Derived in `_prepareMagic` (actor-character.mjs), after the skills, by `module/c
 
 ```
 magic.aura:   isCaster, className, control, controlMax, controlParts, controlCapped,
-              controlHalved (a Wilder: every modifier halved, his errata), controlDoubled (Winds),
+              controlDoubled (a Wilder holding Winds of Wild Magic: the total doubled),
               pool { max, full, drained, current }, regen ("1/per 2 Seconds"),
               casting { name, chance, practitionerTitle }, absorbAura, fatigueWarning
 magic.piety:  isInvoker, control, level (control + boost), controlParts,
@@ -600,10 +602,13 @@ ballads, hymns, poems, songs, candlelore, empathy, sympathy, glyphs, runes, ritu
 `herbalism` are retired: a stored `{ bardic: false }` is read as all four of its successors off
 (`normalizeMagicSubsystems`), and an item stored with `subsystem: "bardic"` or `"herbalism"` reads as
 its own kind's switch (`getLegacySubsystem`, called from the lore and consumable models'
-`migrateData`). A skill typed Magical or Divine that learns or uses one of his lore kinds (Ballad Lore,
-Intone, Recite, Sing, Rune Lore, Evoke...) answers to that kind's switch; every other magical skill to
-its types' as before. A power answers to Powers, Magic Item Empowering or Divine Item Empowering by its
-stored `subsystem`, or by its `powerKind` when it has none.
+`migrateData`). A skill typed Magical or Divine answers to its types' switches, as before (Magical to
+arcane, Divine to divine, both for Magical,Divine); one that learns or uses one of his lore kinds (Ballad
+Lore, Intone, Recite, Sing, Rune Lore, Evoke...) answers to that kind's switch AS WELL, so Sing needs
+Arcane Magic and Songs, Intone Divine Magic and Hymns. A power answers to Powers, Magic Item Empowering or
+Divine Item Empowering by its stored `subsystem`, or by its `powerKind` when it has none -- except a
+title's power (`subsystem: "none"`, or one of his three Arch Mortal invulnerability wordings), which
+answers to no switch at all (`isTitlePower`).
 
 One resolver serves every toggle requirement:
 ```

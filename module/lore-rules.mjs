@@ -41,8 +41,8 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 	// same key MAGIC_SUBSYSTEMS in availability.mjs groups its switches by, so a kind always knows
 	// which switch turns it off. Since 2026-09-24 that is one switch per kind of his: "bardic" was
 	// split into ballads, hymns, poems and songs, and "herbalism" into herbs, potions and elixirs
-	// (availability.mjs, MAGIC SUBSYSTEMS). Its learn and use skills answer to the same switch
-	// (availability.mjs, getSkillSubsystems).
+	// (availability.mjs, MAGIC SUBSYSTEMS). Its learn and use skills answer to the same switch, as well
+	// as to their own types' switches (availability.mjs, getSkillSubsystems).
 	//
 	// "learn" is the skill his add button rolls to learn an entry (learnNewBallad and its siblings);
 	// "use" is the skill his use button rolls. They differ for three: a hymn is learned with Hymn

@@ -54,8 +54,13 @@ export default class ImaginePowerData extends foundry.abstract.TypeDataModel {
 			// Stored, as a consumable's is, because a compendium index carries stored fields only.
 			// Until 2026-09-24 a power carried none, so the Powers switch reached nothing; one made
 			// before then is given its switch from its kind by migrateData below.
+			//
+			// "none" is a TITLE'S BENEFIT, not magic, and no switch reaches it: his Arch Mortal
+			// invulnerability, which his setArchMortalInvulnerability writes into the plain powers text
+			// attribute, not the repeating_powers section the Powers switch stands for (availability.mjs,
+			// isTitlePower). advancement.mjs creates that power with "none".
 			subsystem: new fields.StringField({ required: true, initial: "powers",
-			               choices: ["powers", "enchanting", "divineItems"], label: "Magic Subsystem" }),
+			               choices: ["powers", "enchanting", "divineItems", "none"], label: "Magic Subsystem" }),
 
 			// @MARKER PROVENANCE
 			sourcebook:  new fields.StringField({ required: true, initial: "" }),

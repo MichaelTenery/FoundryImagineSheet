@@ -1732,10 +1732,6 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		var tmpaura = parseInt(this.attributes.aur?.value) || 0;
 
 		// @MARKER AURA
-		// A Wilder has every Aura Control modifier halved, a dual-classed one in both classes -- his
-		// Master's Manual errata, p.47 (casting-rules.mjs, THE WILDER'S HALVING). So it is asked once,
-		// of the character, and passed for every class.
-		var tmpwilder = (this.classItems ?? []).some(tmpclass => (tmpclass.system.baseClass || tmpclass.name) == "Wilder");
 		var tmpbestaura = { value: 0, max: 0, isCaster: false, parts: [] };
 		var tmpcasterclass = null;
 		for (const tmpclass of this.classItems ?? []) {
@@ -1749,7 +1745,6 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				boost: tmpmagic.auraControlBoost,
 				spellLore: tmpheld("Spell Lore"),
 				windsOfWildMagic: tmpclassname == "Wilder" && tmpheld("Winds of Wild Magic"),
-				halved: tmpwilder,
 				suppressed: tmpmagic.magicSuppressed
 			});
 			if (tmpac.isCaster && (!tmpbestaura.isCaster || tmpac.value > tmpbestaura.value)) {
@@ -1771,7 +1766,6 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			controlMax: tmpbestaura.max,
 			controlParts: tmpbestaura.parts,
 			controlCapped: !!tmpbestaura.capped,
-			controlHalved: !!tmpbestaura.halved,
 			controlDoubled: !!tmpbestaura.doubled,
 			pool: tmppool,
 			regen: getAuraRegen({ className: tmpcasterclass?.name ?? (this.classItem?.system?.baseClass || this.classItem?.name || ""),

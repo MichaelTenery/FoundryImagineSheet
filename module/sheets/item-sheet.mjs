@@ -206,7 +206,9 @@ export class ImaginePowerSheet extends ImagineItemSheet {
 			powerSubsystems: [
 				{ id: "powers",      label: "Powers" },
 				{ id: "enchanting",  label: "Magic Item Empowering" },
-				{ id: "divineItems", label: "Divine Item Empowering" }
+				{ id: "divineItems", label: "Divine Item Empowering" },
+				// A title's benefit, such as his Arch Mortal invulnerability: no switch reaches it.
+				{ id: "none",        label: "None (a title's benefit, not magic)" }
 			]
 		};
 		return tmpcontext;

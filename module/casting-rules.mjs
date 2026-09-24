@@ -27,9 +27,9 @@
 // WHAT IS NOT BUILT, and says so rather than guessing: his spell TUNING (speed casting, stabilizing,
 // overloading, Aura reach and burning Aura), COMBINED casting, caster SPECIALIZATION, and HERMETIC
 // casting (which needs his ingredient panel -- a Hermeticist is told so and nothing is cast). See
-// docs/sonnet/2026-09-24-casting.md. The days a memorized spell lasts, his MEM and Sleep buttons, and
-// a Wilder's halving came across 2026-09-24 from the parallel magic branch: MEMORY and THE WILDER'S
-// HALVING below.
+// docs/sonnet/2026-09-24-casting.md. The days a memorized spell lasts, and his MEM and Sleep buttons,
+// came across 2026-09-24 from the parallel magic branch: MEMORY below. A Wilder's halving did NOT --
+// his sheet's reading stands until the user rules on it: THE WILDER'S HALVING below.
 //==================================================================================================================
 
 import { getAuraControlTitleMod, getPietyControlTitleMod, getSpellLoreWhen, getMaxAuraControl, getMaxAuraPool,
@@ -67,7 +67,6 @@ export const SPELL_LORE_BONUS = 2;
 	//       boost             his aura_control_boost -- runes and items; the Game Master's figure
 	//       spellLore         holds Spell Lore with a chance (never read for a Wilder: see below)
 	//       windsOfWildMagic  a Wilder holding Winds of Wild Magic with a chance
-	//       halved            the CHARACTER is a Wilder, by either class (THE WILDER'S HALVING, below)
 	//       suppressed        magically suppressed: Aura Control is 0
 	//   }
 	//
@@ -92,46 +91,43 @@ export const SPELL_LORE_BONUS = 2;
 	// Wilder holding Spell Lore without Winds took the +2 here.
 	//
 	// @MARKER THE WILDER'S HALVING
-	// HIS ERRATA OVER HIS SHEET, 2026-09-24. His Master's Manual errata for the Wilder (p.47, "Should
-	// Read"; the book's own p.47 says it too): "All Aura Control modifiers are halved (round down);
-	// apply to dual class Wilders as well." His sheet halves only the figure per title -- a Wilder's
-	// getAuraControlTitleMod is 1 where a Mage's is 2 (96291), the book's "+1 Aura Control per Title"
-	// -- and adds Intelligence, Metaphysics and the boost in full (96729-96733). The errata is his
-	// newer word and wins (CLAUDE.md, docs/ERRATA.md), so every modifier is halved:
-	//     the class figure      a Wilder's own 1 a title IS the halving, and is kept; another class of
-	//                           a dual-classed Wilder (a Wilder/Mage's Mage) has its figure halved here,
-	//                           2 a title to 1, and its Spell Lore title's +2 to 1
-	//     Intelligence, Metaphysics, the boost, Spell Lore held
-	//                           each halved on its own, the fraction dropped, as his parseInt halves --
-	//                           so Intelligence +1 and Metaphysics +1 give nothing, and a penalty
-	//                           halves toward 0 (Intelligence -3 is -1)
-	//   then doubled by Winds of Wild Magic, which doubles the TOTAL (96731), and then capped.
-	// A Wilder at title 5 with Intelligence +2 and Winds: (5 + 1) x 2 = 12, where his sheet gives
-	// (5 + 2) x 2 = 14. halved is passed for EVERY class of a character who is a Wilder
-	// (_prepareMagic), so a dual-classed Wilder's better class cannot slip the rule. The readings --
-	// each part on its own, a penalty toward 0, doubling after -- are the port's, and asked upstream.
+	// NOT APPLIED -- HIS SHEET'S READING STANDS, AND THE QUESTION IS ASKED (2026-09-24). The Master's
+	// Manual p.47 says of the Wilder: "All Aura Control modifiers are halved (round down); apply to dual
+	// class Wilders as well" (masters-manual-fulltext.txt:7119), and the same page gives "Title
+	// Advancement: +1 Aura Control per Title". His sheet encodes exactly that page: a Wilder's
+	// getAuraControlTitleMod is 1 where a Mage's is 2 (sheet-worker.js:96291), and Intelligence,
+	// Metaphysics and the boost are added in full, then doubled by Winds of Wild Magic (96729-96733).
+	//
+	// His errata's "Should Read" block for p.47 (MM.txt, "Pg: 47 (Wilder Class)") repeats the halving
+	// sentence WORD FOR WORD; what it actually changes on that page is elsewhere -- the "18 skill
+	// points, +1 WIL 5%, +1 AUR 5%" moved to Goal Advancement, and the animal Affinity reworded. So on
+	// the halving the errata restates the book, and his sheet, which outranks the book, already read
+	// that same sentence. Whether a restated, unchanged sentence counts as the errata disagreeing with
+	// the sheet (CLAUDE.md, the 2026-09-21 ruling) is the user's call, not the port's. Until it is made
+	// the sheet is followed -- which is also what this function did before 2026-09-24 -- and the
+	// question is in docs/UPSTREAM-ISSUES.md and docs/ERRATA.md.
+	//
+	// What following the errata's wording instead would change: a Wilder at title 5 with Intelligence
+	// +2 and Winds is (5 + 2) x 2 = 14 on his sheet, and would be (5 + 1) x 2 = 12 with every modifier
+	// halved -- "round down" taken as Math.floor, so a penalty halves AWAY from 0 (-3 to -2), not
+	// toward it as parseInt would.
 	export function getAuraControl(tmpinput) {
 		var tmpclass = "" + (tmpinput.className ?? "");
 		var tmptitle = parseInt(tmpinput.title) || 0;
 		var tmpstart = parseInt(tmpinput.casterStartTitle) || 0;
 		var tmpsorcerer = tmpclass == "Sorcerer";
 		var tmpwilder = tmpclass == "Wilder";
-		var tmphalved = !!tmpinput.halved;
 		var tmpresult = { value: 0, max: getMaxAuraControl(tmptitle), isCaster: tmpsorcerer || tmpstart > 0,
-			parts: [], suppressed: !!tmpinput.suppressed, doubled: false, halved: tmphalved };
+			parts: [], suppressed: !!tmpinput.suppressed, doubled: false };
 		if (!tmpresult.isCaster) { return tmpresult; }
-		// Halved his way, the fraction dropped; nothing changes for anyone who is not a Wilder.
-		var tmphalve = (tmpvalue) => tmphalved ? parseInt(tmpvalue / 2) : tmpvalue;
-		var tmphalfword = tmphalved ? ", halved" : "";
 
 		var tmpclassmod = parseInt(getAuraControlTitleMod(tmpclass)) || 0;
-		if (!tmpwilder) { tmpclassmod = tmphalve(tmpclassmod); } // a Wilder's own 1 is the halving already
 		var tmpspelllorewhen = parseInt(getSpellLoreWhen(tmpclass)) || 0;
 		var tmpadded = 0;
 		for (var tmpt = 2; tmpt <= tmptitle; tmpt++) {
 			if (tmpt < tmpstart) { continue; }
 			var tmpmod = tmpclassmod;
-			if (tmpt == tmpspelllorewhen) { tmpmod = tmpmod + tmphalve(2); }
+			if (tmpt == tmpspelllorewhen) { tmpmod = tmpmod + 2; }
 			if (tmpmod > 0) { tmpadded = tmpadded + tmpmod; }
 		}
 		var tmpstartac = 0;
@@ -140,10 +136,11 @@ export const SPELL_LORE_BONUS = 2;
 		} else if (tmpstart == 1) {
 			tmpstartac = tmpclassmod;
 		}
-		var tmpint = tmphalve(parseInt(tmpinput.intAdjust) || 0);
-		var tmpmeta = tmphalve(tmpinput.metaphysics ? 1 : 0);
-		var tmpboost = tmphalve(parseInt(tmpinput.boost) || 0);
-		var tmplore = (!tmpsorcerer && !tmpwilder && tmptitle > tmpstart && tmpinput.spellLore) ? tmphalve(SPELL_LORE_BONUS) : 0;
+		var tmpint = parseInt(tmpinput.intAdjust) || 0;
+		var tmpmeta = tmpinput.metaphysics ? 1 : 0;
+		var tmpboost = parseInt(tmpinput.boost) || 0;
+		// his spellLoreBonus: 2 with Spell Lore found, and never for a Wilder (96663-96670)
+		var tmplore = (!tmpsorcerer && !tmpwilder && tmptitle > tmpstart && tmpinput.spellLore) ? SPELL_LORE_BONUS : 0;
 
 		var tmpvalue = tmpstartac + tmpint + tmpmeta + tmpadded + tmpboost + tmplore;
 		if (tmpwilder && tmptitle > tmpstart && tmpinput.windsOfWildMagic) {
@@ -151,12 +148,12 @@ export const SPELL_LORE_BONUS = 2;
 			tmpresult.doubled = true;
 		}
 		tmpresult.parts = [
-			{ label: tmpstart == 1 || tmpsorcerer ? "Class at the start" + (tmpwilder ? "" : tmphalfword) : "", value: tmpstartac },
-			{ label: "Titles as a caster" + (tmpwilder ? "" : tmphalfword), value: tmpadded },
-			{ label: "Intelligence" + tmphalfword, value: tmpint },
-			{ label: "Metaphysics" + tmphalfword, value: tmpmeta },
-			{ label: "Spell Lore" + tmphalfword, value: tmplore },
-			{ label: "Boost" + tmphalfword, value: tmpboost }
+			{ label: tmpstart == 1 || tmpsorcerer ? "Class at the start" : "", value: tmpstartac },
+			{ label: "Titles as a caster", value: tmpadded },
+			{ label: "Intelligence", value: tmpint },
+			{ label: "Metaphysics", value: tmpmeta },
+			{ label: "Spell Lore", value: tmplore },
+			{ label: "Boost", value: tmpboost }
 		].filter(tmppart => tmppart.label && tmppart.value);
 		if (tmpvalue > tmpresult.max) { tmpvalue = tmpresult.max; tmpresult.capped = true; }
 		if (tmpinput.suppressed) { tmpvalue = 0; } // Magical Ability is supressed.

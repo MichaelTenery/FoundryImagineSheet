@@ -148,7 +148,6 @@ import { getSpellDaysLeft } from "./casting-rules.mjs";
 			controlMax: parseInt(tmpaura.controlMax) || 0,
 			controlTooltip: (tmpaura.controlParts ?? []).map(tmppart => `${tmppart.label} ${tmppart.value > 0 ? "+" : ""}${tmppart.value}`).join(", ")
 				+ (tmpaura.controlDoubled ? "; doubled by Winds of Wild Magic" : "")
-				+ (tmpaura.controlHalved ? "; a Wilder: every modifier halved (his errata, Master's Manual p.47)" : "")
 				+ (tmpaura.controlCapped ? ` (held to ${tmpaura.controlMax} at this title)` : ""),
 			pool: tmpaura.pool ?? { current: 0, full: 0, drained: 0 },
 			regen: tmpaura.regen ?? "",

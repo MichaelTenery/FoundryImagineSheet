@@ -275,20 +275,22 @@ check("...Finger of Fire (level 5, 10%) at Aura Control 2: 30%", [tmppanel2.spel
 
 // === Brought across 2026-09-24 from the parallel magic branch (wip/magic-m1) ======================
 
-// --- the Wilder's halving: his errata (Master's Manual p.47) over his sheet ------------------------
-check("a Wilder at 5 with INT +2 and Winds: (5 + 1) x 2 = 12, not his sheet's (5 + 2) x 2 = 14",
-	[tmpac("Wilder", 1, 5, { intAdjust: 2, windsOfWildMagic: true, halved: true }), tmpac("Wilder", 1, 5, { intAdjust: 2, windsOfWildMagic: true })], [12, 14]);
-check("...a Wilder's own +1 a title is the halving already: title 5 is 5 either way",
-	[tmpac("Wilder", 1, 5, { halved: true }), tmpac("Wilder", 1, 5)], [5, 5]);
-check("...INT +1 and Metaphysics give nothing; a penalty halves toward 0 (INT -3 is -1)",
-	[tmpac("Wilder", 1, 1, { intAdjust: 1, metaphysics: true, halved: true }), tmpac("Wilder", 1, 1, { intAdjust: -3, halved: true })], [1, 0]);
-check("...a dual-classed Wilder's Mage is halved too: 1 a title, and Spell Lore's two +2s are +1 each (1 + 6 + 1 + 1 at title 7)",
-	[tmpac("Mage", 1, 3, { halved: true }), tmpac("Mage", 1, 7, { spellLore: true, halved: true })], [3, 9]);
-check("...and the parts say so", R.getAuraControl({ className: "Wilder", title: 3, casterStartTitle: 1, intAdjust: 4, halved: true }).parts
-	.map(p => p.label), ["Class at the start", "Titles as a caster", "Intelligence, halved"]);
+// --- the Wilder: his sheet's reading stands; the errata's halving is asked, not applied ------------
+// The MM errata p.47 repeats the book's own halving sentence word for word, and his sheet already
+// read that sentence as +1 a title (casting-rules.mjs, THE WILDER'S HALVING). Until the user rules,
+// his sheet is followed, as it was before 2026-09-24.
+check("a Wilder at 5 with INT +2 and Winds is his sheet's (1 + 4 + 2) x 2 = 14 (96729-96733)",
+	tmpac("Wilder", 1, 5, { intAdjust: 2, windsOfWildMagic: true }), 14);
+check("...his +1 a title for a Wilder (getAuraControlTitleMod, 96291): title 5 is 5", tmpac("Wilder", 1, 5), 5);
+check("...Intelligence and Metaphysics count in full, as his sheet adds them", tmpac("Wilder", 1, 1, { intAdjust: 1, metaphysics: true }), 3);
+check("...and the first port's halved input changes nothing now",
+	tmpac("Wilder", 1, 5, { intAdjust: 2, windsOfWildMagic: true, halved: true }), 14);
 check("a Wilder never has Spell Lore's +2, Winds or no Winds (his spellLoreBonus 0, 96663-96670)",
-	[tmpac("Wilder", 1, 5, { spellLore: true }), tmpac("Wilder", 1, 5, { spellLore: true, halved: true })], [5, 5]);
-check("nothing changes for anyone who is not a Wilder", tmpac("Mage", 1, 7, { spellLore: true, intAdjust: 3 }), 21);
+	[tmpac("Wilder", 1, 5, { spellLore: true }), tmpac("Wilder", 1, 5, { spellLore: true, windsOfWildMagic: true })], [5, 10]);
+check("...and the parts say so, with no Spell Lore and nothing halved",
+	R.getAuraControl({ className: "Wilder", title: 3, casterStartTitle: 1, intAdjust: 4, spellLore: true }).parts.map(p => p.label),
+	["Class at the start", "Titles as a caster", "Intelligence"]);
+check("a Mage holding Spell Lore still has both of his +2s", tmpac("Mage", 1, 7, { spellLore: true, intAdjust: 3 }), 21);
 function makeCaster(tmpclasses, tmptitle, tmpskills, tmpintadjust) {
 	var tmpitems = (tmpskills ?? []).map(n => ({ type: "skill", name: n, system: { totalChance: 45, category: "class", acquiredAtTitle: 1 } }));
 	var tmpc = new ImagineCharacterData({
@@ -302,12 +304,12 @@ function makeCaster(tmpclasses, tmptitle, tmpskills, tmpintadjust) {
 	return tmpc;
 }
 var tmpwilderc = makeCaster(["Wilder"], 5, ["Wild Magic"], 2);
-check("the character model halves a Wilder's modifiers, and the tab's tooltip says why",
-	[tmpwilderc.magic.aura.control, tmpwilderc.magic.aura.controlHalved,
-	 V.buildMagicPanel({ system: { identity: { title: 5 }, magic: { aura: tmpwilderc.magic.aura } }, items: [] }, null, false).aura.controlTooltip.includes("halved (his errata")],
-	[6, true, true]);
-check("...a Wilder/Mage has its Mage halved as well: title 5 is 5 + INT 1, not 10 + 2", makeCaster(["Wilder", "Mage"], 5, [], 2).magic.aura.control, 6);
-check("...and a plain Mage is untouched", makeCaster(["Mage"], 5, [], 2).magic.aura.control, 12);
+check("the character model: a Wilder at 5 with INT +2 is his sheet's 5 + 2 = 7, and the tooltip speaks of no halving",
+	[tmpwilderc.magic.aura.control, "controlHalved" in tmpwilderc.magic.aura,
+	 V.buildMagicPanel({ system: { identity: { title: 5 }, magic: { aura: tmpwilderc.magic.aura } }, items: [] }, null, false).aura.controlTooltip.includes("halved")],
+	[7, false, false]);
+check("...a Wilder/Mage takes the better class, its Mage, whole: 12", makeCaster(["Wilder", "Mage"], 5, [], 2).magic.aura.control, 12);
+check("...the same as a plain Mage", makeCaster(["Mage"], 5, [], 2).magic.aura.control, 12);
 
 // --- days of memory, Sleep and MEM ----------------------------------------------------------------
 check("days of memory: 30 less the level, at least 1 (his addSpellDays; PG p.215)", [0, 1, 29, 30, 35].map(R.getSpellDays), [30, 29, 1, 1, 1]);

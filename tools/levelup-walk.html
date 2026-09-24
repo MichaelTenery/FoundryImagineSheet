@@ -109,14 +109,21 @@ const actor = {
 		}
 		this.rederive();
 	},
+	// Answers what it made, as Foundry's does -- and nothing for a document a preCreateItem hook
+	// would have refused, which a check sets through refuse(doc) to stand in for the hook.
+	refuse: null,
 	async createEmbeddedDocuments(type, docs) {
+		const made = [];
 		for (const doc of docs) {
+			if (this.refuse && this.refuse(doc)) { continue; }
 			const item = makeItem({ ...doc, system: doc.system ?? {} }, "new" + this.items.length);
 			this.items.push(item);
 			this.created.push(doc.name);
+			made.push(item);
 		}
 		this.prepareItems();
 		this.rederive();
+		return made;
 	},
 	async deleteEmbeddedDocuments(type, ids) {
 		for (const id of ids) {
@@ -250,6 +257,8 @@ check("13th replaces the invulnerability rather than stacking it",
 	[true, true, 1]);
 check("Sense Supernatural improves to his 60 at 13th",
 	actor.items.find(i => i.name === "Sense Supernatural")?.system.abilityBonus, 60);
+check("...and the invulnerability is made with no magic switch, a title's benefit (2026-09-24)",
+	actor.items.find(i => i.name.includes("1/4"))?.system.subsystem, "none");
 
 // --- what the bug-fix pass of 2026-09-19 found, on a character --------------------------------
 
@@ -293,6 +302,24 @@ await actor.update({ "system.identity.title": 13, "system.identity.titlesToRaise
 await A.commitTitle(actor, 10);
 check("a better Sense Supernatural is left alone rather than cut to the title's figure",
 	actor.items.find(i => i.name === "Sense Supernatural").system.abilityBonus, 85);
+
+// --- a refused invulnerability does not take the old one with it (2026-09-24) ---------------------
+// His code REPLACES the wording, it never leaves none. The new power is created first and the old
+// one removed only once it exists, so a creation turned down -- a player's, by preCreateItem, with an
+// override or a sourcebook against it -- keeps the 13th's wording and says so.
+await actor.update({ "system.identity.title": 14, "system.identity.titlesToRaise": 1,
+                     "system.identity.titleToLevel": 15 });
+actor.created = []; actor.deleted = [];
+actor.refuse = (doc) => doc.type === "power";
+const noticesBefore = notifications.length;
+await A.commitTitle(actor, 10);
+actor.refuse = null;
+check("a refused 15th invulnerability leaves the 13th's in place",
+	[actor.deleted.some(n => n.includes("Invulnerability")), actor.created.some(n => n.includes("Invulnerability")),
+	 actor.items.filter(i => i.name.includes("Invulnerability")).map(i => i.name)],
+	[false, false, ["Special Invulnerability (Constant: Normal weapons do 1/4. Blessed do 1/2 and +1 do full.)"]]);
+check("...and the level-up message says it was not improved, rather than that it was",
+	notifications.slice(noticesBefore).some(n => n.includes("NOT improved") && !n.includes("improves to")), true);
 
 // --- the grant will not run twice at once ------------------------------------------------------
 // The other half of the duplicate-grant fix. commitTitle marking its own update stops the hook
