@@ -15,9 +15,20 @@
 //
 // WHAT IT GRANTS. Every entitled skill the character does not already hold, with the bonuses his
 // setClassSkillAbility gives: the skill's starting dice rolled, +30 if it is a CORE skill of the
-// class, and every class modifier naming a type the skill has. That is getClassSkillBonuses in
-// chargen-rules.mjs, the same function character generation uses for the first title's skills, so a
-// skill granted at title 7 is built exactly like one the character started with.
+// class, every class modifier naming a type the skill has, and his getExtraClassRacialMods -- the
+// trait switch and what the character's social skills give it (module/social-skill-rules.mjs). That
+// is getClassSkillBonuses in chargen-rules.mjs, the same function character generation uses for the
+// first title's skills, so a skill granted at title 7 is built exactly like one the character
+// started with. His sheet goes further and rolls every title's class skills AT CREATION (63288
+// onward), with the same terms; granting them when the title arrives is the port's, and reads the
+// social skills the character holds by then.
+//
+// The other way round -- a class skill lifting a social skill already held, Disguise giving Acting
+// +15 -- is NOT done here, and no held skill is touched for it: character creation counted it
+// already, from every title's class skills, since his sheet holds them all from creation and his
+// getNewSocialSkillModifier reads every title's rows (125658; chargen-rules.mjs assembleCharacter).
+// A class added to the character later -- a dual class, which his sheet has no provision for
+// (DECISIONS 2026-09-16) -- therefore lifts no social skill the character holds.
 //
 // WHAT IT NEVER DOES. It never removes a skill, never touches one the character already holds, and
 // never grants past a class's skill list. Slots it does not police either: the slot panel already
@@ -26,6 +37,7 @@
 
 import { getClassSkillsToGrant } from "./class-rules.mjs";
 import { getClassSkillBonuses } from "./chargen-rules.mjs";
+import { buildSkillModContext } from "./social-skill-rules.mjs";
 import { explainAvailability } from "./availability.mjs";
 
 const SKILL_PACK = "world.imagine-skills";
@@ -83,6 +95,7 @@ const granting = new Set();
 		var tmpskilldocs = await loadSkillDocuments();
 		var tmprules = game.imagine.getAvailabilityRules();
 		var tmpheld = tmpactor.items.filter(tmpitem => tmpitem.type == "skill").map(tmpitem => tmpitem.name);
+		var tmpmodcontext = getActorSkillModContext(tmpactor);
 
 		var tmpnew = [];
 		var tmpblocked = [];
@@ -100,7 +113,8 @@ const granting = new Set();
 				if (!tmpdoc) { tmpmissing.push(tmpskill.name); continue; }
 				if (!explainAvailability(tmpdoc, tmprules).available) { tmpblocked.push(tmpskill.name); continue; }
 
-				var tmpbonuses = getClassSkillBonuses(tmpdoc.system, tmpskill.core, tmpclassmods, rollDie);
+				var tmpbonuses = getClassSkillBonuses(tmpdoc.system, tmpskill.core, tmpclassmods, rollDie,
+					{ ...tmpmodcontext, skillName: tmpdoc.name });
 				tmpnew.push({
 					name: tmpdoc.name, type: "skill", img: tmpdoc.img,
 					system: {
@@ -121,6 +135,35 @@ const granting = new Set();
 		} finally {
 			granting.delete(tmpactor.id);
 		}
+	}
+
+	// @MARKER RACE AND CROSS-SKILL MODIFIERS
+	// This is the function which gathers, off a character already on the table, the names the race
+	// and cross-skill modifiers read -- the same buildSkillModContext character generation uses, so a
+	// class skill granted at title 7 takes the same terms it would have at creation.
+	//
+	// The race items are the actor's own, first race first (a Half Race's first race is the one his
+	// social tables read); their abilities and disabilities are joined, as at creation. The Famorian
+	// evokes are handed over as stored, and buildSkillModContext drops them unless one of those race
+	// items is still a Famorian -- nothing clears them when the race is swapped on the sheet.
+	//
+	// The title is 1, the creation title: his Famorian Instinct(Navigation) is fixed when the
+	// character is made (53495-53497, and his sheet rolled every title's class skills then) -- the
+	// recommended default, taken 2026-09-23 while the user was away and provisional until confirmed
+	// (DECISIONS.md, 2026-09-23). A GME never reaches here -- it has no class skills to grant.
+	export function getActorSkillModContext(tmpactor) {
+		var tmpitems = [...(tmpactor?.items ?? [])];
+		var tmpskills = tmpitems.filter(tmpitem => tmpitem.type == "skill");
+		var tmpnamesof = (tmpcategory) => tmpskills.filter(tmpitem => tmpitem.system?.category == tmpcategory)
+			.map(tmpitem => tmpitem.name);
+		return buildSkillModContext({
+			raceDocs: tmpactor?.system?.raceItems ?? tmpitems.filter(tmpitem => tmpitem.type == "race"),
+			famorianEvokes: tmpactor?.system?.physical?.famorian?.evokes ?? [],
+			title: 1,
+			socialSkillNames: tmpnamesof("social"),
+			racialSkillNames: tmpnamesof("racial"),
+			classSkillNames: tmpnamesof("class")
+		});
 	}
 
 	// This is the function which says what a grant did. Every part of it is worth saying out loud:

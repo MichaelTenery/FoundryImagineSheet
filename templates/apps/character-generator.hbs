@@ -188,11 +188,13 @@
 		<div class="pick-list">
 			{{#each racialSkills as |s|}}<label><input type="checkbox" name="racialPick" value="{{s.name}}" {{#if s.checked}}checked{{/if}}> {{s.name}}{{#if s.bonus}} {{s.bonus}}{{/if}}</label>{{/each}}
 		</div>
-		<h3>Social skills <span class="muted">{{socialChosen}} of {{slots.social}}</span></h3>
+		<h3>Social skills <span class="muted">{{socialChosen}} of {{slots.social}}{{#if socialRaceName}}; modifiers for {{socialRaceName}}{{/if}}</span></h3>
+		{{!-- The first race's modifier beside each skill, as his recommended lists show it. BLOCKED
+		      ones stay listed, marked, and the step refuses them -- his copy button does the same. --}}
 		<div class="pick-list tall">
-			{{#each socialSkills as |s|}}<label><input type="checkbox" name="socialPick" value="{{s.name}}" {{#if s.checked}}checked{{/if}}> {{s.name}}</label>{{/each}}
+			{{#each socialSkills as |s|}}<label><input type="checkbox" name="socialPick" value="{{s.name}}" {{#if s.checked}}checked{{/if}}> {{s.name}}{{#if s.blocked}} <span class="alarm">BLOCKED</span>{{else}}{{#if s.mod}} {{s.mod}}{{/if}}{{/if}}</label>{{/each}}
 		</div>
-		<p class="muted">Starting bonuses are rolled when the character is created: a racial skill's dice count double, and a class skill takes +30 if it is core, as on his sheet. Slots can be traded afterwards on the Skills tab.</p>
+		<p class="muted">Starting bonuses are worked out when the character is created, as on his sheet: a racial skill's dice count double, a class skill takes +30 if it is core, a social skill takes its race modifier, and skills lift one another (Mathematics gives Accounting +10%, Explorer gives Cartography +25%). The Review step lists them. Slots can be traded afterwards on the Skills tab.</p>
 	{{/if}}
 
 	{{!-- @MARKER DETAILS --}}
@@ -373,6 +375,10 @@
 		</tbody></table>
 		<h3>Items</h3>
 		<p>{{#each review.items as |it|}}<span class="race-chip">{{it.name}}{{#if it.quantity}} &times;{{it.quantity}}{{/if}}{{#if it.category}} ({{it.category}}){{/if}}</span>{{/each}}</p>
+		{{!-- @MARKER RACE AND CROSS-SKILL MODIFIERS -- each skill's fixed bonus and what it is made
+		      of; the dice are rolled on Create and are not part of it. --}}
+		{{#if review.skillBonuses.length}}<h3>Skill bonuses <span class="muted">besides the dice</span></h3>
+		{{#each review.skillBonuses as |b|}}<p><strong>{{b.name}}</strong> <span class="muted">({{b.category}})</span> {{b.total}}: {{b.summary}}</p>{{/each}}{{/if}}
 		{{#if review.issues.length}}<h3>To note</h3>{{#each review.issues as |i|}}<p class="alarm">{{i}}</p>{{/each}}{{/if}}
 		{{!-- @MARKER STARTING LORE -- his own tick, in his own words, on his last step. --}}
 		<h3>Lore</h3>

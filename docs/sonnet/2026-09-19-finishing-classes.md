@@ -65,7 +65,8 @@ panel on the Skills tab, the title gate on a skill roll, and path-aware availabi
   on the board, and it is the natural next class-side pass.
 - **The social-class and cross-skill modifiers on class skills** (`getExtraClassRacialMods`,
   `getSocialSkillMods`) are still unported, so a granted skill's bonus is his core +30 and class
-  modifiers only — the same gap character generation has.
+  modifiers only — the same gap character generation has. **DONE 2026-09-23** as the race and
+  cross-skill modifiers (nothing in them reads Social Class); see `docs/sonnet/2026-09-23-social-skill-mods.md`.
 - **Whether a dual-classed character's gate should read each class's own title.** Today a skill is
   measured against whichever class has climbed highest, because the port does not record which class
   granted which skill. Recording it on the skill would fix that, and is a schema call.

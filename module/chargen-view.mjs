@@ -34,6 +34,7 @@ import { applyFamorianEvokes, checkEvokeBudget } from "./famorian-rules.mjs";
 import { buildStartingKit } from "./starting-kit.mjs";
 import { getStartingFortune, rollStartingMoney, describeStartingMoney,
 	GEAR_INSTEAD_OF_COINS_RACES, FAIRY_COIN_RACES, FAIRY_COIN_NOTE } from "./starting-money.mjs";
+import { getSocialModRaceName, getSocialSkillRaceMod } from "./social-skill-rules.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
 	checkClassQualification, getStartingClassSkills, assembleCharacter
@@ -227,8 +228,14 @@ import {
 		var tmpCart = priceCart(tmpByCulture ? {} : tmpState.wealth, tmpByCulture ? [] : (tmpState.purchases ?? []),
 			tmpCatalog, tmpShopOptions.priceLevel, tmpShopOptions);
 
+		// @MARKER RACE AND CROSS-SKILL MODIFIERS
+		// The race his social-skill table is read for: the FIRST race only, as his race_list1 (17028) --
+		// a Half Race's second race neither adds its modifiers nor BLOCKs. See social-skill-rules.mjs.
+		var tmpSocialRaceName = getSocialModRaceName(tmpRace1);
+
 		return {
 			race1: tmpRace1, race2: tmpRace2, raceNames: tmpRaceNames, race: tmpRace,
+			socialRaceName: tmpSocialRaceName,
 			raceSourceNames: tmpRaceSourceNames, physique: tmpPhysique, slightPhysique: tmpIsSlight,
 			formless: tmpFormless,
 			type: tmpType, hasBase: tmpHasBase, ratings: tmpBuilt.ratings, ratingIssues: tmpBuilt.issues,
@@ -270,6 +277,16 @@ import {
 				}
 				if (tmpState.socialSkillNames.length > tmpDerived.slots.social) {
 					return `Only ${tmpDerived.slots.social} social skills are allowed; ${tmpState.socialSkillNames.length} are chosen.`;
+				}
+				// His copy button refuses a social skill the race is BLOCKED from: "A skill was selected
+				// that this race cannot acquire. Nothing done." (sheet-worker.js:7393, refused at
+				// 7420-7427). Refused here the same way, at the point of choice, and the reason names
+				// the skill so the player knows which box to untick.
+				var tmpBlocked = tmpState.socialSkillNames.filter(tmpName =>
+					getSocialSkillRaceMod(tmpName, tmpDerived.socialRaceName ?? "").blocked);
+				if (tmpBlocked.length) {
+					return `This race cannot acquire ${tmpBlocked.join(", ")}: his race table marks `
+						+ `${tmpBlocked.length == 1 ? "it" : "them"} BLOCKED for ${tmpDerived.socialRaceName}. Untick to go on.`;
 				}
 				return "";
 			case "Equipment":
@@ -465,10 +482,18 @@ import {
 		tmpView.racialSkills = tmpRacialList.map(tmpSkill => ({ name: tmpSkill.name, bonus: tmpSkill.bonus,
 			checked: tmpState.racialSkillNames.includes(tmpSkill.name) }))
 			.sort((a, b) => a.name.localeCompare(b.name));
+		// Each social skill with the first race's modifier beside it, "+10%" or "BLOCKED", as his
+		// class-recommended lists show it (setSocialSkillLists). A BLOCKED one stays in the list --
+		// hiding it would leave a player wondering where it went -- and the step refuses it.
 		tmpView.socialSkills = (tmpContent.skills ?? [])
 			.filter(tmpDoc => tmpDoc.system?.category == "social" && tmpD.available(tmpDoc))
-			.map(tmpDoc => ({ name: tmpDoc.name, checked: tmpState.socialSkillNames.includes(tmpDoc.name) }))
+			.map(tmpDoc => {
+				var tmpRaceMod = getSocialSkillRaceMod(tmpDoc.name, tmpD.socialRaceName);
+				return { name: tmpDoc.name, checked: tmpState.socialSkillNames.includes(tmpDoc.name),
+				         mod: tmpRaceMod.text, blocked: tmpRaceMod.blocked };
+			})
 			.sort((a, b) => a.name.localeCompare(b.name));
+		tmpView.socialRaceName = tmpD.socialRaceName;
 		tmpView.racialChosen = tmpState.racialSkillNames.length;
 		tmpView.socialChosen = tmpState.socialSkillNames.length;
 
@@ -543,6 +568,12 @@ import {
 					category: tmpItem.system.category ?? "",
 					quantity: (tmpItem.system.quantity ?? 1) > 1 ? tmpItem.system.quantity : 0 })),
 				issues: [...tmpD.ratingIssues, ...tmpD.classIssues.map(tmpIssue => "Class: " + tmpIssue), ...tmpAssembled.issues],
+				// Every skill whose fixed bonus is more than nothing, and what it is made of --
+				// "Surveyor +45%: Explorer +15%, Mathematics +20%, Scholar +10%". The dice are rolled at
+				// creation and are not shown here.
+				skillBonuses: (tmpAssembled.skillBonuses ?? []).filter(tmpEntry => tmpEntry.summary)
+					.map(tmpEntry => ({ name: tmpEntry.name, category: tmpEntry.category,
+						total: (tmpEntry.abilityBonus < 0 ? "" : "+") + tmpEntry.abilityBonus + "%", summary: tmpEntry.summary })),
 				title: tmpAssembled.actor.system.identity.title,
 				// What the character's purse will hold, richest coin first: "40 pp, 3 gp", or nothing.
 				// After the shopping, which is what the character actually starts with.
@@ -647,6 +678,9 @@ import {
 			raceNames: tmpDerived.raceNames, className: tmpState.className,
 			ratings: tmpDerived.ratings,
 			classSkills: tmpDerived.classSkills,
+			// which of a caster/non-caster pair of class skills is this character's, at every title --
+			// read for the later titles' skills that lift a social skill (assembleCharacter)
+			cannotCast: tmpDerived.cannotCast,
 			racialSkillNames: tmpState.racialSkillNames, socialSkillNames: tmpState.socialSkillNames,
 			chosenAttackSkill: tmpState.chosenAttackSkill,
 			handedness: tmpState.handedness, age: tmpState.age, famorian: tmpState.famorian,

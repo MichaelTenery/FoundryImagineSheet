@@ -1,0 +1,339 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG race and cross-skill modifiers test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/social-skill-rules.mjs and its generated tables, and for the three places that use
+// them: assembleCharacter and the generator's Skills and Review steps (chargen-rules.mjs,
+// chargen-view.mjs), and a later title's class skills (class-advancement.mjs grantClassSkills).
+// Checked against his getSocialSkillMods, getExtraSocialMods and getExtraClassRacialMods
+// (sheet-worker.js:55499, 57589, 53467) and his errata. Every die is scripted.
+//
+//     node tools/run-tests.mjs social-mods
+// or served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/social-mods-test.html
+
+// @MARKER FOUNDRY STUBS
+// Only grantClassSkills needs any Foundry: the skill compendium, the dice and the availability rules.
+let skillPack = null;
+globalThis.ui = { notifications: { info() {}, warn() {}, error() {} } };
+globalThis.foundry = { utils: { deepClone: (o) => structuredClone(o) } };
+globalThis.game = {
+	user: { id: "u1", isGM: true },
+	imagine: { getAvailabilityRules: () => null },
+	packs: { get: (id) => id === "world.imagine-skills" ? skillPack : null }
+};
+globalThis.CONFIG = { Dice: { randomUniform: () => 0.01 } };   // a natural 1 on any die
+
+const S = await import("../module/social-skill-rules.mjs");
+const T = await import("../module/social-skill-tables.mjs");
+const C = await import("../module/chargen-rules.mjs");
+const V = await import("../module/chargen-view.mjs");
+const G = await import("../module/class-advancement.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+const always = (face) => () => face;
+
+// The real generated documents, so a figure here is the figure a character gets in a world.
+const load = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`)).json());
+const [races, classes, skills] = await Promise.all(["races", "classes", "skills"].map(load));
+const content = { races, classes, skills, weapons: [], equipment: [], armor: [] };
+const race = (name) => races.find(r => r.name === name);
+
+// A character made by assembleCharacter from real content: a GME has no class skills to get in the
+// way unless some are given. Returns the abilityBonus of each skill by name, and the issues.
+function make(raceNames, picks) {
+	const out = C.assembleCharacter(Object.assign({
+		name: "Test", raceNames, className: picks?.classSkills ? "Warrior" : "GME",
+		classSkills: picks?.classSkills ?? [], racialSkillNames: picks?.racial ?? [], socialSkillNames: picks?.social ?? [],
+		ratings: Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 12])), languages: [], famorian: picks?.famorian
+	}), content, always(1));
+	const bonus = Object.fromEntries(out.items.filter(i => i.type === "skill")
+		.map(i => [`${i.system.category}:${i.name}`, i.system.abilityBonus]));
+	return { bonus, issues: out.issues, skillBonuses: out.skillBonuses };
+}
+
+// --- the tables ---------------------------------------------------------------------------------
+const portRaceNames = new Set([...races.map(r => r.name), ...races.map(r => r.system.sourceRace)]);
+check("every race his social table names is a race of the port's (by name or sourceRace)",
+	Object.values(T.SOCIAL_SKILL_RACE_MODS).flatMap(row => Object.keys(row)).filter(r => !portRaceNames.has(r)), []);
+const socialNames = new Set(skills.filter(s => s.system.category === "social").map(s => s.name));
+check("every skill the race table lists is one of the 202 social skills",
+	Object.keys(T.SOCIAL_SKILL_RACE_MODS).filter(k => !socialNames.has(k)), []);
+check("140 social skills carry a race modifier",
+	Object.keys(T.SOCIAL_SKILL_RACE_MODS).length, 140);
+check("every giver in the social-to-social table is a social skill (each of its names)",
+	Object.values(T.SOCIAL_FROM_SOCIAL_BONUS).flat().flatMap(([g]) => g.split("|")).filter(g => !socialNames.has(g)), []);
+const allNames = new Set(skills.map(s => s.name));
+check("every social-to-racial/class target is a skill the port has",
+	Object.values(T.SOCIAL_TO_RACE_CLASS_BONUS).flat().filter(([t]) => !t.split("|").some(n => allNames.has(n))).map(([t]) => t), []);
+check("his five placeholder slot rows are not carried",
+	["Open Slot", "Sacrificed", "Unavailable", "Converted to Racial Skill Slot", "Converted to Class Skill Slot"]
+		.filter(k => k in T.SOCIAL_FROM_SOCIAL_BONUS || k in T.SOCIAL_TO_RACE_CLASS_BONUS || k in T.SOCIAL_GENERAL_MODS), []);
+check("getRaceClassSocialMod's switch: six skills, nine pairs",
+	[Object.keys(T.RACE_CLASS_TO_SOCIAL_BONUS).length, Object.values(T.RACE_CLASS_TO_SOCIAL_BONUS).flat().length], [6, 9]);
+
+// --- the race's modifier on a social skill ------------------------------------------------------
+check("1. a Dwarf(Civilized) takes Smithy at +20%", S.getSocialSkillRaceMod("Smithy", "Dwarf(Civilized)"),
+	{ percent: 20, blocked: false, text: "+20%" });
+check("...and a character made so has +20 on it", make(["Dwarf(Civilized)"], { social: ["Smithy"] }).bonus["social:Smithy"], 20);
+const elfDrinker = make(["Elf(High)"], { social: ["Heavy Drinking"] });
+check("2. an Elf(High) is BLOCKED from Heavy Drinking", S.getSocialSkillRaceMod("Heavy Drinking", "Elf(High)").blocked, true);
+check("...assembleCharacter still creates it, worth nothing from the race, and says so",
+	[elfDrinker.bonus["social:Heavy Drinking"], elfDrinker.issues.some(i => i.includes("Heavy Drinking") && i.includes("BLOCKED"))], [0, true]);
+check("a race with no entry for a skill gets nothing, not an error", S.getSocialSkillRaceMod("Smithy", "Elf(High)"),
+	{ percent: 0, blocked: false, text: "" });
+check("a skill his table has never heard of gives nothing rather than throwing (his code would throw, 55716)",
+	[S.getSocialSkillRaceMod("Homebrew Juggling", "Elf(High)").text, S.getExtraSocialMods("Homebrew Juggling", {}).total], ["", 0]);
+check("14. a Fairy(Winged) reads its sourceRace, Fairy: Dancing +10%",
+	make(["Fairy(Winged)"], { social: ["Dancing"] }).bonus["social:Dancing"], 10);
+check("15. a Half Race: only the FIRST race's modifiers count (his race_list1)",
+	[make(["Dwarf(Civilized)", "Elf(High)"], { social: ["Smithy"] }).bonus["social:Smithy"],
+	 make(["Elf(High)", "Dwarf(Civilized)"], { social: ["Smithy"] }).bonus["social:Smithy"]], [20, 0]);
+check("...and only the first race's BLOCKs",
+	[make(["Elf(High)", "Dwarf(Civilized)"], { social: ["Heavy Drinking"] }).issues.some(i => i.includes("BLOCKED")),
+	 make(["Dwarf(Civilized)", "Elf(High)"], { social: ["Heavy Drinking"] }).bonus["social:Heavy Drinking"]], [true, 10]);
+
+// --- his errata over his sheet -------------------------------------------------------------------
+check("16. errata: Gaunt Astronomy +10 (sheet +5), Epitaph Pg 57", T.SOCIAL_SKILL_RACE_MODS["Astronomy"]["Gaunt"], 10);
+check("...Brok Climatology +5 (sheet +10) and Astronomy +5 (sheet none)",
+	[T.SOCIAL_SKILL_RACE_MODS["Climatology"]["Brok"], T.SOCIAL_SKILL_RACE_MODS["Astronomy"]["Brok"]], [5, 5]);
+check("...Sylph Heavy Drinking BLOCKED (sheet allowed), Aspects Pg 23", T.SOCIAL_SKILL_RACE_MODS["Heavy Drinking"]["Sylph"], "BLOCKED");
+check("...Equara Running +20 (sheet none), Legends Pg 71", T.SOCIAL_SKILL_RACE_MODS["Running"]["Equara"], 20);
+check("...Katara (the errata's Lamia) Wood Working +5 (sheet +15)", T.SOCIAL_SKILL_RACE_MODS["Wood Working"]["Katara"], 5);
+check("...and the rest of the thirteen",
+	[T.SOCIAL_SKILL_RACE_MODS["Undertaking"]["Gaunt"], T.SOCIAL_SKILL_RACE_MODS["Dancing"]["Changeling"],
+	 T.SOCIAL_SKILL_RACE_MODS["Dancing"]["Fairy(Dark)"], T.SOCIAL_SKILL_RACE_MODS["Pyrotechnics"]["Fairy(Dark)"],
+	 T.SOCIAL_SKILL_RACE_MODS["History"]["Dryad"], T.SOCIAL_SKILL_RACE_MODS["Mining/Tunneling"]["Ratahl"],
+	 T.SOCIAL_SKILL_RACE_MODS["Torturing"]["Se’eth"]], [10, 15, 10, 5, 5, 20, 20]);
+check("a race the errata leaves out of a row keeps the sheet's value: Elf(Dread) still BLOCKED from Heavy Drinking",
+	T.SOCIAL_SKILL_RACE_MODS["Heavy Drinking"]["Elf(Dread)"], "BLOCKED");
+
+// --- social skills lifting social skills --------------------------------------------------------
+const ctx = (patch) => S.buildSkillModContext(Object.assign({ raceDocs: [race("Equara")] }, patch));
+check("3. Surveyor with Mathematics, Explorer and Scholar: +20 +15 +10",
+	S.getExtraSocialMods("Surveyor", ctx({ socialSkillNames: ["Surveyor", "Mathematics", "Explorer", "Scholar"] })).total, 45);
+check("...the direction is the receiver's: Mathematics gains nothing from holding Accounting (Player's Guide p.156)",
+	[S.getExtraSocialMods("Accounting", ctx({ socialSkillNames: ["Mathematics"] })).total,
+	 S.getExtraSocialMods("Mathematics", ctx({ socialSkillNames: ["Accounting"] })).total], [10, 0]);
+check("4. Farming/Planting with Scholar: +10 -- his row is out of pairs and gave nothing (repaired)",
+	S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Scholar"] })).total, 10);
+check("...with Botanist, or with Botany, +10: one giver under two names",
+	[S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botanist"] })).total,
+	 S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botany"] })).total], [10, 10]);
+check("...holding both counts it once; all three with Meteorology is +30",
+	[S.getExtraSocialMods("Foraging/Forestry", ctx({ socialSkillNames: ["Botany", "Botanist"] })).total,
+	 S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botany", "Meteorology", "Scholar"] })).total], [10, 30]);
+check("5. Calligraphy with Artisan: +10, not his doubled +20 (repaired)",
+	S.getExtraSocialMods("Calligraphy", ctx({ socialSkillNames: ["Artisan"] })).total, 10);
+check("a character made with Surveyor, Mathematics, Explorer and Scholar has +45 on Surveyor",
+	make(["Equara"], { social: ["Surveyor", "Mathematics", "Explorer", "Scholar"] }).bonus["social:Surveyor"], 45);
+
+// --- racial and class skills lifting social skills (UPSTREAM 52) ---------------------------------
+check("12. Acting with a racial Disguise: +15 (his call passed the whole array and never matched)",
+	S.getExtraSocialMods("Acting", ctx({ racialSkillNames: ["Disguise"] })).total, 15);
+check("...and with a CLASS Disguise too, as his later getNewSocialSkillModifier asks (125673-125679)",
+	S.getExtraSocialMods("Acting", ctx({ classSkillNames: ["Disguise"] })).total, 15);
+check("...held as both, it counts once",
+	S.getExtraSocialMods("Acting", ctx({ racialSkillNames: ["Disguise"], classSkillNames: ["Disguise"] })).total, 15);
+check("Animal Training with Speak to Animal and Tame Animal: +15 each",
+	S.getExtraSocialMods("Animal Training", ctx({ racialSkillNames: ["Speak to Animal", "Tame Animal"] })).total, 30);
+check("a Changeling's Acting: race +15 and a racial Disguise +15",
+	C.getSocialSkillBonuses({ startingDice: "" }, always(1),
+		{ ...ctx({ raceDocs: [race("Changeling")], racialSkillNames: ["Disguise"] }), skillName: "Acting" }).abilityBonus, 30);
+
+// --- a later title's class skills, at creation --------------------------------------------------
+// His sheet writes every title's class skills at creation (63288) and his getNewSocialSkillModifier
+// reads every title's rows (125658), so a class skill lifts a social skill whatever title it comes at.
+check("a class Disguise lifts Acting the same whether it is held now or comes at title 2; the label says which",
+	[S.getExtraSocialMods("Acting", ctx({ classSkillNames: ["Disguise"] })).parts,
+	 S.getExtraSocialMods("Acting", ctx({ laterClassSkills: [{ name: "Disguise", title: 2 }] })).parts],
+	[[{ label: "Disguise", percent: 15 }], [{ label: "Disguise (class skill, title 2)", percent: 15 }]]);
+check("...held as a racial skill as well, it counts once, as the racial skill it already is",
+	S.getExtraSocialMods("Acting", ctx({ racialSkillNames: ["Disguise"], laterClassSkills: [{ name: "Disguise", title: 2 }] })).parts,
+	[{ label: "Disguise", percent: 15 }]);
+const assassinMade = (() => {
+	const klass = classes.find(c => c.name === "Assassin");
+	const out = C.assembleCharacter({ name: "Test", raceNames: ["Human(Civilized:Village)"], className: "Assassin",
+		classSkills: C.getStartingClassSkills(klass.system, false), racialSkillNames: [], socialSkillNames: ["Acting", "Begging"],
+		ratings: Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 12])), languages: [] }, content, always(1));
+	return out;
+})();
+const bonusEntry = (out, name) => out.skillBonuses.find(b => b.name === name);
+check("an Assassin, who gains Disguise at title 2, starts with Acting and Begging lifted +15 by it",
+	["Acting", "Begging"].map(n => bonusEntry(assassinMade, n).parts.find(p => p.label.startsWith("Disguise"))),
+	[{ label: "Disguise (class skill, title 2)", percent: 15 }, { label: "Disguise (class skill, title 2)", percent: 15 }]);
+check("...on top of the race's own modifier, as a title-1 class skill would be",
+	bonusEntry(assassinMade, "Acting").abilityBonus,
+	S.getSocialSkillRaceMod("Acting", "Human(Civilized:Village)").percent + 15);
+check("...but is not given Disguise itself before title 2",
+	assassinMade.items.some(i => i.type === "skill" && i.name === "Disguise"), false);
+
+// --- a Famorian's evokes need a Famorian race --------------------------------------------------------
+check("the evokes count with a Famorian race and not without one (a race swapped on the sheet leaves them stored)",
+	[S.buildSkillModContext({ raceDocs: [race("Famorian")], famorianEvokes: ["climbing"] }).evokes,
+	 S.buildSkillModContext({ raceDocs: [race("Human(Civilized:Village)")], famorianEvokes: ["climbing"] }).evokes],
+	[["climbing"], []]);
+check("...a Famorian half race still counts them",
+	S.buildSkillModContext({ raceDocs: [race("Human(Civilized:Village)"), race("Famorian")], famorianEvokes: ["climbing"] }).evokes,
+	["climbing"]);
+
+// --- Falconry and Swimming ----------------------------------------------------------------------
+const gryph = (racial, social) => C.getSocialSkillBonuses({ startingDice: "" }, always(1),
+	{ ...S.buildSkillModContext({ raceDocs: [race("Gryphara")], racialSkillNames: racial, socialSkillNames: social }), skillName: "Falconry" }).abilityBonus;
+check("9. Falconry, Gryphara (+30) with Animal Training and a racial Speak to Animal: +15 more",
+	gryph(["Speak to Animal"], ["Falconry", "Animal Training"]), 45);
+check("...no Animal Training, or no racial animal skill, no +15",
+	[gryph(["Speak to Animal"], ["Falconry"]), gryph([], ["Falconry", "Animal Training"])], [30, 30]);
+check("...the animal skill must be RACIAL: a class Tame Animal does not count (his loop reads raceskills)",
+	S.getExtraSocialMods("Falconry", ctx({ classSkillNames: ["Tame Animal"], socialSkillNames: ["Animal Training"] })).total, 0);
+check("8. a Merfolk's Swimming: race +10, ability Swimming +50, Webbed Feet/Hands +30",
+	make(["Merfolk"], { social: ["Swimming"] }).bonus["social:Swimming"], 90);
+check("...a Marid's: race +50, Swimming +50 (listed twice among its abilities, counted once)",
+	make(["Marid"], { social: ["Swimming"] }).bonus["social:Swimming"], 100);
+check("...and nothing unless Swimming is taken: the ability does not grant the skill",
+	Object.keys(make(["Merfolk"], { social: [] }).bonus).some(k => k.includes("Swimming")), false);
+
+// --- the trait switch and his excess rule --------------------------------------------------------
+check("10. a Cervara's Listen: race +30, Enhanced Hearing +30 is not over it, so +30 in all",
+	make(["Cervara"], { racial: ["Listen"] }).bonus["racial:Listen"], 30);
+check("...a Brachara's Climb: race +20, Climbing +10 is under it, so it adds in full: +30 (his rule, literal)",
+	make(["Brachara"], { racial: ["Climb"] }).bonus["racial:Climb"], 30);
+check("11. a Brok's Tame Animal keeps its -10%: the excess rule is skipped when no trait applies",
+	make(["Brok"], { racial: ["Tame Animal"] }).bonus["racial:Tame Animal"], -10);
+const fam = (evokes, racial, className) => make(["Famorian"], { racial, famorian: { evokes, evokesAllowed: 4 } });
+check("17. a Famorian's Climbing evoke on its racial Climb (race bonus none): +40",
+	fam(["climbing"], ["Climb"]).bonus["racial:Climb"], 40);
+check("...Hooves and Climbing together: -50 +40",
+	fam(["hooves", "climbing"], ["Climb"]).bonus["racial:Climb"], -10);
+check("...Enhanced Hearing on Listen (race +20): 30 is over 20, so only the 10 over it counts",
+	fam(["enhanced_hearing"], ["Listen"]).bonus["racial:Listen"], 30);
+check("...Berserking evoke +50, Enhanced Smell on Smell (race +20) gives +10 more",
+	[S.getTraitSkillBonus("Berserking", 0, { evokes: ["berserking"] }).total, fam(["enhanced_smell"], ["Smell"]).bonus["racial:Smell"]], [50, 30]);
+check("...Instinct(Navigation) is 10 a title, fixed at the creation title: a GME's title 0 counts as 1",
+	[S.getTraitSkillBonus("Direction Knowledge", 0, { evokes: ["instinct_navigation"], title: 0 }).total,
+	 S.getTraitSkillBonus("Direction Knowledge", 0, { evokes: ["instinct_navigation"], title: 1 }).total,
+	 S.getTraitSkillBonus("Direction Knowledge", 0, { evokes: ["instinct_navigation"], title: 3 }).total], [10, 10, 30]);
+check("Loud takes Surprise Attack -20 (his tmp_tmp_ typo kept it from ever applying)",
+	S.getTraitSkillBonus("Surprise Attack", 0, S.buildSkillModContext({ raceDocs: [race("Giant(True)")] })).total, -20);
+check("...Loud Flier is a different disability and does not",
+	S.getTraitSkillBonus("Surprise Attack", 0, S.buildSkillModContext({ raceDocs: [race("Apocritara")] })).total, 0);
+check("on a class skill the mod already there is the CORE +30 alone: a Climbing evoke on a CORE Climb adds 10",
+	C.getClassSkillBonuses({ startingDice: "", types: [] }, true, [], always(1), { evokes: ["climbing"], skillName: "Climb" }).abilityBonus, 40);
+check("...and on a non-core one, the full 40",
+	C.getClassSkillBonuses({ startingDice: "", types: [] }, false, [], always(1), { evokes: ["climbing"], skillName: "Climb" }).abilityBonus, 40);
+
+// --- social skills lifting racial and class skills ------------------------------------------------
+check("6. a class Disguise with Acting (+15) and Cosmetics (+10)",
+	C.getClassSkillBonuses({ startingDice: "", types: [] }, false, [], always(1),
+		{ ...ctx({ socialSkillNames: ["Acting", "Cosmetics"] }), skillName: "Disguise" }).abilityBonus, 25);
+check("...CORE as well: +30 and the full +25 (the excess rule is the trait switch's, not the social term's)",
+	C.getClassSkillBonuses({ startingDice: "", types: [] }, true, [], always(1),
+		{ ...ctx({ socialSkillNames: ["Acting", "Cosmetics"] }), skillName: "Disguise" }).abilityBonus, 55);
+check("7. a racial Cartography (+10 from the race) with Explorer: +25 more",
+	C.getRacialSkillBonuses({ startingDice: "" }, "+10%", always(1),
+		{ ...ctx({ socialSkillNames: ["Explorer"] }), skillName: "Cartography" }).abilityBonus, 35);
+check("13. Psychology gives Truth Tell +10 (his row had a trailing space and never matched)",
+	S.getSocialToRaceClassBonus("Truth Tell", ["Psychology"]).total, 10);
+check("Rope Use gives +10 to Set Trap(w) and Set Trap(u), the names players hold (UPSTREAM 43)",
+	[S.getSocialToRaceClassBonus("Set Trap(w)", ["Rope Use"]).total, S.getSocialToRaceClassBonus("Set Trap(u)", ["Rope Use"]).total], [10, 10]);
+check("Music Theory gives each of its eight music skills +10, once",
+	["Ballad Lore", "Chant", "Drum", "Play", "Rhythm Lore", "Rhythmic Mastery", "Sing", "Song Lore"]
+		.map(n => S.getSocialToRaceClassBonus(n, ["Music Theory", "Music Theory"]).total), Array(8).fill(10));
+check("a Giant(Civilized) with Explorer: racial Cartography carries the +25",
+	make(["Giant(Civilized)"], { racial: ["Cartography"], social: ["Explorer"] }).bonus["racial:Cartography"]
+		- (parseInt(race("Giant(Civilized)").system.racialSkills.find(s => s.name === "Cartography").bonus) || 0), 25);
+
+// --- what callers without a character still get ---------------------------------------------------
+check("the three bonus functions answer exactly as before when given no context",
+	[C.getClassSkillBonuses({ startingDice: "1d6%", types: [] }, true, [], always(1)),
+	 C.getRacialSkillBonuses({ startingDice: "1d6%" }, "+10%", always(1)),
+	 C.getSocialSkillBonuses({ startingDice: "1d6%" }, always(1))],
+	[{ startingBonus: 1, abilityBonus: 30 }, { startingBonus: 2, abilityBonus: 10 }, { startingBonus: 1, abilityBonus: 0 }]);
+check("the parts say what the bonus is made of",
+	S.describeSkillBonusParts(C.getSocialSkillBonuses({ startingDice: "" }, always(1),
+		{ ...S.buildSkillModContext({ raceDocs: [race("Merfolk")] }), skillName: "Swimming" }).parts),
+	"race +10%, ability Swimming +50%, ability Webbed Feet/Hands +30%");
+check("his general-modifier text for the social skills held (display only)",
+	S.getSocialSkillGeneralModifiers(["Accounting", "Acting"]), ["Accounting: +10% with abacus"]);
+
+// --- the generator: the Skills step and the Review ------------------------------------------------
+const state = Object.assign(V.newGeneratorState(), { step: V.STEPS.indexOf("Skills"), race1: "Elf(High)",
+	manual: true, manualBase: Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 14])), className: "GME" });
+const derived = V.deriveGenerator(state, content);
+check("the Skills step reads the first race's name for the table", derived.socialRaceName, "Elf(High)");
+state.socialSkillNames = ["Heavy Drinking"];
+check("the Skills step refuses a social skill the race is BLOCKED from, and says which and why",
+	V.checkStep(state, V.deriveGenerator(state, content)),
+	"This race cannot acquire Heavy Drinking: his race table marks it BLOCKED for Elf(High). Untick to go on.");
+state.socialSkillNames = ["Calligraphy"];
+check("...and lets an allowed one through", V.checkStep(state, V.deriveGenerator(state, content)), "");
+const view = V.buildGeneratorView(state, content);
+check("each social option shows the race's modifier: Calligraphy +10%, Heavy Drinking BLOCKED, Smithy nothing",
+	["Calligraphy", "Heavy Drinking", "Smithy"].map(n => { const o = view.socialSkills.find(s => s.name === n); return [o.mod, o.blocked]; }),
+	[["+10%", false], ["BLOCKED", true], ["", false]]);
+state.step = V.STEPS.indexOf("Review");
+state.socialSkillNames = ["Calligraphy", "Artisan", "Scribing"];
+const review = V.buildGeneratorView(state, content).review;
+check("the Review lists each skill's bonus and what it is made of",
+	review.skillBonuses.find(b => b.name === "Calligraphy"),
+	{ name: "Calligraphy", category: "social", total: "+40%", summary: "race +10%, Artisan +10%, Scribing +20%" });
+
+// --- a later title's class skills (class-advancement.mjs) -----------------------------------------
+// 18. A Bandit-like class owing Disguise at title 2, on a character holding Acting and Cosmetics.
+skillPack = { getDocuments: async () => skills.map(d => ({ ...d, toObject: () => structuredClone(d) })) };
+const created = [];
+const updated = [];
+const classItem = { id: "cls1", type: "class", name: "Tester",
+	system: { classMods: [], advancement: { classSkillList: [{ title: 2, name: "Disguise", core: false, requires: "" }] } } };
+const skillItem = (name, category) => ({ id: "s" + name, type: "skill", name, system: { category } });
+const actor = {
+	id: "a1", type: "character", name: "Grantee",
+	items: [classItem, race("Human(Civilized:Village)"), skillItem("Acting", "social"), skillItem("Cosmetics", "social")],
+	system: { identity: { cannotCast: false, classProgression: [{ id: "cls1", title: 2, owed: [{ name: "Disguise" }] }] },
+	          physical: { famorian: { evokes: [] } } },
+	createEmbeddedDocuments: async (type, docs) => { created.push(...docs); },
+	updateEmbeddedDocuments: async (type, updates) => { updated.push(...updates); }
+};
+actor.items[1] = { ...actor.items[1], id: "r1", type: "race" };
+actor.items.get = (id) => actor.items.find(i => i.id === id);
+check("the actor's context names its race and its skills by category",
+	(() => { const c = G.getActorSkillModContext(actor); return [c.raceName, c.socialSkills, c.title]; })(),
+	["Human(Civilized:Village)", ["Acting", "Cosmetics"], 1]);
+const granted = await G.grantClassSkills(actor, { notify: false });
+check("18. a class skill granted at title 2 takes the social skills held: Disguise +15 +10",
+	[granted.granted, created.find(d => d.name === "Disguise")?.system.abilityBonus], [["Disguise"], 25]);
+check("...and leaves Acting, already held, alone: Disguise's +15 to it was counted when the character was made",
+	updated, []);
+
+// A Famorian who took the Climbing evoke, then had its race item swapped for a Human's on the sheet:
+// the evoke keys are still stored, and must not give a title-2 Climb its +40.
+const created2 = [];
+const climber = {
+	id: "a2", type: "character", name: "Ex-Famorian",
+	items: [{ id: "cls2", type: "class", name: "Tester",
+	          system: { classMods: [], advancement: { classSkillList: [{ title: 2, name: "Climb", core: false, requires: "" }] } } },
+	        { ...race("Human(Civilized:Village)"), id: "r2", type: "race" }],
+	system: { identity: { cannotCast: false, classProgression: [{ id: "cls2", title: 2, owed: [{ name: "Climb" }] }] },
+	          physical: { famorian: { evokes: ["climbing"] } } },
+	createEmbeddedDocuments: async (type, docs) => { created2.push(...docs); }
+};
+climber.items.get = (id) => climber.items.find(i => i.id === id);
+check("a character no longer of a Famorian race has no evokes in its context",
+	G.getActorSkillModContext(climber).evokes, []);
+await G.grantClassSkills(climber, { notify: false });
+check("...so a Climb granted at title 2 takes no +40 from the stale Climbing evoke",
+	created2.find(d => d.name === "Climb")?.system.abilityBonus, 0);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>
