@@ -11,12 +11,13 @@
 // Seconds buttons already wired by registerAttackCardListeners work on it unchanged.
 //==================================================================================================================
 
-import { getMartialAttackModifiers } from "./martial-arts.mjs";
+import { addMartialDice } from "./martial-arts.mjs";
 import { resolveAttack, resolveFumble, resolveOffhandPenalties, combineDamageMultipliers,
          getSituationalForAttack, getSituationalNotes, getNumberOfDice } from "./combat-rules.mjs";
 import {
 	getCreatureAttackBehaviour, getAreaAttackSize, resolveTouchAttack,
-	getCreatureToHitModifiers, getCreatureDamageMods, getTriggeredEffects, getCreatureAttackSeconds } from "./creature-rules.mjs";
+	getCreatureToHitModifiers, getCreatureDamageMods, getTriggeredEffects, getCreatureAttackSeconds,
+	getCreatureMartialModifiers } from "./creature-rules.mjs";
 import { getActionHand } from "./round-rules.mjs";
 import { findActorCombatant } from "./combat-document.mjs";
 
@@ -129,17 +130,22 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		return null;
 	}
 
-	// Martial arts, for a creature that holds them. His handleCreatureAttack reads the martial
-	// move and stance MELEE to-hit (martial_arts_mod_melee, martial_stance_mod_melee) and nothing
-	// else of them -- no damage, no missile -- so a creature's natural melee attack takes exactly
-	// that: the to-hit entries getMartialAttackModifiers lists, and nothing from its damage. A Flip
-	// in progress still forbids the attack.
-	var tmpmartial = getMartialAttackModifiers(tmpsys.martial?.state, { mode: "smash", martialAttack: false });
+	// Martial arts, for a creature that holds them: the to-hit by the attack's kind, the damage
+	// whatever its kind, and nothing at all for a touch -- see getCreatureMartialModifiers in
+	// creature-rules.mjs, which corrects the old reading here of "no damage, no missile". A Flip in
+	// progress forbids any attack.
+	//
+	// His multiplier line has a slip -- "damMult=MAModMulti", not damMulti, so a martial multiplier
+	// with no situational one never applies (180008). The evident intent is followed, as on the
+	// character's weapon attack; already docs/UPSTREAM-ISSUES.md item 14.
+	var tmpistouch = (tmpbehaviour.resolve == "touch");
+	var tmpmartial = getCreatureMartialModifiers(tmpsys.martial?.state, tmpbehaviour);
 	if (tmpmartial.noAttack) {
 		ui.notifications.warn(`${tmpactor.name} cannot attack: ${tmpmartial.noAttackReason}.`);
 		return null;
 	}
-	var tmpmartialhit = (tmpbehaviour.mods == "melee") ? tmpmartial.list : [];
+	var tmpmartialhit = tmpmartial.list;
+	var tmpmartialdamage = tmpmartial.damage;
 
 	// What fighting with this attack in the off hand costs. Blank hand means the attack is not
 	// hand-based at all -- a bite, a tail slap, a breath -- and is never off-hand; only an attack
@@ -150,7 +156,10 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		? resolveOffhandPenalties(tmpa, tmpsys.attributes.agl.rating, tmpsys.combat.offhandHandedness, 0)
 		: { offhand: false, tier: "none", melee: 0, damage: 0, skill: 0 };
 
-	// To hit.
+	// To hit. Weapon or Missile Lore's +2, by the attack's kind, for anything but a Touch -- whose roll
+	// his code gives nothing but Agility (see the martial note above).
+	var tmplorehit = tmpistouch ? 0
+		: ((tmpbehaviour.mods == "missile") ? tmpsys.combat.loreMissile : tmpsys.combat.loreMelee);
 	var tmpmods = getCreatureToHitModifiers({
 		mods: tmpbehaviour.mods,
 		attacker: {
@@ -162,7 +171,8 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		target: (tmptarget && tmpoptions.useDefense) ? { defensiveAdjust: tmptarget.actor?.system?.combat?.defensiveAdjust } : null,
 		situation: tmpsitmods.attack,
 		situational: tmpoptions.situational,
-		offhand: tmpoffhand.melee
+		offhand: tmpoffhand.melee,
+		lore: tmplorehit
 	});
 	tmpmods.list.push(...tmpmartialhit);
 	tmpmods.total = tmpmods.total + tmpmartialhit.reduce((tmpsum, tmpm) => tmpsum + tmpm.value, 0);
@@ -235,38 +245,60 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	// A called shot does half whether or not it is made, as for a character. His creature path
 	// does not halve it, though his character path and the book both do -- recorded in
 	// docs/UPSTREAM-ISSUES.md item 15 -- and the two actor types are kept consistent here.
+	//
+	// An attack with no damage entered does none, whatever its modifiers. His code turns a blank damage
+	// into "0" and still adds combat_mod_damage to it (179919-179925), so a creature's damage-less gaze
+	// would do its Strength and weight in damage -- +17 for a buffalo's stare. That cannot be meant, and
+	// the port has never done it; it is part of the question put to him about which attacks the
+	// standing damage belongs on (docs/UPSTREAM-ISSUES.md, 2026-09-23).
 	var tmpdamage = null;
 	// A damage that is not dice ("2d6 poison", "special") is not handed to Roll, which would throw
-	// after the attack was rolled and post nothing; the card says the table settles it.
+	// after the attack was rolled and post nothing; the card says the table settles it. Tested on the
+	// damage as entered, before any martial die is added to it.
 	var tmpdicenote = "";
 	if (tmpresult.isHit && tmpa.damage && !Roll.validate(tmpa.damage)) {
 		tmpdicenote = `The damage "${tmpa.damage}" is not a dice roll; the table settles it.`;
 	}
 	if (tmpresult.isHit && tmpa.damage && !tmpdicenote) {
+		// A stance's or a move's extra dice (his "+1 Die Dam"), which then count for everything worked
+		// out per die below. A flat damage figure takes none -- see addMartialDice.
+		var tmpdice = addMartialDice(tmpa.damage, tmpmartialdamage.extraDice);
 		var tmpdammods = getCreatureDamageMods({
+			resolve: tmpbehaviour.resolve,
+			strength: tmpsys.combat.meleeDamage,
+			weight: tmpsys.combat.weightDamage,
+			lore: tmpsys.combat.loreDamage,
 			damageMisc: tmpsys.combat.damageMisc,
-			situation: tmpsitmods.damage + (tmpsitmods.perDie * getNumberOfDice(tmpa.damage)),
+			martial: tmpmartialdamage.flat + (tmpmartialdamage.perDie * getNumberOfDice(tmpdice)),
+			situation: tmpsitmods.damage + (tmpsitmods.perDie * getNumberOfDice(tmpdice)),
 			situational: tmpoptions.situationalDamage,
 			offhand: tmpoffhand.damage
 		});
 
-		var tmpdmgroll = await new Roll(`${tmpa.damage} + @mods`, { mods: tmpdammods.total })
-			.evaluate({ maximize: tmpsitmods.maxDamage });
+		// Maximum damage from the Situation Mods is his "Max" special, which his touch branch never
+		// reads (it rolls its dice plainly), so a touch rolls them plainly here too.
+		var tmpmaximize = tmpsitmods.maxDamage && !tmpistouch;
+		var tmpdmgroll = await new Roll(`${tmpdice} + @mods`, { mods: tmpdammods.total })
+			.evaluate({ maximize: tmpmaximize });
 		tmprolls.push(tmpdmgroll);
 
-		// The Situation Mods' multiplier, then a called shot or a critically failed Perfect Shot
-		// halving it, held at x3 -- as for a character.
+		// The Situation Mods' multiplier and a martial one, then a called shot or a critically failed
+		// Perfect Shot halving it, held at x3 -- as for a character. A touch has none of his multiplier
+		// handling, which sits in his non-touch branch.
 		var tmpmultipliers = [];
-		if (tmpsitmods.multi != 1) { tmpmultipliers.push(tmpsitmods.multi); }
+		if (!tmpistouch && tmpsitmods.multi != 1) { tmpmultipliers.push(tmpsitmods.multi); }
+		if (tmpmartialdamage.multiplier != 1) { tmpmultipliers.push(tmpmartialdamage.multiplier); }
 		if (tmpoptions.calledShot) { tmpmultipliers.push(0.5); }
 		if (tmpsitmods.halfDamage) { tmpmultipliers.push(0.5); }
 		var tmpmulti = combineDamageMultipliers(tmpmultipliers);
 		var tmptotal = Math.max(0, parseInt(tmpdmgroll.total * tmpmulti) || 0);
 
 		tmpdamage = {
-			dice: tmpa.damage, str: 0, magic: 0, misc: tmpdammods.total,
+			dice: tmpdice, str: tmpistouch ? 0 : (parseInt(tmpsys.combat.meleeDamage) || 0), magic: 0,
+			misc: tmpdammods.total, list: tmpdammods.list,
 			rolled: tmpdmgroll.total, multiplier: tmpmulti, total: tmptotal,
-			maximized: tmpsitmods.maxDamage, situationMulti: tmpsitmods.multi,
+			maximized: tmpmaximize, situationMulti: tmpistouch ? 1 : tmpsitmods.multi,
+			martialMulti: tmpmartialdamage.multiplier,
 			type: tmpa.damageType || "Other"
 		};
 	}
@@ -294,6 +326,8 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		fumble: tmpfumble,
 		damage: tmpdamage,
 		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special).concat(tmpdicenote ? [tmpdicenote] : []) },
+		// The stance's and moves' own prose, for the table -- as the weapon card carries it.
+		martialNotes: tmpmartial.special,
 		applied: false
 	};
 

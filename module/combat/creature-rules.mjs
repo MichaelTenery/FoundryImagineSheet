@@ -17,6 +17,7 @@
 //==================================================================================================================
 
 import { CREATURE_ATTACK_TYPES } from "../creature-tables.mjs";
+import { getMartialAttackModifiers } from "./martial-arts.mjs";
 
 //==================================================================================================================
 // @MARKER ATTACK BEHAVIOUR
@@ -165,6 +166,13 @@ import { CREATURE_ATTACK_TYPES } from "../creature-tables.mjs";
 			if (tmpmeleemisc) { tmplist.push({ label: "Melee Other", value: tmpmeleemisc }); }
 		}
 
+		// Weapon Lore's +2 on a melee-kind attack, Missile Lore's +2 on a missile-kind one -- worked out
+		// on the creature (combat.loreMelee / loreMissile) and passed in already chosen for this attack's
+		// kind, since his creature branch files them in combat_mod_melee_other and combat_mod_missile_other
+		// (sheet-worker.js:82262-82307), which his handleCreatureAttack reads by kind (179756-179770).
+		var tmplore = parseInt(tmpinput.lore) || 0;
+		if (tmplore) { tmplist.push({ label: "Lore", value: tmplore }); }
+
 		if (tmpinput.target) {
 			var tmpdef = parseInt(tmpinput.target.defensiveAdjust) || 0;
 			if (tmpdef) { tmplist.push({ label: "Target's Defence", value: tmpdef }); }
@@ -189,24 +197,121 @@ import { CREATURE_ATTACK_TYPES } from "../creature-tables.mjs";
 		return { list: tmplist, total: tmptotal };
 	}
 
-	// This is the function which totals the flat additions to a creature's damage.
-	// From his damage block (sheet-worker.js:179920-179930): the standing damage modifier plus
-	// any situational one. A creature gets no Strength damage bonus on top of its attack's own
-	// dice -- the dice on the stat block are the whole of it.
+	// This is the function which totals the flat additions to a creature's damage, each with the
+	// label the chat card shows.
+	//
+	// CORRECTED 2026-09-23. This used to say "a creature gets no Strength damage bonus on top of its
+	// attack's own dice -- the dice on the stat block are the whole of it", and gave a creature only
+	// the temporary modifier. That misread his damage block. handleCreatureAttack (sheet-worker.js:
+	// 179920-179929) adds, to every attack whose type is not "Projectile" -- and no creature attack
+	// type is --
+	//
+	//     combat_mod_damage            Strength's melee damage + body weight (floored at 0 for a
+	//                                  creature) + Weapon Lore's +4 + the temporary modifier
+	//                                  (setCombatModifierValues, 82309-82322)
+	//     situational_mod_damage       the Situation Mods
+	//     martial_arts_mod_damage      a martial move's damage
+	//     martial_lore_mod_damage      a Martial Lore value's
+	//     martial_stance_mod_damage    the held stance's
+	//
+	// and the books mostly agree: of the four bestiaries' stat lines checked, 174 print a "Damage +N"
+	// that is exactly Strength plus weight (a 1,200 lb buffalo of Strength 19 prints "Damage +17",
+	// 5 + 12; Aspects of the Wild, PDF page 58) and 48 more come within 2. See the CORRECTION in
+	// docs/DECISIONS.md, 2026-09-23.
+	//
+	// A TOUCH takes none of it. His touch branch (179773-179779) rolls the attack's bare dice, so here
+	// a touch keeps only what the port adds to every attack of its own accord: the off-hand penalty
+	// and the number typed into the attack dialog for this one attack.
+	//
+	// Every other type takes all of it -- breath, gaze and area attacks included, as his code does,
+	// though the Player's Guide (p.179) speaks of body weight "when the character attacks with any
+	// melee weapon". Whether he meant a dragon's breath to carry its +20 for weight is asked of him in
+	// docs/UPSTREAM-ISSUES.md (2026-09-23); until he answers, the sheet is followed -- the provisional
+	// D2 of the creature audit.
+	//
+	//   tmpinput = {
+	//       resolve      the attack type's resolve ("chart", "auto", "touch"), getCreatureAttackBehaviour
+	//       strength     combat.meleeDamage, signed
+	//       weight       combat.weightDamage, already floored at 0
+	//       lore         combat.loreDamage
+	//       damageMisc   combat.damageMisc, his temporary damage modifier
+	//       martial      the martial damage already worked out for this attack's dice, flat + per die
+	//       offhand      the off-hand penalty, resolved by resolveOffhandPenalties
+	//       situation    the Situation Mods' damage for this attack
+	//       situational  the number typed into the attack dialog
+	//   }
 	export function getCreatureDamageMods(tmpinput) {
 		var tmplist = [];
-		var tmpmisc = parseInt(tmpinput.damageMisc) || 0;
-		if (tmpmisc) { tmplist.push({ label: "Damage Other", value: tmpmisc }); }
+		var tmpistouch = (tmpinput.resolve == "touch");
+
+		if (!tmpistouch) {
+			var tmpstr = parseInt(tmpinput.strength) || 0;
+			if (tmpstr) { tmplist.push({ label: "STR", value: tmpstr }); }
+			var tmpweight = parseInt(tmpinput.weight) || 0;
+			if (tmpweight) { tmplist.push({ label: "Weight", value: tmpweight }); }
+			var tmplore = parseInt(tmpinput.lore) || 0;
+			if (tmplore) { tmplist.push({ label: "Lore", value: tmplore }); }
+			var tmpmisc = parseInt(tmpinput.damageMisc) || 0;
+			if (tmpmisc) { tmplist.push({ label: "Damage Other", value: tmpmisc }); }
+			var tmpmartial = parseInt(tmpinput.martial) || 0;
+			if (tmpmartial) { tmplist.push({ label: "Martial", value: tmpmartial }); }
+		}
 		var tmpoffhand = parseInt(tmpinput.offhand) || 0;
 		if (tmpoffhand) { tmplist.push({ label: "Off Hand", value: tmpoffhand }); }
-		var tmpsituation = parseInt(tmpinput.situation) || 0;
-		if (tmpsituation) { tmplist.push({ label: "Situational", value: tmpsituation }); }
+		if (!tmpistouch) {
+			var tmpsituation = parseInt(tmpinput.situation) || 0;
+			if (tmpsituation) { tmplist.push({ label: "Situational", value: tmpsituation }); }
+		}
 		var tmpsituational = parseInt(tmpinput.situational) || 0;
 		if (tmpsituational) { tmplist.push({ label: "Modifier", value: tmpsituational }); }
 
 		var tmptotal = 0;
 		for (const tmpmod of tmplist) { tmptotal = tmptotal + tmpmod.value; }
 		return { list: tmplist, total: tmptotal };
+	}
+
+	// @MARKER CREATURE MARTIAL MODIFIERS
+	// This is the function which gives what a creature's martial arts add to one of its natural attacks.
+	//
+	// CORRECTED 2026-09-23. The port used to give a natural attack the martial MELEE to-hit and nothing
+	// else, on a reading of his handleCreatureAttack that said it took "no damage, no missile". It takes
+	// all of it:
+	//   to hit    a missile-kind attack (his test: the type names Missile, Glob or Bolt) adds
+	//             martial_arts_mod_missile and martial_stance_mod_missile (sheet-worker.js:179761-179762);
+	//             every other type the two melee figures (179768-179769). Here that is what
+	//             getMartialAttackModifiers lists for a missile mode (the stance's missile figure) and
+	//             for a melee one (the moves and the stance's melee figure).
+	//   damage    every attack but a Touch adds the moves', Lore values' and stance's damage
+	//             (179927-179929) WHATEVER ITS KIND -- a spat glob too -- the stance's "+1/+2 Die Dam"
+	//             (179932-179945), the moves' extra dice and damage per die (tmp_extra_dice,
+	//             tmp_extra_per_die, 179961-179968), and the martial multiplier (180003-180010). So the
+	//             damage is always read at a melee mode. The one stance with "Die Dam", Drunken
+	//             fighting, is read as damage PER die rather than an extra die, as it already is on a
+	//             character's weapon (MARTIAL_STANCE_CORRECTIONS in martial-arts.mjs: his own prose
+	//             and Mysteries of the Planes p.167 say per die).
+	// A Touch rolls d20 plus Agility alone and its bare dice (179773-179779), so it takes none of it.
+	// A Flip in progress forbids any attack, a touch included.
+	//
+	// Returns { noAttack, noAttackReason, list, special, damage: { flat, extraDice, perDie, multiplier } }.
+	export function getCreatureMartialModifiers(tmpstate, tmpbehaviour) {
+		var tmpmelee = getMartialAttackModifiers(tmpstate, { mode: "smash", martialAttack: false });
+		var tmpout = {
+			noAttack: tmpmelee.noAttack, noAttackReason: tmpmelee.noAttackReason,
+			list: [], special: [],
+			damage: { flat: 0, extraDice: 0, perDie: 0, multiplier: 1 }
+		};
+		if (tmpbehaviour?.resolve == "touch") { return tmpout; }
+
+		var tmpkind = (tmpbehaviour?.mods == "missile")
+			? getMartialAttackModifiers(tmpstate, { mode: "missile", martialAttack: false })
+			: tmpmelee;
+		tmpout.list = tmpkind.list;
+		tmpout.special = tmpkind.special;
+		tmpout.damage = {
+			flat: tmpmelee.damage.flat, extraDice: tmpmelee.damage.extraDice,
+			perDie: tmpmelee.damage.perDie, multiplier: tmpmelee.damage.multiplier
+		};
+		return tmpout;
 	}
 
 	// This is the function which picks out the rider effects that a given result sets off.

@@ -131,6 +131,20 @@ Hooks.once("init", function () {
 	CONFIG.Item.dataModels.power = ImaginePowerData;
 	CONFIG.Item.dataModels.trait = ImagineTraitData;
 
+	// @MARKER TOKEN BARS
+	// What a token's resource bars may show. Without this Foundry offers no bar at all -- neither
+	// actor had a {value, max} pair -- and a Game Master running a dozen creatures had to open each
+	// sheet to see how hurt it was. The bar is Shock less the total wounds (getShockBar in
+	// combat-rules.mjs), the provisional D9 of the creature audit (docs/DECISIONS.md 2026-09-23); it is
+	// derived, so the token HUD shows it and does not offer to edit it -- wounds are healed on the sheet.
+	// Naming the types here replaces Foundry's guess at every number in the schema, so the few plain
+	// values worth watching are listed beside it.
+	//                    bars                 plain values
+	CONFIG.Actor.trackableAttributes = {
+		character: { bar: ["body.shockBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] },
+		creature:  { bar: ["body.shockBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] }
+	};
+
 	// @MARKER MAGIC AND LORE ITEMS
 	// His Magic/Lore tab: consumables held as doses (herbs, potions, elixirs, charms, poisons),
 	// lore entries known and memorized (ballads through runes, recipes and evokes), and spells and

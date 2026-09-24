@@ -41,12 +41,17 @@
 
 	{{#if shape}}<p class="shape">It {{shape.text}}.</p>{{/if}}
 
+	{{#if martialNotes.length}}<div class="situation-notes">{{#each martialNotes as |n|}}{{n}}{{#unless @last}} &middot; {{/unless}}{{/each}}</div>{{/if}}
+
+	{{!-- Each flat addition by name -- STR, Weight, Lore, Martial and the rest, as getCreatureDamageMods
+	      lists them -- so a buffalo's "6d6 +5 STR +12 Weight" reads the way its stat line prints it.
+	      Given no list, the one total shows, as the card always did. --}}
 	{{#if damage}}
 	<div class="damage">
 		<span class="total">{{damage.total}}</span> {{damage.type}} damage
-		<span class="breakdown">({{damage.dice}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}
+		<span class="breakdown">({{damage.dice}}{{#if damage.list}}{{#each damage.list as |m|}} {{#if (gt m.value 0)}}+{{/if}}{{m.value}} {{m.label}}{{/each}}{{else}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}{{/if}}
 		{{#if damage.maximized}}, every die at its highest{{/if}}
-		= {{damage.rolled}}{{#if (gt damage.situationMulti 1)}}, x{{damage.situationMulti}} situational{{/if}}{{#if (lt damage.multiplier 1)}}, halved{{/if}})</span>
+		= {{damage.rolled}}{{#if (gt damage.situationMulti 1)}}, x{{damage.situationMulti}} situational{{/if}}{{#if (gt damage.martialMulti 1)}}, x{{damage.martialMulti}} martial{{/if}}{{#if (lt damage.multiplier 1)}}, halved{{/if}})</span>
 	</div>
 	{{/if}}
 
