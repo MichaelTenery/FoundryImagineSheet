@@ -269,7 +269,7 @@ import { grantClassSkills, GRANT_HANDLED } from "./class-advancement.mjs";
 			type: "power",
 			system: {
 				unlimited: true, uses: 0, usesMax: 0, selfOnly: true,
-				powerKind: "unknown",
+				powerKind: "unknown", subsystem: "powers",
 				sourcebook: "Player`s Guide",
 				description: "Granted on reaching Arch Mortal. His setArchMortalInvulnerability."
 			}

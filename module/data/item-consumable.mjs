@@ -22,6 +22,7 @@
 //==================================================================================================================
 
 import { CONSUMABLE_KINDS, POISON_FORMS } from "../lore-rules.mjs";
+import { getLegacySubsystem } from "../availability.mjs";
 
 const fields = foundry.data.fields;
 
@@ -35,8 +36,9 @@ export default class ImagineConsumableData extends foundry.abstract.TypeDataMode
 			// Which of the magic switches this answers to (module/availability.mjs reads it). Set
 			// from the kind by the build and by everything that makes one; stored rather than worked
 			// out, because a compendium INDEX -- which is what the item picker filters -- carries
-			// stored fields and nothing else.
-			subsystem: new fields.StringField({ required: true, initial: "herbalism", label: "Magic Subsystem" }),
+			// stored fields and nothing else. "herbs" for the herb the initial kind is; one stored
+			// before the 2026-09-24 split as "herbalism" is read as its kind's switch (migrateData).
+			subsystem: new fields.StringField({ required: true, initial: "herbs", label: "Magic Subsystem" }),
 
 			// @MARKER DOSES
 			// His *_doses column. A charm has none -- it is an object -- and his useCharm never reads
@@ -66,6 +68,14 @@ export default class ImagineConsumableData extends foundry.abstract.TypeDataMode
 	}
 
 	// @MARKER ADD NEW consumable data model functions HERE
+
+	// @MARKER MIGRATION
+	// This is the function which reads a consumable stored before the 2026-09-24 switch split:
+	// "herbalism" becomes "herbs", "potions" or "elixirs" by its kind. The same as the lore item's.
+	static migrateData(tmpsource) {
+		if (tmpsource?.subsystem) { tmpsource.subsystem = getLegacySubsystem(tmpsource.subsystem, tmpsource.kind); }
+		return super.migrateData(tmpsource);
+	}
 
 	// The three forms a poison is made in, for a sheet's dropdown.
 	static get POISON_FORMS() { return POISON_FORMS; }

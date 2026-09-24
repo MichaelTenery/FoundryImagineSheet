@@ -25,6 +25,8 @@
 					<span><input type="checkbox" name="system.memorized" {{#if system.memorized}}checked{{/if}}></span></li>
 				<li><label data-tooltip="+2 Aura Control, half the casting time, three times the range, twice the duration; others resist it at -20%">Mastered</label>
 					<span><input type="checkbox" name="system.mastered" {{#if system.mastered}}checked{{/if}}></span></li>
+				<li><label data-tooltip="Days of memory left: 30 less the level when memorized, one lost at each Sleep, refreshed by MEM. Blank: never counted -- the full count while memorized">Days left</label>
+					<span><input type="number" name="system.days" value="{{system.days}}" min="0"></span></li>
 			</ul>
 		</div>
 

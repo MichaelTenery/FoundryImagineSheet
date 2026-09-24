@@ -201,7 +201,13 @@ export class ImaginePowerSheet extends ImagineItemSheet {
 	async _prepareContext(options) {
 		var tmpcontext = await super._prepareContext(options);
 		tmpcontext.config = {
-			powerKinds: ["unknown", "spell", "invocation", "magicItem", "divineItem"]
+			powerKinds: ["unknown", "spell", "invocation", "magicItem", "divineItem"],
+			// His three repeating sections of powers, each under its own magic switch (availability.mjs).
+			powerSubsystems: [
+				{ id: "powers",      label: "Powers" },
+				{ id: "enchanting",  label: "Magic Item Empowering" },
+				{ id: "divineItems", label: "Divine Item Empowering" }
+			]
 		};
 		return tmpcontext;
 	}

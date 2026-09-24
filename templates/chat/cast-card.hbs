@@ -56,7 +56,19 @@
 	{{#if effectsAdded.length}}<p class="cast-effects">Now running on {{casterName}}: {{#each effectsAdded as |e|}}<strong>{{e}}</strong>{{#unless @last}}, {{/unless}}{{/each}}
 		<span class="muted">(Magic &amp; Lore tab; end it there)</span></p>{{/if}}
 	{{#if effectsRemoved.length}}<p class="cast-effects">Ended: {{#each effectsRemoved as |e|}}{{e}}{{#unless @last}}, {{/unless}}{{/each}}</p>{{/if}}
-	{{#if forgot}}<p class="cast-effects"><strong>The spell is lost from memory</strong> (unticked as memorized).</p>{{/if}}
+	{{#if forgot}}<p class="cast-effects"><strong>The spell is lost from memory</strong> (unticked as memorized, its days cleared).</p>{{/if}}
+
+	{{!-- A mishap's lasting effects on the caster -- AUR or WIL for good, Burnout -- each applied once,
+	      by the Game Master or whoever cast it (casting-actions.mjs applyMishapEffect). --}}
+	{{#if mishapEffects.length}}
+	<div class="cast-mishap-effects">
+		{{#each mishapEffects as |m|}}
+		<p>{{m.label}}
+			<button type="button" class="inline" data-imagine-action="applyMishapEffect" data-index="{{m.index}}"
+				data-tooltip="Put it on {{../casterName}}: once only">Apply</button></p>
+		{{/each}}
+	</div>
+	{{/if}}
 
 	{{!-- What his sheet would ALSO have done to the caster, in words; the Game Master applies it. --}}
 	{{#if changes.length}}

@@ -56,6 +56,53 @@ check("Disciplined skill belongs to none", A.getItemMagicSubsystems(skill("a", [
 check("an item's own subsystem field wins",
 	A.getItemMagicSubsystems({ type: "rune", name: "r", system: { subsystem: "runes" } }), ["runes"]);
 
+// --- a skill that learns or uses a lore kind answers to that kind's switch (2026-09-24) -------
+check("a kind's learn and use skills belong to that kind's switch, not Arcane Magic",
+	["Ballad Lore", "Intone", "Hymn Lore", "Recite", "Poem Lore", "Sing", "Song Lore", "Rune Lore", "Evoke", "Empathy Magic"].map(n =>
+		A.getItemMagicSubsystems(skill(n, ["Magical"]))),
+	[["ballads"], ["hymns"], ["hymns"], ["poems"], ["poems"], ["songs"], ["songs"], ["runes"], ["evoke"], ["empathy"]]);
+check("...Candle Lore (Magical,Divine) answers to Candle Lore alone, not to both",
+	A.getItemMagicSubsystems(skill("Candle Lore", ["Magical", "Divine"])), ["candlelore"]);
+check("...Divine Knowledge to divine, its wilderness form too",
+	[A.getItemMagicSubsystems(skill("Divine Knowledge", ["Divine"])), A.getItemMagicSubsystems(skill("Divine Knowledge(w)", ["Divine"]))],
+	[["divine"], ["divine"]]);
+check("...a casting skill still answers to arcane, by its type", A.getItemMagicSubsystems(skill("Scroll Knowledge", ["Magical"])), ["arcane"]);
+check("...and a skill that is not magical answers to nothing, whatever its name (Poison Lore is Informational)",
+	A.getItemMagicSubsystems(skill("Poison Lore", ["Informational"])), []);
+check("arcane off leaves a bard's Sing; songs off takes it",
+	[A.isItemAvailable(skill("Sing", ["Magical"]), rules({ magicSubsystems: { arcane: false } })),
+	 A.isItemAvailable(skill("Sing", ["Magical"]), rules({ magicSubsystems: { songs: false } }))], [true, false]);
+
+// --- the split switches, and the retired names (2026-09-24) ---------------------------------
+check("21 switches", Object.keys(A.MAGIC_SUBSYSTEMS).length, 21);
+check("bardic and herbalism are retired", ["bardic", "herbalism"].map(k => k in A.MAGIC_SUBSYSTEMS), [false, false]);
+check("an item stored as bardic or herbalism reads as its kind's switch",
+	[A.getItemMagicSubsystems({ type: "lore", system: { kind: "hymn", subsystem: "bardic" } }),
+	 A.getItemMagicSubsystems({ type: "lore", system: { kind: "potionrecipe", subsystem: "herbalism" } }),
+	 A.getItemMagicSubsystems({ type: "consumable", system: { kind: "elixir", subsystem: "herbalism" } })],
+	[["hymns"], ["potions"], ["elixirs"]]);
+check("a world's { bardic: false } switches all four off, and is read in today's names",
+	A.normalizeMagicSubsystems({ bardic: false, runes: true }), { runes: true, ballads: false, hymns: false, poems: false, songs: false });
+check("...unless one of them has been set since", A.normalizeMagicSubsystems({ herbalism: false, potions: true }).potions, true);
+check("switching off hymns leaves songs",
+	[A.isItemAvailable({ type: "lore", name: "h", system: { kind: "hymn", subsystem: "hymns" } }, rules({ magicSubsystems: { hymns: false } })),
+	 A.isItemAvailable({ type: "lore", name: "s", system: { kind: "song", subsystem: "songs" } }, rules({ magicSubsystems: { hymns: false } }))],
+	[false, true]);
+check("an old world's bardic switch still reaches a hymn stored as bardic",
+	A.isItemAvailable({ type: "lore", name: "h", system: { kind: "hymn", subsystem: "bardic" } }, rules({ magicSubsystems: { bardic: false } })), false);
+
+// --- powers (2026-09-24): the Powers switches reach power items ------------------------------
+check("a power answers to its stored switch", A.getItemMagicSubsystems({ type: "power", system: { subsystem: "enchanting" } }), ["enchanting"]);
+check("one stored before it had a switch answers by its kind",
+	["unknown", "spell", "magicItem", "divineItem"].map(k => A.getItemMagicSubsystems({ type: "power", system: { powerKind: k } })[0]),
+	["powers", "powers", "enchanting", "divineItems"]);
+check("Powers off flags a creature's power", A.isItemAvailable({ type: "power", name: "Fire Breath", system: { powerKind: "spell" } },
+	rules({ magicSubsystems: { powers: false } })), false);
+
+// --- optional casting rules: the setting exists, empty -----------------------------------------
+check("no optional casting rule is built yet", Object.keys(A.MAGIC_RULES), []);
+check("an unknown rule is never on", A.isMagicRuleOn("spellTuning", rules({ magicRules: { spellTuning: true } })), false);
+
 // --- the master magic switch -------------------------------------------------------
 const noMagic = rules({ magicEnabled: false });
 check("master off hides Magical skills",  A.isItemAvailable(skill("Abasement", ["Magical"]), noMagic), false);

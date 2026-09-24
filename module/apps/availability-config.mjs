@@ -11,7 +11,7 @@
 // the draft.
 //==================================================================================================================
 
-import { SOURCEBOOKS, MAGIC_SUBSYSTEMS, getSourcebookId } from "../availability.mjs";
+import { SOURCEBOOKS, MAGIC_SUBSYSTEMS, getSourcebookId, normalizeMagicSubsystems } from "../availability.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
@@ -57,7 +57,9 @@ export default class ImagineAvailabilityConfig extends HandlebarsApplicationMixi
 		var tmpoverrides = game.settings.get("imagine-rpg", "contentOverrides");
 		this.#draft = {
 			magicEnabled:    game.settings.get("imagine-rpg", "magicEnabled"),
-			magicSubsystems: foundry.utils.deepClone(game.settings.get("imagine-rpg", "magicSubsystems")),
+			// Read in today's names: a world that switched off "bardic" before the 2026-09-24 split
+			// sees Ballads, Hymns, Poems and Songs off, and saving stores those four.
+			magicSubsystems: normalizeMagicSubsystems(game.settings.get("imagine-rpg", "magicSubsystems")),
 			sourcebooks:     foundry.utils.deepClone(game.settings.get("imagine-rpg", "sourcebooks")),
 			overrides:       Object.entries(tmpoverrides).map(([k, v]) => ({ key: k, allow: v === true }))
 		};

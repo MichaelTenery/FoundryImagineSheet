@@ -2029,9 +2029,12 @@ def build_traits(tmpcategory):
 # Each document carries its kind, as his repeating-section name, and the magic subsystem that kind
 # answers to. The subsystems are those of MAGIC_KINDS in module/lore-rules.mjs, which is the one
 # place they are decided; this table only repeats them so the build does not have to run JavaScript.
+#
+# Split 2026-09-24: "herbalism" became herbs, potions and elixirs, and "bardic" ballads, hymns, poems
+# and songs -- one switch per repeating section of his (availability.mjs, MAGIC SUBSYSTEMS).
 MAGIC_SUBSYSTEM_OF = {
-    "herb": "herbalism", "potion": "herbalism", "elixir": "herbalism", "charm": "charms",
-    "ballad": "bardic", "hymn": "bardic", "poem": "bardic", "song": "bardic",
+    "herb": "herbs", "potion": "potions", "elixir": "elixirs", "charm": "charms",
+    "ballad": "ballads", "hymn": "hymns", "poem": "poems", "song": "songs",
     "candlelore": "candlelore", "empathymagic": "empathy", "sympathymagic": "sympathy",
     "glyph": "glyphs", "rune": "runes", "ritual": "rituals", "evoke": "evoke",
     "spell": "arcane", "invocation": "divine",

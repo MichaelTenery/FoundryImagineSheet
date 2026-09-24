@@ -9,11 +9,17 @@
 //
 // His buttons, and what each became:
 //     USE on a spell row            castSpell            the Aura to put in, and on whom
+//     MEM / MOD on a spell row      rememorizeSpell      his handleRemorizeSpell: the days refreshed
 //     PRAY / REPRAY on an invocation prayForInvocation   Divine Knowledge; memorized, and its uses
 //     USE on an invocation          invokeInvocation     a use spent, on whom
 //     RESET AURA POOL               resetAuraPool        a full pool
+//     SLEEP                         sleepSpells          his subtractDayFromAllSpells: a day of every
+//                                                        spell's memory gone, and a full pool
+//     DRAIN (set_aura)              drainAuraPool        his drainAuraPoolByAmount
 //     REGEN (time and unit)         regenerateAura       his regenAuraPoolByTime
 //     (his effects list)            removeMagicEffect    a spell or invocation running on oneself, ended
+//     (a mishap's card)             applyMishapEffect    a mishap's AUR, WIL or Burnout, once
+// MEM, Sleep and Drain, and the mishap's Apply, came across 2026-09-24 from the parallel magic branch.
 //
 // WHAT HIS SHEET COULD NOT DO. It never knew who a spell was aimed at: it wrote "MR is used to avoid
 // damage" and left the rest to the table. Here the targets are the tokens the caster has targeted.
@@ -24,7 +30,8 @@
 
 import { performSpellCast, performInvocation, resolvePrayer, isPrayerAnswered, isInDevotion, getInvocationUses,
          regenAuraByTime, drainAura, MASTERY_RESIST_MOD, updateEffectList, getSaveResistance,
-         resolveTargetResistance, buildCastCard } from "./casting-rules.mjs";
+         resolveTargetResistance, buildCastCard, getSpellDaysLeft, sleepSpellDays, resolveRememorize,
+         describeRememorize, isSelfOnly } from "./casting-rules.mjs";
 import { getDieRoll } from "./casting-helpers.mjs";
 import { getAttackChart } from "./combat/combat-rules.mjs";
 import { ARMOR_BLOCKING } from "./combat-tables.mjs";
@@ -42,6 +49,36 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 	// This is the function which escapes text for a chat card or a dialog.
 	function esc(tmptext) {
 		return foundry.utils.escapeHTML(String(tmptext ?? ""));
+	}
+
+	// @MARKER ONE AT A TIME
+	// A button pressed again before its first press has written anything -- a quick double-click --
+	// reads the same uses, days or pool twice: two "invoked" cards for one use spent, two Sleeps with
+	// every spell losing a day each time, two prayers for one invocation. ApplicationV2's buttons have
+	// no debounce, and the bug sweep of 2026-09-23 found the same on the attack card's spend-time. So
+	// each action is held here by its key until its writes land -- the actor and the spell or
+	// invocation, or the actor's pool -- and a second press on the same one meanwhile does nothing. A
+	// different spell, or another character, is never held up; a dialog left open counts as in
+	// flight. From the parallel magic branch, 2026-09-24.
+	const castingInFlight = new Set();
+	async function oneAtATime(tmpkey, tmpaction) {
+		if (castingInFlight.has(tmpkey)) { return null; }
+		castingInFlight.add(tmpkey);
+		try {
+			return await tmpaction();
+		} finally {
+			castingInFlight.delete(tmpkey);
+		}
+	}
+
+	// This is the function which gives the key an action on one spell or invocation is held by.
+	function itemKey(tmpactor, tmpitem) {
+		return `${tmpactor?.uuid ?? tmpactor?.id ?? ""}:${tmpitem?.id ?? ""}`;
+	}
+
+	// This is the function which gives the key an action on the actor's Aura pool is held by.
+	function poolKey(tmpactor) {
+		return `${tmpactor?.uuid ?? tmpactor?.id ?? ""}:pool`;
 	}
 
 
@@ -106,8 +143,12 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 // @MARKER CASTING A SPELL
 	// This is the function behind a spell's Cast button -- his USE, useSpell (sheet-worker.js:161282).
 	// Asks the Aura to put in (his spell_aura box, which he cleared after every cast) and on whom (his
-	// "self" tick; here, the targeted tokens as well), casts, and posts the card.
+	// "self" tick; here, the targeted tokens as well), casts, and posts the card. A spell whose range
+	// or distance is Self opens on the caster, as his self tick is forced on for one.
 	export async function castSpell(tmpactor, tmpitem) {
+		return await oneAtATime(itemKey(tmpactor, tmpitem), () => castSpellNow(tmpactor, tmpitem));
+	}
+	async function castSpellNow(tmpactor, tmpitem) {
 		var tmpsys = tmpactor.system;
 		var tmpaura = tmpsys.magic?.aura ?? {};
 		var tmpspell = tmpitem.system;
@@ -118,6 +159,7 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 		var tmpfailper = parseInt(tmpspell.fail) || 0;
 		var tmpfailchance = (tmplevel > tmpcontrol && tmpfailper > 0) ? Math.min(100, tmpfailper * (tmplevel - tmpcontrol)) : 0;
 		var tmpsuggest = Math.max(1, Math.min(tmpcontrol, tmppool));
+		var tmpselfdefault = isSelfOnly("spell", tmpspell);
 
 		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
 			window: { title: `Cast ${tmpitem.name}` },
@@ -128,9 +170,9 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 					<input type="number" name="aura" min="1" value="${tmpsuggest}" autofocus>
 					<p class="hint">The more Aura, the stronger the spell. No more than Aura Control, and no more than is in the pool.</p></div>
 				<div class="form-group"><label>Cast on</label><select name="on">
-					${tmptargets.length ? `<option value="targets">Targeted: ${tmptargets.map(tmpa => esc(tmpa.name)).join(", ")}</option>` : ""}
+					${tmptargets.length ? `<option value="targets" ${tmpselfdefault ? "" : "selected"}>Targeted: ${tmptargets.map(tmpa => esc(tmpa.name)).join(", ")}</option>` : ""}
 					<option value="other">Another, or an area (no token targeted)</option>
-					<option value="self">${esc(tmpactor.name)} (self)</option>
+					<option value="self" ${tmpselfdefault ? "selected" : ""}>${esc(tmpactor.name)} (self)</option>
 				</select>${tmptargets.length ? "" : `<p class="hint">Target a token first to cast at someone: they then roll their resistance, and a bolt that hits can be applied to them from the card.</p>`}</div>
 				${tmptargets.length == 1 ? `<div class="form-group"><label>Target is avoiding</label>
 					<input type="checkbox" name="defense" ${tmptargets[0].system?.combat?.noDefense ? "" : "checked"}>
@@ -151,7 +193,8 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 		var tmpresult = performSpellCast(tmpworker,
 			{ name: tmpitem.name, magicName: tmpspell.magicName },
 			{ level: tmplevel, fail: tmpfailper, aura: tmpanswer.aura, castTime: tmpspell.castTime,
-			  memorized: tmpspell.memorized, mastered: tmpspell.mastered, suppressed: tmpsys.magic?.magicSuppressed,
+			  memorized: tmpspell.memorized, days: getSpellDaysLeft(tmpspell), mastered: tmpspell.mastered,
+			  suppressed: tmpsys.magic?.magicSuppressed,
 			  halfMagic: tmpsys.magic?.halfMagic, auraControl: tmpaura.control, auraPool: tmppool,
 			  title: tmpcaster.title, auraSave: tmpcaster.auraSave, castingSkill: tmpaura.casting ?? { name: "", chance: 0 } },
 			tmpcaster, { self: tmpanswer.on == "self", missileDefense: tmpdefense }, getDieRoll);
@@ -165,7 +208,8 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 		if (tmpresult.suppressAfter) { tmpupdate["system.magic.magicSuppressed"] = true; }
 		if (tmpresult.halfMagicAfter) { tmpupdate["system.magic.halfMagic"] = true; }
 		if (Object.keys(tmpupdate).length) { await tmpactor.update(tmpupdate); }
-		if (tmpresult.forgetSpell) { await tmpitem.update({ "system.memorized": false }); }
+		// Loss of Spell: his uncheckSpellMemorize and clearSpellDays.
+		if (tmpresult.forgetSpell) { await tmpitem.update({ "system.memorized": false, "system.days": 0 }); }
 
 		var tmpwent = tmpresult.outcome == "cast" || tmpresult.outcome == "mishap";
 		// Only a spell that went off reaches the targets; a mishap is the caster's, and the card says so.
@@ -180,17 +224,21 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 			resistModifier: tmpspell.mastered ? MASTERY_RESIST_MOD : 0,
 			victims: tmpreached ? tmpvictims : [], self: tmpanswer.on == "self",
 			seconds: tmpwent ? castSeconds(tmpresult.resolved.castTime) : 0,
-			drained: tmpresult.drain
+			drained: tmpresult.drain,
+			mishapEffects: tmpresult.mishapEffects
 		});
 	}
 
 // @MARKER INVOKING
 	// This is the function behind an invocation's Invoke button -- his USE, useInvocation (153430).
 	export async function invokeInvocation(tmpactor, tmpitem) {
+		return await oneAtATime(itemKey(tmpactor, tmpitem), () => invokeInvocationNow(tmpactor, tmpitem));
+	}
+	async function invokeInvocationNow(tmpactor, tmpitem) {
 		var tmpsys = tmpactor.system;
 		var tmpinvocation = tmpitem.system;
 		var tmptargets = targetedActors();
-		var tmpselfdefault = tmpinvocation.area == "Self" || tmpinvocation.distance == "Self";
+		var tmpselfdefault = isSelfOnly("invocation", tmpinvocation);
 		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
 			window: { title: `Invoke ${tmpitem.name}` },
 			content: `<div class="imagine-cast-dialog">
@@ -243,6 +291,9 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 	// modifier. An answered prayer memorizes it and gives it its uses; a roll more than 20 over the
 	// chance brings 24 hours of Divine Denial.
 	export async function prayForInvocation(tmpactor, tmpitem, tmpevent) {
+		return await oneAtATime(itemKey(tmpactor, tmpitem), () => prayForInvocationNow(tmpactor, tmpitem, tmpevent));
+	}
+	async function prayForInvocationNow(tmpactor, tmpitem, tmpevent) {
 		var tmpsys = tmpactor.system;
 		var tmppiety = tmpsys.magic?.piety ?? {};
 		var tmpmodifier = 0;
@@ -308,17 +359,106 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 	}
 
 
+// @MARKER MEMORY
+	// This is the function behind a spell's MEM button -- his spell-remem, and his MOD beside it when
+	// Shift is held (handleRemorizeSpell, sheet-worker.js:160766): the best casting skill is rolled,
+	// and on a success the spell is memorized with its full days again (addSpellDays and
+	// checkSpellMemorize). Memorizing takes the spell's Mem Time; the card says so, and the time is the
+	// table's to pass.
+	export async function rememorizeSpell(tmpactor, tmpitem, tmpevent) {
+		return await oneAtATime(itemKey(tmpactor, tmpitem), () => rememorizeSpellNow(tmpactor, tmpitem, tmpevent));
+	}
+	async function rememorizeSpellNow(tmpactor, tmpitem, tmpevent) {
+		var tmpsys = tmpactor.system;
+		var tmpskill = tmpsys.magic?.aura?.casting ?? null;
+		var tmpmodifier = 0;
+		if (tmpevent?.shiftKey) {
+			var tmpasked = await foundry.applications.api.DialogV2.prompt({
+				window: { title: `Rememorize ${tmpitem.name}` },
+				content: `<p>Situational modifier:</p><input type="number" name="modifier" value="0" autofocus>`,
+				rejectClose: false,
+				ok: { label: "Roll", callback: (tmpe, tmpb) => tmpb.form.elements.modifier.value }
+			});
+			if (tmpasked === null || tmpasked === undefined) { return null; }
+			tmpmodifier = parseInt(tmpasked) || 0;
+		}
+		var tmproll = await new Roll("1d100").evaluate();
+		var tmpresult = resolveRememorize({ suppressed: tmpsys.magic?.magicSuppressed, castingSkill: tmpskill ?? { name: "", chance: 0 },
+			modifier: tmpmodifier, level: tmpitem.system.level }, tmproll.total);
+		if (tmpresult.days !== null) {
+			await tmpitem.update({ "system.memorized": true, "system.days": tmpresult.days });
+		}
+		var tmpline = describeRememorize(tmpresult, { name: tmpactor.name, spell: tmpitem.name, skill: tmpskill?.name ?? "",
+			memTime: tmpitem.system.memTime });
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+			flavor: `Rememorize spell: <strong>${esc(tmpitem.name)}</strong>`,
+			content: `<div class="imagine-magic-card"><p>${esc(tmpline)}</p>`
+				+ (tmpresult.days !== null ? `<p class="muted">${tmpresult.days} day(s) of memory.</p>` : "") + `</div>`,
+			rolls: tmpresult.roll !== null ? [tmproll] : []
+		});
+		return tmpresult;
+	}
+
+
 // @MARKER THE AURA POOL
 	// This is the function which refills the pool -- his resetAuraPoolMessaged: nothing drained.
 	export async function resetAuraPool(tmpactor) {
+		return await oneAtATime(poolKey(tmpactor), async () => {
+			await tmpactor.update({ "system.magic.drainedAura": 0 });
+			await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+				content: `<div class="imagine-magic-card"><p>${esc(tmpactor.name)} refilled their Aura pool.</p></div>` });
+		});
+	}
+
+	// This is the function behind his Sleep button -- subtractDayFromAllSpells (160889): every spell
+	// loses a day of memory, none below 0, and the Aura pool is refilled (his resetAuraPool). A spell
+	// whose days were never counted reads its full count (getSpellDaysLeft) and loses a day of that; one
+	// with none left, or never counted and not memorized, has none to lose and is left alone.
+	export async function sleepSpells(tmpactor) {
+		return await oneAtATime(poolKey(tmpactor), () => sleepSpellsNow(tmpactor));
+	}
+	async function sleepSpellsNow(tmpactor) {
+		var tmpupdates = [];
+		for (const tmpitem of tmpactor.items) {
+			if (tmpitem.type != "spell") { continue; }
+			var tmpdays = getSpellDaysLeft(tmpitem.system);
+			if (tmpdays == 0) { continue; }
+			tmpupdates.push({ _id: tmpitem.id, "system.days": sleepSpellDays(tmpdays) });
+		}
+		if (tmpupdates.length) { await tmpactor.updateEmbeddedDocuments("Item", tmpupdates); }
 		await tmpactor.update({ "system.magic.drainedAura": 0 });
 		await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
-			content: `<div class="imagine-magic-card"><p>${esc(tmpactor.name)} refilled their Aura pool.</p></div>` });
+			flavor: "Sleep (End Spell Day)",
+			content: `<div class="imagine-magic-card"><p>${esc(tmpactor.name)} slept, refilled their Aura pool, and lost 1 day of usage from all memorized spells.</p></div>` });
+	}
+
+	// This is the function behind his Drain button -- drainAuraPoolByAmount (160962), with his set_aura
+	// box asked for: so much Aura taken from the pool (an Aura user's skill, a spell cast at the table,
+	// an item), never more than it holds. His posts nothing; the tab's pool line shows it.
+	export async function drainAuraPool(tmpactor) {
+		return await oneAtATime(poolKey(tmpactor), () => drainAuraPoolNow(tmpactor));
+	}
+	async function drainAuraPoolNow(tmpactor) {
+		var tmpaura = tmpactor.system.magic?.aura ?? {};
+		var tmpamount = await foundry.applications.api.DialogV2.prompt({
+			window: { title: "Drain Aura" },
+			content: `<p class="hint">The pool holds ${tmpaura.pool?.current ?? 0} of ${tmpaura.pool?.full ?? 0}.</p>
+				<div class="form-group"><label>Aura to drain</label><input type="number" name="amount" min="1" value="1" autofocus></div>`,
+			rejectClose: false,
+			ok: { label: "Drain", callback: (tmpe, tmpb) => parseInt(tmpb.form.elements.amount.value) || 0 }
+		});
+		if (!tmpamount || tmpamount < 1) { return; }
+		var tmpnow = tmpactor.system.magic?.aura?.pool ?? { drained: 0, full: 0 };
+		await tmpactor.update({ "system.magic.drainedAura": drainAura(tmpnow, tmpamount) });
 	}
 
 	// This is the function which gives back what a while's rest regenerates -- his regenAuraPoolByTime,
 	// asked for a time and a unit as his regen_units box and dropdown were.
 	export async function regenerateAura(tmpactor) {
+		return await oneAtATime(poolKey(tmpactor), () => regenerateAuraNow(tmpactor));
+	}
+	async function regenerateAuraNow(tmpactor) {
 		var tmpaura = tmpactor.system.magic?.aura ?? {};
 		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
 			window: { title: "Regenerate Aura" },
@@ -517,6 +657,67 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 		}
 	}
 
+// @MARKER A MISHAP'S LASTING EFFECTS
+	// This is the function behind a mishap card's Apply button: one of the lasting effects his
+	// getMagicalMishap puts on the caster (casting-rules.mjs, getMishapEffects), once. AUR and WIL go
+	// onto the attribute's PERMANENT modifier (permMod) -- his sheet rewrote the rating itself and noted
+	// it among the character's powers ("Magical Mishap:-2 AUR", which the card lists); the modifier keeps
+	// the rolled rating and the change apart, where a Game Master can see and undo it. Burnout suppresses
+	// the caster's magic until the tick on the tab is taken off.
+	//
+	// ONCE, WHOEVER PRESSES IT, HOWEVER FAST -- as the bolt's Apply and the poison card's are guarded:
+	//     only the card's author or the Game Master may apply it, since only they can mark it applied;
+	//     anyone else would change the caster and leave the button live for the next press
+	//     one press at a time (applyingMishaps), so a double-click is one press
+	//     the mark is read again after the waits and written BEFORE the caster is changed: were a write
+	//     to fail part-way the button is spent and the Game Master puts it right by hand, where the
+	//     other way round a second press would take the AUR twice
+	const applyingMishaps = new Set();
+	export async function applyMishapEffect(tmpmessage, tmpindex) {
+		var tmpcard = tmpmessage.getFlag("imagine-rpg", "cast");
+		var tmpeffect = tmpcard?.mishapEffects?.[tmpindex];
+		if (!tmpeffect) { return; }
+		if (tmpeffect.applied) { ui.notifications.warn("That has already been applied."); return; }
+		if (!tmpmessage.isOwner) {
+			ui.notifications.warn("Only the Game Master or whoever cast the spell can apply a mishap, so none is applied twice. Ask the Game Master.");
+			return;
+		}
+		var tmpkey = `${tmpmessage.id ?? tmpmessage.uuid ?? ""}:${tmpindex}`;
+		if (applyingMishaps.has(tmpkey)) { return; }
+		applyingMishaps.add(tmpkey);
+		try {
+			var tmpactor = await fromUuid(tmpcard.casterUuid);
+			if (!tmpactor) { ui.notifications.warn("The caster is no longer there."); return; }
+			if (!tmpactor.isOwner) {
+				ui.notifications.warn(`You do not have permission to change ${tmpactor.name}. Ask the Game Master to apply it.`);
+				return;
+			}
+			// Read the mark again -- the card may have changed while the caster was fetched -- and set it.
+			var tmpnow = foundry.utils.deepClone(tmpmessage.getFlag("imagine-rpg", "cast"));
+			tmpeffect = tmpnow?.mishapEffects?.[tmpindex];
+			if (!tmpeffect) { return; }
+			if (tmpeffect.applied) { ui.notifications.warn("That has already been applied."); return; }
+			tmpnow.mishapEffects[tmpindex].applied = true;
+			await tmpmessage.setFlag("imagine-rpg", "cast.mishapEffects", tmpnow.mishapEffects);
+
+			var tmpdone = "";
+			if (tmpeffect.kind == "aur" || tmpeffect.kind == "wil") {
+				var tmpattr = tmpactor.system.attributes?.[tmpeffect.kind];
+				var tmpperm = (parseInt(tmpattr?.permMod) || 0) + (parseInt(tmpeffect.value) || 0);
+				await tmpactor.update({ [`system.attributes.${tmpeffect.kind}.permMod`]: tmpperm });
+				tmpdone = `${tmpeffect.kind.toUpperCase()} ${tmpeffect.value > 0 ? "+" : ""}${tmpeffect.value} permanently (its permanent modifier is now ${tmpperm}).`;
+			} else if (tmpeffect.kind == "suppress") {
+				await tmpactor.update({ "system.magic.magicSuppressed": true });
+				tmpdone = "magic burned out: magically suppressed until the tick is taken off.";
+			}
+			await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+				flavor: "Magical mishap applied",
+				content: `<div class="imagine-magic-card"><p><strong>${esc(tmpactor.name)}</strong>: ${esc(tmpdone)}</p></div>` });
+		} finally {
+			applyingMishaps.delete(tmpkey);
+		}
+	}
+
 	// This is the function which wires a cast card's buttons whenever one is shown.
 	export function registerCastCardListeners() {
 		Hooks.on("renderChatMessageHTML", function (tmpmessage, tmphtml) {
@@ -533,6 +734,17 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 			}
 			for (const tmpbutton of tmphtml.querySelectorAll("[data-imagine-action='applySpellTarget']")) {
 				tmpbutton.addEventListener("click", () => applySpellToTarget(tmpmessage, parseInt(tmpbutton.dataset.index)));
+			}
+			// A mishap's lasting effects: a button once applied is spent.
+			for (const tmpbutton of tmphtml.querySelectorAll("[data-imagine-action='applyMishapEffect']")) {
+				var tmpeffect = tmpcard.mishapEffects?.[parseInt(tmpbutton.dataset.index)];
+				if (tmpeffect?.applied) {
+					tmpbutton.disabled = true;
+					tmpbutton.classList.add("applied");
+					tmpbutton.innerHTML = `<i class="fa-solid fa-check"></i> Applied`;
+					continue;
+				}
+				tmpbutton.addEventListener("click", () => applyMishapEffect(tmpmessage, parseInt(tmpbutton.dataset.index)));
 			}
 			var tmpspend = tmphtml.querySelector("[data-imagine-action='spendCastTime']");
 			if (tmpspend && tmpcard.spent) {

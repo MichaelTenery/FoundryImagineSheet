@@ -143,7 +143,8 @@
 	{{!-- @MARKER SPELLS
 	      A spell is cast with the Aura put into it: Aura Control is the most that may go in and the
 	      highest level cast safely, the pool what is left. Above Aura Control a spell risks a mishap.
-	      Cast asks the Aura and the target (module/casting-actions.mjs). --}}
+	      Cast asks the Aura and the target (module/casting-actions.mjs). A memorized spell lasts 30
+	      days less its level; Sleep takes a day from each, and MEM rolls to refresh one. --}}
 	{{#if magic.spells.show}}
 	<details class="skill-group magic-group" data-sync open>
 		<summary>Spells <span class="count">{{magic.spells.rows.length}}</span>
@@ -157,7 +158,9 @@
 			<span class="slot"><label>Regenerates</label> {{magic.aura.regen}}</span>
 			{{#if magic.aura.absorbAura}}<span class="slot"><label>Absorb Aura</label> {{magic.aura.absorbAura}}%</span>{{/if}}
 			<button type="button" data-action="regenerateAura" data-tooltip="Aura back after a while (his Regen by time)"><i class="fa-solid fa-hourglass-half"></i> Regenerate</button>
-			<button type="button" data-action="resetAuraPool" data-tooltip="A full pool, after a night of rest"><i class="fa-solid fa-rotate"></i> Reset pool</button>
+			<button type="button" data-action="resetAuraPool" data-tooltip="A full pool (his Reset Aura Pool)"><i class="fa-solid fa-rotate"></i> Reset pool</button>
+			<button type="button" data-action="drainAuraPool" data-tooltip="Take Aura from the pool: a skill, an item, a spell cast at the table (his Drain)"><i class="fa-solid fa-droplet-slash"></i> Drain</button>
+			<button type="button" data-action="sleepSpells" data-tooltip="A night's sleep: a full pool, and every memorized spell loses a day of memory (his Sleep)"><i class="fa-solid fa-bed"></i> Sleep</button>
 		</div>
 		<div class="aura-flags">
 			<label><input type="checkbox" name="system.magic.magicSuppressed" {{#if magic.aura.suppressed}}checked{{/if}}> Magically suppressed (no casting)</label>
@@ -175,20 +178,27 @@
 			<thead><tr>
 				<th class="col-name">Spell</th><th class="col-num">Level</th><th class="col-detail">Cast / range / lasts</th>
 				<th class="col-num" data-tooltip="Mastered: +2 Aura Control, half the time, triple range, double duration">Mst</th>
-				<th class="col-num">Mem</th><th class="col-roll"></th><th class="col-row-actions"></th>
+				<th class="col-num">Mem</th>
+				<th class="col-num" data-tooltip="Days of memory left: 30 less the level when memorized, one lost at each Sleep">Days</th>
+				<th class="col-roll"></th><th class="col-row-actions"></th>
 			</tr></thead>
 			<tbody>
 				{{#each magic.spells.rows as |r|}}
 				<tr data-item-id="{{r.id}}" data-tooltip="{{r.tooltip}}">
-					<td class="col-name">{{r.name}}{{#if r.aboveControl}} <span class="alarm" data-tooltip="Above Aura Control: a {{r.failChance}}% chance of a magical mishap">!</span>{{/if}}</td>
+					<td class="col-name">{{r.name}}{{#if r.aboveControl}} <span class="alarm" data-tooltip="Above Aura Control: a {{r.failChance}}% chance of a magical mishap">!</span>{{/if}}
+						{{#if r.forgotten}} <span class="alarm" data-tooltip="Out of days: forgotten until MEM refreshes it">forgotten</span>{{/if}}</td>
 					<td class="col-num muted">{{r.level}}</td>
 					<td class="col-detail muted">{{r.castTime}} &middot; {{r.range}} &middot; {{r.duration}}{{#if r.save}}{{#unless (eq r.save "None")}} &middot; {{r.save}}{{/unless}}{{/if}}</td>
 					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.mastered}}on{{/if}}" data-action="toggleMastered"
 						data-tooltip="{{#if r.mastered}}Mastered: click to unmark{{else}}Not mastered{{/if}}">{{#if r.mastered}}&#9733;{{else}}&#9734;{{/if}}</button></td>
 					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.memorized}}on{{/if}}" data-action="toggleMemorized"
-						data-tooltip="Memorizing takes {{r.memTime}}">{{#if r.memorized}}&#9679;{{else}}&#9675;{{/if}}</button></td>
-					<td class="col-roll"><button type="button" data-action="castSpell" {{#unless r.memorized}}disabled{{/unless}}
-						data-tooltip="{{#if r.memorized}}Cast it: choose the Aura, and target tokens first to cast at them{{else}}Memorize it first{{/if}}">Cast</button></td>
+						data-tooltip="{{#if r.memorized}}Memorized: click to forget (its days go too){{else}}Tick without a roll; MEM rolls for it{{/if}}">{{#if r.memorized}}&#9679;{{else}}&#9675;{{/if}}</button></td>
+					<td class="col-num {{#if r.forgotten}}alarm{{else}}muted{{/if}}">{{#if r.memorized}}{{r.days}}{{else}}&mdash;{{/if}}</td>
+					<td class="col-roll">
+						<button type="button" data-action="rememorizeSpell"
+							data-tooltip="Rememorize with the casting skill: its full days again. Takes {{r.memTime}} (Shift: add a modifier)">Mem</button>
+						<button type="button" data-action="castSpell" {{#unless r.memorized}}disabled{{/unless}}{{#if r.forgotten}} disabled{{/if}}
+						data-tooltip="{{#if r.forgotten}}Forgotten: rememorize it first{{else}}{{#if r.memorized}}Cast it: choose the Aura, and target tokens first to cast at them{{else}}Memorize it first{{/if}}{{/if}}">Cast</button></td>
 					<td class="col-row-actions">
 						<button type="button" class="row-button" data-action="postMagic" data-tooltip="Read it out to chat"><i class="fa-solid fa-comment"></i></button>
 						<button type="button" class="row-button" data-action="openItem" data-item-id="{{r.id}}" data-tooltip="Open">&#9998;</button>

@@ -18,6 +18,8 @@
 // kind is recorded rather than assumed.
 //==================================================================================================================
 
+import { getPowerSubsystem } from "../availability.mjs";
+
 const fields = foundry.data.fields;
 
 export default class ImaginePowerData extends foundry.abstract.TypeDataModel {
@@ -45,6 +47,16 @@ export default class ImaginePowerData extends foundry.abstract.TypeDataModel {
 			               choices: ["unknown", "spell", "invocation", "magicItem", "divineItem"],
 			               label: "Kind" }),
 
+			// @MARKER MAGIC SWITCH
+			// Which magic switch turns the power off (module/availability.mjs): a creature's own power
+			// answers to Powers, a magic item's to Magic Item Empowering, a divine item's to Divine
+			// Item Empowering -- his three repeating sections, powers, mitempowers and ditempowers.
+			// Stored, as a consumable's is, because a compendium index carries stored fields only.
+			// Until 2026-09-24 a power carried none, so the Powers switch reached nothing; one made
+			// before then is given its switch from its kind by migrateData below.
+			subsystem: new fields.StringField({ required: true, initial: "powers",
+			               choices: ["powers", "enchanting", "divineItems"], label: "Magic Subsystem" }),
+
 			// @MARKER PROVENANCE
 			sourcebook:  new fields.StringField({ required: true, initial: "" }),
 			page:        new fields.StringField({ required: true, initial: "" }),
@@ -53,6 +65,17 @@ export default class ImaginePowerData extends foundry.abstract.TypeDataModel {
 	}
 
 	// @MARKER ADD NEW power data model functions HERE
+
+	// @MARKER MIGRATION
+	// A power stored before 2026-09-24 has no subsystem; it is given the one its kind answers to
+	// (availability.mjs, getPowerSubsystem) every time it loads, until it is next saved. Only a whole
+	// stored power -- one carrying its powerKind -- never a partial change that does not name it.
+	static migrateData(tmpsource) {
+		if (tmpsource && !tmpsource.subsystem && tmpsource.powerKind !== undefined) {
+			tmpsource.subsystem = getPowerSubsystem(tmpsource.powerKind);
+		}
+		return super.migrateData(tmpsource);
+	}
 
 	// This is the function which says whether the Power can be used right now.
 	get hasUseLeft() {

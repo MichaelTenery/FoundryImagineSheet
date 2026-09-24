@@ -209,7 +209,9 @@ const powerItem = {
 };
 const powerCtx = {
 	item: powerItem, system: powerItem.system,
-	config: { powerKinds: ["unknown", "spell", "invocation", "magicItem", "divineItem"] }
+	config: { powerKinds: ["unknown", "spell", "invocation", "magicItem", "divineItem"],
+		powerSubsystems: [{ id: "powers", label: "Powers" }, { id: "enchanting", label: "Magic Item Empowering" },
+			{ id: "divineItems", label: "Divine Item Empowering" }] }
 };
 
 // --- a trait, taken straight from the extracted content ------------------------------

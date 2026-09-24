@@ -119,6 +119,15 @@ the port knowingly building a figure he has since corrected.
   entry that no longer agrees. `Legends.txt` Pg 42's "Grants Swimming Social Skill at +50%" is read as
   his code reads it (+50 when Swimming is taken), pending his answer.
 
+- **The Wilder's Aura Control — APPLIED 2026-09-24.** `MM.txt` "Pg: 47 (Wilder Class)", "Should
+  Read": "All Aura Control modifiers are halved (round down); apply to dual class Wilders as well."
+  His sheet halves only the figure per title (a Wilder's `getAuraControlTitleMod` is 1, a Mage's 2)
+  and adds Intelligence, Metaphysics and the boost in full. The errata's figure is used: every
+  modifier halved on its own, the fraction dropped, a dual-classed Wilder's other class too, then
+  Winds of Wild Magic doubles the total (`module/casting-rules.mjs`, THE WILDER'S HALVING). A Wilder
+  at title 5 with Intelligence +2 and Winds is 12, where his sheet gives 14. The readings (each part on
+  its own, a penalty toward 0, doubling after) are the port's and asked upstream.
+
 ## Next step
 
 Nothing has been built from any of this yet. The question above is settled, so the next pass is
