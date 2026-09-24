@@ -36,8 +36,9 @@ const C = await import("../module/chargen-rules.mjs");
 const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
 
 const load = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`)).json());
-const [races, classes, skills] = await Promise.all(["races", "classes", "skills"].map(load));
-const content = { races, classes, skills };
+const [races, classes, skills, equipment, armor, weapons] =
+	await Promise.all(["races", "classes", "skills", "equipment", "armor", "weapons"].map(load));
+const content = { races, classes, skills, equipment, armor, weapons };
 
 const template = Handlebars.compile(await (await fetch("../templates/apps/character-generator.hbs")).text());
 const framesEl = document.getElementById("frames");
@@ -83,11 +84,20 @@ show("Step 5: Skills -- the class's first-title skills, and two racial and two s
 
 state.step = 5; state.handedness = "Right"; state.age = 19; state.heightFeet = 5; state.heightInches = 6; state.weight = 125;
 state.alignment = "Neutral Good"; state.languages = [{ name: "Common", write: true }, { name: "Elvish", write: false }];
-state.wealth = { copper: 20, silver: 10, gold: 2, platinum: 0 };
 show("Step 6: Details", state);
 
+// The Equipment step: the money (set here rather than rolled -- its own suite rolls it), and the shop
+// with a long sword and a bundle of ten arrow heads bought out of it (module/shop-rules.mjs).
 state.step = 6;
-show("Step 7: Review", state);
+state.wealth = { copper: 20, silver: 10, gold: 12, platinum: 0 };
+state.startingMoney = { realSocialClass: V.deriveGenerator(state, content, () => true).finals.soc.final,
+	fortune: V.deriveGenerator(state, content, () => true).fortune, issues: ["Set by the preview, not rolled."] };
+state.purchases = [{ key: "Weapon|Long Sword", count: 1, level: "" }, { key: "Equipment|10 Arrow Head", count: 1, level: "" }];
+state.shop = { type: "Weapon", subtype: "Blades", search: "", count: 1 };
+show("Step 7: Equipment -- money, starting kit, and the shop: a long sword and ten arrow heads bought", state);
+
+state.step = 7;
+show("Step 8: Review", state);
 
 // --- the character it makes, derived by the real model --------------------------------------
 const derived = V.deriveGenerator(state, content, () => true);

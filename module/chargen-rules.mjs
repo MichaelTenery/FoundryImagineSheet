@@ -350,8 +350,8 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 	// and previewed without Foundry; the generator window only calls Actor.create with the result.
 	//
 	//   tmpChoices  what the player settled on, step by step (see the generator window)
-	//   tmpContent  { races, classes, skills }: plain documents, as the compendiums or the
-	//               src/packs/documents files hold them
+	//   tmpContent  { races, classes, skills, equipment, armor, weapons }: plain documents, as the
+	//               compendiums or the src/packs/documents files hold them
 	//   tmpRoll     the dice, for every skill's starting bonus
 	//
 	// Returns { actor, items, issues }. Nothing is refused: anything that could not be found or
@@ -505,6 +505,36 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 			}
 		}
 
+		// @MARKER PURCHASES
+		// What was bought on the Equipment step -- module/shop-rules.mjs buildPurchasedEntries, already
+		// paid for: the coins in tmpChoices.wealth are what was left. Everything goes to Carried, as his
+		// add_item puts it ("they have to carry it out of the store, where they put it later is up to
+		// them", sheet-worker.js:14297); Equip Best Armour below then puts on any armour bought, which is
+		// the book's "If you bought a suit of armor ..." (step 10).
+		//
+		// An entry is one document. Equipment and ammunition arrive as ONE item carrying the quantity;
+		// armour and other weapons as one item per copy, each with a quantity of one, so each can be worn
+		// or held on its own (split -- see buildPurchasedEntries for why). A document that is no longer
+		// in the content cannot be created, and is reported rather than dropped in silence.
+		var tmpNotBought = [];
+		for (const tmpEntry of tmpChoices.purchases ?? []) {
+			var tmpPool = { equipment: tmpContent.equipment, armor: tmpContent.armor, weapon: tmpContent.weapons }[tmpEntry.docType];
+			var tmpBought = tmpByName(tmpPool, tmpEntry.docName);
+			var tmpHowMany = parseInt(tmpEntry.quantity) || 0;
+			if (!tmpBought) { tmpNotBought.push(tmpEntry.label || tmpEntry.docName); continue; }
+			if (tmpHowMany < 1) { continue; }
+			if (tmpEntry.split) {
+				for (var tmpCopyBought = 0; tmpCopyBought < tmpHowMany; tmpCopyBought += 1) {
+					tmpItems.push(tmpItem(tmpBought, { location: "carried", quantity: 1 }));
+				}
+			} else {
+				tmpItems.push(tmpItem(tmpBought, { location: "carried", quantity: tmpHowMany }));
+			}
+		}
+		if (tmpNotBought.length) {
+			tmpIssues.push(`Bought, but no longer in the compendium, so not created: ${tmpNotBought.join(", ")}.`);
+		}
+
 		// @MARKER NATURAL WEAPONS
 		// The race's claws, bites and horns, as weapons in the Weapons section -- see
 		// module/natural-weapons.mjs. The generator knows the character's physique, so an attack his
@@ -520,9 +550,9 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 		}
 
 		// The same choice his sheet's Equip Best Armour button makes -- see equipBestArmorInPlace,
-		// just below -- applied once here because the starting kit above is the only place armour
-		// ever enters a new character and the generator has no equipment step of its own to put a
-		// button on. (docs/sonnet/2026-09-19-equip-buttons.md item 1.)
+		// just below -- applied once here because the starting kit and the purchases above are the only
+		// places armour ever enters a new character, and there is no armour on it to choose between
+		// until both are in. (docs/sonnet/2026-09-19-equip-buttons.md item 1.)
 		equipBestArmorInPlace(tmpItems);
 
 		return { actor: tmpActor, items: tmpItems, issues: tmpIssues };

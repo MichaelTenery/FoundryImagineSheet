@@ -38,6 +38,7 @@ import {
 	ImagineConsumableSheet, ImagineLoreSheet, ImagineSpellSheet, ImagineInvocationSheet
 } from "./sheets/item-sheet.mjs";
 import { provideStartingLore } from "./starting-lore.mjs";
+import { PRICE_LEVELS, DEFAULT_PRICE_LEVEL } from "./shop-rules.mjs";
 import { importAllContent } from "./content-importer.mjs";
 import { grantClassSkills, registerClassAdvancement } from "./class-advancement.mjs";
 import { grantNaturalWeapons, registerNaturalWeapons } from "./natural-weapons.mjs";
@@ -402,6 +403,27 @@ Hooks.once("init", function () {
 		config: true,
 		type: Boolean,
 		default: false
+	});
+
+	// @MARKER PRICE LEVEL
+	// Which of his seven price columns the character generator's shop charges -- see module/shop-rules.mjs.
+	// The book makes it the Game Master's: "the GM determines if the cost for items is low, medium, or
+	// high, depending upon the economics of his world setting" (Player's Guide p.207). His own sheet has a
+	// Set Cost select on every purchase instead, defaulting to Free, which is a table tool; in creation it
+	// would let a player spend nothing and ignore the money roll. So it is one world setting, Medium by
+	// default, and a Game Master at the generator may still set a line's own level, Free included. The
+	// sheet-side shop, when it comes, reads the same setting. The recommended default, taken 2026-09-23
+	// while the user was away.
+	game.settings.register("imagine-rpg", "priceLevel", {
+		name: "Price level",
+		hint: "What goods cost in this world, from his seven price columns: Quarter Low to Triple High. "
+		    + "\"The GM determines if the cost for items is low, medium, or high, depending upon the "
+		    + "economics of his world setting\" (Player's Guide p.207). Used by the character generator's shop.",
+		scope: "world",
+		config: true,
+		type: String,
+		choices: Object.fromEntries(PRICE_LEVELS.map(([tmpkey, tmplabel]) => [tmpkey, tmplabel])),
+		default: DEFAULT_PRICE_LEVEL
 	});
 
 	// @MARKER CONTENT AVAILABILITY

@@ -254,6 +254,11 @@
 		<div class="swap-row"><input type="text" name="languages.{{l.n}}.name" value="{{l.name}}">
 			<label class="check"><input type="checkbox" name="languages.{{l.n}}.write" {{#if l.write}}checked{{/if}}> writes</label></div>
 		{{/each}}
+	{{/if}}
+
+	{{!-- @MARKER EQUIPMENT --}}
+	{{#if isEquipment}}
+		<h2>Equipment</h2>
 		{{!-- @MARKER STARTING MONEY
 		      Rolled by itself when this step is first drawn, his setCoins -- see module/starting-money.mjs.
 		      The fields stay editable because the book leaves the Game Master free to alter it (p.207);
@@ -296,6 +301,62 @@
 		{{#if startingKitPreview.length}}
 		<p class="muted">This would bring: {{#each startingKitPreview as |i|}}<span class="race-chip">{{i}}</span>{{/each}}</p>
 		{{/if}}
+
+		{{!-- @MARKER SHOP
+		      His ADD/BUY ITEMS panel, at his prices, paid his way -- see module/shop-rules.mjs. Nothing is
+		      paid until the character is created: the list is priced afresh against the purse above every
+		      time this is drawn, so a line the purse can no longer cover is marked, and Next waits until
+		      it is removed or cut down. Everything bought is carried; armour is put on at creation. --}}
+		<h3>Shop <span class="muted">{{shop.priceLevelLabel}} prices, the Game Master&rsquo;s to set</span></h3>
+		{{#if shop.byCulture}}
+		<p class="muted">Gear by culture is taken <em>instead of</em> starting coins, so there is nothing to buy with.
+			{{#if shop.keptCount}}The shopping list is kept, and comes back if it is unticked.{{/if}}</p>
+		{{else}}
+		<p>Purse {{shop.purse}}. After the list: <strong>{{shop.purseAfter}}</strong>. Spent {{shop.spent}}.</p>
+		{{#if shop.lines.length}}
+		<table class="chargen-shop-list">
+			<thead><tr><th>Bought</th><th>No#</th>{{#if shop.isGM}}<th>Price level</th>{{/if}}<th>Each</th><th>Total</th><th>Weight</th><th></th></tr></thead>
+			<tbody>
+			{{#each shop.lines as |l|}}
+			<tr class="{{#unless l.ok}}unaffordable{{/unless}}">
+				<td>{{l.label}}{{#unless l.ok}}<div class="alarm">{{l.reason}}</div>{{/unless}}{{#if l.issue}}<div class="muted">{{l.issue}}</div>{{/if}}</td>
+				<td><input type="number" name="purchases.{{l.index}}.count" value="{{l.count}}" min="0"></td>
+				{{#if ../shop.isGM}}<td><select name="purchases.{{l.index}}.level">{{#each l.levelOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></td>{{/if}}
+				<td>{{l.unitPrice}}</td><td>{{l.total}}</td><td class="muted">{{l.weightText}}</td>
+				<td><button type="button" data-action="removePurchase" data-index="{{l.index}}" title="Take it off the list"><i class="fa-solid fa-trash"></i></button></td>
+			</tr>
+			{{/each}}
+			</tbody>
+		</table>
+		{{/if}}
+		{{!-- @MARKER LOAD -- shown, never refused: his add_item does not look at encumbrance. --}}
+		<p class="muted">{{#if shop.load}}Carrying {{shop.load.carried}} lb of {{shop.load.maxLoad}}:
+			<span class="{{#if shop.load.over}}alarm{{/if}}">{{shop.load.status}}{{#if shop.load.penalty}}, {{shop.load.penalty}}{{/if}}</span>.
+			{{else}}Roll height and weight on the Details step to see what this character can carry.{{/if}}</p>
+
+		<div class="swap-row chargen-shop-filter">
+			<select name="shop.type">{{#each shop.typeOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
+			<select name="shop.subtype">{{#each shop.subtypeOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
+			<input type="text" name="shop.search" value="{{shop.search}}" placeholder="Search by name">
+			<button type="button" data-action="searchShop" title="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+			<label>No# <input type="number" name="shop.count" value="{{shop.count}}" min="1"></label>
+		</div>
+		<table class="chargen-shop-offers">
+			<tbody>
+			{{#each shop.offers as |o|}}
+			<tr class="{{#unless o.affordable}}unaffordable{{/unless}}">
+				<td>{{o.label}}{{#if o.homebrew}} <span class="muted">(Game Master&rsquo;s)</span>{{/if}}</td>
+				<td title="{{o.prices}}">{{o.price}}{{#if o.priceIssue}} <i class="fa-solid fa-circle-info" title="{{o.priceIssue}}"></i>{{/if}}</td>
+				<td class="muted">{{o.weight}}</td>
+				<td><button type="button" data-action="buyOffer" data-offer="{{o.key}}">Buy</button></td>
+			</tr>
+			{{else}}
+			<tr><td class="muted">Nothing here matches.</td></tr>
+			{{/each}}
+			</tbody>
+		</table>
+		{{#if shop.offerMore}}<p class="muted">{{shop.offerMore}} more &mdash; choose a kind or search to narrow the list.</p>{{/if}}
+		{{/if}}
 	{{/if}}
 
 	{{!-- @MARKER REVIEW --}}
@@ -303,11 +364,14 @@
 		<h2>{{#if state.name}}{{state.name}}{{else}}New Character{{/if}}</h2>
 		<p>{{raceName}} {{#if klass}}{{klass.name}}{{/if}}, title {{review.title}}. {{typeLabel}} character.</p>
 		<p>Money: {{#if review.money}}{{review.money}}{{else}}none{{/if}}</p>
+		{{#if review.bought.length}}
+		<p>Bought: {{#each review.bought as |b|}}<span class="race-chip">{{b}}</span>{{/each}} <span class="muted">&mdash; spent {{review.spent}}</span></p>
+		{{/if}}
 		<table class="chargen-attributes compact"><tbody>
 			{{#each attributes as |a|}}<tr><td>{{a.label}}</td><td class="strong">{{a.final}}</td></tr>{{/each}}
 		</tbody></table>
 		<h3>Items</h3>
-		<p>{{#each review.items as |it|}}<span class="race-chip">{{it.name}}{{#if it.category}} ({{it.category}}){{/if}}</span>{{/each}}</p>
+		<p>{{#each review.items as |it|}}<span class="race-chip">{{it.name}}{{#if it.quantity}} &times;{{it.quantity}}{{/if}}{{#if it.category}} ({{it.category}}){{/if}}</span>{{/each}}</p>
 		{{#if review.issues.length}}<h3>To note</h3>{{#each review.issues as |i|}}<p class="alarm">{{i}}</p>{{/each}}{{/if}}
 		{{!-- @MARKER STARTING LORE -- his own tick, in his own words, on his last step. --}}
 		<h3>Lore</h3>
