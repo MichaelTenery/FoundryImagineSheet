@@ -82,9 +82,15 @@ import {
 		var tmpAlternatives = tmpKit["" + tmpWanted] ?? [];
 		if (!tmpAlternatives.length) { return { items: [], issues: [`Kit ${tmpKitName} has nothing at social ${tmpWanted}.`] }; }
 
-		var tmpChosen = tmpAlternatives.length > 1
-			? tmpAlternatives[tmpRoll(tmpAlternatives.length) - 1]
-			: tmpAlternatives[0];
+		// The die is held to the ends the same way the band is, above. A die that breaks its 1..n
+		// promise -- a 0, a NaN, a test's fixed 10 against two alternatives -- still lands on a real
+		// alternative instead of reading off the end of the list and taking the generator down.
+		var tmpPick = tmpAlternatives.length > 1 ? (parseInt(tmpRoll(tmpAlternatives.length)) || 1) : 1;
+		tmpPick = Math.max(1, Math.min(tmpAlternatives.length, tmpPick));
+		var tmpChosen = tmpAlternatives[tmpPick - 1];
+		if (!tmpChosen) {
+			return { items: [], kit: tmpKitName, issues: [`Kit ${tmpKitName} has an empty choice at social ${tmpWanted}.`] };
+		}
 
 		return {
 			items: countedItems(tmpChosen.armorClothing, "culture")

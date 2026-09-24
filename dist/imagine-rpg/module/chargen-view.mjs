@@ -450,8 +450,13 @@ import {
 			write: !!tmpState.languages[tmpN]?.write }));
 
 		// @MARKER REVIEW
+		// The same FIXED die as the kit preview above, and for the same reason -- so the Review list
+		// is the kit the Details step just showed. It must be a 1 and never a 0: every rule takes its
+		// dice as 1..sides (chargen-rules.mjs), and a 0 chose the kit alternative BEFORE the first,
+		// which is nothing. That threw on every redraw and left the window stuck on Details for any
+		// race whose culture kit offers a choice at its social class.
 		if (tmpStepName == "Review") {
-			var tmpAssembled = assembleCharacter(choicesFromState(tmpState, tmpD), tmpContent, () => 0);
+			var tmpAssembled = assembleCharacter(choicesFromState(tmpState, tmpD), tmpContent, () => 1);
 			tmpView.review = {
 				items: tmpAssembled.items.map(tmpItem => ({ name: tmpItem.name, type: tmpItem.type,
 					category: tmpItem.system.category ?? "" })),

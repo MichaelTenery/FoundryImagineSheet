@@ -18,6 +18,17 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.18.2 — 2026-09-23
+
+Found at a real table on 0.18.1.
+
+**The character generator no longer gets stuck on Details.** With "Gear by culture" ticked, Next
+did nothing: the Review page failed to draw, and the console showed "Cannot read properties of
+undefined (reading 'armorClothing')". It hit most races, any whose culture kit offers a choice of
+gear at the character's social class. The Review page now draws and lists the same kit the Details
+page previewed. Which of the kits on offer the character actually gets is still rolled when it is
+created, as before. If you unticked "Gear by culture" to get past it, you can tick it again.
+
 ## 0.18.1 — 2026-09-23
 
 **The version on every window.** Each Imagine sheet and window shows the system's version in its

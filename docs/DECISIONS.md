@@ -4912,3 +4912,36 @@ per full 30% of weight (neither speed under 1), and its weight reaches encumbran
 own direction rather than his arithmetic's, UPSTREAM 66. A Gravity rune's level is signed, as his is.
 Strenghthen Metal/Wood adds +5 weapon strength, +10 for the greater rune; Repair makes the strength
 "[R]" and Invulnerability (ability or rune) "[I]". combat-test +9.
+
+## A preview's fixed die is a 1, and a die-indexed pick is held to its list (2026-09-23)
+
+**Found at a real table on 0.18.1.** With "Gear by culture" ticked the character generator would not
+leave Details: the Review step's redraw threw "Cannot read properties of undefined (reading
+'armorClothing')" at `rollWildernessKit`. The Review preview (`chargen-view.mjs`, @MARKER REVIEW) called
+`assembleCharacter` with a fixed die of `() => 0`. Every rule here takes its dice as `tmpRoll(sides) ->
+1..sides` (the headers of `chargen-rules.mjs` and `lore-rules.mjs`); a 0 read `tmpAlternatives[-1]`. 61 of
+the 111 races with a culture kit failed that way with nothing rolled, and most of the rest would at a
+higher social class. The real in-Foundry die (`ImagineCharacterGenerator.#die`) was never wrong.
+
+**Two calls, both small:**
+
+1. **A fixed die for a preview is `() => 1`, never `() => 0`.** It stays inside the contract and matches
+   the Details step's kit preview, which already used 1, so Review lists the kit Details showed. A fixed
+   die is kept at all for the reason the kit preview gives: a list that reshuffled on every redraw would
+   be worse than none. The kit actually given is still rolled once, at creation.
+2. **`rollWildernessKit` holds its die to 1..n**, the same way it already held the social class to the
+   ends of the band list, and returns an issue rather than throwing if a choice is missing. A preview
+   should never be able to take the whole window down. Picks made by an in-contract die are unchanged:
+   checked against all 85 bands that offer a choice, every face 1..n.
+
+**Not done here, recorded so it is not lost:** the same unguarded `list[tmpRoll(n) - 1]` shape remains
+in `lore-rules.mjs` (hymn, poison and primer picks, and `drawDistinct`, whose loop has no guard). Its only
+production caller passes an in-contract die, so no user can reach it today; the hardening is listed in
+`docs/sonnet/2026-09-23-chargen-kit-crash.md`. The preview showing the FIRST kit while creation rolls
+among them is a known trade-off, not a bug, and is left as it was.
+
+**Verified:** `tools/chargen-test.html` 89 (+6: faces 1..4 pick as before; 0, 10 and NaN are held to
+the ends; every race at social -2..25 with dice 0/1/10/NaN), `tools/derive-test.html` 510 (+2: the Review
+redraw for every race with a culture kit, all three kit rules ticked, and its list holds the Details
+preview). A node sweep of every race at social -2..25 through the Review view threw 4,858 times on
+0.18.1 and 0 now. **Not verified:** the window in a running V14.

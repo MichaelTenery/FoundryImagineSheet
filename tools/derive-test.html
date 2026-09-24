@@ -1826,6 +1826,30 @@ check("evokesAllowed -1 shows as 'All' in the view and never over-budgets",
 check("choicesFromState passes the famorian block straight through, untouched",
 	CV.choicesFromState(wingedState, wingedDerived).famorian, wingedState.famorian);
 
+// --- the Review step, with the starting kit ticked ------------------------------------------
+// Found at a real table, 2026-09-23: with "Gear by culture" ticked, Next from Details threw on
+// every redraw -- "Cannot read properties of undefined (reading 'armorClothing')" -- and the window
+// stayed on Details. The Review preview rolled with a fixed die of 0, which chose the kit
+// alternative before the first; 61 of these 111 races failed that way. Every race with a culture
+// kit is driven through the Review redraw here, with all three kit rules ticked.
+const { RACE_WILDERNESS_KIT } = await import("../module/starting-kit-tables.mjs");
+const reviewThrew = [], reviewShort = [];
+for (const race of raceDocs.filter(d => RACE_WILDERNESS_KIT[d.name])) {
+	const reviewState = { ...CV.newGeneratorState(), step: CV.STEPS.indexOf("Review"), race1: race.name,
+		startingKit: { byCulture: true, byStatus: true, bySkills: true } };
+	try {
+		const reviewView = CV.buildGeneratorView(reviewState, chargenContent, () => true);
+		const reviewNames = new Set(reviewView.review.items.map(i => i.name));
+		// The Details step's kit preview and the Review list roll the same fixed die, so the one
+		// must hold everything the other showed.
+		if (reviewView.startingKitPreview.some(s => !reviewNames.has(s.replace(/ ×\d+$/, "")))) {
+			reviewShort.push(race.name);
+		}
+	} catch (e) { reviewThrew.push(`${race.name}: ${e.message}`); }
+}
+check("the Review step draws for every race with a culture kit, all three kit rules ticked", reviewThrew, []);
+check("...and its list carries the same kit the Details step previewed", reviewShort, []);
+
 // His height and frame tables are keyed by HIS names, so a form has to be looked up under its
 // source race or a character of one gets no height and therefore no weight.
 check("his height table has never heard of the port's own names for the faerie forms",

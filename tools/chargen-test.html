@@ -315,6 +315,36 @@ check("the four races his height switch misses were filled, so none is left with
 	["Giant(Civilized)", "Human(Civilized:City)", "Human(Civilized:Port)", "Human(Civilized:Town)"]
 		.filter(r => !T.HEIGHT_TYPE_BY_RACE[r]), []);
 
+// --- the starting kit: choosing between a band's alternatives ----------------------------------
+// module/starting-kit.mjs had no test of its own. rollWildernessKit reads tmpAlternatives[die - 1],
+// and a die of 0 -- the fixed die the generator's Review step once used -- read the entry before
+// the first and threw, which left the window stuck on Details (2026-09-23).
+const K = await import("../module/starting-kit.mjs");
+const KT = await import("../module/starting-kit-tables.mjs");
+const villageKit = KT.WILDERNESS_KITS[KT.RACE_WILDERNESS_KIT["Human(Civilized:Village)"]]["12"];
+const kitNames = (kit) => kit.items.map(i => i.name);
+const altNames = (alt) => [...alt.armorClothing, ...alt.weapons, ...alt.generalEquipment].map(s => K.splitItemCount(s).name);
+check("a village Human at social 12 has four kits to roll between", villageKit.length, 4);
+check("a die inside 1..4 picks that alternative, exactly as before",
+	[1, 2, 3, 4].map(n => kitNames(K.rollWildernessKit("Human(Civilized:Village)", 12, always(n)))),
+	villageKit.map(altNames));
+check("a die of 0 no longer throws; it is held to the first alternative",
+	kitNames(K.rollWildernessKit("Human(Civilized:Village)", 12, always(0))), altNames(villageKit[0]));
+check("a die past the end is held to the last, not read off the list",
+	kitNames(K.rollWildernessKit("Human(Civilized:Village)", 12, always(10))), altNames(villageKit[3]));
+check("a die that is not a number is held to the first",
+	kitNames(K.rollWildernessKit("Human(Civilized:Village)", 12, always(NaN))), altNames(villageKit[0]));
+const kitThrew = [];
+for (const race of Object.keys(KT.RACE_WILDERNESS_KIT)) {
+	for (let soc = -2; soc <= 25; soc++) {
+		for (const face of [0, 1, 10, NaN]) {
+			try { K.buildStartingKit({ raceName: race, social: soc, byCulture: true, byStatus: true }, always(face)); }
+			catch (e) { kitThrew.push(`${race} soc ${soc} die ${face}: ${e.message}`); }
+		}
+	}
+}
+check("no race at any social class throws, whatever the die says", kitThrew.slice(0, 3), []);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =
