@@ -22,6 +22,7 @@
 import { buildStartingKit } from "./starting-kit.mjs";
 import { chooseBestArmor } from "./equip-rules.mjs";
 import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapons.mjs";
+import { rollStartingEndurance, needsStartingEnduranceRoll } from "./race-rules.mjs";
 
 	// The twelve attributes, in the order his sheet and the Player's Guide list them.
 	export const ATTRIBUTE_ORDER = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "pty", "wil"];
@@ -370,7 +371,16 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 			if (!tmpDoc) { tmpIssues.push(`Race "${tmpName}" was not found.`); }
 			return tmpDoc;
 		}).filter(tmpDoc => tmpDoc);
-		for (const tmpDoc of tmpRaceDocs) { tmpItems.push(tmpItem(tmpDoc)); }
+		// A race whose starting Endurance is a die -- Gaunt's -1d4, Epitaph p.7 -- is rolled here,
+		// once, into this character's own copy of the race (rollStartingEndurance, race-rules.mjs).
+		// Every other race's copy is its document's, unchanged. The generator creates the actor and
+		// its items in one go, which Foundry does not run through the createItem hook that rolls a
+		// race added later (race-endurance.mjs), so this roll is the only one a new character gets.
+		for (const tmpDoc of tmpRaceDocs) {
+			tmpItems.push(needsStartingEnduranceRoll(tmpDoc.system)
+				? tmpItem(tmpDoc, { endurance: rollStartingEndurance(tmpDoc.system.endurance, tmpRoll) })
+				: tmpItem(tmpDoc));
+		}
 
 		var tmpClassDoc = tmpByName(tmpContent.classes, tmpChoices.className);
 		if (tmpChoices.className && !tmpClassDoc) { tmpIssues.push(`Class "${tmpChoices.className}" was not found.`); }

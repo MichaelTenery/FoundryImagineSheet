@@ -30,6 +30,7 @@ import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
+import { resolveSkillRoll, describeSkillResult, resolveAttributeSave } from "../skills-rules.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
          learnMartialStance, masterMartialStance, learnMartialSubskill,
          learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
@@ -437,23 +438,19 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 	// This is the function which rolls an attribute save. Same rule as a character's: a save
 	// succeeds on a percentile roll at or under the chance, and succeeding by half or better is
-	// a distinct and better result, which is how his sheet reports it.
+	// a distinct and better result, which is how his sheet reports it. One reader for both sheets
+	// (resolveAttributeSave, skills-rules.mjs), so the two cannot drift apart.
 	static async #onRollAttributeSave(event, target) {
 		var tmpkey = target.dataset.attribute;
 		var tmpattrib = this.document.system.attributes[tmpkey];
 		if (!tmpattrib) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpchance = tmpattrib.save;
-		var tmphalf = Math.floor(tmpchance / 2);
-
-		var tmpoutcome = "Failed";
-		if (tmproll.total <= tmphalf)        { tmpoutcome = "Succeeded by half"; }
-		else if (tmproll.total <= tmpchance) { tmpoutcome = "Succeeded"; }
+		var tmpresult = resolveAttributeSave(tmpattrib.save, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`
 		});
 	}
 
@@ -533,9 +530,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// This is the function which rolls one of the creature's skills.
 	//
 	// A creature's skill chance is the flat percentage its stat block states, not something
-	// worked out from attributes, so there is nothing to compute here. The outcome follows the
-	// Player's Guide p.93 rule the character sheet uses: at or under the chance succeeds, and a
-	// margin of more than 20% either way is critical.
+	// worked out from attributes, so there is nothing to compute here. The outcome is read the way
+	// his handleCreatureSkillRoll reads it (sheet-worker.js:175374), through the same
+	// handleSkillRollDetails every character skill roll uses -- resolveSkillRoll, his eight results.
 	//
 	// Shift-click asks for a modifier first -- his skill-rollmod button (sheet-worker.js:24660,
 	// handleCreatureSkillRollMod at 175399), which adds it to the chance.
@@ -556,19 +553,12 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		var tmpstancebonus = getStanceSkillBonus(this.document.system.martial?.state?.bonuses, tmpskill.name, []);
 		var tmpchance = (parseInt(tmpskill.chance) || 0) + tmpstancebonus + tmpmodifier;
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpmargin = tmpchance - tmproll.total;
-
-		var tmpoutcome = "Failed";
-		if (tmproll.total <= tmpchance) {
-			tmpoutcome = (tmpmargin > 20) ? "Critical success" : "Succeeded";
-		} else {
-			tmpoutcome = (tmpmargin < -20) ? "Critical failure" : "Failed";
-		}
+		var tmpresult = resolveSkillRoll(tmpchance, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${foundry.utils.escapeHTML(String(tmpskill.name ?? ""))} &mdash; ${tmpchance}%${tmpstancebonus ? ` (stance +${tmpstancebonus})` : ""}`
-				+ `${tmpmodifier ? ` (modifier ${tmpmodifier > 0 ? "+" : ""}${tmpmodifier})` : ""} &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${foundry.utils.escapeHTML(String(tmpskill.name ?? ""))} &mdash; ${tmpresult.chance}%${tmpstancebonus ? ` (stance +${tmpstancebonus})` : ""}`
+				+ `${tmpmodifier ? ` (modifier ${tmpmodifier > 0 ? "+" : ""}${tmpmodifier})` : ""} &mdash; ${describeSkillResult(tmpresult)}`
 		});
 	}
 

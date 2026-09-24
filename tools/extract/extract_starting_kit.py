@@ -117,6 +117,35 @@ def race_to_kit():
     return out, start
 
 
+# @MARKER KIT BREAK REPAIRS
+# The bands whose missing `break` is REPAIRED rather than followed: each one listed here ends at its
+# own last line, as if his `break;` were there, instead of falling into the next band and taking its
+# kit. Printed on every run, so a repair can never pass for his own data.
+#
+# Why these are repairs and not readings of ours (UPSTREAM-ISSUES.md item 42):
+#   - his errata says so for social 5. Master's Manual errata p.30, Trolls (who take the
+#     NoArmorCompressedSocial kit): "Social Class 5: Stone or Obsidian Knife, Club / Social Class 6:
+#     Iron Dagger, and Staff" -- which is his dead case 5, word for word, beside his case 6. The
+#     errata outranks the sheet (the 2026-09-21 ruling).
+#   - the books print social 5 and 12-13 as bands of their own for the races that take these kits:
+#     Player's Guide p.15, Barbaric Human, and p.21, Mountain Dwarf (both LightChain): 5 knife and
+#     club, 6-7 dagger and staff ... 12-13 a leather suit, 14 light chain and a shield. Master's
+#     Manual p.26, Gnome, and p.27, Forest Goblin: the same 5 / 6-7 / ... / 12-13 / 14-15 bands.
+#     No book prints a Giant table; his Giant kit is the same table in giant sizes.
+#   - his own Standard kit (setStandardWildernessEquipment, 74331) is the same table with every
+#     break in place, and the Player's Guide errata p.31 prints it row for row for the Saurian.
+# Taken on the user's provisional ruling of 2026-09-23 ("apply the fixes the books settle, logged").
+#
+#   kit function                                      band (first case): evidence
+KIT_BREAK_REPAIRS = {
+    "setGiantWildernessEquipment":                   {5: "same table as PG p.15",        12: "same table as PG p.15"},
+    "setGnomeWildernessEquipment":                   {5: "MM p.26 Gnome",                12: "MM p.26 Gnome"},
+    "setGoblinForestWildernessEquipment":            {5: "MM p.27 Forest Goblin",        12: "MM p.27 Forest Goblin"},
+    "setLightChainWildernessEquipment":              {5: "PG p.15, p.21",                12: "PG p.15, p.21"},
+    "setNoArmorCompressedSocialWildernessEquipment": {5: "MM errata p.30, Trolls"},
+}
+
+
 # The three fields a kit sets, and the name each gets in the output.
 KIT_FIELDS = {
     "start_armor_clothing": "armorClothing",
@@ -145,6 +174,8 @@ def kit_table(tmpname):
     tmpgroups = []
     tmpdepth, tmpouter, tmpinner = 0, None, None
     tmpcurrent = None
+    # A die-roll switch whose cases do not end in `break` -- see @MARKER DIE SWITCH below.
+    tmpinnercases, tmpinnerbreaks, tmpdieslips = 0, 0, []
 
     for line in body:
         tmpbefore = tmpdepth
@@ -152,12 +183,14 @@ def kit_table(tmpname):
             tmpouter = tmpbefore
         elif re.search(r'switch\s*\(\s*randomnum\d*\s*\)', line):
             tmpinner = tmpbefore
+            tmpinnercases, tmpinnerbreaks = 0, 0
 
         m = re.search(r'case\s+(\d+)\s*:', line)
         if m and tmpouter is not None:
             if tmpinner is not None and tmpbefore > tmpouter + 1:
                 # An alternative inside the die-roll switch.
                 tmpcurrent["alts"].append({})
+                tmpinnercases += 1
             else:
                 # A social band. A run of labels with no body yet joins the group being built.
                 if tmpcurrent is None or tmpcurrent["common"] or tmpcurrent["alts"]:
@@ -180,17 +213,44 @@ def kit_table(tmpname):
         if re.search(r'\bbreak\s*;', line) and tmpcurrent is not None and tmpouter is not None:
             if tmpbefore <= tmpouter + 1:
                 tmpcurrent["ended"] = True
+            elif tmpinner is not None:
+                tmpinnerbreaks += 1
 
         tmpdepth += line.count("{") - line.count("}")
         if tmpinner is not None and tmpdepth <= tmpinner:
+            # @MARKER DIE SWITCH
+            # One die switch in his six kits has no breaks at all: the Standard kit's social 12-13
+            # weapons (74396), so on his sheet every roll falls through to case 4 and a social-12
+            # character always gets Battle Axe, Hand Axe and Bastard Sword. This has always been
+            # read as the four-way choice its cases set out, and the Player's Guide errata p.31
+            # (Saurian, who take this kit) prints that choice -- "spear or war club or battle axe
+            # and dagger or hand axe, also any sword". Said on every run from 2026-09-23, so the
+            # reading is visible rather than silent.
+            if tmpinnercases and tmpinnerbreaks < tmpinnercases and tmpcurrent is not None:
+                tmpdieslips.append(list(tmpcurrent["cases"]))
             tmpinner = None
+
+    # The repaired breaks (@MARKER KIT BREAK REPAIRS, above), before anything falls through. A
+    # repair whose band already ends in a break is reported as no longer needed rather than
+    # applied, so a corrected sheet from him is picked up with nothing here to undo.
+    tmprepaired = []
+    for tmpcase, tmpwhy in sorted(KIT_BREAK_REPAIRS.get(tmpname, {}).items()):
+        tmpgroup = next((g for g in tmpgroups if g["cases"] and g["cases"][0] == tmpcase), None)
+        if tmpgroup is None:
+            tmprepaired.append((tmpcase, [], "NOT FOUND -- no band starts at social %d" % tmpcase))
+        elif tmpgroup["ended"]:
+            tmprepaired.append((tmpcase, tmpgroup["cases"], "no longer needed -- his band now ends in a break"))
+        else:
+            tmpgroup["ended"] = True
+            tmprepaired.append((tmpcase, tmpgroup["cases"], tmpwhy))
 
     # @MARKER FALL-THROUGH
     # A band that does not end in `break` keeps running into the next one, and everything the next
-    # band sets overwrites what this one set. That is not hypothetical: in every one of the six
-    # kits, social 12-13 has no break after its weapon switch and falls into 14. A character of
-    # social class 12 therefore ends up in the 14-and-above gear. It is his code, so it is what the
-    # table says; it is also almost certainly a slip, and is reported as UPSTREAM-ISSUES item 42.
+    # band sets overwrites what this one set. That is not hypothetical: in five of the six kits,
+    # social 5 has no break and falls into 6, and in four of them social 12-13 has none after its
+    # weapon switch and falls into 14. It is his code; it is also a slip, which his errata and the
+    # books settle (UPSTREAM-ISSUES item 42), so those bands are REPAIRED above and never reach
+    # here. What still falls through after the repairs is followed as written, and reported.
     # Resolved from the END BACKWARDS, because a band that falls through runs its own statements
     # AND then the next band's, and the later assignment is the one that survives. So a band's real
     # outcome is its own values with everything the next band resolves to laid over the top -- and
@@ -224,7 +284,7 @@ def kit_table(tmpname):
     for tmpindex, tmpgroup in enumerate(tmpgroups):
         for tmpcase in tmpgroup["cases"]:
             out[tmpcase] = [dict(a) for a in tmpresolved[tmpindex]]
-    return out, start, tmpfell
+    return out, start, tmpfell, tmprepaired, tmpdieslips
 
 
 # @MARKER CLOTHING BY STATUS
@@ -303,14 +363,24 @@ def main():
     print("gear by culture: %d races across %d kits" % (len(tmpraces), len(tmpkitnames)))
 
     tmpkits = {}
+    tmpallrepairs = []
     for tmpkit in tmpkitnames:
-        tmptable, tmpline, tmpfell = kit_table(tmpkit)
+        tmptable, tmpline, tmpfell, tmprepaired, tmpdieslips = kit_table(tmpkit)
         tmpkits[tmpkit] = tmptable
         tmpbands = sorted(tmptable)
         tmpalts = sum(len(v) for v in tmptable.values())
         print("  %-48s social %s-%s, %d bands, %d alternative(s)"
               % (tmpkit, tmpbands[0] if tmpbands else "?", tmpbands[-1] if tmpbands else "?",
                  len(tmptable), tmpalts))
+        for tmpcase, tmpcases, tmpwhy in tmprepaired:
+            print("      REPAIRED: social %s ends at its own break, not the next band's kit (%s)"
+                  % ("/".join(str(c) for c in tmpcases) or tmpcase, tmpwhy))
+            tmpallrepairs.append({"kit": tmpkit, "kind": "band break", "social": tmpcases, "evidence": tmpwhy})
+        for tmpcases in tmpdieslips:
+            tmpwhy = "PG errata p.31, Saurian, prints the choice"
+            print("      REPAIRED: social %s's die roll has no breaks, so his sheet always gives its LAST "
+                  "set; read as the choice between them (%s)" % ("/".join(str(c) for c in tmpcases), tmpwhy))
+            tmpallrepairs.append({"kit": tmpkit, "kind": "die switch", "social": tmpcases, "evidence": tmpwhy})
         for tmpfrom, tmpinto in tmpfell:
             print("      falls through: social %s takes the %s gear (no break in his switch)"
                   % ("/".join(str(c) for c in tmpfrom), "/".join(str(c) for c in tmpinto)))
@@ -322,7 +392,9 @@ def main():
             "_note": "His optional wilderness-equipment rule, taken INSTEAD of starting coins. "
                      "raceKit maps a race to one of six kits; kits maps a kit and a social class "
                      "to the alternatives for that band. More than one alternative means his code "
-                     "rolls a die to choose between them.",
+                     "rolls a die to choose between them. _repairs lists the bands given the break "
+                     "his switch is missing (UPSTREAM-ISSUES item 42).",
+            "_repairs": tmpallrepairs,
             "raceKit": tmpraces,
             "kits": tmpkits
         }, fh, indent=2, ensure_ascii=False)
@@ -394,6 +466,12 @@ def main():
         fh.write("// Each kit by social class. A band holding more than one entry is a die roll\n"
                  "// between them, which is how his own code writes it.\n")
         fh.write("export const WILDERNESS_KITS = %s;\n\n" % js(tmpkits))
+        fh.write("// The bands given the `break` his switch is missing, so they keep their own kit\n"
+                 "// instead of taking the next band's (kind \"band break\"), and the one die roll whose\n"
+                 "// breakless cases are read as the choice they set out (kind \"die switch\"). Settled\n"
+                 "// by his errata and the books, not by us: see KIT_BREAK_REPAIRS and @MARKER DIE\n"
+                 "// SWITCH in the extractor, and UPSTREAM-ISSUES item 42.\n")
+        fh.write("export const WILDERNESS_KIT_REPAIRS = %s;\n\n" % js(tmpallrepairs))
         fh.write("// @MARKER BY STATUS -- free clothing. Race to wardrobe, then wardrobe by\n"
                  "// style, gender and the social class at or above which it is worn.\n")
         fh.write("export const RACE_WARDROBE = %s;\n\n" % js(tmpracewardrobe))

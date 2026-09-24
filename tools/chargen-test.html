@@ -182,6 +182,35 @@ check("a language with no name is dropped",
 check("every skill's misc is set outright, never left to default to NaN",
 	itemsOf(assembled).filter(i => i.type === "skill").every(i => i.system.misc === 0), true);
 
+// --- a starting Endurance that is a die: Gaunt's -1d4 (Epitaph p.7) -----------------------------
+// His row carries the live expression [0-getDieRoll(4)] beside the label "-1d4=" (sheet-worker.js
+// 34058), rolled whenever the race is applied. Nothing rolled it here, so every Gaunt started at 0.
+// It is rolled once now, into the character's own copy of the race: into Start roll, a field of its
+// own, with Start mod left as the document has it.
+const gauntContent = { ...content, races: [...content.races,
+	{ name: "Gaunt", type: "race", system: { racialSkills: [], ages: { startLow: 18, startHigh: 21, maxAge: "100" },
+		disabilities: [], abilities: [],
+		endurance: { startFormula: "-1d4=", startMod: 0, startRoll: 0, startRolled: false, titleFormula: "1d3" } } }] };
+const raceItemOf = (b, n) => itemsOf(b).find(i => i.type === "race" && i.name === n);
+const gauntAssembled = C.assembleCharacter(choices({ raceNames: ["Gaunt"] }), gauntContent, always(3));
+check("a Gaunt made with a 3 starts at -3 Endurance, on its own copy of the race",
+	[raceItemOf(gauntAssembled, "Gaunt").system.endurance.startRoll,
+	 raceItemOf(gauntAssembled, "Gaunt").system.endurance.startMod,
+	 raceItemOf(gauntAssembled, "Gaunt").system.endurance.startRolled], [-3, 0, true]);
+check("...keeping the formula, so the sheet still says where the -3 came from",
+	raceItemOf(gauntAssembled, "Gaunt").system.endurance.startFormula, "-1d4=");
+check("...and the race document itself is left at 0, unrolled",
+	[gauntContent.races[1].system.endurance.startMod, gauntContent.races[1].system.endurance.startRoll,
+	 gauntContent.races[1].system.endurance.startRolled], [0, 0, false]);
+check("a race with no formula is taken exactly as the document has it",
+	raceItemOf(C.assembleCharacter(choices({}), gauntContent, always(3)), "Testfolk").system.endurance,
+	{ startMod: 2 });
+check("a Gaunt half race rolls its own half and leaves the other alone",
+	[raceItemOf(C.assembleCharacter(choices({ raceNames: ["Gaunt", "Testfolk"] }), gauntContent, always(1)), "Gaunt")
+		.system.endurance.startRoll,
+	 raceItemOf(C.assembleCharacter(choices({ raceNames: ["Gaunt", "Testfolk"] }), gauntContent, always(1)), "Testfolk")
+		.system.endurance.startMod], [-1, 2]);
+
 // --- equipBestArmorInPlace: the generator's own Equip Best Armour, docs/sonnet/2026-09-19-equip-buttons.md item 1 ---
 // No equipment step to hang a button on, so assembleCharacter calls this once on the items it just
 // built (see @MARKER EQUIP BEST ARMOUR in module/chargen-rules.mjs). Tested directly here rather
@@ -435,6 +464,39 @@ check("a re-rolled purse re-prices the list: with 100 gp the suit is paid for, i
 check("the Review lists what was bought and the purse after it",
 	(r => [r.money, r.bought])(V.buildGeneratorView({ ...shopped, step: V.STEPS.indexOf("Review") }, shopContent, () => true).review),
 	["3 gp, 6 sp", ["Dagger ×2 (14 sp)", "Lantern ×3 (30 sp)", "Arrow(Long Bow/Normal) ×20 (60 sp)"]]);
+
+// --- the kit bands his switch forgot to break (UPSTREAM-ISSUES item 42) -------------------------
+// Five of his six kits have no `break` after social 5, and four none after 12-13, so those bands
+// fell into the next one and took its kit. His errata (Master's Manual errata p.30, Trolls: "Social
+// Class 5: Stone or Obsidian Knife, Club / Social Class 6: Iron Dagger, and Staff") and the books'
+// race tables settle it: the extractor repairs the breaks, and says so on every run.
+const trollKit = (soc, face) => kitNames(K.rollWildernessKit("Troll", soc, always(face)));
+check("a social-5 Troll gets his errata's club and stone or obsidian knife",
+	[trollKit(5, 1), trollKit(5, 2)],
+	[["Club", "Knife(Stone)", "Waterskin(3-days)"], ["Club", "Knife(Obsidian)", "Waterskin(1-week)"]]);
+check("...and social 6 keeps the dagger and staff it always had",
+	trollKit(6, 1), ["Dagger", "Quarterstaff", "Waterskin(1-week)"]);
+const dwarfKit = (soc) => kitNames(K.rollWildernessKit("Dwarf(Mountain)", soc, always(1)));
+check("a social-5 Mountain Dwarf has the book's leather tunic, club and knife (PG p.21)",
+	dwarfKit(5), ["Tunic(Leather)", "Club", "Knife(Stone)", "Waterskin(3-days)"]);
+check("a social-12 Mountain Dwarf wears a leather suit and no shield, as the book prints 12-13",
+	[dwarfKit(12).includes("Armor Suit(Leather)"), dwarfKit(12).some(n => n.startsWith("Shield"))], [true, false]);
+check("...while social 14 still has the light chain and shield",
+	[dwarfKit(14).includes("Armor Suit(Light Chain)"), dwarfKit(14).some(n => n.startsWith("Shield"))], [true, true]);
+check("every repaired band is listed, one per kit and band: 5 in five kits, 12-13 in four",
+	KT.WILDERNESS_KIT_REPAIRS.filter(r => r.kind == "band break")
+		.map(r => `${r.kit.replace(/^set|WildernessEquipment$/g, "")} ${r.social[0]}`),
+	["Giant 5", "Giant 12", "Gnome 5", "Gnome 12", "GoblinForest 5", "GoblinForest 12",
+	 "LightChain 5", "LightChain 12", "NoArmorCompressedSocial 5"]);
+check("the Standard kit, which always had its band breaks, needed none",
+	KT.WILDERNESS_KIT_REPAIRS.filter(r => r.kind == "band break" && r.kit == "setStandardWildernessEquipment").length, 0);
+// Its one slip is inside a band: the social 12-13 die roll has no breaks, so his sheet always gives
+// the last of its four weapon sets. It has always been read as the choice, which the Player's Guide
+// errata p.31 (Saurian) prints; it is now listed rather than silent.
+check("...and its breakless 12-13 die roll is listed as read as a choice, still four sets to roll between",
+	[KT.WILDERNESS_KIT_REPAIRS.filter(r => r.kind == "die switch").map(r => `${r.kit} ${r.social.join("/")}`),
+	 KT.WILDERNESS_KITS.setStandardWildernessEquipment["12"].length],
+	[["setStandardWildernessEquipment 12/13"], 4]);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;

@@ -272,6 +272,17 @@ race Item system:
                                           # Title 11 discards it: 25 ordinary, 27 magical.
   endurance:
     startFormula, startMod                # Endurance at creation
+    startRoll, startRolled                # ADDED 2026-09-23. Only Gaunt's formula is a die ("-1d4=",
+                                          # Epitaph p.7); it is rolled ONCE into the character's own
+                                          # copy of the race: the result is SET in startRoll (never
+                                          # added to startMod, so a hand-typed startMod is not counted
+                                          # twice and a re-roll replaces) and startRolled is ticked.
+                                          # Rolled by the generator, by the createItem hook when a race
+                                          # is dropped on a character, or by the header's Roll button
+                                          # for a copy made before (module/race-endurance.mjs), which
+                                          # asks first if that copy's startMod is not 0.
+                                          # The character's modifier is startMod + startRoll
+                                          # (getStartingEnduranceMod). 0 and false on a race document.
     titleFormula, titleDice, titleMax, titleMod
                                           # what a title advance brings. Rolled below 11th; its
                                           # MAXIMUM at 11-12; x2, x3, x4 at 13, 14, 15.
@@ -280,7 +291,11 @@ race Item system:
   resistanceMods      { magic, illusion, control, poison, disease }
   movement          walk/jog/run modifiers, speed multiplier, and a special rate with its own
                     kind and base -- these are MODIFIERS on a rate drawn from Agility, not
-                    finished rates (the bug that made every race read as unable to move)
+                    finished rates (the bug that made every race read as unable to move).
+                    secondSpecialName / secondSpecial (ADDED 2026-09-23) are a second special
+                    rate in the same shape, blank on every race but Nixie, which swims (his
+                    Formless copy of its row) as well as flies (its row) -- Legends p.33. The
+                    character's movement.secondSpecial is derived from it, never stored.
   bodyType          string                # which of the 45 body charts the character is built from
 
   racialSkills      [ { name, bonus } ]   # the skills a member may choose, with his bonus on each
