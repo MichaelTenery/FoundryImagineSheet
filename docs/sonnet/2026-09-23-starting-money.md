@@ -11,7 +11,8 @@ judgement. Every rules question it touches has already been ruled on.
 - Nobles (15-20) get the book's x5/x10 (UPSTREAM 67). The `times` column in `STARTING_MONEY`.
 - The Fortune is his whole `changeCharacteristics` Fortune, race and class and first title
   (UPSTREAM 68). `getStartingFortune`.
-- It rolls by itself on the Details step and there is no re-roll button, deliberately, the same as
+- It rolls by itself on the generator's Equipment step (the Details step until the shop moved it
+  there, 2026-09-23; `startingMoneyIsDue`) and there is no re-roll button, deliberately, the same as
   handedness. Do not add one.
 - Gear by culture replaces the coins entirely. It does not add to them.
 

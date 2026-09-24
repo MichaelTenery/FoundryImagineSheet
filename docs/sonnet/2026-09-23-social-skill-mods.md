@@ -76,6 +76,10 @@ step's refusal text.
 
 ## 4. The durable docs: written at the merge, not on this branch
 
+**DONE 2026-09-24, at the 0.20 integration:** the DECISIONS entry, UPSTREAM 83-89, item 52's
+amendment and the PROGRESS rows are written in. The list below is kept as the record of what they
+had to contain.
+
 This stream may not edit `docs/DECISIONS.md`, `docs/UPSTREAM-ISSUES.md` or `docs/PROGRESS.md` (other
 streams edit them the same day). Their text went back with the pass and is applied at the merge, and the
 code's "(DECISIONS.md)" citations rest on that. **After the merge, check each item below is there;
@@ -147,14 +151,14 @@ modifiers" is this work, misnamed -- read "race and cross-skill modifiers".
   `handleSocialSkillLearnTry` (126016) add these same bonuses when a skill is learned later. The port
   has no such flow; a skill dragged on gets 0. If one is built it should call the functions here --
   and NOT copy his `getNewSocialSkillModifier`, which reads `socialbonusfromsocial` backwards
-  (125662-125670; the UPSTREAM item written at the merge, section 4).
+  (125662-125670; UPSTREAM 88).
 - **The class's Required and Recommended social skills** (`setSocialSkillLists`, 53591-55407, 93 cases):
   the Player's Guide p.xv step 8 says "take all that are required". Class documents do not carry them
   and the generator does not enforce them. Its own story; the switch is regular and extractable.
 - **The Famorian evokes that only SAY a skill bonus**: Swimming ("+50% Swimming"), Webbed Feet/Hands
   ("+30% Swimming"), Blowhole ("+20% Swimming"), Sticky/Suction Pad ("+40% Climb"). His code applies
   none of them (`getExtraSocialMods` reads the race's ability flags, never the evokes). They are asked
-  of him in the UPSTREAM item written at the merge (section 4); do not add them until he answers.
+  of him in UPSTREAM 89; do not add them until he answers.
 - **A class added later: a dual class.** Its skills lift no social skill the character already holds,
   because `grantClassSkills` never goes back to a social skill. His sheet has no second class, so there
   is nothing to port. The Player's Guide (Dual Class Characters, Class Determination rule 5, "learns the

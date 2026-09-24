@@ -32,7 +32,13 @@ Likely fix is inserting one empty `classMod` slot after index 14, but that's his
 
 ## 2. `"Gaunt"` race carries a live expression where every other race has a literal
 
-**Status:** open · **Severity:** question, may be intentional
+**Status:** ANSWERED 2026-09-23 by your own book · **Severity:** question, may be intentional
+
+**Answered 2026-09-23.** Epitaph of the Fallen p.7 gives the Gaunt "Starting Endurance -1d4", and
+your row carries the live `[0-getDieRoll(4)]` beside the label "-1d4=" (sheet-worker.js:34058), so
+it is random by design. **What the port does now:** rolls -1d4 once into the character's own copy
+of the race (`endurance.startRoll`): at creation, when the race is dropped on a character, or from
+a header button for a Gaunt made earlier. A Formless in a Gaunt body rolls it too (item 47).
 
 `raceStatsAndMoveDetails["Gaunt"]` contains `0-getDieRoll(4)` — a function call embedded in the data. It is the **only** non-literal value across all 12,595 extracted dictionary entries.
 
@@ -46,7 +52,12 @@ He described `getArmorCombatValues` from memory rather than sending the file, so
 
 ## 4. "Made by half" vs the ±20% critical rule
 
-**Status:** open · **Severity:** rules clarification
+**Status:** ANSWERED 2026-09-23 by your own code · **Severity:** rules clarification
+
+**Answered 2026-09-23.** Your `handleSkillRollDetails` (sheet-worker.js:29426), which every skill
+roll on your sheet goes through, gives skills both: made by half AND the +/-20 criticals, eight
+results in all. Saves get made by half only, through `divideWithMin` (25595). The port now reads
+skills with `resolveSkillRoll` and saves with `resolveAttributeSave`, each ported from those.
 
 His attribute-save handlers compute `halfChance = chance / 2` and report a distinct "succeeded by half" tier (sheet-worker.js:47). The Player's Guide (p.93) instead defines critical success/failure as beating or missing by more than 20%.
 
@@ -640,6 +651,12 @@ it is still your call, and it is one line to put back either way.
 
 **Status:** open · **Severity:** two races; needs a decision from you, not a guess from us
 
+**2026-09-23: repaired on your book.** Legends p.27 (Ice) and p.28 (Sea) print "Poison -10% /
+Disease -10%" and "Movement: as Elven", and your Formless copies of both rows (34950-34951) have
+the multiplier at 0. So the -10 is a Disease modifier one column off: the port moves it to index 37
+and leaves the multiplier at 0, prints the repair on every build, and steps aside if your row
+changes.
+
 `raceStatsAndMoveDetails` index 38 is the speed multiplier. Two races carry **-10** there:
 
 | Race | index 38 | Wood Elf, for comparison |
@@ -723,6 +740,12 @@ foes..."). That has the look of the same kind of column slip as item 1, in a dif
 
 **Status:** ANSWERED 2026-09-16 with item 22 · **Severity:** follows item 22 — the data exists, the port had not found it
 
+**Corrected 2026-09-23:** "four of them have no case in this switch either", below, is wrong.
+`getSlotsNeededForClass` has a case for all five: Elemental Dancer 56 (sheet-worker.js:62974),
+Elementalist 43 (62977), Inquisitor 56 (63019), Summoner 47 (63130) and GME 0 (63160). Every class
+document built from them carries its figure. So the question at the end is answered by your own
+switch, and 56 is right for Elemental Dancer.
+
 See item 22. GME legitimately needs no class slots (it is not a class); the other four are a
 lookup problem on this end, not a gap in his data.
 
@@ -756,6 +779,8 @@ answer per class closes this.
 ## 27. `Beguiler`'s description and class type are swapped
 
 **Status:** open · **Severity:** cosmetic; a data-entry slip in one row, not a parsing defect
+
+**Duplicate:** item 44 reports the same swap, found again on 2026-09-21. The two are one question.
 
 `classRequirementsAndDetails["Beguiler"]` is a full 22 columns — the right length, unlike Monk
 (item 1) — so this is not a missing-column problem. Two adjacent cells are simply transposed. Every
@@ -1142,6 +1167,10 @@ descriptions so nobody is misled, and keeps the slight rows in
 
 **Status:** open · **Severity:** one wrong movement rate, one ambiguous pair of flags
 
+**2026-09-23, point 1 repaired on your errata.** PG errata p.36: "All 10 second movement times now
+match 10x1 second movement". The port's Podling (both forms) jogs -6 a second, printed as a repair
+on every build. Point 2 is still open. Two more rows break the same rule: item 100.
+
 Both are in the same switch as item 38, and neither depends on which branch is taken.
 
 1. **Podling's 1-second jog is `-60` where every other race has `-6`.** The movement columns run
@@ -1234,6 +1263,14 @@ the rest of the table.
 ## 42. Ten of the wilderness-gear bands have no `break`, so they take the next band's kit
 
 **Status:** open · **Severity:** a character of social class 5, 12 or 13 gets the wrong band's gear
+
+**2026-09-23: repaired on your errata and books, so "What the port does meanwhile" below no longer
+holds.** Master's Manual errata p.30 (Trolls) prints social 5 and 6 as separate kits ("Social Class
+5: Stone or Obsidian Knife, Club / Social Class 6: Iron Dagger, and Staff"); PG errata p.31 (Saurian)
+prints 12-13 as a band of its own, and so do the race kit tables on PG p.15 and p.21 and MM p.26 and
+p.27. The port adds the missing break at social 5 (five kits) and 12-13 (four kits), prints each as
+a repair on every extraction run, and steps aside if your switches change. The Standard kit's own
+12-13 die roll is item 99.
 
 Each of the six `set...WildernessEquipment` functions is a `switch(tempsocial)`. Five of the six
 have bands that do not end in `break`, so they fall into the next band, whose assignments then
@@ -1332,6 +1369,8 @@ named. That check is what would have caught the traps.
 
 **Status:** open · **Severity:** one class has no category; the fix is unambiguous but is yours to confirm
 
+**Duplicate of item 27**, which reported the same swap first. The two are one question.
+
 Every class in `classRequirementsAndDetails` carries a short category in its classType column —
 "Warrior subclass", "Mage subclass", "Rogue/Priest crossover", nine of them across 103 classes.
 Beguiler has the two columns **the wrong way round**:
@@ -1427,6 +1466,11 @@ front of us, rather than found again later. The spec that will consume this row 
 ## 47. Your Formless copy of each race's physical half has drifted from the race table
 
 **Status:** open · **Severity:** low in play, but it is evidence about three other open items
+
+**2026-09-23 (Nixie, and the Gaunt figures below):** Legends p.33 gives the Nixie both "Enhanced
+Swimming (5x walking speed)" and "Magical Flight", so the port now gives it both: the race row's
+flight and this copy's swim, as a second special movement. A Formless in a Gaunt body starts at its
+host's rolled -1d4 (item 2), not this copy's flat +4. Items 24 and 2 are settled; see each.
 
 `setFormlessStartingRace` (`sheet-worker.js:34880`) holds its own 36-column dictionary,
 `formlessStartingRaceDetails`, giving each host race's physical half: STR/AGL/VIT/APP/SOC and their
@@ -1596,7 +1640,8 @@ the stiffness order? If it is its own class with its own rule, `getLocationStack
 
 ## 52. Does a racial skill's bonus to a Social skill ever actually apply?
 
-**Status:** open · **Severity:** unclear — the table it depends on looks unreachable as written
+**Status:** answered in the port 2026-09-23, pending your reply · **Severity:** small. The table is
+unreachable as written; the port now applies it.
 
 Found 2026-09-22 chasing Daryl's "racial bonuses to Social skills aren't covered" report. Your
 sheet does have such a table: `getRaceClassSocialMod` (sheet-worker.js:57649) gives a small, named
@@ -1619,17 +1664,21 @@ It is called from `getExtraSocialMods` (57589), which is the function `setSocial
 passes `raceskills`, the **whole array**, where `getRaceClassSocialMod`'s second parameter is
 compared against a single skill name with `==` ("Disguise", "Speak to Animal", and so on). An
 array compared to a string with `==` coerces the array to a comma-joined string first, so the
-comparison is true only if a character's entire racial skill list, joined by `", "`, is byte-for-
+comparison is true only if a character's entire racial skill list, joined by `","`, is byte-for-
 byte one of those six names — which in practice means never, and the loop runs it 20 times over
 regardless, once per slot, all with the same (wrong) argument. `tmpskillname` reads like the
 argument that was meant to go there.
 
-**The port does not carry this table at all** — checked against `module/skills-rules.mjs`, which
-handles Social skill totals, and nothing there applies a racial term. Whether that is a gap worth
-closing depends on the answer here: if the call is meant to work, the fix is `getRaceClassSocialMod(tmpskill1, tmpskillname)`,
-and the port should add the table (small — six rows) to the Social skill total the way class-skill
-bonuses already are. If the array-vs-string comparison is not a bug but some Roll20-specific
-coercion you relied on, or if this feature was abandoned deliberately, say so and it stays out.
+Your own later `getNewSocialSkillModifier` makes the call correctly, once per racial skill and once
+per class skill (125673-125679), and that answers most of this item's question. **What the port
+does now:** applies the six-row table (2026-09-23, provisional). It asks each racial skill, and at
+creation each class skill of **every** title, because that function reads every title's class-skill
+rows, `class_skill_1_1` to `class_skill_15_1` (125658), and your sheet fills them all at creation
+(63288). So an Assassin, whose Disguise comes at title 2, starts with Acting and Begging +15.
+
+**A question this raises:** should a class skill that arrives at a later title count toward a
+social skill before the character reaches that title, as `getNewSocialSkillModifier`'s reading
+implies?
 
 ## 53. "One Eye" in the missile Situation Mods never applies
 
@@ -1963,7 +2012,8 @@ user's ruling of 2026-09-23 — the Fortune the character actually has.
 
 Also worth knowing: on your sheet the money is rolled when the racial features are confirmed (step
 3, 6439), before the class is chosen at step 5, so the class bonus could not be known then even if
-the field name were right. The port rolls on its Details step, after the class, for that reason.
+the field name were right. The port rolls on its Equipment step (its Details step until 2026-09-23),
+after the class, for that reason.
 
 ## 69. The Segmented Worm's body chart names Left and Right Foot12 twice
 
@@ -2036,6 +2086,10 @@ port would run straight on into the Aura of Acid case below.
 
 **Status:** open · **Severity:** small — some invocations can scale past a cap you meant them to have
 
+**The same function as item 13**, which you answered on 2026-09-16: the maximum is meant to apply,
+and the port applies it in the creature area attacks. The invocations below were ported later and
+keep your sheet's uncapped value.
+
 `divideWithMinAndMax` (sheet-worker.js:25601) ends with `if (tempValue>tmpMaxValue) { tempValue=>tmpMaxValue; }`.
 `tempValue=>tmpMaxValue` is an arrow function that is built and thrown away, not an assignment, so the
 value is never capped. It is used only in `doInvocationAction`. **What the port does:** keeps it as
@@ -2050,3 +2104,427 @@ In `doMagicalAttack` (28196), when a Missile attack hits and has no special note
 damage." with the number missing. The INT-save branch and the branch with a note both print it.
 **What the port does:** keeps your text as it is, and shows the rolled number separately on the cast
 card, where the Apply button reads it.
+
+## 77. The shop will not pay with a lower coin, so a gold purse cannot buy platinum-priced armour
+
+**Status:** open · **Severity:** high at creation. Most characters cannot buy a suit of armour.
+
+`payForItOpen` (sheet-worker.js:78671-78799) pays a price from the price's own coin and the coins
+above it, and never from a lower one. A gold price cannot be paid in silver, and a platinum price
+cannot be paid in gold.
+
+Starting money for social classes 9 to 16 comes in gold (`setCoins`). At Medium, 111 items are
+priced in platinum, including every Player's Guide armour suit (Leather 6 pp, Chain 12 pp). So:
+- a Baron's child with 275 gp cannot buy a leather suit, although the book's step 10 recommends
+  buying whole suits;
+- a social 7-8 character with 31 sp cannot buy a 3 gp Short Sword.
+
+**What the port does:** tries your order first. If that refuses and the purse is worth the price, it
+changes lower coins up ten for one into the price's coin and tries your order again. Wherever your
+sheet pays, the result is identical.
+
+## 78. The change-making takes one coin too many, and can leave a coin negative
+
+**Status:** open · **Severity:** moderate. The value is right, but the purse can be impossible.
+
+At 78695, 78713, 78724, 78747, 78758 and 78776:
+
+```
+highercoin=(parseInt(shortfall/10)||0)+1;
+```
+
+This takes one higher coin too many whenever the shortfall is an exact multiple. When the purse
+holds exactly enough, the higher coin goes below zero:
+- 1 pp buying a 10 gp item leaves **-1 pp and 10 gp**;
+- 1 gp 5 sp buying 15 sp leaves -1 gp and 10 sp.
+
+`Math.ceil(shortfall/10)` takes only what is needed, which is what your comment "how much platinum
+we still need" describes.
+
+**What the port does:** `Math.ceil`, with your line kept beside it as a comment.
+
+## 79. Hemp and silk rope are priced per 50 feet but sold per foot
+
+**Status:** open · **Severity:** moderate. Fifty feet of hemp rope costs 20 gp on the sheet.
+
+- **The prices.** `Rope(Hemp per’)` is 5 cp / 1 sp / 2 sp / 4 sp / 6 sp / 12 sp / 18 sp, and
+  `Rope(Silk per’)` is 8 sp ... 24 gp (equipmentcostlist). Those are the Player's Guide's prices for
+  FIFTY feet: "Rope, Hemp (per 50 feet) 2 sp 4 sp 6 sp 10 lb.", and silk 3/5/8 gp (p.212).
+- **The weight agrees with the book.** Your .2 lb a foot is the book's 10 lb for fifty.
+- **The panel sells them one foot at a time.** Every other item sold by the foot is a "50 X" bundle:
+  twine, chain, wire, spidersilk rope.
+
+**What the port does:** sells both as 50-foot bundles at your price.
+
+## 80. Two typos in the price strings: "1O cp" and "3 bp"
+
+**Status:** open · **Severity:** small
+
+- `"1O cp"`, with a capital letter O for the 0 of 10, at Medium on Cup(Measuring) (77388), Glass
+  Flask(1 cup) (77409) and Oil(Rubbing) (77474). `getCoins`' parseInt stops at the O and charges 1
+  cp.
+- `"3 bp"` at Half Low on Helm(Heavy Bone) (78137). `getCoinType` finds no coin, so it cannot be
+  bought at that level.
+
+**What the port does:** reads them as 10 cp and 3 gp and says so on the line.
+
+## 81. 45 price rows climb out of order across the seven columns
+
+**Status:** open · **Severity:** small at Medium (4 rows), more at the extreme levels
+
+Most are a coin slip:
+- Trident's Double High is "36 sp" where 36 gp is meant.
+- Cannon(Early)'s Low and Medium are "500 gp" and "1000 gp", between platinum columns.
+- Great Helm(Titanium) goes 70 pp, 150 pp, 180 pp, then "360 gp".
+
+Only four are wrong at Medium:
+- Coffer(5“x 8“x 3“/Holds 12): Low 6 sp, Medium 1 sp.
+- Kite(Box): Medium 4 gp, High 6 sp.
+- Fishing Pole(Deep Sea): Low 1 gp, Medium 2 sp.
+- Fishing Pole(Metal): Medium 1 gp, High 2 sp.
+
+The full list is printed by `tools/extract/extract_shop_tables.py`.
+
+**What the port does:** charges them as written, and lists them in a test so a corrected sheet shows
+up.
+
+## 82. Price and value tables disagree on some names, and some price rows are duplicated
+
+**Status:** open · **Severity:** small. A few items can be priced but not made, made but not priced,
+or made and never matched to their launcher.
+
+- **Fairy crossbow bolts.** The 14 bolts are priced as `Arrow(Fairy [Hand/Heavy] Crossbow/...)`
+  (77196-77217) and valued as `Bolt(...)` (79792 on). Your launcher code knows them only by the
+  Arrow spelling (`getLauncherFromProjectile` 86842, and the ammunition test at 86547). So a bolt
+  made from your values never pairs with its crossbow, and one bought under the Arrow name has no
+  values.
+- **Gauntlets.** `Gauntlets(Stainless Steel` has no closing parenthesis, in both the price table
+  (78111) and the values.
+- **Prices with no values, or values with no price.**
+  - `Arrow(Fairy Crossbow/True Flight)` and `Arrow(Fairy Long Bow/True Flight)` have prices and no
+    values.
+  - The values list `Bolt(Fairy Crossbow/Normal)` twice, at 79794 and 79796. The second, with "+2"
+    and 7.5“, may be meant for True Flight.
+  - The panel's option text for Arrow(Fairy Crossbow/True Flight) also has a stray leading quote.
+  - `Arrow(Horn Bow/True Flight/Far Flight)` has values (79537) and no price.
+- **Duplicated price rows.** Eight price rows appear twice (two weapons, five equipment, one
+  armour), and JavaScript keeps the later one. Three differ:
+  - `Boots(Leather)` is 4 sp at Medium at 77925 and 8 sp at 78410.
+  - The two Arrow(Great/Welsh Bow/True Flight/Piercing/Barbed) rows are 16 sp and then 15 sp at
+    Medium.
+- **Unreachable value rows.** Your values carry "10 Nails" (.06 lb) and "10 Needles(Assorted)" (.03
+  lb) rows beside "Nails" (.01) and "Needles(Assorted)" (0). A purchase is weighed after the count
+  is stripped (`getItemWithoutCount`, `getItemWeight`), so those two rows are never reached, and ten
+  nails weigh .1 lb.
+
+**What the port does:**
+- aliases the 14 bolts and the gauntlets to the documents that exist;
+- matches the Bolt spelling to its fairy crossbow as well as your Arrow one;
+- leaves the other three out of the shop;
+- charges the later duplicate row, as your sheet does;
+- sells "10 Nails" as ten Nails, as your sheet reads it once bought.
+
+## 83. `getExtraClassRacialMods` always returns 0: it returns before its `getAttrs` callback runs
+
+**Status:** open · **Severity:** high. No Famorian evoke, Climbing, Enhanced Hearing/Smell, Loud or
+social-skill bonus ever reaches a racial or class skill.
+
+```
+53468   tmpextramods=0;
+53471   getAttrs([...'famorian_evoke_hooves_final', ... 'title'], function (values) {
+            ... the whole trait switch, and the social-skill loop ...
+53545   });
+53546   return tmpextramods;
+```
+
+Roll20's `getAttrs` is asynchronous. The callback runs after the function has already returned, so
+the value returned is the `0` from 53468. Every caller gets 0:
+- `setRacialSkillAbility` (53462)
+- `setClassSkillAbility` (63786), including every title's pre-rolled class skills from 63288 onward
+
+Three things say these bonuses should apply: your comment at 63786 ("Some social skills provide mods
+to race/class skills, this will add them"), your evoke text ("+40% Climb", "+30% to Listen"), and
+the Player's Guide p.xv step 9C. Your learn flows already wait on `getAttrs` properly
+(125537-125540, 126030-126033).
+
+**How to check on your sheet:** give a Famorian the Enhanced Hearing evoke and Listen as a racial
+skill. It should show dice x2 + 30. Expect to see dice x2 alone.
+
+**What the port does:** applies what the function was written to add. This is provisional, pending
+your answer.
+
+## 84. The Loud disability is written to `tmp_tmp_disabilities_loud`, so Surprise Attack's -20 never applies
+
+**Status:** open · **Severity:** small
+
+The race-disability switch writes `setAttrs({tmp_tmp_disabilities_loud: "yes"})` (46914), with the
+prefix doubled. Everything else reads `tmp_disabilities_loud` (63914) or `disabilities_loud`
+(48847), so neither is ever "yes". `getExtraClassRacialMods`'s Surprise Attack -20 for Loud
+(53518-53522) could not fire even without item 83.
+
+**What the port does:** a race with Loud (Giant(True)) takes Surprise Attack -20. Loud Flier is a
+different disability and does not.
+
+## 85. The "only add the excess" rule on racial and class skills: three results worth a look
+
+**Status:** open · **Severity:** small, but one case turns a penalty into a bonus
+
+`if (tmpextramods>=tmpmod) { tmpextramods=tmpextramods-tmpmod; }` (53524). `tmpmod` is the race's
+bonus on a racial skill. On a class skill it is CORE 30, or 0 (63786).
+
+1. **With no trait at all, a negative race bonus is cancelled.** A Brok's Tame Animal -10%: `0 >=
+   -10`, so `0 - (-10) = +10`, which exactly cancels the published penalty. The port skips the rule
+   when no trait applied.
+2. **A trait smaller than the race bonus adds in full.** A Brachara's Climb +20 with the Climbing
+   ability +10 comes out at +30. A trait larger than the bonus adds only the difference: a Cervara's
+   Listen +30 with Enhanced Hearing +30 comes out at +30. Is that the intent? The port keeps it as
+   written.
+3. **On class skills it compares against CORE +30**, which is not a like-for-like bonus. A
+   Famorian's Climbing evoke (+40) adds 10 on a core Climb and 40 on a non-core Climb. The port
+   keeps it as written.
+
+## 86. Four slips in your social-skill tables that stop a bonus working
+
+**Status:** open · **Severity:** small. Each one makes a bonus unreachable.
+
+- **Farming/Planting (57748) and Foraging/Forestry (57756)** are written
+  `"Botany","Botanist","+10%",...`, which is out of pairs. Walked two at a time, Botany gets the
+  modifier "Botanist" (worth 0), and nothing after it ever matches. **Neither skill ever gets a
+  social-to-social bonus**, not even from Scholar. The port reads Farming/Planting as "Botany or
+  Botanist +10%, Meteorology +10%, Scholar +10%" and Foraging/Forestry as "Botany or Botanist +10%,
+  Scholar +10%". Botany and Botanist have identical rows and descriptions: are they meant to be one
+  skill?
+- **Calligraphy lists Artisan twice** (57714), so Artisan gives +20%. The port counts it once.
+- **`"Truth Tell "` has a trailing space** (57259, under Psychology), so Psychology's +10% to Truth
+  Tell never matches. The port trims it.
+- **Rope Use gives +10% to `"Set Trap"`** (57267), a name no character holds: players take Set
+  Trap(w) or Set Trap(u) (item 43). The port matches both.
+
+Two more are harmless: Avian(Forest) is listed twice under Falconry (55569), and the `templist` typo
+at 55712 is only reachable with an empty name.
+
+## 87. Only the first race's social-skill modifiers and BLOCKs count for a Half Race
+
+**Status:** open · **Severity:** a question
+
+`getSocialSkillMods` is always called with `race_list1` (17028-17031, 53598). A Half Race's second
+race neither adds its modifiers nor BLOCKs a skill. The Player's Guide p.33, Half Race rule 6:
+"Special Modifiers from both races … Modifiers are averaged if more than one applies." Is this
+deliberate?
+
+**What the port does:** uses the first race only, as your code does.
+
+## 88. Learning a social skill later reads your social-to-social table backwards
+
+**Status:** open · **Severity:** small
+
+`getNewSocialSkillModifier` (125662-125670) looks up the **held** skill's row in
+`socialbonusfromsocial` and matches the **new** skill as the giver. But the table is keyed by the
+skill that receives the bonus: Player's Guide p.156, "Mathematics provides … +10% … to Accounting".
+So learning Mathematics while holding Accounting gives Mathematics +10.
+
+Also noted:
+- Both learn loops stop at `socialskills.length` rather than `tmplist.length` (125626, 125665). This
+  is harmless today.
+- Neither learn flow adds the race's own social-skill modifier or checks BLOCKED.
+  `getSocialSkillMods` is called only at creation.
+
+The port has no learn flow yet. When it gets one, it will use the creation direction.
+
+## 89. Famorian evokes whose skill bonus is only text, and Instinct(Navigation) frozen at creation
+
+**Status:** open · **Severity:** a question
+
+- **Blowhole** ("+20% Swimming", 47211), **Sticky/Suction Pad** ("+40% Climb.", 47460), **Swimming**
+  ("+50% Swimming", 47469) and **Webbed Feet/Hands** ("+30% Swimming", 47487) state these bonuses in
+  your evoke descriptions. No code applies them: `getExtraSocialMods` reads only the race's ability
+  flags (`tmp_abilities_swimming`, `tmp_abilities_webbed_feet_hands`), and the trait switch has no
+  Sticky Pad case. Should they apply?
+- **Instinct(Navigation)** says "Direction Knowledge 10% per Title". But `getExtraClassRacialMods`
+  reads the title once, at creation (53495-53497), and the bonus is never raised. Should it grow
+  with the title?
+- `famorian_evoke_hooves_final` is set to "Hooves" (33265) but tested for "Yes" (53483). Only the
+  checkbox fallback matches. This is harmless.
+- Your errata (Legends Pg 42) says the Swimming ability "Grants Swimming Social Skill at +50%". Your
+  code gives +50 only when Swimming is taken. Does the ability grant the skill?
+
+**What the port does:** applies none of the four evoke bonuses, fixes Instinct at the creation
+title, and gives +50 only when Swimming is taken.
+
+## 90. Should a breath, a gaze or an area attack carry the creature's Strength and weight damage?
+
+**Status:** open · **Severity:** large either way. A Roc's breath gains +26, and a dragon's +20 for
+weight alone.
+
+`handleCreatureAttack` (sheet-worker.js:179920-179929) adds `combat_mod_damage` to every creature
+attack whose type does not include "Projectile". That figure is Strength's melee damage, body
+weight, Weapon Lore's +4 and the temporary modifier (`setCombatModifierValues`, 82309-82322). No
+creature attack type is "Projectile", so every Cone, Cloud, Bolt, Glob, Gaze, Voice and Direct
+attack gets the creature's Strength and weight added to its dice. Only Touch escapes, because it has
+its own branch. The Player's Guide (p.179) applies body weight "when the character attacks with any
+melee weapon".
+
+**What the port does** (provisional, 2026-09-23): follows your code. Every type except Touch takes
+it. If breath, gaze and area attacks should not take it, the change is one line in
+`getCreatureDamageMods`.
+
+## 91. A creature attack with no damage still does its Strength and weight in damage
+
+**Status:** open · **Severity:** a damage-less gaze or breath hurts.
+
+In `handleCreatureAttack`, the non-touch branch turns a blank damage into "0" (179919-179920) and
+then adds `combat_mod_damage` to it (179925). A gaze entered with no damage, or with "0", from a
+1,200 lb Strength 19 buffalo does 17. Your touch branch treats "" and "0" as no damage at all
+(179775).
+
+**What the port does:** treats blank and "0" alike, as your touch branch does. Such an attack does
+no damage, whatever its modifiers.
+
+## 92. changeAttribs tests tmpCreatureType without setting it
+
+**Status:** open · **Severity:** small; the floor may not apply when it should.
+
+`changeAttribs` (sheet-worker.js:29648-29697) fetches `creature_type` in its `getAttrs` and then
+tests `tmpCreatureType!="undefined" && tmpCreatureType!="" && tmpCreatureType!="None"` to floor a
+creature's `str_melee_attack` and `str_melee_damage` at 0 ("low STR is already factored into
+creature melee damage modifiers"). It never assigns `tmpCreatureType` from `values.creature_type`.
+The variable is a worker global, set by whichever creature handler last ran (49827, 82169 and
+others). So whether a creature's weak Strength is floored depends on what ran before, and a
+character edited after a creature could be floored too. A `tmpCreatureType=""+values.creature_type;`
+at the top of the callback would settle it.
+
+**What the port does:** floors both figures for every creature and never for a character, which is
+what your comments say the test is for. The bestiaries agree: a Strength 7 badger is printed "Melee
++0, Damage +0".
+
+## 93. Should a creature's natural attack take a martial move's extra die or damage per die?
+
+**Status:** open · **Severity:** a die, or +2 a die, on a martial creature's bite.
+
+A made Jump writes "Jump at +2 AGL,+1 Die Dam" and a made Spinning "+2 per Die" into
+`martial_arts_mod_special` (sheet-worker.js:68167, 68198). Your weapon attack reads that text
+(64999-65002), and so does your martial attack (66742-66769). `handleCreatureAttack` reads dice only
+from the stance's `martial_stance_mod_special` (179932-179945), so a creature's bite under Jump or
+Spinning gets neither. Its +2 to hit and Jump's +1 damage still apply. The book says Jump "can be
+applied to weapon attacks as well as martial attacks", which says nothing either way about a bite.
+
+**What the port does** (provisional, 2026-09-23): follows your creature path and adds neither, and
+the card says so. A character's weapon does take Jump's die in the port, on the book's word.
+
+## 94. The creature movement rebuild writes the hourly figure into the one-second slot, and re-adds its modifiers
+
+**Status:** open · **Severity:** wrong movement figures after any recalculation.
+
+`setCreatureMovementValues` (sheet-worker.js:178834-178891) rebuilds `creature_movement` from the
+four modes. Each rebuilt entry is written as `hourly/10sec/hourly`. The third figure is
+`tmpPart1+tmpWalkMod` (the hourly rate) where `tmpPart3+tmpWalkMod` is meant (178866, 178873,
+178880, 178887). The separate `move_*_1_sec` attributes are right. The rebuilt string, with the
+temporary modifiers already added, is then written back to `creature_movement` itself (178891). So
+every recalculation adds the modifiers again, and after the first pass the one-second rate in the
+list reads as the hourly one.
+
+**What the port does:** reproduces neither slip. A creature's movement modes are its own list,
+edited directly. The jumps are worked out from Agility plus the two jump modifiers each time.
+
+## 95. The creature Fortune "+mod" roll adds the modifier to the chance as text
+
+**Status:** open · **Severity:** the modified Fortune roll is almost always made at 99%.
+
+In `roll_creature_for_mod` (sheet-worker.js:24619), `fortunechance = values.creature_for` (24624) is
+the attribute as Roll20 hands it back, which is text. `fortunechance+tempmod` (24625) then joins the
+two rather than adding them: "16" and 5 make "165". `setIntBounds(fortunechance, 1, 99)` holds that
+to 99. The Affinity "+mod" (24571) reads its chance through `parseInt` and is not affected.
+
+**What the port does:** adds the modifier as a number, and does not hold the result to 1-99, since
+none of your other characteristic rolls are held there.
+
+## 96. setCreatureWeaponProfValues splits the skill list with no separator
+
+**Status:** open · **Severity:** a creature's weapon proficiency count can read the wrong number.
+
+`setCreatureWeaponProfValues` (sheet-worker.js:179371) does
+`tmpCreatureSkillsArray=tmpCreatureSkills.split();` (179377). `split()` with no separator returns
+the whole string as one element. The loop then runs once, and `returnFirstNumber` reads the first
+number anywhere in the creature's skill list, not Weapon Knowledge's own chance. "Ambush 45%, Weapon
+Knowledge 60%" gives 45. `split(",")` was surely meant.
+
+**What the port does:** nothing yet. Creatures using weapons (and their proficiency) is not built.
+When it is, the chance is read by skill name.
+
+## 97. The temporary "Extra Damage per Die": two slips
+
+**Status:** open · **Severity:** the modifier is set from the wrong box, and on martial attacks is
+scaled by the die's size.
+
+- `setExtraCombatDamageModifiers` (sheet-worker.js:124608) reads the per-die input from the dice
+  box: `tmpNewExtraDamagePerDieModInput=parseFloat(""+values.tmp_extra_dice_input);` (124615), where
+  `tmp_extra_per_die_input` is meant. Typing a figure into "Extra Damage per Die" adds nothing, and
+  typing into "Extra Dice Damage" adds to both.
+- Your martial damage multiplies the per-die figure by the die's SIDES, not the number of dice
+  rolled: `modExtraDamPerDie=parseInt(tmpSides*modExtraDamPerDie);` (66758, and again at 66956). +1
+  per die on 2d6 adds 6 rather than 2. Your weapon and creature paths multiply by the number of dice
+  (for example 179964-179966).
+
+**What the port does:** the port does not have these two temporary modifiers on either actor yet.
+They are logged as a gap, and the slips are noted so they are not reproduced.
+
+## 98. A natural 01 on a skill roll
+
+**Status:** open · **Severity:** rules clarification
+
+Player's Guide p.326, "Automatic Failure and Success": "A natural percentage roll of 01 is always
+success on percentage dice; 00 is always a failure. The only exception to this is any skill roll
+where the skill is at 200%, in which case the skill roll is always a success."
+
+`handleSkillRollDetails` (sheet-worker.js:29426) has the 00 rule ("Rolled 100") and the 200% rule
+("Grandmaster"), but no 01 rule. A skill of 0%, or one taken below 0 by modifiers, fails on a roll
+of 01 ("Failure", or "Critical Failure" at -20% or lower).
+
+**What the port does meanwhile:** follows your function (`resolveSkillRoll`,
+`module/skills-rules.mjs`), because the sheet outranks the book. If the 01 rule should apply, it is
+a one-line addition after the 100 test.
+
+## 99. The Standard kit's social 12-13 weapon roll has no breaks
+
+**Status:** open · **Severity:** a character of social class 12 or 13 on the Standard kit always
+gets the last weapon set
+
+In `setStandardWildernessEquipment` (sheet-worker.js:74391-74406), the social 12-13 band rolls
+`getDieRoll(4)` and switches on it, but none of the four cases ends in `break`:
+
+```
+case 1: setAttrs({start_weapons: "Spear,War Club,Short Sword" });
+case 2: setAttrs({start_weapons: "Battle Axe,Dagger,Broad Sword" });
+case 3: setAttrs({start_weapons: "Battle Axe,Hand Axe,Long Sword" });
+case 4: setAttrs({start_weapons: "Battle Axe,Hand Axe,Bastard Sword" });
+```
+
+So whatever the die says, the character leaves with Battle Axe, Hand Axe and Bastard Sword. The same
+switch in social 14-20 (74417) has all four breaks. Player's Guide errata p.31 (Saurian, who take
+this kit) prints 12-13 as a choice: "spear or war club or battle axe and dagger or hand axe, also
+any sword".
+
+**What the port does meanwhile:** reads it as the four-way choice, as it always has (the other
+kits' missing breaks are item 42). Since 2026-09-23 the extractor prints that reading on every run.
+Four `break;` statements would settle it.
+
+## 100. Two more rows break the ten-times movement rule: Midfolk(Town) and Testudara
+
+**Status:** open · **Severity:** data slip (a 1-second run of -10)
+
+PG errata p.36: "All 10 second movement times now match 10x1 second movement." After the Podling
+repair (item 39.1), two rows of `raceStatsAndMoveDetails` still break it. Both have the same walk,
+jog and run cells:
+
+```
+Midfolk(Town)  (34098)   walk -2,-30,-3   jog -2,-20,-2   run -1,-10,-10
+Testudara      (34117)   walk -2,-30,-3   jog -2,-20,-2   run -1,-10,-10
+```
+
+The run's 1-second figure is -10 where ten times it gives -10 over ten seconds, so -1 looks meant.
+The walk's hourly -2 beside -30/-3 may be the same slip one column over. Your Formless copies (34995,
+35014) carry the same figures.
+
+**What the port does meanwhile:** uses your figures, and `tools/derive-test.html` lists these two
+rows by name, so a third cannot appear unnoticed. They were not repaired: the user's 2026-09-23
+ruling covered a specific list, and neither book was checked for them.

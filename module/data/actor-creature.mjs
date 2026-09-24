@@ -450,7 +450,7 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		// Damage +0" (Aspects of the Wild), where the table gives -2 and -4. His test there reads the worker
 		// global tmpCreatureType, which changeAttribs fetches creature_type for but never assigns
 		// (29648) -- other creature handlers set it -- and his comments leave no doubt what it is for
-		// (recorded for him in docs/UPSTREAM-ISSUES.md, 2026-09-23, so the variable can be set there).
+		// (recorded for him in docs/UPSTREAM-ISSUES.md item 92, so the variable can be set there).
 		// Everything built on these takes the floor with them: combat.meleeAttack and meleeDamage, so the
 		// natural attack's to-hit and damage, and a creature's martial attacks (martial-attack.mjs reads the
 		// same two). A copy is floored, never the shared table row. A character keeps the table's signed
@@ -844,7 +844,7 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 	// His rebuild of the movement list in the same function writes each mode's hourly figure into its
 	// one-second slot and writes the modified list back as the base, so the modifiers are added again
 	// on every recalculation (178866-178891). Neither is reproduced: the modes are the creature's own
-	// list and are edited directly. Both are recorded for him in docs/UPSTREAM-ISSUES.md (2026-09-23).
+	// list and are edited directly. Both are recorded for him in docs/UPSTREAM-ISSUES.md item 94.
 	_prepareMovement() {
 		var tmpmove = this.movement;
 		var tmpjumps = getCreatureJumps(this.attributes.agl.value, tmpmove.jumpStandMod, tmpmove.jumpUpMod);

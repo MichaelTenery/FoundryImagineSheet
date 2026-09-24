@@ -202,6 +202,8 @@ The audit entry above was written from two research summaries without being chec
 
 ### 2026-09-11 — Creature/NPC implementation
 
+**Corrected 2026-09-23:** a natural attack takes Strength and body weight (both floored at 0 for a creature) as well as the temporary modifier, and jumps are now derived from Agility. See "Creatures can be built on their sheet, and hit as hard as his sheet says" below.
+
 **Decision:** the creature actor is built as `module/data/actor-creature.mjs` plus three new item types, a sheet of its own, and a creature-only rules module. Implementation ran on Opus, at the user's direction, after the model check-in the working protocol requires.
 
 **What a creature stores rather than derives.** This is the shape of the whole thing: a character *derives* Endurance, resistances and its attack skill from attributes, race and class, while a creature carries them as stat-block figures. So Endurance, Hide, Shock and all five resistances are entered fields with modifier slots, the attack chart is chosen outright, and each skill is a name and a flat percentage. What is still derived: attribute saves and table modifiers (the same functions a character uses), Perception, Affinity and Fortune, the body's areas, encumbrance and the standing combat numbers.
@@ -1111,6 +1113,8 @@ it — the data was examined closely and the code that consumes it was not.
 
 ### 2026-09-13 — The five kinds of special movement do not share a formula
 
+**Corrected 2026-09-23:** the Sea and Ice Elf mis-keying is now acted on, as a logged repair on Legends pp.27-28. See "His eight skill results, and the repairs the books settle" below.
+
 Finishing the other half of the movement work. `movement.special` now resolves, so a Centaur's
 Gallop is a distance rather than a blank row. All 26 races that have a special rate produce one, and
 none of them lands on zero.
@@ -1458,6 +1462,8 @@ not have.
 
 ### 2026-09-14 — Lore corrections, item 1 done; item 2 turned out to be a real gap, not a UI question
 
+**Corrected 2026-09-23:** item 2's gap is closed; a creature's Weapon and Missile Lore now give the general figures. See "Creatures can be built on their sheet, and hit as hard as his sheet says" below.
+
 **Item 1, the chat card's lore note, is built.** `damage.lore` and `damage.projectileLore` were
 already computed and flagged; the card's damage breakdown now shows both, with `damage.loreSpecific`
 distinguishing the general tier from a weapon named in the list. The to-hit contribution needed no
@@ -1694,6 +1700,8 @@ open rather than decided alone: whether the off-hand seconds cap should become a
 spendable pool on the round tracker -- see the note under the seconds-cap section above.
 
 ### 2026-09-16 — The Skills module's four open items, and one that was already done
+
+**Corrected 2026-09-23:** duplicate rolls are now ranked by his eight skill results (`SKILL_ROLL_ORDER`), not `SKILL_OUTCOMES`. See "His eight skill results, and the repairs the books settle" below.
 
 `docs/PROGRESS.md`'s Skills row listed five things outstanding. **Item 5 was stale and is now
 corrected: `getSlotsNeededForClass` is already extracted** -- `class_skill_slots_needed()` has been
@@ -2378,6 +2386,8 @@ documents are byte-identical to before. The JavaScript suites are untouched by a
 **Not verified:** route 1 in a running Foundry V14.
 
 ### 2026-09-19 — The character generator, from his nine creation steps
+
+**Corrected 2026-09-23:** the "social-class and cross-skill modifiers" below are misnamed: they are the race and cross-skill modifiers, now built (see "Race and cross-skill modifiers on starting skills" below). The steps are now eight, with Equipment between Details and Review (see "Buying equipment in the character generator").
 
 **Decision:** a step-by-step generator window, built on his own character creation. His sheet runs
 creation as nine numbered, confirmed steps (race, attributes, racial features, handedness and
@@ -3300,6 +3310,8 @@ inline elsewhere and may simply have drifted from the rest of the table.
 
 ## The three optional starting-kit rules (2026-09-20)
 
+**Corrected 2026-09-23:** the fall-throughs at social 5 (five kits) and 12-13 (four kits) are now repaired on his errata, not followed. See "His eight skill results, and the repairs the books settle" below.
+
 Asked for as "equip by skills, status and lore". Two of the three matched his sheet at once; "lore"
 matched nothing, and rather than guess it was asked about — the answer was "gear by culture,
 misremembered", which is his wilderness-equipment rule. Worth the question: the wrong guess would
@@ -4196,6 +4208,8 @@ before it formats, because nothing in Foundry's public API promises one.
 
 ## Situation Mods: the melee and missile modifiers window, and Second Weapon held per weapon (2026-09-22)
 
+**Corrected 2026-09-23:** `resolveSkillOutcome` is now only this window's situational reader; every skill roll reads his eight results. See "His eight skill results, and the repairs the books settle" below.
+
 **Asked for by the user: "a ranged and melee modifiers popup/popout submenu", and "make sure there is
 a check for 2nd weapon knowledge / lore that applies the appropriate mods".** Built on Opus at the
 user's choice; martial arts, asked for in the same message, is a separate pass by a separate agent
@@ -4738,6 +4752,8 @@ Not verified: the two new fields writing back, and the partial loading, in a run
 
 ## Creatures get martial arts (2026-09-22)
 
+**Corrected 2026-09-23:** a natural attack's martial arts now follow his creature path, missile to-hit for a missile-kind attack and the stance's dice included; see "Creatures can be built on their sheet, and hit as hard as his sheet says" below.
+
 The user's ruling on the fifth question: build it now. His creature sheet carries the same martial
 section a character's does, reading Martial Knowledge and Martial Lore off the creature's own skill
 list (`getCreatureSkillChance`), and his creature branches treat holding the skill at all as having
@@ -5012,6 +5028,8 @@ with the new module listed. **Not verified:** a running V14. Not released either
 another session's unfinished work when this was done.
 
 ## Starting money is rolled, on the user's three rulings (2026-09-23)
+
+**Corrected 2026-09-23:** the money now rolls on the generator's new Equipment step, not Details (see "Buying equipment in the character generator" below), and the kit fall-throughs it compares against (UPSTREAM 42) are repaired on his errata, no longer reproduced (see "His eight skill results, and the repairs the books settle" below).
 
 **Reported as "sheet not generating currency for character creation."** It was not a regression: it
 had never been built. The 2026-09-20 entry earlier in this file held it back ("Starting money is not guessed at")
@@ -5349,3 +5367,737 @@ every two-word spell uncastable (UPSTREAM 73).
 
 **Not verified:** anything needing a running V14: the dialogs, the updates, the card's buttons, the
 round clock spend.
+
+## Buying equipment in the character generator: an Equipment step, his prices, his payForIt (2026-09-23)
+
+**What was built.** The generator has a new step, **Equipment**, between Details and Review. The steps
+are now Basics, Race, Attributes, Class, Skills, Details, Equipment, Review. The Equipment step holds
+the starting money, the three starting-kit ticks and a shop.
+
+- `module/shop-rules.mjs` holds every rule, with no Foundry code.
+- `module/shop-tables.mjs` is generated from his sheet by `tools/extract/extract_shop_tables.py`. It
+  holds the ADD/BUY ITEMS panel's 79 kinds (34 armour, 31 weapon, 14 equipment) and 1,873 names
+  (ImagineTabbedCharacterSheet.html 17783-18672). It also holds `weaponcostlist` (76678),
+  `equipmentcostlist` (77291) and `armorcostlist` (77918), row for row.
+
+Nothing is paid until the character is created. The list is priced against the purse on every
+redraw, one line at a time in the order the lines were added, because his panel buys one purchase at
+a time. A Buy is paid from what the whole list already leaves, as his `add_item` pays each purchase
+from the purse the earlier ones left (14285-14293). Only then is it added to a paid line of the same
+thing, so buying more never makes an earlier line unpaid.
+
+`assembleCharacter` creates what was paid for, all of it Carried, as his `add_item` does ("they have
+to carry it out of the store", 14297). Equip Best Armour then puts on any armour bought, which is the
+book's step 10.
+
+Barding is put on only a body it was made for, as his stacking test (76422-76428) and his equipArmor
+(104799, and wrongBarding at 105118-105125) require. A Human who buys horse or centaur barding carries
+it. The sheet's Equip Best Armour button applies the same refusal (`canBodyWearArmor`,
+`module/equip-rules.mjs`).
+
+The character's wealth is the purse left over. His step 8 (`roll_confirm_money_equip`, 7935) buys
+nothing; his sheet buys only on the Equipment tab afterwards. The book puts buying inside creation:
+step 10, p.xv, and "This money is used to purchase all of the belongings a player has upon character
+creation", p.207.
+
+Every ruling below is **Provisional: the recommended default, taken 2026-09-23 while the user was
+away -- confirm or overrule.**
+
+1. **A lower coin pays when the higher ones cannot.** *Provisional: the recommended default, taken
+   2026-09-23 while the user was away -- confirm or overrule.*
+   - His `payForItOpen` (78671-78799) never pays with a coin below the price's coin.
+   - As written, no character of social class 9-16 can buy anything priced in platinum, because their
+     starting money is gold. That is 111 items at Medium, every Player's Guide armour suit among them.
+   - The port tries his order first. If his order refuses and the purse is worth the price, lower
+     coins are changed up ten for one into the price's coin, using the p.207 coinage and his
+     `calculateWealth` ratios. Then his order is tried again (`changeCoinsUp`, `payPrice`).
+   - Wherever his sheet pays, the port pays identically. It only pays where his sheet refuses.
+   - A departure from the sheet. UPSTREAM 77.
+2. **Math.ceil, not his "+1".** *Provisional: the recommended default, taken 2026-09-23 while the
+   user was away -- confirm or overrule.*
+   - His line `highercoin=(parseInt(shortfall/10)||0)+1` (78695, 78713, 78724, 78747, 78758, 78776)
+     takes one coin too many on an exact multiple.
+   - When the purse holds exactly enough, it drives a coin negative: 1 pp buying 10 gp leaves -1 pp
+     10 gp.
+   - The port uses `Math.ceil`, with his line kept beside it as a comment (the
+     `checkStartingFortune` pattern). UPSTREAM 78.
+3. **A new Equipment step, with the money and the kit on it.** *Provisional: the recommended default,
+   taken 2026-09-23 while the user was away -- confirm or overrule.*
+   - The money, the Gear by culture tick that replaces it, and what the coins buy all depend on each
+     other, and his own step 8 is "MONEY AND EQUIPMENT".
+   - **This corrects the 2026-09-23 entry "Starting money is rolled, on the user's three rulings".**
+     Its "When it rolls" paragraph says the Details step. `startingMoneyIsDue` now fires on the
+     Equipment step, and never on Details. Everything else in that entry stands.
+   - The "Already decided" line of `docs/sonnet/2026-09-23-starting-money.md` was out of date in the
+     same way, and is corrected.
+   - Height and weight are rolled on Details, one step earlier, so the Equipment step can show the
+     load.
+4. **Price level: a world setting, default Medium.** *Provisional: the recommended default, taken
+   2026-09-23 while the user was away -- confirm or overrule.*
+   - Setting `priceLevel`, with his seven columns as the choices. The book says: "The GM determines if
+     the cost for items is low, medium, or high, depending upon the economics of his world setting"
+     (p.207).
+   - A Game Master at the generator may set any line's own level, his Free included. A player's line
+     level is ignored.
+   - His per-purchase select defaults to Free because it is a table tool. In creation it would let a
+     player ignore the money roll.
+5. **Hemp and silk rope sold 50 feet at a time.** *Provisional: the recommended default, taken
+   2026-09-23 while the user was away -- confirm or overrule.*
+   - `Rope(Hemp per’)` and `Rope(Silk per’)` carry the book's per-50-feet prices (p.212: 2/4/6 sp
+     and 3/5/8 gp), but his panel sells them per foot.
+   - His .2 lb a foot is the book's 10 lb for fifty, and his panel already sells every other per-foot
+     item as a "50 X" bundle (`SHOP_BUNDLE_OVERRIDES`).
+   - Steel wire (8 cp a foot) is left as he has it. UPSTREAM 79.
+6. **"1O cp" read as 10 cp and "3 bp" as 3 gp, both reported.** *Provisional: the recommended
+   default, taken 2026-09-23 while the user was away -- confirm or overrule.*
+   - The typos are at Medium on Cup(Measuring), Glass Flask(1 cup) and Oil(Rubbing), and at Half Low
+     on Helm(Heavy Bone).
+   - This is the same footing as reading "dl0" as d10 (UPSTREAM 34). UPSTREAM 80.
+7. **The 45 out-of-order rows are reproduced, not corrected, and reported.** *Provisional: the
+   recommended default, taken 2026-09-23 while the user was away -- confirm or overrule.*
+   - Only 4 are wrong at Medium: Coffer(5“x 8“x 3“/Holds 12), Kite(Box), Fishing Pole(Deep Sea) and
+     Fishing Pole(Metal).
+   - `tools/shop-test.html` names them, so a corrected sheet shows up as a changed test. UPSTREAM 81.
+8. **Stacking.** *Provisional: the recommended default, taken 2026-09-23 while the user was away --
+   confirm or overrule.*
+   - Equipment and ammunition become one item carrying `system.quantity`, which is his "N Name"
+     stacking (`addEquipmentItems`, 76233).
+   - Armour and other weapons become one item per copy, as the kit makes them, because the port
+     tracks a hand and a layer per item.
+   - "Ammunition" means a name his own `isProjectileWeapon` chain matches, or a Missile weapon with no
+     speed. This departs from the research's test (a Missile weapon with no speed) because 34 of his
+     fairy arrows and bolts carry a speed of 1, and his chain does not name ballista shot.
+   - His chain also counts Javelin(Wood) and Stick(Throwing), so those stack too.
+9. **Creature-hide armour is not sold.** *Provisional: the recommended default, taken 2026-09-23
+   while the user was away -- confirm or overrule.*
+   - All 60 "Giant Chitin/Leather/Scales" offers need a creature and an armour value on his sheet
+     (14102, 14270-14283), and are then renamed by `setCreatureArmorName` (78802). The port has
+     neither field.
+   - Backlogged (Sonnet note item 3).
+10. **Aliases and exclusions.** *Provisional: the recommended default, taken 2026-09-23 while the user
+    was away -- confirm or overrule.*
+    - **15 aliases, not the research's 16:**
+      - the 14 fairy crossbow "Arrow(...)" offers that his values call "Bolt(...)";
+      - Gauntlets(Stainless Steel), aliased to his unclosed "Gauntlets(Stainless Steel" (78111) for
+        both price and document.
+    - **3 exclusions, not the research's 2** (`SHOP_LEFT_OUT`):
+      - Arrow(Fairy Crossbow/True Flight) has no Bolt document either. His values list
+        Bolt(Fairy Crossbow/Normal) twice, at 79794 and 79796; the second may have been meant for
+        True Flight.
+      - Arrow(Fairy Long Bow/True Flight) has a price and no values.
+      - Arrow(Horn Bow/True Flight/Far Flight) has values and no price.
+      - Each is listed in `catalog.left` with its reason, marked `known`.
+    - His launcher code matches the fairy bolts only by the Arrow spelling (`getLauncherFromProjectile`
+      86842, the ammunition test at 86547). `MISSILE_LAUNCHER_MATCHES` (`module/combat/combat-rules.mjs`)
+      therefore gains three rows, `Bolt(Fairy Hand Crossbow`, `Bolt(Fairy Heavy Crossbow` and
+      `Bolt(Fairy Crossbow`, beside his Arrow ones. The bolts the shop sells then pair with their
+      crossbow, for example in Learn a combination. This only adds to his chain. UPSTREAM 82.
+11. **Homebrew is buyable through `system.cost`.** *Provisional: the recommended default, taken
+    2026-09-23 while the user was away -- confirm or overrule.*
+    - A document's own cost overrides his table at every level.
+    - A document his panel does not list, but that has a cost, is sold under "Other (Game Master's)".
+    - The cost is for ONE, so a bundle of ten costs ten of it.
+    - Prices live in code, not on the documents, because a world only takes new document data when a
+      Game Master re-imports.
+    - **A Cost that is not a whole number and ONE coin is not sold at all**: "2 gp 5 sp", "1.5 gp" or
+      "5 gold". His getCoins/getCoinType would charge the first two as 2 sp and 1 gp without a word.
+      `parsePrice` marks those two as `doubtful`, and `readDocumentCost` refuses them. None of his own
+      price strings is doubtful.
+    - Documented in `docs/ADDING-CONTENT.md`.
+    - Known gap: the generator reads only the Imagine compendiums, so an item in a Game Master's own
+      compendium is not offered yet (Sonnet note item 4).
+12. **Not applied at creation.** *Provisional: the recommended default, taken 2026-09-23 while the
+    user was away -- confirm or overrule.*
+    - Bartering/Haggling (p.148), the Master's Manual size and race price rules (MM p.124, p.25), coin
+      weight (his own "@FUTURE", 81910) and any refusal on encumbrance are not applied.
+    - The load is shown, never refused, as his `add_item` does. It comes from `resolveEncumbrance`
+      over exactly the items Review lists.
+13. **The sheet-side shop is a later pass.** *Provisional: the recommended default, taken 2026-09-23
+    while the user was away -- confirm or overrule.* The Equipment tab's Buy and Sell (`remove_item`,
+    `payThemForItOpen`) will reuse `shop-rules.mjs` unchanged. See the Sonnet note.
+14. **Gear by culture leaves the shop idle.** *Provisional: the recommended default, taken 2026-09-23
+    while the user was away -- confirm or overrule.*
+    - That kit is taken instead of coins, so there is nothing to pay with. The shopping list is kept,
+      and comes back priced when the tick is taken off, as the coins do.
+    - A line the purse no longer covers is marked, and Next waits until it is removed or cut down.
+    - Create refuses too, in case a Game Master changes the price level while the window is open.
+    - A character is never made owing money, nor with only part of its list.
+15. **A Game Master is told what the shop cannot sell in their world.** *Provisional: the recommended
+    default, taken 2026-09-23 while the user was away -- confirm or overrule.*
+    - What is left out everywhere (creature hide, `SHOP_LEFT_OUT`) is marked `known` and not
+      repeated.
+    - Anything else is named to a Game Master on the Equipment step, at most five by name
+      (`describeShopGaps`), with the `game.imagine.importContent()` hint. That covers one of his items
+      missing from the world's compendiums, and an item whose Cost cannot be charged as written.
+    - A player is not shown it.
+
+**How names and bundles are read** (this follows his sheet, so it is not a ruling):
+- **Exact names first.** A name is looked up by its exact spelling first, and only failing that by
+  `normalizeItemName`. Three pairs in the packs look the same once normalized and are different
+  items: Leecher’s Tools is .5 lb and Leecher's Tools 2 lb (80774 and 81342), and the same holds for
+  Canvas(Waterproof/sq.’) and Leather Cord(1’). A world's compendium does not keep the packs' order,
+  because the importer uses `keepId: false`, so the first document found could be either one.
+- **Bundles.** Every "N X" name is N of X wherever X is a document, "10 Nails" and
+  "10 Needles(Assorted)" included. That is how his sheet reads the name once it is bought:
+  `getItemWithoutCount` 76359, `getNumOfItems` 76336, `getItemWeight` 81938. So there are 32
+  bundles: all 30 of his, as the research counted, plus the two ropes.
+
+**Corrections to the research this pass was built from:**
+- **The packs and `src/packs/raw/*costlist.json` do NOT carry U+FFFD.**
+  - They hold his ’ correctly. The raw cost lists match the generated table row for row, and the
+    equipment pack has 46 names with ’.
+  - The research's "Rope(Hemp per�)" was a console-encoding artifact.
+  - The extractor reads `sheet-worker.js` because it is his source, not to avoid damage.
+  - `normalizeItemName` still treats ’, the backtick, ' and U+FFFD as the same character, because the
+    packs carry both "Rope(Hemp per’)" and "Rope(Hemp per')".
+- **Eight of his price rows are duplicated**: two weapons, five equipment and one armour.
+  - JavaScript keeps the later of each, and the table does the same, with the earlier row written out
+    as a comment. The extractor's report lists all eight.
+  - Three pairs differ. Boots(Leather) is 4 sp at Medium at 77925 and 8 sp at 78410. The two
+    Arrow(Great/Welsh Bow/True Flight/Piercing/Barbed) rows are 16 sp and then 15 sp.
+  - His sheet charges the later row. UPSTREAM 82.
+
+**Verified:**
+- `tools/shop-test.html` has 126 checks. They include:
+  - all 19 research payment vectors, with his literal result kept in a comment beside each;
+  - the real-pack catalog counts;
+  - a Human's bought barding staying carried;
+  - the Buy order;
+  - exact names found whichever of a pair comes first;
+  - the fairy bolts' launchers;
+  - typed Costs;
+  - the Game Master's gaps line.
+- `tools/chargen-test.html` has 107 (+12 over the bug sweep's 95), `tools/starting-money-test.html`
+  60 (+1) and `tools/equip-test.html` 26 (+5). On its own branch `node tools/run-tests.mjs` ran 18
+  suites, 2,319 checks, none failing.
+- The Equipment and Review steps were rendered headlessly through the real template with Foundry's
+  own Handlebars against the real packs.
+
+**Not verified:** the window in a running Foundry V14. That includes Buy and remove, the Game
+Master's level select and gaps line, the new setting, the chat card, and the offers box keeping its
+scroll position. Left: `docs/sonnet/2026-09-23-equipment-shop.md`.
+
+## Race and cross-skill modifiers on starting skills (2026-09-23)
+
+**What was missing.** His sheet adds four kinds of modifier to a new character's skills, on top of
+the dice, the race's bonus on a racial skill, and the class's CORE +30 and type modifiers. None of
+them had been ported. The earlier entries call them "social-class skill modifiers" (the 2026-09-19
+generator entry, "Not built yet"). **That name is wrong: nothing in them reads Social Class.**
+`getSocialSkillMods` is keyed on the race (`race_list1`), so the right name is **race and cross-skill
+modifiers**:
+
+| Term | His code | Port |
+|---|---|---|
+| race's modifier on a social skill, or BLOCKED | `getSocialSkillMods`, socialskillmoddict 55499 | `SOCIAL_SKILL_RACE_MODS` |
+| racial/class skill lifts a social skill | `getRaceClassSocialMod` 57649 | `RACE_CLASS_TO_SOCIAL_BONUS` |
+| Falconry +15; Swimming +50 / Webbed +30 | `getExtraSocialMods` 57609, 57641 | `getExtraSocialMods` |
+| social skill lifts a social skill | socialbonusfromsocial 57681 | `SOCIAL_FROM_SOCIAL_BONUS` |
+| social skill lifts a racial/class skill | socialbonustoraceclass 57120 | `SOCIAL_TO_RACE_CLASS_BONUS` |
+| trait switch: Famorian evokes, Climbing, Hearing, Smell, Loud; "only the excess" | `getExtraClassRacialMods` 53473-53524 | `getTraitSkillBonus` |
+
+**Where it lives.**
+- `tools/extract/extract_social_skill_tables.py` reshapes the four already-parsed raw dictionaries
+  and walks the switch. It writes the GENERATED `module/social-skill-tables.mjs`.
+- `module/social-skill-rules.mjs` works the terms out. It is Foundry-free.
+- The terms reach a skill's `abilityBonus` through an optional trailing `tmpContext` on
+  `getClassSkillBonuses`, `getRacialSkillBonuses` and `getSocialSkillBonuses`. A caller that passes no
+  context gets exactly what it got before.
+- `assembleCharacter` and `grantClassSkills` build that context with the same `buildSkillModContext`,
+  so a class skill granted at title 7 takes the same terms as one taken at creation.
+- The bonus is stored once, when the skill is gained, as his sheet does. It is never re-derived.
+  There is no schema change and nothing to migrate.
+
+**Generator.**
+- The Skills step shows the first race's modifier ("+10%" / "BLOCKED") beside each social skill.
+- It refuses a BLOCKED pick and gives the reason, as his copy button does (7393, 7420).
+- The Review step lists each skill's bonus and what it is made of.
+
+**Rulings.** Each of these is the research's recommended option. **Provisional: the recommended
+default, taken 2026-09-23 while the user was away -- confirm or overrule.**
+
+1. **Port what `getExtraClassRacialMods` meant, not what it does.**
+   - It returns before its own asynchronous `getAttrs` callback runs (53468, 53471, 53546). On his
+     live sheet it therefore always gives 0: no evoke, Climbing, Hearing, Smell or Loud term, and no
+     social bonus reaches a racial or class skill.
+   - Three sources say what he meant: his comment at 63786, his evoke text ("+40% Climb", "+30% to
+     Listen"), and the Player's Guide p.xv step 9C.
+   - **This departs from what his sheet does.** UPSTREAM 83. *Provisional: the recommended default,
+     taken 2026-09-23 while the user was away -- confirm or overrule.*
+2. **UPSTREAM 52 fixed, class skills included, and every title's class skills counted at creation.**
+   - Each racial AND class skill is asked of `getRaceClassSocialMod` in turn, as his later
+     `getNewSocialSkillModifier` does (125673-125679). A skill held twice counts once.
+   - That function reads every title's class-skill rows, `class_skill_1_1` to `class_skill_15_1`
+     (125658), and his sheet fills them all at creation (63288 onward). So at creation the port asks
+     every title's class skills of the class (`getEveryClassSkill`), not only the first title's.
+   - Example: an Assassin, whose Disguise comes at title 2, starts with Acting and Begging +15. Review
+     labels the lift "Disguise (class skill, title 2)".
+   - `grantClassSkills` never goes back to a social skill, because creation already counted it.
+   - **Known gap:** a class added later (a dual class; his sheet has no second class, DECISIONS
+     2026-09-16) lifts no social skill the character already holds. Neither the book nor his code
+     settles this.
+   - Item 52 is amended to say what the port now does, with the question this raises.
+   - *Provisional: the recommended default, taken 2026-09-23 while the user was away -- confirm or
+     overrule.*
+3. **The excess rule (53524) is kept as written, except when the trait switch gave nothing.** Without
+   that guard it turns a Brok's Tame Animal -10% into 0 - (-10) = +10. Two oddities are kept and asked
+   of him (UPSTREAM 85):
+   - A Brachara's Climb (+20) with Climbing (+10) stacks to +30.
+   - Class skills compare against CORE +30.
+   *Provisional: the recommended default, taken 2026-09-23 while the user was away -- confirm or
+   overrule.*
+4. **Four data slips repaired in the extractor, and printed on every run** (UPSTREAM 86):
+   - Farming/Planting (57748) and Foraging/Forestry (57756): `"Botany","Botanist","+10%"` is out of
+     pairs. It is read as one giver under two names, since Botany and Botanist are the same skill
+     twice.
+   - Calligraphy lists Artisan twice (57714). It is counted once.
+   - `"Truth Tell "` is trimmed (57259).
+   - A giver or target that answers to several names is written `"A|B"` in the tables.
+   *Provisional: the recommended default, taken 2026-09-23 while the user was away -- confirm or
+   overrule.*
+5. **A Half Race uses the FIRST race's modifiers and BLOCKs only**, as his `race_list1` does (17028,
+   53598). The Player's Guide p.33 rule 6 would average both races, so this is asked of him
+   (UPSTREAM 87). *Provisional: the recommended default, taken 2026-09-23 while the user was away --
+   confirm or overrule.*
+6. **His errata's 13 race-modifier changes are applied from a committed list** (`ERRATA_CHANGES` in
+   the extractor), each citing its file and page.
+   - When the local errata files are present, the extractor re-reads Aspects Pg 23(After), Epitaph
+     Pg 57 (After) and Legends Pg. 71. It compares all 215 entries; after the overlay, 0 differ.
+   - A race the errata leaves out of a row keeps the sheet's value.
+   - The thirteen changes are listed in `docs/ERRATA.md`.
+   *Provisional: the recommended default, taken 2026-09-23 while the user was away -- confirm or
+   overrule.*
+7. **Swimming +50 (and Webbed +30) apply only when Swimming is taken**, as his code has it. His errata
+   Legends Pg 42 says the ability "Grants Swimming Social Skill at +50%" (asked in UPSTREAM 89).
+   *Provisional: the recommended default, taken 2026-09-23 while the user was away -- confirm or
+   overrule.*
+8. **Famorian Instinct(Navigation) is fixed at creation**, at title 1 (at least 1), as his code does
+   (53495-53497), though his evoke text says "per Title" (UPSTREAM 89). `grantClassSkills` passes
+   title 1, since his sheet rolled every title's class skills at creation. *Provisional: the
+   recommended default, taken 2026-09-23 while the user was away -- confirm or overrule.*
+9. **Rope Use's +10% matches Set Trap, Set Trap(w) and Set Trap(u)** (57267; UPSTREAM 43, and 86).
+   *Provisional: the recommended default, taken 2026-09-23 while the user was away -- confirm or
+   overrule.*
+10. **A BLOCKED social skill.**
+    - The generator's Skills step refuses it and gives the reason.
+    - `assembleCharacter` still creates it, with an issue and no race modifier.
+    - Nothing is ever removed from a character.
+    *Provisional: the recommended default, taken 2026-09-23 while the user was away -- confirm or
+    overrule.*
+11. **Loud gives Surprise Attack -20.** His sheet writes `tmp_tmp_disabilities_loud` (46914) where it
+    reads `tmp_disabilities_loud`, so this could not apply even without ruling 1. It is part of what
+    ruling 1 ports. UPSTREAM 84. *Provisional: the recommended default, taken 2026-09-23 while the
+    user was away -- confirm or overrule.*
+
+**Fixed along the way, not rulings.**
+- `assembleCharacter` combined a Half Race's racial-skill bonuses by comparing each against 0 as well
+  as against the other race, so every race **penalty** on a racial skill (Brok Tame Animal -10%) came
+  out as nothing. It now keeps the figure, and still takes the better of two where both races list
+  the skill.
+- A Famorian's evokes count only while one of the race items is a Famorian (`buildSkillModContext`),
+  as the character model reads them (`actor-character.mjs`, @MARKER FAMORIAN). Nothing clears
+  `physical.famorian.evokes` when a race item is swapped on the sheet. Before this fix, a Famorian
+  that became Human still gave a later title's Climb the Climbing evoke's +40.
+
+**Correction to an older entry.** The 2026-09-19 "The character generator, from his nine creation
+steps" entry's "The social-class and cross-skill modifiers on skills" is this work, and is misnamed:
+read "race and cross-skill modifiers". The three 2026-09-19 sonnet notes that deferred it are marked
+DONE.
+
+**Not built** (`docs/sonnet/2026-09-23-social-skill-mods.md`):
+- His "Social Skill Modifiers" text panel on the sheet.
+- A flag on a BLOCKED social skill dropped on the sheet.
+- A preview walk-through.
+- A learn-a-new-skill flow. His own reads the social-to-social table backwards (UPSTREAM 88), so it
+  is not the one to copy.
+- The classes' Required/Recommended social skills (`setSocialSkillLists`).
+
+**Verified.**
+- `tools/social-mods-test.html` passes 80 of 80. That includes the research's 18 cases and a stubbed
+  `grantClassSkills`.
+- It also checks that an Assassin's title-2 Disguise lifts Acting at creation and that the grant
+  then leaves Acting alone.
+- It checks that stale evokes on a non-Famorian actor reach nothing.
+- `tools/chargen-test.html` passed 91 of 91 (+2) on its own branch.
+- The builder rendered the Skills and Review steps through the real template with Foundry's
+  Handlebars.
+
+**Not verified:** the window in a running V14.
+
+## Creatures can be built on their sheet, and hit as hard as his sheet says (2026-09-23)
+
+**What was built.** This pass closes the creature audit's gaps G1, G2, G4, G7 (with the size field),
+G10, G11 and G13, all on the creature side. The rules are in the new `module/creature-sheet-rules.mjs`:
+characteristic rolls, the hide cap, jumps, body-chart rows and area names, and list rows. The remaining
+rules are `getWeightDamageAdjust` and `getShockBar` in `combat-rules.mjs`, and
+`getCreatureDamageMods`, `getCreatureMartialModifiers` and `hasCreatureAttackDamage` in
+`creature-rules.mjs`. The sheet work is in `actor-creature-sheet.mjs` under @MARKER AUTHORING. The
+branch was rebased onto 0.19.3 before landing (see "Merged with the bug sweep" below). Tests: creature
+158 → 249, martial 183 → 188.
+
+The audit's recommended defaults were taken while the user was away. **Each ruling below is
+provisional and awaits the user's confirmation:**
+
+- **D2. Every natural attack except Touch takes the creature's standing damage.** That damage is
+  Strength's melee damage, body weight, Weapon Lore's +4 and the temporary modifier: his
+  `combat_mod_damage`. `handleCreatureAttack` adds it at sheet-worker.js:179920-179929 to any type
+  that is not "Projectile", and no creature type is. Breath, gaze and area attacks take it too, as in
+  his code. The Player's Guide p.179 speaks of weight "when the character attacks with any melee
+  weapon", so the question goes to him (UPSTREAM 90). An attack with no damage does none. That covers
+  both blank and "0" (see below). *Provisional: the recommended default, taken 2026-09-23 while the
+  user was away. Confirm or overrule.*
+- **D3. A creature's Strength melee to-hit and melee damage never go below 0.** *Corrected in review,
+  before merge.* The audit read his formula as keeping a negative Strength damage (Badger, Strength 7,
+  -4) and recommended following it. That reading missed `changeAttribs` (sheet-worker.js:29694-29697),
+  which floors both `str_melee_attack` and `str_melee_damage` at 0 for a creature ("low STR is already
+  factored into creature melee damage modifiers"). The bestiaries agree: the Strength 7 badger is
+  printed "Melee +0, Damage +0" (Aspects of the Wild). With the weight floor at 82173, a weak, light
+  creature's attack does its own dice. The floor is applied where the Strength row is set
+  (`_prepareAttributes`, on a copy of the shared table row). The Stats tab, the natural attack's
+  to-hit and damage, and a creature's martial attacks all read the 0. A character keeps the signed
+  figures. His test reads the worker global `tmpCreatureType`, which `changeAttribs` never assigns
+  (UPSTREAM 92). The audit's planned question to him, "is there a floor?", is dropped, because his
+  code already has one. *Provisional in form only: his sheet and the books agree. Confirm.*
+- **D4. The errata's hide cap is a warning on the sheet, never a clamp in derivation.** The cap is
+  5 × level, level 0 counting as 1. Plants, magical plants and anything Titanic are exempt (Master's
+  Manual errata "Pg: 290"; Aspects errata). `body.hide` stays what was entered, and
+  `body.hideMax`/`body.hideOverCap` drive the warning in the header and the Stats tab. Clamping
+  belongs to imported data, once the importer exists. *Provisional: the recommended default, taken
+  2026-09-23 while the user was away. Confirm or overrule.*
+- **D6. A size field, `identity.size`.** Its choices are the Master's Manual's own "Body Size" list
+  (p.295): Tiny, Small, Medium Small, Medium, Medium Large, Large, Very Large, Huge, Giant, Mammoth,
+  Gargantuan, Titanic, Divine Being. That list is a superset of every size word on the four
+  bestiaries' body lines. Blank means "not given", which is what every existing creature has, so no
+  migration is needed. Only Titanic does anything yet: the hide-cap exemption. *Provisional: the
+  recommended default, taken 2026-09-23 while the user was away. Confirm or overrule.*
+- **D7. The sheet is edited in place, the Foundry way, rather than through a port of his
+  stage-then-Finish Configurator.** The paste-a-stat-block dialog that goes with it is not built; it
+  is G3. *Provisional: the recommended default, taken 2026-09-23 while the user was away. Confirm or
+  overrule.*
+- **D9. The token bar shows total wounds against Shock, on both actor types.** It is registered as
+  `body.shockBar` in `CONFIG.Actor.trackableAttributes`, with totalWounds, overallWounds and
+  damageAbsorb as plain values. It is drawn as what is **left** (Shock minus wounds, never below 0),
+  because Foundry colours a full first bar green: a bar of wounds would show an unhurt creature as an
+  empty red bar. It is derived, so the token HUD shows it but does not offer to edit it. Shock Immune
+  gives a bar of size 0, which Foundry does not draw. *Provisional: the recommended default, taken
+  2026-09-23 while the user was away. Confirm or overrule.*
+- **A martial MOVE's extra die or damage per die does not reach a natural attack.** Jump writes
+  "+1 Die Dam" and Spinning "+2 per Die" into `martial_arts_mod_special` (68167, 68198). His creature
+  path reads dice only from `martial_stance_mod_special` (179932-179945) and never reads the moves'
+  text. His weapon path (64999-65002) and martial attacks (66742-66769) do read it. His code is
+  followed. A creature that Jumps gets Jump's +2 to hit and +1 damage and no extra die. A Spinning one
+  gets its to-hit and no damage per die. The card says what was left out. The alternative is to give a
+  bite Jump's die, on the grounds that `MARTIAL_MOVE_CORRECTIONS` gives a character's weapon one ("can
+  be applied to weapon attacks as well as martial attacks"). That would be a few lines in
+  `getCreatureMartialModifiers`. Asked of him (UPSTREAM 93). *Provisional: chosen in review,
+  2026-09-23. Confirm or overrule.*
+
+**Calls made while building, each read off his code:**
+- *A Touch takes none of the standing damage.* His touch branch (179773-179779) rolls bare dice: no
+  Strength, weight, Lore, temporary modifier, martial damage, Situation Mods damage, "Max" or
+  multiplier. It keeps only what the port adds to every attack of its own accord: the off-hand
+  penalty and the number typed into the attack dialog. This removes "Damage Other" from a touch, which
+  it had before, though no sheet ever showed that field.
+- *An attack with no damage does none, and "0" counts as none (`hasCreatureAttackDamage`).* His touch
+  branch rolls only when the damage is neither "" nor "0" (179775). His other branch turns "" into "0"
+  (179920) and still adds `combat_mod_damage` to it (179919-179925), so a damage-less gaze from a
+  1,200 lb Strength 19 buffalo would do 17. The port has never done that. The question is put to him
+  (UPSTREAM 91).
+- *Weapon Lore and Missile Lore give the general figures* (`LORE_GENERAL`). Weapon Lore is +2 to hit
+  on melee-kind attacks and +4 damage. Missile Lore is +2 to hit on missile-kind attacks. The skill
+  must be held by its exact name at a chance above 0, and the creature must be level 1 or more,
+  because his "(currentTitle+1)>1" is false at level 0 (82262-82307, getCreatureSkillChance 178814).
+  A creature has no lored-weapon list, so the specific tier never applies. A Touch gets none.
+- *Martial arts on a natural attack follow his creature path.* The to-hit follows the kind: missile
+  figures for a type naming Missile, Glob or Bolt (179761-179762), melee otherwise (179768-179769). The
+  flat martial damage applies whatever the kind (179927-179929). So do the held stance's dice
+  (179932-179945) and the moves' multiplier (180003-180010). A move's dice do not (see the provisional
+  ruling above). His martial multiplier slip (`damMult`, 180008, UPSTREAM item 14) is not reproduced.
+  Drunken fighting's "Die Dam" is read as damage per die, as it already is on a character's weapon
+  (`MARTIAL_STANCE_CORRECTIONS`).
+- *Martial attacks add body weight, on both actor types.* His martial attack buttons pass
+  `combat_mod_dam_weight` (20341-20342 and siblings) into `getMartialDamageDetails`, which adds it
+  beside Strength (66807-66811, and the non-verbose sum). `resolveMartialAttackDamage` takes a `weight`
+  input. `martial-attack.mjs` passes `getWeightDamageAdjust(weight, isCreature)`, signed for a
+  character and floored for a creature. The martial card shows it. Snap takes away Strength, not
+  weight. A character's WEAPON damage still has no weight term (Sonnet note item 1).
+- *Jumps reuse the character's `MOVEMENT_BASE`.* His creature switch (178893-179003) gives the same
+  pair of figures for every Agility from 0 to 30, and a test checks all thirty-one cases against it.
+  His two jump modifiers are the new `movement.jumpStandMod`/`jumpUpMod`. The stored
+  `jumpStand`/`jumpUp` stay in the schema and are overwritten in derivation, as the character's are.
+  They were never shown as inputs, so nothing anyone could have seen is lost. The result is held at 0;
+  he does not floor it.
+- *His movement rebuild is not reproduced.* It writes the hourly figure into the 1-second slot and
+  re-adds the modifiers to the stored list on every recalculation (178866-178891; UPSTREAM 94). The
+  creature's movement modes are its own list, edited directly.
+- *Characteristic rolls use the character sheet's three bands* (bug report 0.18.1:1): good at or under
+  the chance, bad over 100 minus the single chance, otherwise neither. His creature Perception and
+  Affinity are pass/fail only. His MOD buttons become a shift-click. A modifier is added to the single
+  chance, so it moves the bad band too. His Fortune "+mod" joins the modifier to the chance as text
+  and holds the result to 1-99 (24624-24625; UPSTREAM 95). The port adds it as a number and does not
+  clamp. The character sheet keeps its own copy of the word table until Sonnet item 3 replaces it with
+  a call to `resolveCharacteristicRoll`. Until then, creature-test reads that copy out of the character
+  sheet's source and compares it word for word.
+- *The body chart editor keeps each area's own kind* (Vital, Limb, Other, Wing); the wounds arithmetic
+  still reads everything but Vital as a Limb. The editor strips commas, brackets and full stops from
+  names, because a full stop would turn the wound input's `system.body.wounds.<name>` into a deeper
+  key. "Edit areas" copies the stock chart for the body type. For Custom it starts from one Vital area
+  at x1, as his builder does (22284-22287). **Add** gives each new area a name no other area has ("New
+  Area", "New Area 2"...). Wounds are kept by name, and since 0.19.3 `parseBodyChart` tells a repeated
+  name apart only by its place ("Name (2)", UPSTREAM 69). The sheet therefore warns when two rows share
+  a name but never renames one, because his Segmented Worm repeats two names. A note under the editor
+  says that renaming an area starts its wound count again.
+- *Every list handler on the creature sheet saves the form first.* The handlers for skills, movement
+  modes and body areas each rebuild a whole list from the stored document, and Foundry does not await
+  the submit-on-change (ApplicationV2._onChangeForm). A name typed just before clicking Add would
+  otherwise be overwritten by the old list. Each handler awaits `ApplicationV2#submit` first:
+  `#saveFormFirst`, the character sheet's own pattern from the bug sweep.
+- *`combat.skillMisc` is left out of the Modifiers panel.* Nothing reads it on either actor, and his
+  creature skill roll does not read `combat_mod_skill`.
+
+**Merged with the bug sweep.** The branch forked before 0.19.3 and was rebased onto it rather than
+merged. 0.19.3 had already given the creature sheet `openItem`/`deleteItem` (with the confirmation)
+and a set of row buttons. A plain merge auto-merged both sets and produced a sheet that did not parse,
+because of duplicate private methods. The branch's copies of the handlers were dropped. One set of row
+buttons was kept, in the branch's separate column, with the ✎/× glyphs the character's gear table
+uses. 0.19.3's `Roll.validate` guard for non-dice damage ("2d6 poison", "special") is carried into the
+new damage block. It tests the damage as entered, before any martial die is added, and its note goes
+into the card's situation notes.
+
+**CORRECTION to 2026-09-11, "Creature/NPC implementation".** That pass gave a creature's natural
+attack only the temporary damage modifier. The comment it left in `creature-rules.mjs`, "A creature
+gets no Strength damage bonus on top of its attack's own dice -- the dice on the stat block are the
+whole of it", misread `handleCreatureAttack` 179925, and the matching test in `tools/creature-test.html`
+encoded the same belief. His code adds Strength and weight to every non-Touch creature attack, both
+floored at 0 for a creature, and the bestiaries agree. Of the stat lines checked, 174 print a "Damage
++N" that is exactly Strength plus weight: the buffalo, Strength 19 at 1,200 lb, prints "Damage +17"
+(Aspects of the Wild, PDF page 58). Both the comment and the test are rewritten. The same entry's "Not
+ported, deliberately: ... the Agility-driven jump table" is also superseded: jumps are derived now.
+
+**CORRECTION to 2026-09-22, "Creatures get martial arts".** Its paragraph "A creature's natural attack
+takes the martial MELEE to-hit only" is superseded by this one:
+
+> **A creature's natural attack takes its martial arts as his creature path gives them** (corrected
+> 2026-09-23). `handleCreatureAttack` reads the martial missile to-hit for a missile-kind attack, whose
+> type names Missile, Glob or Bolt (179761-179762), and the melee figures otherwise (179768-179769).
+> For every attack but a Touch it adds the moves', Lore values' and stance's flat damage whatever the
+> kind (179927-179929), the held stance's "+1/+2 Die Dam" (179932-179945) and the moves' multiplier
+> (180003-180010). It does NOT add a move's extra die or damage per die (Jump, Spinning): those sit in
+> `martial_arts_mod_special`, which this path never reads. The `tmp_extra_dice`/`tmp_extra_per_die` it
+> does read (179961-179968) are the Game Master's temporary modifiers, not the moves. A Touch takes
+> none of it. A Flip still forbids any attack. `getCreatureMartialModifiers` in `creature-rules.mjs`
+> does this, and `creature-attack.mjs` calls it. A creature's martial ATTACKS (a Martial Punch) go
+> through `rollMartialAttack` as a character's do, now with body weight beside Strength.
+
+**Gap closed from 2026-09-14, "Lore corrections, item 1 done; item 2 turned out to be a real gap, not
+a UI question".** Item 2 found that his sheet gives creatures a numeric Weapon/Missile Lore bonus and
+the port did not. Its "Why this is not fixed here" paragraph is superseded. The general tier is
+applied now, by the attack's kind, as described above.
+
+**Gap logged, both actor types.** His Game Master's temporary **Extra Damage Dice** and **Extra Damage
+per Die** (`tmp_extra_dice`, `tmp_extra_per_die`, on the modifiers page, HTML 56600-56601 and
+91911-91912) are read by every one of his attack paths, the creature's included. Hymn: Courage raises
+the per-die one (140537-140546). Neither actor has them in the port. This is not mechanical, because
+his code has two slips there (UPSTREAM 97). It is listed in the Sonnet note under "Not mechanical".
+A third slip found on the way, `setCreatureWeaponProfValues` splitting the skill list with no
+separator (UPSTREAM 96), waits on creatures using weapons (G8).
+
+**Also:** `docs/ERRATA.md`'s hide-cap line now says the cap is modelled, as a warning.
+
+**Checked:** 2271 checks passed across 17 suites on the branch (creature 249, martial 188; combat 522,
+derivation 519, and the rest as on 0.19.3). window-test is browser-only. `node --check` passes on all
+76 modules. The changed templates precompile with Foundry 13.347's Handlebars.
+`tools/creature-preview.html` was rendered in a browser before the review fixes. After them it was
+compiled but not re-rendered. `trackableAttributes`, `getBarAttribute`, `_processFormData`,
+`ApplicationV2#submit` and `_onChangeForm` were checked against the locally installed Foundry 13.347
+source. **Not verified:** anything in a running Foundry V14. That includes drag-drop, opening and
+deleting items, the form's body-chart rows, save-before-add on a hosted server, the token bar and the
+shift-click dialogs. Left: `docs/sonnet/2026-09-23-creatures.md`.
+
+## His eight skill results, and the repairs the books settle (2026-09-23)
+
+**Skill rolls are read the way his sheet reads them.** Every skill roll on his sheet goes through one
+function, `handleSkillRollDetails` (sheet-worker.js:29426-29456). That covers 25 calls: the race,
+social, class, high-title and common skill rolls (63940-64331), the common social skill (3614, 3650),
+a creature's skill (175380, 175407), the eight martial knowledge and lore rolls (66181-68659) and the
+weapon, shield and body parries (65364, 70808, 70997). Each call then reads "Succeeded?" off the same
+split (3616-3620). The function returns eight results, tested in this order:
+
+- chance over 199: **Grandmaster** ("Grandmasters don't have to roll").
+- a roll of 100: **Rolled 100**, which always fails below 200%.
+- roll over chance + 20: **Critical Failure**.
+- roll over chance: **Failure**.
+- roll under chance - 20: **Critical Success**, or **Critical Success and made by half** if the roll
+  is at or under half.
+- otherwise: **Success**, or **Made by half** if the roll is at or under half.
+
+**The half rounds UP** (`parseInt((chance+1)/2)`). The first five results succeed. The port had read
+only the Player's Guide's four results (p.93), and `skills-rules.mjs` said "his skill roll template
+only reports the number", which was wrong because this function had been missed. Now
+`resolveSkillRoll` carries the eight results for:
+- the character's skill rolls and untrained skill rolls;
+- a creature's skill rolls;
+- the martial knowledge and lore rolls (attack, hold, throw, move, lore value).
+
+Each card now ends with the result and whether it passed ("Made by half (succeeded)", "Rolled 100
+(failed)"), as his cards end "Result=... Succeeded? = ...". This answers UPSTREAM item 4 from his own
+code: skills get both made-by-half and the +/-20 criticals, and saves get made-by-half only.
+
+**Three readers, kept apart on purpose:**
+- `resolveSkillRoll` for skill rolls (29426).
+- `resolveAttributeSave` for the saves on both sheets. It gives three results. The half rounds DOWN
+  with a floor of 1 (`divideWithMin`, 25595, as his twelve save handlers use it at 42-58 and after).
+  The old inline code on both sheets used `Math.floor` and differed from his only at a chance of 1.
+- `resolveSkillOutcome` (four results) only for the Situation Mods window's six roll-set options. His
+  situational handlers (roll_critical_sit, 19112ff) read their own dice inline, with no Grandmaster,
+  no 100 rule and no half.
+
+Lore use, learning and brewing (`lore-rules.mjs settleRoll`) and the stance and missile-combination
+acquisition rolls are his own inline readers too. They are not changed.
+
+**No natural 01.** Player's Guide p.326 says a natural 01 always succeeds. His function has no such
+rule: a 0% skill rolling 01 is a Failure. The sheet outranks the book, so the port follows his
+function, and this goes to him as UPSTREAM 98, "A natural 01 on a skill roll".
+
+**Repairs his errata and books settle, each printed on every build.** `build_documents.py` and
+`extract_starting_kit.py` print a REPAIRED line for each. Each repair names the value it expects to
+find in his data, and reports "no longer needed" (and uses his value) if a corrected sheet has changed
+it.
+
+- **Elf(Sea), Elf(Ice)** (UPSTREAM 24; `column_maps.RACE_VALUE_REPAIRS`). The -10 at index 38 (speed
+  multiplier) moves to index 37 (Disease). Legends p.27 and p.28 print "Poison -10% / Disease -10%"
+  and "Movement: as Elven". Every other Elf carries its disease modifier at 37 and 0 at 38. His
+  Formless copy of both rows (34950-34951) has the multiplier at 0.
+- **Podling(Winged), Podling(Wingless)** (UPSTREAM 39.1). The 1-second jog goes from -60 to -6. PG
+  errata p.36: "All 10 second movement times now match 10x1 second movement". His 10-second jog is
+  -60, and every other small race prints -6/-60/-6.
+- **Gaunt** (UPSTREAM 2). Epitaph of the Fallen p.7: "Starting Endurance -1d4". His row carries the
+  live `[0-getDieRoll(4)]` beside the label "-1d4=" (34058), so this is random by design. The race
+  document keeps startMod 0 and the formula. The die is rolled once into the character's own copy of
+  the race, and the result goes into **a field of its own**. `endurance.startRoll` holds the result:
+  the roll sets it, never adds to it, and never touches `startMod`. `endurance.startRolled` is then
+  ticked. The character's modifier is `startMod + startRoll` (`getStartingEnduranceMod`). The
+  character model, the half-race average and a Formless host all read that sum. The die is rolled in
+  three places:
+  - by the generator (`assembleCharacter`);
+  - by a `createItem` hook when a race is dropped onto a character (`module/race-endurance.mjs`);
+  - by a "Roll -1d4" button beside Endurance in the header, for a Gaunt made before today. The button
+    asks first if that copy's Start mod is not 0 (`getStartingEnduranceRollWarning`,
+    `confirmRaceStartingEnduranceRoll`).
+
+  The generator's `Actor.create` does not pass items through `createItem`, so it rolls its own. There
+  is no re-roll, for the reason handedness, the Famorian breed and starting money have none. A Game
+  Master who unticks Start rolled gets the button back, and the new roll replaces the old.
+
+  **Why the roll has its own field.** Until today, the only way to give a Gaunt its penalty was to
+  type it into the copy's Start mod. If the roll were added into that same field, the header button
+  would count such a penalty twice. A Game Master who unticked Start rolled would also get a second
+  roll stacked on the first: -3 then -2 gives -5, which -1d4 cannot produce. With the roll kept apart,
+  a re-roll replaces the old figure, and the button asks about a Start mod that someone typed.
+
+  **A Formless in a Gaunt body starts at -1d4, not +4.** His Formless copy of the Gaunt row (34957)
+  has a formula of 0 and a flat modifier of +4, where the race row carries the roll
+  (`formlessRace.json` `hostCopyDiffers`). The port reads the host's own document, as "Formless is
+  built: a psyche and the body it wears (2026-09-21)" decided ("His second copy of the physical half
+  is NOT used"). So a Formless wearing a Gaunt starts with its host copy's rolled -1d4, which agrees
+  with the race row and with Epitaph p.7. The +4 is one of the drifted cells UPSTREAM 47 already
+  reports.
+
+  **The race sheet no longer suggests a die it would roll.** The Start formula placeholder was "2d6",
+  from when the field was only a label. A die typed there is now rolled for every character who takes
+  the race, so the placeholder is Gaunt's own "-1d4=", with a line of help text saying what the field
+  does.
+- **Nixie** (UPSTREAM 47). Legends p.33 gives both "Enhanced Swimming (5x walking speed)" and "Magical
+  Flight". His race row is the flight (Fly: Run x3), and his Formless copy of the same row (34996) is
+  the swim (Swim: Walk x5). A race now has an optional second special movement
+  (`movement.secondSpecialName` / `secondSpecial`, blank on every race but Nixie). The character
+  derives it and never stores it. A half race takes the first race's, as it takes the first special.
+- **Wilderness kits** (UPSTREAM 42; `KIT_BREAK_REPAIRS`).
+  - **Social 5 (five kits):** the missing `break` at social 5 is added in Giant, Gnome, GoblinForest,
+    LightChain and NoArmorCompressedSocial. Master's Manual errata p.30 (Trolls) gives social 5 its
+    own kit: "Social Class 5: Stone or Obsidian Knife, Club / Social Class 6: Iron Dagger, and Staff".
+  - **Social 12-13 (four kits):** the break is added in Giant, Gnome, GoblinForest and LightChain. PG
+    p.15 (Barbaric Human) and p.21 (Mountain Dwarf), MM p.26 (Gnome) and p.27 (Forest Goblin), and PG
+    errata p.31 (Saurian) all print 5 and 12-13 as bands of their own. His own Standard kit has every
+    one of these breaks.
+  - **The Standard kit's social 12-13 weapon roll** (74396-74405) has no breaks, so his sheet always
+    gives the last of the four sets (UPSTREAM 99). It has always been read as the four-way choice,
+    which PG errata p.31 prints. It is now printed as a repair rather than being silent.
+
+**Characters already made keep their own copy of their race.** A Sea or Ice Elf made before this
+still has Disease 0, a Podling jogs -60, and a Nixie has no swim. The fix is to re-import the content
+and remove and re-add the race (removing first, because a second race makes a half race). No
+migration is written: a system `migrateData` is not given the item's name. A Gaunt gets the header
+button. A copy made before `startRoll` existed reads it as 0.
+
+**Not taken here:**
+- **His errata's "Attribute STR max is now 13 (allowing them to qualify to be warriors)"** covers eight
+  races and twelve documents: Brownie and Dark Fairy (Aspects errata p.2, p.4), Fairy (MM errata
+  p.24), Mephyt(Fire), Mephyt(Ice) and Nixie (Legends errata p.30, p.31, p.33), and Podling and
+  Sporeling (Mysteries errata p.36, p.37). It is not applied: the built documents still carry his
+  sheet's 9 to 12. The gap predates this stream and was not in the list the provisional ruling
+  covered. It is written up as item 4 of `docs/sonnet/2026-09-23-skill-results-repairs.md`, and it
+  waits on the user's yes or on the errata reader (`docs/ERRATA.md`, "Next step").
+- **Midfolk(Town) and Testudara's run rows** also break PG errata p.36. They go to him as UPSTREAM 100,
+  and item 1 of the same note describes how to settle them.
+- The research's other three decisions (his race-by-social-skill table, the email's typo question,
+  armour suits) are outside this stream.
+
+**Provisional rulings:**
+1. Apply the fixes the books and errata settle (Gaunt -1d4, Sea/Ice Elf Disease, Podling jog, the kit
+   breaks at social 5 and 12-13, Nixie swim plus fly) now, as logged repairs. **Provisional: the
+   recommended default, taken 2026-09-23 while the user was away -- confirm or overrule.**
+2. Skill rolls report his eight results (`handleSkillRollDetails` ported as written). **Provisional:
+   the recommended default, taken 2026-09-23 while the user was away -- confirm or overrule.**
+3. The ranking of the eight results in `pickBestSkillRoll`. His code has no ranking, so this order is
+   ours: Grandmaster first, a critical success made by half above a plain critical, made by half above
+   a plain success, and Rolled 100 between Failure and Critical Failure (it fails outright, but his
+   code never calls it critical). **Provisional: a call made in this pass while the user was away --
+   confirm or overrule.**
+4. Gaunt's die is rolled by the drop hook and the header button as well as the generator, with no
+   re-roll. **Provisional: a call made in this pass while the user was away -- confirm or overrule.**
+5. The Standard kit's breakless 12-13 die roll stays read as the choice, not as his sheet's
+   always-the-last-set. **Provisional: a call made in this pass while the user was away -- confirm or
+   overrule.**
+6. Gaunt's roll is kept in its own field (`startRoll`, set and never added to), and the header button
+   asks before rolling a copy whose Start mod is not 0. **Provisional: a call made in this pass while
+   the user was away -- confirm or overrule.**
+
+**Corrections to older entries** (each carries a pointer at its top):
+- "2026-09-13 -- The five kinds of special movement do not share a formula": "The mis-keying itself is
+  *not* acted on" no longer holds. It is acted on, as a logged repair, on Legends pp.27-28. The guard
+  that ignores a negative multiplier stays for homebrew races.
+- "The three optional starting-kit rules (2026-09-20)": "His fall-throughs are real, and are followed"
+  no longer holds for social 5 (five kits) and 12-13 (four kits), which are repaired. Anything else
+  that falls through is still followed and reported.
+- "Starting money is rolled, on the user's three rulings (2026-09-23)": "Compare the kit fall-throughs
+  (UPSTREAM 42), which ARE reproduced" is now out of date. They are repaired on his errata.
+- "2026-09-16 -- The Skills module's four open items": ranking is now by his eight results
+  (`SKILL_ROLL_ORDER`), not `SKILL_OUTCOMES`.
+- "Situation Mods ... (2026-09-22)": `resolveSkillOutcome` is now only the situational reader. Its
+  +/-20 thresholds are still his exactly.
+
+**Verified:**
+- `node tools/run-tests.mjs` on the branch: 17 suites, 2270 checks, all passing.
+  - derive-test went from 519 to 601. It covers the eight results, the save half, the race repairs
+    read from the built packs, Nixie's second movement and Gaunt's roll. For the roll it checks the
+    separate field, that a re-roll replaces rather than stacks, the question about a hand-typed Start
+    mod, the half-race average and a Formless in a Gaunt body. It also runs the drop hook, the button
+    and its question against stubs.
+  - chargen-test went from 95 to 108: Gaunt at creation and the repaired kit bands.
+- `build_documents.py --write` was rerun after `startRoll` was added. The only change to `races.json`
+  was `"startRoll": 0` added to each of its 120 documents. `extract_starting_kit.py` output
+  (`wildernessEquipment.json`, `starting-kit-tables.mjs`) is identical to what is committed.
+
+**Not verified:** a running V14. The header button, its question and the drop hook were run only
+against stubs. Left: `docs/sonnet/2026-09-23-skill-results-repairs.md`.
+
+## The 0.20 integration: four passes merged (2026-09-24)
+
+The four 2026-09-23 entries above were built on separate branches and merged into `integrate/0.20`
+after the casting pass, which is why they follow its 2026-09-24 entry. None of the branches could
+edit this file, `UPSTREAM-ISSUES.md` or `PROGRESS.md`; each returned its text, written in at the
+merge. The casting pass had already taken UPSTREAM 71-76, so the four branches' items are numbered on
+from it: **77-82** (the shop), **83-89** (race and cross-skill modifiers), **90-97** (creatures) and
+**98-100** (skill results and repairs). Code comments that cited one of them only by date now carry
+its number. With all four merged, `node tools/run-tests.mjs` runs 20 suites, 2,671 checks, all
+passing, and 86 modules parse.

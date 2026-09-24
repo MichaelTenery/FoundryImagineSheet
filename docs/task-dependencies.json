@@ -14,7 +14,7 @@
     "Generic dictionary parser":          { "dependsOn": ["Discover + extract"] },
     "Per-dictionary column maps":         { "dependsOn": ["Generic dictionary parser"] },
     "Report the Monk":                    { "dependsOn": ["Per-dictionary column maps"] },
-    "Resolve the one non-literal":        { "dependsOn": ["Per-dictionary column maps"], "waitingOn": "the developer", "note": "Gaunt's random stat: by design, or a bug?" },
+    "Resolve the one non-literal":        { "dependsOn": ["Per-dictionary column maps"], "note": "Done 2026-09-23: Gaunt's -1d4 is random by design (Epitaph of the Fallen p.7), rolled once into the character's copy of the race." },
     "Generate src/packs":                 { "dependsOn": ["Per-dictionary column maps"] },
     "Compile JSON":                       { "dependsOn": ["Generate src/packs"], "waitingOn": "a running Foundry V14", "note": "The runtime importer has never run in a real V14 install." },
     "Adding content to every pack":       { "dependsOn": ["Generate src/packs", "Compile JSON", "Design content/compendium layer"] },
@@ -43,9 +43,16 @@
     "Round clock: the Surprise row, and the live clock on the Combat tab": { "dependsOn": ["Round clock (Mr. Initiative)"], "note": "Surprise seconds before round 1 (1d4+1) and the Off-Hand Seconds box showing the live clock. Both approved by the user 2026-09-23." },
     "Weapon mods window":                 { "dependsOn": ["Combat module — phase 2", "Equipment module"], "note": "Temporary effects run on the world clock; the rune, Blessed and specials feed rollWeaponAttack." },
     "Visual attack-chart":                { "dependsOn": ["Combat module — phase 1", "Creature actor type"], "note": "Needs a design pass first: an adjacency model for each body chart." },
+    "GM temporary Extra Damage":          { "dependsOn": ["Combat module — phase 2", "Creature actor type"], "note": "Added 2026-09-23 by the creature pass. Not mechanical: two slips in his code (UPSTREAM 97)." },
     "Equipment module":                   { "dependsOn": ["Attributes module", "Generate src/packs", "Design content/compendium layer"] },
 
     "Creature actor type":                { "dependsOn": ["Design Actor data model", "Combat module — phase 1", "Attributes module", "Obtain Bestiary"] },
+    "Creature sheet: authoring":          { "dependsOn": ["Creature actor type", "Martial arts"], "note": "Built 2026-09-23 (audit gaps G1, G2, G4, G7+size, G10, G11, G13); every ruling provisional." },
+    "Creature stat-block paste importer": { "dependsOn": ["Creature sheet: authoring"], "note": "G3; the audit's D5, D11 and D12 come first." },
+    "Creature compendium":                { "dependsOn": ["Creature actor type"], "waitingOn": "the user", "note": "G6; waits on the publication decision (D1)." },
+    "Creature Powers":                    { "dependsOn": ["Creature actor type", "Base Magic", "Base Divine Magic"], "note": "G5, D8: period, refill and lookup." },
+    "Creatures using weapons":            { "dependsOn": ["Creature sheet: authoring", "Combat module — phase 2"], "note": "G8, D10. The equip toggle on carried gear is the mechanical first part." },
+    "Creature common skills":             { "dependsOn": ["Creature actor type", "Skills module"], "note": "G9." },
 
     "Base Magic":                         { "dependsOn": ["Combat module — phase 2", "Skills module", "Magic & Lore tab"], "note": "Casting built 2026-09-24 at the user's request, ahead of the Layer 4 deferral: Aura Control, the pool, his doSpellAction carried across, targets and the attack card." },
     "Base Divine Magic":                  { "dependsOn": ["Combat module — phase 2", "Skills module", "Magic & Lore tab"], "note": "Invoking built 2026-09-24 with casting: Piety Control, prayer, his doInvocationAction." },
@@ -65,6 +72,7 @@
     "Attribute save and skill roll":      { "dependsOn": ["Implement attribute-save", "Implement skill-check", "ApplicationV2 character sheet"], "waitingOn": "a running Foundry V14" },
     "Remaining tabs":                     { "dependsOn": ["ApplicationV2 character sheet"] },
     "Item sheets":                        { "dependsOn": ["Design Actor data model", "Races & Classes"] },
+    "Character sheet: Modifiers panel":   { "dependsOn": ["ApplicationV2 character sheet", "Creature sheet: authoring"], "note": "The character side of the creature pass (G13/G2); docs/sonnet/2026-09-23-creatures.md items 1-2." },
 
     "Races assigned inline rather than from the dictionary": { "dependsOn": ["Races & Classes", "Generate src/packs"], "note": "Done 2026-09-21: every race in his specieslist, including the split faerie/Maginos forms, Formless and Famorian, is now a document." },
     "Formless: inhabit and switch bodies": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Pinned by the user 2026-09-22, revisited once the rest of the core is done. A free-text identity.formlessBodies field stands in until body-switching is built." },
