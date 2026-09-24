@@ -220,6 +220,19 @@ check("the attack card shows the rune, the weapon's own damage, the magical extr
 		.map(t => document.getElementById("card").textContent.includes(t)), [true, true, true, true, true, true]);
 check("...and the poison on the blade", document.getElementById("card").textContent.includes("Poisoned: Type: IV, Potency: C"), true);
 
+// A touch (a Brok's Harm Touch): his card's "needing a 10+ to contact", and the dice alone on contact.
+document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({
+	actorName: "Grel", weapon: "Brok Harm Touch", modeLabel: "Smash",
+	result: { natural: 9, final: 11, skill: "Novice", zone: "Touched", isHit: true, isFumble: false, touch: true },
+	mods: { list: [{ label: "Agility", value: 2 }] },
+	damage: { total: 9, type: "Smashing", dice: "2d6+2", magic: 0, touch: true, shots: 1, perShot: 9, rolled: 9, multiplier: 1 },
+	weaponSpecials: [], speed: 5 });
+check("a touch's card says it is one, what it needs, and its dice alone",
+	["Touched", "a touch, needs 10+ to contact", "(2d6+2", "= 9"].map(t => document.getElementById("card").textContent.includes(t)),
+	[true, true, true, true]);
+check("...with no halving line, since a touch is never a called shot",
+	document.getElementById("card").textContent.includes("halved"), false);
+
 const failed = results.filter(r => r.startsWith("FAIL")).length;
 document.getElementById("out").textContent =
 	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");

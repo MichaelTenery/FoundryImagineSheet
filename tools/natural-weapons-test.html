@@ -48,6 +48,16 @@ check("Se'eth Fangs carry the whole title venom table",
 	/title 1: Type I\(Sleep/.test(weapons.find(w => w.name == "Se'eth Fangs").system.description)
 	&& /title 15: Type XV/.test(weapons.find(w => w.name == "Se'eth Fangs").system.description), true);
 check("a Touch is said to be one", /TOUCH attack/.test(weapons.find(w => w.name == "Brok Harm Touch").system.description), true);
+// His handleNaturalAttack sends every type that names a Touch to handleTouchAttack (sheet-worker.js
+// :70044): Touch, Heat Touch and Cold Touch. The weapon attack reads system.touch.
+check("the five his sheet rolls as touches carry touch, and nothing else does",
+	natural.filter(w => w.system.touch).map(w => w.name).sort(),
+	["Brok Harm Touch", "Centaur Trample", "Mephyt(Fire) Heat Skin", "Mephyt(Ice) Cold Skin", "Sha'Cora Chafing Skin"]);
+check("...and none of them still tells the table to roll the touch by hand",
+	natural.filter(w => w.system.touch && /roll the touch at the table/.test(w.system.description)).map(w => w.name), []);
+const { resolveTouchAttack } = await import("../module/combat/creature-rules.mjs");
+check("his touch: 10 or better with the Agility modifier makes contact, a natural 1 never does",
+	[resolveTouchAttack(8, 2).touched, resolveTouchAttack(8, 1).touched, resolveTouchAttack(1, 20).touched], [true, false, false]);
 check("his 'S' speed is a special speed (Centaur Trample)",
 	weapons.find(w => w.name == "Centaur Trample").system.speedSpecial, true);
 
@@ -67,6 +77,11 @@ check("Apocritara's Stinger is the slight physique's only",
 	 NW.getNaturalWeaponNames([race("Apocritara").system], false).length,
 	 NW.getNaturalWeaponNames([race("Apocritara").system], null).length], [2, 1, 1]);
 
+check("the sheet's button lists what the race gives and the character lacks",
+	[NW.getMissingNaturalWeaponNames([race("Saurian").system], ["Saurian Bite", "Long Sword"]),
+	 NW.getMissingNaturalWeaponNames([race("Saurian").system], ["Saurian Claws", "Saurian Bite", "Saurian Tail Slap"]),
+	 NW.getMissingNaturalWeaponNames([race("Human(Barbaric)").system], [])],
+	[["Saurian Claws", "Saurian Tail Slap"], [], []]);
 // --- the items built --------------------------------------------------------------------------------
 check("the dominant hand; Right for Ambidextrous and unset",
 	["Left", "Right", "Ambidextrous", ""].map(NW.getNaturalWeaponHand), ["left", "right", "right", "right"]);

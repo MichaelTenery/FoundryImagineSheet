@@ -643,6 +643,14 @@ check("x1/2 is not mistaken for x1", R.getAreaMultiplier("Limb:x1/2"), 0.5);
 check("x10 is not mistaken for x1", R.getAreaMultiplier("Vital:x10"), 10);
 check("x1/20 is not mistaken for x2", R.getAreaMultiplier("Limb:x1/20"), 0.05);
 check("wings count as limbs, as in his code", R.parseBodyChart("Left Wing(Wing:x1)")[0].type, "Limb");
+// An area's name is its key; his Segmented Worm names Left and Right Foot12 twice, which gave two
+// areas one wounds record and two inputs of one name, and every edit of such a creature failed
+// (bug sweep 2026-09-23). A repeated name is kept apart as " (2)".
+const worm = R.parseBodyChart(T.BODY_CHARTS["Segmented Worm"]).map(a => a.name);
+check("every body chart's area names are unique once parsed",
+	Object.entries(T.BODY_CHARTS).filter(([k, c]) => { const n = R.parseBodyChart(c).map(a => a.name); return new Set(n).size != n.length; }).map(([k]) => k), []);
+check("...the worm's second Foot12 pair is kept, as Foot12 (2), in its place",
+	[worm.filter(n => n.startsWith("Left Foot12")), worm.indexOf("Left Foot12 (2)") > worm.indexOf("Body Segment7")], [["Left Foot12", "Left Foot12 (2)"], true]);
 check("unknown body type falls back to Humanoid", R.getBodyChart("Nonesuch").length, 19);
 
 // --- area Endurance (+.99 round-up) ----------------------------------------------

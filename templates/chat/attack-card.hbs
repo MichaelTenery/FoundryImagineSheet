@@ -27,6 +27,7 @@
 
 	<div class="zone zone-{{#if result.isHit}}hit{{else}}miss{{/if}}">
 		{{#if result.isFumble}}FUMBLE{{else}}{{result.zone}}{{/if}}
+		{{#if result.touch}} — a touch, needs 10+ to contact{{/if}}
 		{{#if result.calledShotDeclared}}
 			— Called shot: {{#if result.isCalledShot}}<strong>made</strong>{{else}}missed{{/if}}
 		{{/if}}
@@ -60,12 +61,15 @@
 	{{/if}}{{/if}}
 
 	<footer>
-		<span class="speed">{{speed}} seconds</span>
+		{{!-- His "S": a lance on the charge, a garrote, a Centaur's Trample. No ordinary seconds, so
+		      no Spend button either -- the Game Master charges the time from the clock itself, as the
+		      creature card does. --}}
+		{{#if speedSpecial}}<span class="speed">special timing</span>{{else}}<span class="speed">{{speed}} seconds</span>{{/if}}
 		{{#if damage}}{{#unless applied}}
 			<button type="button" data-imagine-action="applyDamage"><i class="fa-solid fa-droplet"></i> Apply damage</button>
 		{{/unless}}{{/if}}
-		{{#if inCombat}}
+		{{#if inCombat}}{{#unless speedSpecial}}
 			<button type="button" data-imagine-action="spendTime"><i class="fa-solid fa-stopwatch"></i> Spend {{speed}}s</button>
-		{{/if}}
+		{{/unless}}{{/if}}
 	</footer>
 </div>

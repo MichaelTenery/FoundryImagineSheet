@@ -16,7 +16,7 @@ one wins. See `DECISIONS.md` 2026-09-22 "The Sonnet backlog, worked through".
 
 ## Mechanical follow-through (do these)
 
-1. **Multi-missile acquisition button.** The rules are ported (`resolveMissileComboAcquisition` in
+1. **DONE 2026-09-23 (bug sweep): "Learn a combination" under each list, `#onLearnMissileCombo`.** **Multi-missile acquisition button.** The rules are ported (`resolveMissileComboAcquisition` in
    `module/combat/combat-rules.mjs`, tested in `tools/combat-test.html`). Add a Roll action beside
    the two multi-missile lists on the Combat tab, following `#onRollSkill`'s pattern: 1d100, a chat
    message, and on `"succeeded"` write `.list` back to `system.multiMissileKnowList` /

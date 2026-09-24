@@ -65,6 +65,12 @@
 		<button type="button" data-action="createGear" data-type="equipment">Add equipment</button>
 		<button type="button" data-action="createGear" data-type="weapon">Add weapon</button>
 		<button type="button" data-action="createGear" data-type="armor">Add armour</button>
+		{{!-- Only while the race gives natural weapons the character does not hold: a character made
+		      before they existed, or one whose claw was deleted and is wanted back. --}}
+		{{#if missingNaturalWeapons.length}}
+		<button type="button" data-action="grantNaturalWeapons"
+			data-tooltip="Add the race's natural weapons this character does not have: {{#each missingNaturalWeapons as |n|}}{{n}}{{#unless @last}}, {{/unless}}{{/each}}">Add natural weapons</button>
+		{{/if}}
 	</div>
 
 	{{!-- Kitting out in one go, and the exact reverse of it. Equip Best Armour wears the strongest

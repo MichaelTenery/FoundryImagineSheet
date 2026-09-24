@@ -121,12 +121,16 @@
 				placeholder="Long Bow/Arrow, Thrown/Dagger">
 			<span class="muted">{{lore.multiKnowChance}}% &mdash; {{lore.multiKnowLevels}} level(s), each worth
 			1 to hit and 2 damage off the penalty</span></label>
+		<button type="button" class="row-button" data-action="learnMissileCombo" data-skill="know"
+			data-tooltip="Roll Multiple Missile Knowledge to learn one more launcher and missile">Learn a combination</button>
 		{{/if}}
 		{{#if lore.hasMultiLore}}
 		<label>Multiple missile combinations lored
 			<input type="text" name="system.combat.multiMissileLoreList" value="{{lore.multiLoreText}}"
 				placeholder="Long Bow/Arrow">
 			<span class="muted">removes the penalty entirely for these</span></label>
+		<button type="button" class="row-button" data-action="learnMissileCombo" data-skill="lore"
+			data-tooltip="Roll Multiple Missile Lore to learn one more launcher and missile">Learn a combination</button>
 		{{/if}}
 
 		{{!-- Second Weapon Knowledge and Lore are held weapon by weapon, one more for every title

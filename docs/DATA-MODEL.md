@@ -421,7 +421,9 @@ weapon Item system:
     baseAura, basePiety     number  # what the magical/divine abilities are worked from: +1 per 5
     magicAbilities[]         string
     divineAbilities[]        string
-    runes[]                  { name, level }
+    runes[]                  { name, level }   # level 1 or more, but a Gravity rune's is SIGNED
+                                              # (below zero takes weight off), so the schema sets
+                                              # no minimum; applyWeaponCustomization refuses a 0
     energyType               string
     energyDice               number
     customizations[]         string   # physical work: Serrated, Silvering, Envenomed, ...
@@ -435,6 +437,12 @@ weapon Item system:
                  # own. until is the world-time it ends at, 0 meaning "until removed"; an attack
                  # ignores one whose time has passed.
 ```
+
+Added 2026-09-23 (the bug sweep): `touch` (bool) -- a TOUCH attack, rolled as his
+`handleTouchAttack` rolls it (d20 + the Agility missile modifier + the declared modifier, 10 or better
+to make contact, dice alone on contact) rather than down the attack chart. Set by the build on the
+natural weapons whose type names a Touch (Brok Harm Touch, the Mephyts' skins, Centaur Trample,
+Sha'Cora Chafing Skin); read by `rollWeaponAttack` (@MARKER TOUCH ATTACK).
 
 The magical plus itself stays `magicBonus`, above `custom`; `condition` and `custom` were added
 beside it. **Removed:** the per-weapon `secondWeaponKnowledge`/`secondWeaponLore` booleans. They
@@ -527,6 +535,16 @@ isAvailable(item):
     if item.uuid in contentOverrides: return contentOverrides[item.uuid]
     return sourcebooks[item.system.sourcebook] ?? true
 ```
+
+**A sourcebook is one book, never a list.** The weapon, equipment and skill sheets once saved it
+doubled ("Custom,Custom"), which no longer matched its switch; those three models' `migrateData`
+reads a doubled value back as typed (`module/data/source-fields.mjs`, 2026-09-23).
+
+**The Items directory's own mark.** Folders and items made by `game.imagine.populateItems()` carry
+`flags.imagine-rpg.directory = true` (`module/item-directory.mjs`). Only marked folders are filled
+again, and `clearItems()` takes only marked items and folders -- never a Game Master's own folder of
+the same name. A tree made before the mark (0.19.2 and earlier) is adopted and marked only when every
+item in it is one the system ships by that name.
 
 **Open policy question:** should disabling a sourcebook also remove *core math* it contributes (e.g. the Master's Manual's extended attribute rows 0-4 / 21-30), or only gate *content availability*? Recommendation: gate content only. Silently breaking the math when an attribute lands at 25 is worse than leaving unreachable table rows in place.
 

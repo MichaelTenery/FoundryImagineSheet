@@ -505,9 +505,9 @@ NATURAL_TYPE_NOTES = {
                   "as a Smash and its damage is Smashing.",
     "Constrict":  "His sheet calls this a Constrict attack. A weapon has no Constrict mode, so it "
                   "is rolled as a Smash and its damage is Smashing.",
-    "Touch":      "A TOUCH attack. His sheet rolls it as a touch -- a d20 plus the Agility "
-                  "modifier, 10 or better makes contact -- not down the attack chart. The weapon "
-                  "attack does not do that yet: roll the touch at the table.",
+    "Touch":      "A TOUCH attack. As on his sheet it is rolled as a touch -- a d20 plus the Agility "
+                  "modifier, 10 or better makes contact, a 1 always misses -- not down the attack "
+                  "chart, and on contact its own dice are rolled with nothing added.",
 }
 NATURAL_TYPE_NOTES["Heat Touch"] = NATURAL_TYPE_NOTES["Touch"]
 NATURAL_TYPE_NOTES["Cold Touch"] = NATURAL_TYPE_NOTES["Touch"]
@@ -576,6 +576,9 @@ def build_natural_weapons():
                 "speed": tmpspeed,
                 "minSpeed": tmpmin,
                 "speedSpecial": tmpspecialspeed,
+                # His handleNaturalAttack tests naturalAttackType.includes("Touch") (sheet-worker.js
+                # :70044): Touch, Heat Touch and Cold Touch all go to his handleTouchAttack.
+                "touch": "Touch" in tmptype,
                 "type": "Natural",
                 "weight": 0,
                 "location": "equipped",

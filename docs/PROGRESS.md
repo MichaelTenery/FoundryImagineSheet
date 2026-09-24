@@ -6,6 +6,8 @@ Status values: `Backlog` / `In Progress` / `Blocked` / `Done`.
 
 **State as of 2026-09-18 (full board audit, commit after `74dbc40`).** Suites on a fresh port: combat 374, derivation 258, creature 139, availability 39, all passing; 27 modules parse. **Re-run 2026-09-19 after the class pass: combat 406, derivation 347, creature 140, availability 46, character generation 46, all passing; 33 modules parse.** **After the levelling pass the same day: advancement 77 as well, all six suites passing, and 38 modules parse.** **After the bug-fix pass that followed: advancement 86 and a seventh suite, `tools/levelup-walk.html` (34), which drives the real writing code against a stub actor. Seven real defects fixed, the worst a duplicate class-skill grant on every title advance; see `DECISIONS.md` 2026-09-19 'Bug-fix pass'.** **After the backlog pass the same day: combat 411, derivation 364, creature 145, advancement 101, character generation 54, availability 46, level-up walk 37 -- 1,222 checks over seven suites, all passing, 38 modules parse.** **Three Backlog rows were substantially built and have moved on**: Attributes, now **Done** after its one gap, the language allowance, was built the same day (derivation now 275); Equipment, also **Done** the same day (his encumbrance ported whole, plus the book's movement penalty beside it) and Races & Classes (GME, the good/evil class split, racial ability mechanics). **The pack-compile row was re-described**, because a runtime importer replaced the compile step. **The attribute-maximum row was corrected** for the 25/27 split he confirmed. **The one module with nothing built is Character Generation.** Every "Not verified" note on this board still reduces to the same thing: no Foundry V14 install has run any of this. **The installable system is built at `dist/imagine-rpg/` (2026-09-19): 79 files, 4,384 documents, assembled and self-checked by `tools/build_system.py`, which proves every path the shipped code references is present in the output.** **Prepared for 2026-09-19: `docs/FIRST-RUN.md` records every V14 API path checked against the published documentation (all current), the two defects that audit found, the five things that cannot be verified without running it, and a ten-step smoke test ordered so each failure is the smallest one left.**
 
+**Bug sweep, 2026-09-23 (0.19.3).** Six readers over the whole code at once found 36 defects, all fixed with tests: item sheets doubling their sourcebook on every edit, a Formless never keeping its host, nine races with no starting kit, unlinked tokens sharing one clock and one window, damage applicable twice from a card, portraits that could not be changed, and more; see `DECISIONS.md` "The bug sweep". The Sonnet notes' open mechanical items were done alongside (lore picks held to their lists, natural touch attacks, Add natural weapons, Learn a combination). `node tools/run-tests.mjs` now runs every suite but the window test headless: 17 suites, all passing. Left: `docs/sonnet/2026-09-23-bug-sweep.md`.
+
 **First real install, 2026-09-20 (Daryl).** The system installed and the importer ran, and it found four things no amount of reading could have. **Two were fatal to the import:** `damageAltMode` on weapons and `advancement.classSkillList.requires` on classes are `StringField`s whose `choices` include `""`, and Foundry sets `blank: false` implicitly the moment `choices` is given — so every weapon and every class failed validation with "may not be a blank string" and neither pack imported. Nine such fields across five data models now declare `blank: true` explicitly; a sweep of all 4,389 documents against every declared `choices` list confirms nothing else can fail this way. **One was cosmetic but disabling:** Foundry V13+ paints form controls from its own theme variables, so on a dark-theme install every field on these cream sheets was black-on-cream and invisible until selected, and description boxes were too small to show an entry like "Arch Physical" and could not be resized. All fifteen Imagine applications now declare `themed`/`theme-light`, with explicit paper colours behind that, and a description box spans its section and drags taller. **One was a missing feature:** the race item sheet showed a race's numbers and none of what it *gives* — no racial skills, abilities, colours or ages, which is why Nixie's "water animals only" note was nowhere to be seen even though it was stored and the character sheet already displayed it. That block now exists, in the same chip markup the character sheet uses. **And one was a genuine content gap he spotted by eye:** seven playable races were never extracted — see `DECISIONS.md` 2026-09-20. Races go **105 → 110**; the remaining two (Famorian, Formless) need runtime logic and are a story of their own below. **Not verified:** none of these fixes has been seen in a running V14; that is the next install.
 
 **A fifth from the same install: no sheet window could scroll.** Reported as "all windows need scroll bars", and it was every sheet in the system — anything below the fold was unreachable except by tabbing to it. The near-miss diagnosis is that the three windows in `module/apps/` declared `scrollable` on their parts and the twelve sheets did not; the real one is that `scrollable` only persists scroll POSITION across a re-render and makes nothing scroll. Both halves are now in place: `scrollable` on all nine item bodies and all nine actor tabs (worth having on its own, since these sheets re-render on every keystroke), and the CSS that actually bounds the part's height so it can overflow — `min-height: 0` being the line without which a flex child never shrinks and never scrolls. A horizontal scrollbar went too: `.panel-row` was `repeat(3, 1fr)`, demanding 745px of panels inside a 640px window, and now wraps. See `DECISIONS.md` 2026-09-20.
@@ -166,30 +168,33 @@ Status values: `Backlog` / `In Progress` / `Blocked` / `Done`.
 5. Log any new architectural call in `docs/DECISIONS.md`.
 6. Commit with a message describing what changed and why.
 
-**The test routine.** Serve the repository over HTTP and open each suite; they stub Foundry, so
-they run in any browser. As of 2026-09-22 the figures are:
+**The test routine.** `node tools/run-tests.mjs` runs every suite below headless (all but the
+window test, which needs a real browser) and exits non-zero if any fails. Or serve the repository
+over HTTP and open each suite; they stub Foundry, so they run in any browser. As of 2026-09-23 (the
+bug sweep) the figures are:
 
 | suite | file | checks |
 |---|---|---|
-| Combat rules | `tools/combat-test.html` | 520 |
-| Derivation (character model) | `tools/derive-test.html` | 517 |
+| Combat rules | `tools/combat-test.html` | 522 |
+| Derivation (character model) | `tools/derive-test.html` | 519 |
 | Creature derivation | `tools/creature-test.html` | 158 |
-| Advancement rules | `tools/advancement-test.html` | 101 |
-| Character generation | `tools/chargen-test.html` | 83 |
-| Starting money (rules, and the generator rolling it) | `tools/starting-money-test.html` | 51 |
+| Advancement rules | `tools/advancement-test.html` | 103 |
+| Character generation | `tools/chargen-test.html` | 95 |
+| Starting money (rules, and the generator rolling it) | `tools/starting-money-test.html` | 59 |
 | Wealth panel (his money panel on the Equipment tab) | `tools/wealth-test.html` | 22 |
-| Content availability | `tools/availability-test.html` | 46 |
+| Content availability (and the doubled-sourcebook repair) | `tools/availability-test.html` | 49 |
 | Level-up walk (real writing code) | `tools/levelup-walk.html` | 37 |
 | Equip rules | `tools/equip-test.html` | 21 |
 | Importer (retired documents) | `tools/importer-test.html` | 9 |
 | Changelog window | `tools/changelog-test.html` | 24 |
-| Martial arts | `tools/martial-test.html` | 179 |
-| Magic & Lore (rules, starting lore, the tab's view, poison on a victim, its damage and a poisoned weapon) | `tools/lore-test.html` | 138 |
+| Martial arts | `tools/martial-test.html` | 183 |
+| Magic & Lore (rules, starting lore, the tab's view, poison on a victim, its damage and a poisoned weapon) | `tools/lore-test.html` | 145 |
 | Window chrome (every item sheet scrolls) | `tools/window-test.html` | 27 |
-| Round clock (rules, view, the combat document through a whole fight, the surprise and the Combat tab's box) | `tools/round-test.html` | 123 |
+| Round clock (rules, view, the combat document through a whole fight, the surprise and the Combat tab's box) | `tools/round-test.html` | 128 |
 | Manual-content loader (Python) | `python tools/extract/test_manual_content.py` | 122 |
-| Weapon mods (his panel, the attack's extras and specials, temporary effects, the coating, the window) | `tools/weapon-mods-test.html` | 73 |
-| Module parse check | `tools/syntax-check.html` | 71 modules |
+| Weapon mods (his panel, the attack's extras and specials, temporary effects, the coating, the window, a touch's card) | `tools/weapon-mods-test.html` | 75 |
+| Natural weapons (the documents, which body, the grant, touches) | `tools/natural-weapons-test.html` | 26 |
+| Module parse check | `tools/syntax-check.html` | 75 modules |
 
 **A plain `python -m http.server` lets the browser cache modules**, and on 2026-09-22 several
 passes found a reloaded suite still running the previous copy of a module it imports. Serve with

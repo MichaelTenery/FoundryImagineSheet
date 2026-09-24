@@ -18,6 +18,7 @@ import {
 	getCreatureAttackBehaviour, getAreaAttackSize, resolveTouchAttack,
 	getCreatureToHitModifiers, getCreatureDamageMods, getTriggeredEffects, getCreatureAttackSeconds } from "./creature-rules.mjs";
 import { getActionHand } from "./round-rules.mjs";
+import { findActorCombatant } from "./combat-document.mjs";
 
 	// This is the function which rolls a single die and returns the number.
 	async function rollDie(tmpformula) {
@@ -31,13 +32,11 @@ import { getActionHand } from "./round-rules.mjs";
 		return foundry.utils.escapeHTML(String(tmptext ?? ""));
 	}
 
-	// This is the function which finds an actor's combatant in the current combat, if any.
+	// This is the function which finds an actor's combatant in the current combat, if they have
+	// one -- findActorCombatant (combat-document.mjs), which matches a token's own actor rather than
+	// its base actor's id, so each unlinked token is charged for its own swing.
 	function findCombatant(tmpactor) {
-		if (!game.combat || !tmpactor) { return null; }
-		for (const tmpcombatant of game.combat.combatants) {
-			if (tmpcombatant.actor?.id == tmpactor.id) { return tmpcombatant; }
-		}
-		return null;
+		return findActorCombatant(tmpactor, game.combat);
 	}
 
 
@@ -237,7 +236,13 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	// does not halve it, though his character path and the book both do -- recorded in
 	// docs/UPSTREAM-ISSUES.md item 15 -- and the two actor types are kept consistent here.
 	var tmpdamage = null;
-	if (tmpresult.isHit && tmpa.damage) {
+	// A damage that is not dice ("2d6 poison", "special") is not handed to Roll, which would throw
+	// after the attack was rolled and post nothing; the card says the table settles it.
+	var tmpdicenote = "";
+	if (tmpresult.isHit && tmpa.damage && !Roll.validate(tmpa.damage)) {
+		tmpdicenote = `The damage "${tmpa.damage}" is not a dice roll; the table settles it.`;
+	}
+	if (tmpresult.isHit && tmpa.damage && !tmpdicenote) {
 		var tmpdammods = getCreatureDamageMods({
 			damageMisc: tmpsys.combat.damageMisc,
 			situation: tmpsitmods.damage + (tmpsitmods.perDie * getNumberOfDice(tmpa.damage)),
@@ -288,7 +293,7 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		hand: getActionHand(tmpa.hand, tmpsys.combat.offhandHandedness),
 		fumble: tmpfumble,
 		damage: tmpdamage,
-		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special) },
+		situation: { labels: tmpsitmods.labels, notes: getSituationalNotes(tmpsitmods.special).concat(tmpdicenote ? [tmpdicenote] : []) },
 		applied: false
 	};
 

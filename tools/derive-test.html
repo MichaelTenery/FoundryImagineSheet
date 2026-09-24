@@ -1833,20 +1833,42 @@ check("choicesFromState passes the famorian block straight through, untouched",
 // alternative before the first; 61 of these 111 races failed that way. Every race with a culture
 // kit is driven through the Review redraw here, with all three kit rules ticked.
 const { RACE_WILDERNESS_KIT } = await import("../module/starting-kit-tables.mjs");
+const { getKitRaceName } = await import("../module/starting-kit.mjs");
 const reviewThrew = [], reviewShort = [];
-for (const race of raceDocs.filter(d => RACE_WILDERNESS_KIT[d.name])) {
-	const reviewState = { ...CV.newGeneratorState(), step: CV.STEPS.indexOf("Review"), race1: race.name,
-		startingKit: { byCulture: true, byStatus: true, bySkills: true } };
-	try {
-		const reviewView = CV.buildGeneratorView(reviewState, chargenContent, () => true);
-		const reviewNames = new Set(reviewView.review.items.map(i => i.name));
-		// The Details step's kit preview and the Review list roll the same fixed die, so the one
-		// must hold everything the other showed.
-		if (reviewView.startingKitPreview.some(s => !reviewNames.has(s.replace(/ ×\d+$/, "")))) {
-			reviewShort.push(race.name);
+// Each race at the default state's social class (nothing rolled, so the apparent-class path), and
+// again with a manual Social Class of 5, 12 and 20, so the bands with four and eight alternatives
+// are drawn too (docs/sonnet/2026-09-23-chargen-kit-crash.md item 2).
+const reviewSocials = [null, 5, 12, 20];
+// Every race whose kit his tables hold under any name it goes by: its own, its sourceRace (the split
+// faerie forms) or his kit switches' spelling (Brachara) -- the loop once took its own name only, and
+// so left out exactly the races that were getting no kit (bug sweep 2026-09-23).
+const kitRaces = raceDocs.filter(d => RACE_WILDERNESS_KIT[getKitRaceName(RACE_WILDERNESS_KIT, d.name, d.system.sourceRace)]);
+check("the Review loop covers the split forms and Brachara too",
+	["Fairy(Winged)", "Podling(Wingless)", "Sporeling(Winged)", "Fairy(Dark Wingless)", "Brachara"].every(n => kitRaces.some(d => d.name == n)), true);
+for (const race of kitRaces) {
+	for (const social of reviewSocials) {
+		const reviewState = { ...CV.newGeneratorState(), step: CV.STEPS.indexOf("Review"), race1: race.name,
+			startingKit: { byCulture: true, byStatus: true, bySkills: true } };
+		if (social !== null) {
+			reviewState.manual = true;
+			reviewState.manualBase = { str: 10, agl: 10, vit: 10, int: 10, wis: 10, knw: 10,
+				app: 10, chm: 10, soc: social, aur: 10, pty: 10, wil: 10 };
 		}
-	} catch (e) { reviewThrew.push(`${race.name}: ${e.message}`); }
+		try {
+			const reviewView = CV.buildGeneratorView(reviewState, chargenContent, () => true);
+			const reviewNames = new Set(reviewView.review.items.map(i => i.name));
+			// The Details step's kit preview and the Review list roll the same fixed die, so the one
+			// must hold everything the other showed.
+			if (reviewView.startingKitPreview.some(s => !reviewNames.has(s.replace(/ ×\d+$/, "")))) {
+				reviewShort.push(`${race.name} at social ${social ?? "default"}`);
+			}
+		} catch (e) { reviewThrew.push(`${race.name} at social ${social ?? "default"}: ${e.message}`); }
+	}
 }
+check("the wider loop really reaches the manual classes: a Human(Civilized:Village) at 5, 12 and 20",
+	[5, 12, 20].map(social => CV.deriveGenerator({ ...CV.newGeneratorState(), race1: "Human(Civilized:Village)", manual: true,
+		manualBase: { str: 10, agl: 10, vit: 10, int: 10, wis: 10, knw: 10, app: 10, chm: 10, soc: social, aur: 10, pty: 10, wil: 10 } },
+		chargenContent, () => true).finals.soc.final), [5, 12, 20]);
 check("the Review step draws for every race with a culture kit, all three kit rules ticked", reviewThrew, []);
 check("...and its list carries the same kit the Details step previewed", reviewShort, []);
 

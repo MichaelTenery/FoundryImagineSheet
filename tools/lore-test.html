@@ -196,6 +196,32 @@ check("a mixed lorist: 1 ballad, 2 runes, 1 hymn, 1 glyph", ["ballad", "rune", "
 	tmpwhole.entries.filter(e => e.kind == k).length), [1, 2, 1, 1]);
 check("...and the two runes differ", new Set(tmpwhole.entries.filter(e => e.kind == "rune").map(e => e.name)).size, 2);
 
+// --- a die that breaks its 1..n promise (docs/sonnet/2026-09-23-chargen-kit-crash.md item 1) ------
+// The Review step's crash on 0.18.1 was a preview's die of () => 0 reading list[-1]. The same shape
+// was here, in waiting: every pick must hold the die to its list, and no draw may spin for ever.
+check("pickByDie: an in-contract face picks as before", [1, 2, 3].map(f => L.pickByDie(["a", "b", "c"], () => f)), ["a", "b", "c"]);
+check("pickByDie: 0, n+1 and NaN are held to the ends of the list",
+	[0, 4, NaN].map(f => L.pickByDie(["a", "b", "c"], () => f)), ["a", "c", "a"]);
+check("pickByDie: an empty list gives nothing, and rolls nothing", L.pickByDie([], dice()), undefined);
+check("drawDistinct with a fixed die returns instead of looping for ever",
+	L.drawDistinct(["a", "b", "c"], 2, () => 1), ["a"]);
+var tmpbrokenOk = true;
+var tmpbrokenIssues = [];
+for (const tmpface of [0, 1, 26, 1000, NaN]) {
+	try {
+		var tmpbroken = L.rollStartingLore({ skillNames: ["Intone", "Hymn Lore", "Poison Lore", "Rune Lore", "Rune Lore", "Herb Lore"],
+			alignment: "Neutral Evil", herbCommonChance: 10, casting: { name: "Scroll Knowledge", chance: 60 },
+			affinity: 100, fortune: 100 }, () => tmpface);
+		tmpbrokenIssues.push(tmpbroken.issues.length);
+		if (tmpbroken.entries.some(e => e.name === undefined || e.name === null)) { tmpbrokenOk = false; }
+	} catch (tmperr) { tmpbrokenOk = false; tmpbrokenIssues.push(tmperr.message); }
+}
+check("rollStartingLore: dice 0, 1, 26, 1000 and NaN neither throw nor hang, and never make a nameless entry", tmpbrokenOk, true);
+check("...and a fixed die that cannot draw the second hymn or rune says so", tmpbrokenIssues.every(n => n > 0), true);
+check("rollStartingSpells: a primer die of 0 or 13 still gives one of his twelve",
+	[0, 13].map(f => Object.values(T.SPELL_PRIMERS).includes(L.rollStartingSpells(
+		{ casting: { name: "Scroll Knowledge", chance: 10 }, affinity: 100, fortune: 100 }, () => f).primer)), [true, true]);
+
 // --- recipes -------------------------------------------------------------------------------------
 check("a potion recipe costs his 15", L.makePotionRecipe({ value: "25 gp.", duration: "1 hour", description: "x" }).rating, 15);
 var tmprecipe = L.makePoisonSystem("VII", "K", "Contact", true);

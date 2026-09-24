@@ -45,7 +45,8 @@
 	{{/if}}
 
 	<footer>
-		<span class="speed">{{speed}} seconds</span>
+		{{!-- A Scissor Strike's second card carries no seconds: they are the first card's. --}}
+		{{#if speed}}<span class="speed">{{speed}} seconds</span>{{else}}<span class="speed">the same seconds as the blow above</span>{{/if}}
 		{{#if damage}}{{#unless applied}}
 			<button type="button" data-imagine-action="applyDamage"><i class="fa-solid fa-droplet"></i> Apply damage</button>
 		{{/unless}}{{/if}}

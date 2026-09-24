@@ -22,6 +22,7 @@ import {
 	resolveLearnStance, resolveMasterStance, resolveLearnSubskill, resolveLearnLoreValue
 } from "./martial-arts.mjs";
 import { MARTIAL_LORE_VALUES } from "../combat-tables.mjs";
+import { findActorCombatant } from "./combat-document.mjs";
 import { resolveSkillOutcome } from "../skills-rules.mjs";
 
 const { resolveAttack, resolveCriticalFumble } = CombatRules;
@@ -54,13 +55,11 @@ export function loadMartialTemplates() {
 		return await new Roll(tmpformula).evaluate(tmpoptions ?? {});
 	}
 
-	// This is the function which finds an actor's combatant in the current combat.
+	// This is the function which finds an actor's combatant in the current combat, if they have
+	// one -- findActorCombatant (combat-document.mjs), which matches a token's own actor rather than
+	// its base actor's id, so each unlinked token is charged for its own swing.
 	function findCombatant(tmpactor) {
-		if (!game.combat || !tmpactor) { return null; }
-		for (const tmpcombatant of game.combat.combatants) {
-			if (tmpcombatant.actor?.id == tmpactor.id) { return tmpcombatant; }
-		}
-		return null;
+		return findActorCombatant(tmpactor, game.combat);
 	}
 
 	// This is the function which reads the attacker's standing Situation Mods for one attack. The
@@ -243,12 +242,16 @@ export async function rollMartialAttack(tmpactor, tmpname) {
 
 	var tmpmessages = [];
 	for (const tmpentry of tmpresults) {
+		// Each card carries its own dice: the first the skill roll with its blow, the second its blow
+		// alone -- once the second card was given the first blow's d20 and no damage roll at all.
+		var tmpcardrolls = tmpmessages.length ? [tmpentry.roll] : [tmpskill.rollObject, tmpentry.roll];
 		var tmpfumble = tmpentry.result.isFumble ? await rollMartialFumble(tmpsys.attributes.agl.save) : null;
 		var tmpdamage = null;
 		if (tmpentry.result.isHit) {
 			var tmpdice = addMartialDice(tmprow.damage, tmpmods.damage.extraDice);
 			var tmpdmgroll = await rollFormula(tmpdice, tmpsit.maxDamage ? { maximize: true } : {});
 			tmprolls.push(tmpdmgroll);
+			tmpcardrolls.push(tmpdmgroll);
 			var tmpstr = getMartialStrengthDamage(tmpsys.combat.meleeDamage, tmpmods.damage.strength, false);
 			var tmpmultipliers = [tmpmods.damage.multiplier, tmpsit.multi];
 			if (tmpdoubled) { tmpmultipliers.push(2); }
@@ -277,7 +280,9 @@ export async function rollMartialAttack(tmpactor, tmpname) {
 			targetName: tmptarget?.name ?? null,
 			result: tmpentry.result,
 			mods: { list: tmplist, total: tmptotal },
-			speed: tmpspeed,
+			// A Scissor Strike's two blows are ONE attack's seconds: the first card carries them and
+			// its Spend button, the second none -- two buttons once charged the strike twice.
+			speed: tmpmessages.length ? 0 : tmpspeed,
 			fumble: tmpfumble,
 			damage: tmpdamage,
 			applied: false
@@ -287,12 +292,12 @@ export async function rollMartialAttack(tmpactor, tmpname) {
 			"systems/imagine-rpg/templates/chat/martial-card.hbs", {
 				...tmpattack, actorName: tmpactor.name, attackName: tmpattack.weapon,
 				skill: tmpskill, doubled: tmpdoubled, special: tmpmods.special,
-				inCombat: !!findCombatant(tmpactor)
+				inCombat: !tmpmessages.length && !!findCombatant(tmpactor)
 			});
 		tmpmessages.push(await ChatMessage.create({
 			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
 			content: tmphtml,
-			rolls: tmpmessages.length ? [tmpentry.roll] : tmprolls,
+			rolls: tmpcardrolls,
 			flags: { "imagine-rpg": { attack: tmpattack } }
 		}));
 	}

@@ -472,6 +472,8 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 		if (tmpChoices.startingKit) {
 			var tmpKit = buildStartingKit({
 				raceName: (tmpChoices.raceNames ?? [])[0] ?? "",
+				// His name for a split form ("Fairy" for "Fairy(Winged)"), which his kit tables are keyed by.
+				sourceRace: tmpRaceDocs.find(tmpDoc => tmpDoc.name == (tmpChoices.raceNames ?? [])[0])?.system?.sourceRace ?? "",
 				social: tmpChoices.socialClass,
 				gender: tmpChoices.gender,
 				style: tmpChoices.clothingStyle,

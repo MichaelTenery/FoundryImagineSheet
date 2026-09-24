@@ -13,7 +13,7 @@ This pass fixed the Review step's crash with "Gear by culture" ticked (0.18.2). 
 - The kit preview and the Review list show the FIRST alternative; creation rolls. Leave that alone
   unless the user rules otherwise.
 
-## 1. Hold lore-rules' die-indexed picks to their lists
+## 1. Hold lore-rules' die-indexed picks to their lists -- DONE 2026-09-23 (bug sweep; `pickByDie`, lore-test 145)
 
 - **What:** apply the same clamp to the unguarded picks in `module/lore-rules.mjs` -- `drawDistinct`
   (~line 678), the hymn pick in `rollStartingLore` (~760), the poison type and potency picks (~782-783)
@@ -29,7 +29,7 @@ This pass fixed the Review step's crash with "Gear by culture" ticked (0.18.2). 
 - **Why deferred:** no user can reach any of it today -- the only caller, `provideStartingLore`, passes an
   in-contract die. It is the same shape that bit the generator, in waiting.
 
-## 2. Run the derive-test Review loop across social classes too
+## 2. Run the derive-test Review loop across social classes too -- DONE 2026-09-23 (bug sweep; it also now covers the split forms and Brachara, which it used to skip)
 
 - **What:** `tools/derive-test.html`, "the Review step, with the starting kit ticked", runs each race at
   the default state's social class only (nothing rolled, so the apparent-class path). Also run each race

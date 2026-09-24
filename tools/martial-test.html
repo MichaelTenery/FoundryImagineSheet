@@ -340,7 +340,7 @@ check("...nothing picked", M.resolveLearnLoreValue({ name: "", chance: 40, list:
 
 // --- the character model ------------------------------------------------------------------------------
 // A trimmed copy of derive-test.html's makeCharacter, with a martial block.
-function makeCharacter(ratings, title, items, martial) {
+function makeCharacter(ratings, title, items, martial, combatExtra) {
 	const attributes = {};
 	for (const k of ["str","agl","vit","int","wis","knw","app","chm","soc","aur","pty","wil"]) {
 		attributes[k] = { rating: ratings[k] ?? 10, permMod: 0, tempMod: 0 };
@@ -355,8 +355,8 @@ function makeCharacter(ratings, title, items, martial) {
 		resistances: { magic: resistance(), illusion: resistance(), control: resistance(),
 		               poison: resistance(), disease: resistance() },
 		body: { bodyType: "Humanoid", areas: [], armorDamage: {} },
-		combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
-		          weaponLoreList: "", missileLoreList: "", projectileLoreList: "" },
+		combat: Object.assign({ meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
+		          weaponLoreList: "", missileLoreList: "", projectileLoreList: "" }, combatExtra ?? {}),
 		physical: { weight: 0, handedness: "", famorian: {} },
 		languages: [],
 		skillSlotMoves: { racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0,
@@ -415,6 +415,17 @@ check("with Martial Lore, Jump and Spinning combine", lorist.martial.state.moves
 check("the mastered stance: +1 defence, and Flip's -4", lorist.combat.defensiveAdjust - before.def, -3);
 check("Martial Lore 40%: one level of blind fighting, +2 to hit (the book)", lorist.combat.martialBlind.blindFighting, 2);
 check("Flip is a Lore row at Martial Lore's 40%", lorist.martial.loreRows[0].chance, 40);
+
+// Fighting blind lays Martial Lore's bonus on every skill typed Combat -- Second Weapon Knowledge
+// among them -- and the off-hand figures must read the chance WITH it. They were worked out first, so
+// the Skills tab and the off-hand penalty disagreed (bug sweep 2026-09-23).
+const swkClass = { type: "class", name: "Fighter", id: "k1", system: { title: 0, secondWeaponKnowTitle: 1, attackSkillList: "",
+	classMods: [], requirements: { attribQualify: [] }, blockedRaces: [], advancement: { classSkillList: [] }, nonClassed: false } };
+const swk = skill("Second Weapon Knowledge", "AGL", "AGL", 16, 58, { types: ["Combat"] });
+const blindFighter = makeCharacter(ratings, 9, [swkClass, mk, ml, swk], { discipline: "Balanced" }, 
+	{ situation: { kind: "melee", selected: ["selfBlind"], weaponId: "" } });
+check("blind, the off-hand figures read Second Weapon Knowledge with Martial Lore's blind bonus in it",
+	[swk.system.blindBonus > 0, blindFighter.combat.secondWeaponKnowChance == swk.system.totalChance], [true, true]);
 
 const untrained = makeCharacter(ratings, 5, [], { discipline: "Offensive", stances: "Flow as water",
 	activeStance: "Flow as water", activeMoves: "Jump" });
@@ -510,6 +521,19 @@ const soberChar = makeCharacter(ratings, 5, [mk], { discipline: "Balanced", stan
 	activeStance: "Drunken fighting", intoxication: 0 });
 check("Drunken at 2 failed saves: a Martial Punch row +10 over the sober one",
 	drunkChar.martial.rows.attacks[0].chance - soberChar.martial.rows.attacks[0].chance, 10);
+
+// The stance dropdown selects what is STORED, not the stance in force: with Martial Knowledge not
+// usable there is no stance in force, and selecting from that once showed "No stance" and let the next
+// change on the sheet write the stored stance away (bug sweep 2026-09-23).
+const MV = await import("../module/martial-view.mjs");
+const stancePanel = (active, rows) => MV.buildMartialPanel({ martial: { hasKnowledge: true, discipline: "Balanced",
+	activeStance: active, masteredStances: "", stanceRows: rows, state: { stance: null } } }, true).stanceChoices
+	.filter(c => c.selected).map(c => [c.value, c.label]);
+check("the stored stance stays selected while none is in force",
+	stancePanel("Strike as wind", [{ name: "Strike as wind" }, { name: "See without eyes" }]), [["Strike as wind", "Strike as wind"]]);
+check("...a stored stance the list does not offer is kept as its own option",
+	stancePanel("See without eyes", [{ name: "Strike as wind" }]), [["See without eyes", "See without eyes (not held now)"]]);
+check("...and nothing stored selects No stance", stancePanel("", [{ name: "Strike as wind" }]), [["", "No stance"]]);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =

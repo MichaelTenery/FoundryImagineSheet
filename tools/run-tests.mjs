@@ -22,6 +22,11 @@ import path from "node:path";
 
 const TOOLS = path.dirname(fileURLToPath(import.meta.url));
 
+// The pages that need a real browser -- a real DOM's layout and element APIs -- and cannot run here.
+// Listed rather than left to error, so a clean run exits 0. Open these in a browser.
+//     window-test.html    measures that each sheet's scrolling part really scrolls
+const BROWSER_ONLY = ["window-test.html"];
+
 	// @MARKER ONE SUITE
 	// This is the function which runs a single page inside this process: called as
 	//     node tools/run-tests.mjs --one <file.html>
@@ -32,10 +37,36 @@ const TOOLS = path.dirname(fileURLToPath(import.meta.url));
 		var tmpMatch = tmpHtml.match(/<script type="module">([\s\S]*?)<\/script>/);
 		if (!tmpMatch) { console.log(JSON.stringify({ error: "no module script on the page" })); return; }
 
+		// An element whose textContent follows its innerHTML the way a browser's does: the markup with
+		// its tags taken out and its entities read. A page that renders a template into an element
+		// and then looks for words in it (weapon-mods-test's window and attack card) needs no more.
+		var tmpEntities = { amp: "&", lt: "<", gt: ">", quot: "\"", apos: "'", nbsp: " ",
+			mdash: "—", ndash: "–", middot: "·", times: "×", hellip: "…" };
+		var tmpTextOf = (tmpHtml) => ("" + tmpHtml).replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]*>/g, "")
+			.replace(/&#x([0-9a-f]+);/gi, (tmpAll, tmpHex) => String.fromCodePoint(parseInt(tmpHex, 16)))
+			.replace(/&#(\d+);/g, (tmpAll, tmpDec) => String.fromCodePoint(parseInt(tmpDec, 10)))
+			.replace(/&([a-z]+);/gi, (tmpAll, tmpName) => tmpEntities[tmpName.toLowerCase()] ?? tmpAll);
 		var tmpElements = {};
-		var tmpElement = (tmpId) => (tmpElements[tmpId] ??= { id: tmpId, innerHTML: "", textContent: "", style: {},
-			classList: { add() {}, remove() {}, toggle() {} }, append() {}, appendChild() {}, querySelector: () => null,
-			querySelectorAll: () => [], setAttribute() {}, addEventListener() {} });
+		var tmpElement = (tmpId) => {
+			if (tmpElements[tmpId]) { return tmpElements[tmpId]; }
+			var tmpHtml = "";
+			var tmpNew = { id: tmpId, textContent: "", style: {},
+				classList: { add() {}, remove() {}, toggle() {} }, append() {}, appendChild() {}, querySelector: () => null,
+				querySelectorAll: () => [], setAttribute() {}, addEventListener() {} };
+			Object.defineProperty(tmpNew, "innerHTML", { enumerable: true,
+				get: () => tmpHtml,
+				set: (tmpValue) => { tmpHtml = "" + tmpValue; tmpNew.textContent = tmpTextOf(tmpHtml); } });
+			return (tmpElements[tmpId] = tmpNew);
+		};
+		// The one shape of selector the pages use to find a control inside what they rendered:
+		// "#id [attribute='value']". Anything else finds nothing, as before.
+		var tmpQuery = (tmpSelector) => {
+			var tmpMatch = ("" + tmpSelector).match(/^#([\w-]+)\s+\[([\w-]+)=['"]?([^'"\]]*)['"]?\]$/);
+			if (!tmpMatch || !tmpElements[tmpMatch[1]]) { return null; }
+			var tmpHtml = tmpElements[tmpMatch[1]].innerHTML;
+			return (tmpHtml.includes(`${tmpMatch[2]}="${tmpMatch[3]}"`) || tmpHtml.includes(`${tmpMatch[2]}='${tmpMatch[3]}'`))
+				? tmpElement("__match" + Math.random()) : null;
+		};
 		globalThis.window = globalThis;
 		// A page that loads Handlebars from the CDN gets the copy Foundry itself ships, where this machine
 		// has Foundry installed; otherwise it errors as before and wants a browser.
@@ -47,7 +78,7 @@ const TOOLS = path.dirname(fileURLToPath(import.meta.url));
 		}
 		globalThis.document = {
 			getElementById: tmpElement,
-			querySelector: () => null, querySelectorAll: () => [],
+			querySelector: tmpQuery, querySelectorAll: () => [],
 			createElement: (tmpTag) => tmpElement("__" + tmpTag + Math.random()),
 			body: tmpElement("__body")
 		};
@@ -91,7 +122,13 @@ const TOOLS = path.dirname(fileURLToPath(import.meta.url));
 			.filter(tmpName => !tmpWords.length || tmpWords.some(tmpWord => tmpName.includes(tmpWord))).sort();
 		var tmpBad = 0;
 		var tmpTotal = 0;
+		var tmpSkipped = 0;
 		for (const tmpName of tmpPages) {
+			if (BROWSER_ONLY.includes(tmpName)) {
+				tmpSkipped += 1;
+				console.log(`skip   ${tmpName.padEnd(32)} browser only -- open it in a browser`);
+				continue;
+			}
 			var tmpRun = spawnSync(process.execPath, [fileURLToPath(import.meta.url), "--one", path.join(TOOLS, tmpName)],
 				{ encoding: "utf8", timeout: 180000 });
 			var tmpLine = (tmpRun.stdout || "").trim().split("\n").filter(tmpText => tmpText.startsWith("{")).pop();
@@ -106,7 +143,8 @@ const TOOLS = path.dirname(fileURLToPath(import.meta.url));
 			console.log(`${tmpResult.failed ? "FAIL " : "ok   "}  ${tmpName.padEnd(32)} ${tmpResult.passed} passed, ${tmpResult.failed} failed`);
 			for (const tmpFail of tmpResult.fails) { console.log("         " + tmpFail.trim()); }
 		}
-		console.log(`\n${tmpPages.length} suites, ${tmpTotal} checks passed, ${tmpBad} suite(s) failing or erroring`);
+		console.log(`\n${tmpPages.length - tmpSkipped} suites, ${tmpTotal} checks passed, ${tmpBad} suite(s) failing or erroring`
+			+ (tmpSkipped ? `; ${tmpSkipped} browser-only suite(s) not run` : ""));
 		process.exitCode = tmpBad ? 1 : 0;
 	}
 

@@ -450,6 +450,63 @@ check("the guard's roll stands", guard.initiative, 2);
 check("Asha's reaction is posted, naming the surprise", messages[messages.length - 1].flavor.includes("the action begun in surprise"), true);
 check("and no surprise is left running", D.hasActiveSurprise(ambush), false);
 
+// --- found in the 2026-09-23 bug sweep ---------------------------------------------------------------
+// A spend at round 0, before Begin Combat and with no surprise running, would have been kept for round
+// 0 and thrown away at round 1 as a late roll. It is refused, and the clock is untouched.
+const early = new ImagineCombat();
+early.round = 0;
+const eli = mk("eli", "Eli", 12, "Right");
+eli.parent = early;
+early.list = [eli];
+await eli.update({ initiative: 3 });
+notices.length = 0;
+check("a round spend before the combat begins is refused, and said",
+	[await early.spendSeconds(eli, 4, { label: "Sword" }), eli.flags["imagine-rpg"].clock.spent, notices.some(m => m.includes("has not begun"))],
+	[null, [], true]);
+
+// Two quick clicks: both spends must land. Before, the second read the clock before the first had
+// written it, and one of the two was lost.
+const quick = new ImagineCombat();
+const qin = mk("qin", "Qin", 12, "Right");
+qin.parent = quick;
+quick.list = [qin];
+await qin.update({ initiative: 2 });
+await Promise.all([quick.spendSeconds(qin, 1, { label: "a" }), quick.spendSeconds(qin, 1, { label: "b" })]);
+check("two spends fired together both land, one after the other", qin.flags["imagine-rpg"].clock.spent.map(e => e.label), ["a", "b"]);
+
+// A player's End Turn at the last combatant reaches nextRound; only the Game Master moves the round.
+game.user.isGM = false;
+notices.length = 0;
+var tmproundbefore = quick.round;
+await quick.nextRound();
+check("a player cannot begin the next round (it would reset and reroll everyone)",
+	[quick.round, qin.flags["imagine-rpg"].clock.spent.length, notices.some(m => m.includes("Game Master"))], [tmproundbefore, 2, true]);
+game.user.isGM = true;
+
+// Back a round and forward again: the clocks kept for the round come back as they were, and nobody
+// is reset or rolled afresh.
+const back = new ImagineCombat();
+const bo = mk("bo", "Bo", 12, "Right");
+bo.parent = back;
+back.list = [bo];
+await bo.update({ initiative: 4 });
+await back.spendSeconds(bo, 3, { label: "Axe" });
+var tmpbackclock = JSON.stringify(bo.flags["imagine-rpg"].clock);
+back.round = 0;                                        // Previous Round
+rollScript.length = 0;                                 // anything rolled now would throw on an empty script
+await back.nextRound();
+check("previous round then next round keeps the round's clock, and rolls nothing",
+	[back.round, bo.initiative, JSON.stringify(bo.flags["imagine-rpg"].clock) == tmpbackclock], [1, 7, true]);
+
+// An unlinked token's actor carries its base actor's id: three Goblins from one actor are three
+// combatants whose actors share an id. Each must find its own.
+const g1 = { id: "gob", isToken: true }, g2 = { id: "gob", isToken: true }, g3 = { id: "gob", isToken: true }, pc = { id: "pc", isToken: false };
+const goblins = { combatants: [{ name: "Goblin 1", actor: g1 }, { name: "Goblin 2", actor: g2 }, { name: "Goblin 3", actor: g3 }, { name: "Hero", actor: pc }] };
+check("each unlinked token finds its own combatant, not the first with its id",
+	[D.findActorCombatant(g3, goblins).name, D.findActorCombatant(g2, goblins).name,
+	 D.findActorCombatant({ id: "pc", isToken: false }, goblins).name, D.findActorCombatant({ id: "gob", isToken: true }, goblins)],
+	["Goblin 3", "Goblin 2", "Hero", null]);
+
 const out = document.getElementById("out");
 const failed = results.filter(r => r.startsWith("FAIL")).length;
 out.innerHTML = `<b class="${failed ? "f" : "p"}">${results.length - failed} of ${results.length} passed</b>\n\n`

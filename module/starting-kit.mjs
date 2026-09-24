@@ -61,6 +61,28 @@ import {
 		});
 	}
 
+	// @MARKER KIT RACE NAMES
+	// His kit switches are keyed by HIS race names, and the port has names of its own for the forms he
+	// split with a second dropdown -- "Fairy(Winged)" is his "Fairy". Looked up by the port's name alone,
+	// the eight faerie forms had no kit and no clothing at all (bug sweep 2026-09-23). A race is looked
+	// for under its own name first (his tables do list "Maginos(Clay)"), then under its sourceRace, then
+	// under the spelling his three kit switches use for it.
+	//
+	// His kit switches spell Brachara "Bracharia" (sheet-worker.js:73492, 73836, 75501), where the rest
+	// of his sheet -- seventy places -- spells it Brachara. UPSTREAM-ISSUES.
+	const KIT_RACE_SPELLINGS = {
+	//	  the port's name         his kit switches'
+		"Brachara":               "Bracharia"
+	};
+
+	// This is the function which finds the name a race is listed under in one of his kit tables.
+	export function getKitRaceName(tmpTable, tmpRaceName, tmpSourceRace) {
+		for (const tmpName of [tmpRaceName, tmpSourceRace, KIT_RACE_SPELLINGS[tmpRaceName], KIT_RACE_SPELLINGS[tmpSourceRace]]) {
+			if (tmpName && tmpTable[tmpName]) { return tmpName; }
+		}
+		return tmpRaceName;
+	}
+
 	// @MARKER BY CULTURE
 	// This is the function which gives the wilderness gear a race of this social class carries.
 	//
@@ -68,8 +90,8 @@ import {
 	// standard kit at social 5 is a club with either a stone knife and three days of water, or an
 	// obsidian knife and a week of it. The roll is made here so the caller need not know which
 	// bands are alternatives and which are not.
-	export function rollWildernessKit(tmpRaceName, tmpSocial, tmpRoll) {
-		var tmpKitName = RACE_WILDERNESS_KIT[tmpRaceName];
+	export function rollWildernessKit(tmpRaceName, tmpSocial, tmpRoll, tmpSourceRace) {
+		var tmpKitName = RACE_WILDERNESS_KIT[getKitRaceName(RACE_WILDERNESS_KIT, tmpRaceName, tmpSourceRace)];
 		if (!tmpKitName) { return { items: [], issues: [`No wilderness kit is listed for ${tmpRaceName}.`] }; }
 		var tmpKit = WILDERNESS_KITS[tmpKitName] ?? {};
 
@@ -108,8 +130,8 @@ import {
 	// otherwise", so the bands are thresholds and the first one the class clears is the one worn.
 	// A wardrobe that does not vary by style or by gender carries "any" in that place, which is
 	// what the extractor writes when his case has no such branch.
-	export function getClothing(tmpRaceName, tmpSocial, tmpGender, tmpStyle) {
-		var tmpWardrobeName = RACE_WARDROBE[tmpRaceName];
+	export function getClothing(tmpRaceName, tmpSocial, tmpGender, tmpStyle, tmpSourceRace) {
+		var tmpWardrobeName = RACE_WARDROBE[getKitRaceName(RACE_WARDROBE, tmpRaceName, tmpSourceRace)];
 		if (!tmpWardrobeName) { return { items: [], issues: [`No clothing is listed for ${tmpRaceName}.`] }; }
 		var tmpWardrobe = WARDROBES[tmpWardrobeName] ?? {};
 
@@ -156,13 +178,13 @@ import {
 
 		var tmpParts = [];
 		if (tmpChoices.byCulture) {
-			var tmpGear = rollWildernessKit(tmpChoices.raceName, tmpApparent.social, tmpRoll);
+			var tmpGear = rollWildernessKit(tmpChoices.raceName, tmpApparent.social, tmpRoll, tmpChoices.sourceRace);
 			tmpOut.kit = tmpGear.kit ?? "";
 			tmpParts.push(tmpGear);
 		}
 		if (tmpChoices.byStatus) {
 			tmpParts.push(getClothing(tmpChoices.raceName, tmpApparent.social,
-				tmpChoices.gender, tmpChoices.style));
+				tmpChoices.gender, tmpChoices.style, tmpChoices.sourceRace));
 		}
 		if (tmpChoices.bySkills) {
 			tmpParts.push(getSocialSkillKit(tmpChoices.socialSkillNames));

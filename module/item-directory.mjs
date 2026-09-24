@@ -43,6 +43,24 @@ const BATCH = 250;
 // The level folders in number order -- sorted as text, "Level 10" would come before "Level 2".
 const LEVEL_FOLDERS = [...Array.from({ length: 21 }, (tmpunused, tmpindex) => `Level ${tmpindex}`), "Level 21 and above"];
 
+// A "/" in a group key is a folder inside a folder ("Class skills/Player's Guide"). A few of his own
+// category names hold a "/" of their own -- the armour flexibilities "Rigid/Flexible" and the rest,
+// the classes "Mage/Warrior crossover" -- and read as nesting they became a folder "Flexible" inside
+// "Rigid" (bug sweep 2026-09-23). Inside a single name the "/" is written as the division slash,
+// which reads the same on screen and is not a separator.
+const FOLDER_SLASH = "\u2215";
+function folderName(tmpname) {
+	return ("" + (tmpname ?? "")).replace(/\//g, FOLDER_SLASH);
+}
+
+// The mark on every folder and item this makes, so that emptying it again takes only what it made.
+// Folders were once found by name alone, and a Game Master's own top-level "Weapons" or "Spells" was
+// filled -- and then, by clearItemDirectory, deleted with everything in it (bug sweep 2026-09-23).
+const DIRECTORY_FLAG = { "imagine-rpg": { directory: true } };
+function isDirectoryDocument(tmpdoc) {
+	return !!tmpdoc?.flags?.["imagine-rpg"]?.directory;
+}
+
 // @MARKER THE SHAPE OF THE DIRECTORY
 // Each entry is one top-level folder. `group` returns the subfolder a document belongs in, or ""
 // for none. `order` fixes the subfolder order where his data has a natural one; anything not named
@@ -70,10 +88,10 @@ const DIRECTORY = [
 	{
 		file: "armor", folder: "Armour",
 		order: ["Shields", "Clothing", "Flexible", "Semi-Flexible", "Rigid",
-		        "Rigid/Flexible", "Rigid/Semi-Flexible", "Rigid/Rigid", "Mixed"],
+		        "Rigid/Flexible", "Rigid/Semi-Flexible", "Rigid/Rigid", "Mixed"].map(folderName),
 		// A shield is armour with a flag rather than a flexibility of its own, and is what a
 		// player looks for by name, so it gets the first folder.
-		group: (tmpdoc) => tmpdoc.system?.isShield ? "Shields" : (tmpdoc.system?.flexibility || "Other")
+		group: (tmpdoc) => tmpdoc.system?.isShield ? "Shields" : folderName(tmpdoc.system?.flexibility || "Other")
 	},
 	{
 		file: "skills", folder: "Skills",
@@ -98,7 +116,7 @@ const DIRECTORY = [
 		// category name and would make a folder titled with a paragraph, so it goes to Other.
 		group: (tmpdoc) => {
 			var tmpkind = "" + (tmpdoc.system?.classType || "Other");
-			return tmpkind.length > 40 ? "Other" : tmpkind;
+			return tmpkind.length > 40 ? "Other" : folderName(tmpkind);
 		}
 	},
 	{ file: "races",        folder: "Races",        group: byLetter },
@@ -168,7 +186,7 @@ function byLetter(tmpdoc) {
 // left blank falls back to the same by-letter bucketing every other uncategorised pack gets.
 function byEquipmentType(tmpdoc) {
 	var tmptype = ("" + (tmpdoc.system?.equipmentType ?? "")).trim();
-	return tmptype || byLetter(tmpdoc);
+	return folderName(tmptype) || byLetter(tmpdoc);
 }
 
 	// This is the function which reads one document file shipped with the system.
@@ -206,14 +224,49 @@ function byEquipmentType(tmpdoc) {
 	// This is the function which finds or makes one folder, by name and parent. Foundry allows two
 	// folders of the same name in different places, so the parent is part of the identity -- the
 	// "A-C" under Equipment must not be confused with the "A-C" under Abilities.
+	//
+	// Only a folder this made (DIRECTORY_FLAG) is used again -- or, in a world filled before the mark
+	// existed, an unmarked one of ours whose top folder has our name, which is then marked. A Game
+	// Master's own top-level folder of the same name is theirs: a folder of ours is made beside it.
 	async function ensureFolder(tmpname, tmpparent, tmpsort) {
-		var tmpexisting = game.folders.find(tmpfolder => tmpfolder.type == "Item"
+		var tmpcandidates = game.folders.filter(tmpfolder => tmpfolder.type == "Item"
 			&& tmpfolder.name == tmpname
 			&& (tmpfolder.folder?.id ?? null) == (tmpparent?.id ?? null));
-		if (tmpexisting) { return tmpexisting; }
+		var tmpexisting = tmpcandidates.find(tmpfolder => isDirectoryDocument(tmpfolder))
+			?? (tmpparent && isDirectoryDocument(tmpparent) ? tmpcandidates[0] : null);
+		if (tmpexisting) {
+			if (!isDirectoryDocument(tmpexisting)) { await tmpexisting.update({ flags: DIRECTORY_FLAG }); }
+			return tmpexisting;
+		}
 		return await Folder.create({
-			name: tmpname, type: "Item", folder: tmpparent?.id ?? null, sort: tmpsort ?? 0
+			name: tmpname, type: "Item", folder: tmpparent?.id ?? null, sort: tmpsort ?? 0, flags: DIRECTORY_FLAG
 		});
+	}
+
+	// This is the function which takes over a folder tree an earlier version of this made, before
+	// folders and items carried DIRECTORY_FLAG: an unmarked top-level folder of this name in which
+	// every item is one the system ships by that name. Its folders and items are marked, so a refill
+	// carries on in it rather than making a second tree beside it, and emptying it later takes it. A
+	// folder holding anything else is a Game Master's own, and is left alone.
+	//
+	// tmpshippednames null takes the tree whatever is in it: only for the shared XXX folder, whose name
+	// ("XXX — no source found") no Game Master would give a folder of their own, and whose items come
+	// from every pack, so no one pack's names could vouch for them.
+	async function adoptEarlierTree(tmpname, tmpshippednames) {
+		if (game.folders.some(tmpfolder => tmpfolder.type == "Item" && !tmpfolder.folder
+			&& tmpfolder.name == tmpname && isDirectoryDocument(tmpfolder))) { return; }
+		var tmproot = game.folders.find(tmpfolder => tmpfolder.type == "Item" && !tmpfolder.folder
+			&& tmpfolder.name == tmpname && !isDirectoryDocument(tmpfolder));
+		if (!tmproot) { return; }
+		var tmpfolders = [tmproot].concat(game.folders.filter(tmpfolder => tmpfolder.type == "Item"
+			&& tmpfolder.ancestors?.some(tmpf => tmpf.id == tmproot.id)));
+		var tmpids = new Set(tmpfolders.map(tmpfolder => tmpfolder.id));
+		var tmpitems = game.items.filter(tmpitem => tmpitem.folder && tmpids.has(tmpitem.folder.id));
+		if (tmpshippednames && (!tmpitems.length || tmpitems.some(tmpitem => !tmpshippednames.has(tmpitem.name)))) { return; }
+		await Folder.updateDocuments(tmpfolders.map(tmpfolder => ({ _id: tmpfolder.id, flags: DIRECTORY_FLAG })));
+		for (var tmpat = 0; tmpat < tmpitems.length; tmpat += BATCH) {
+			await Item.updateDocuments(tmpitems.slice(tmpat, tmpat + BATCH).map(tmpitem => ({ _id: tmpitem.id, flags: DIRECTORY_FLAG })));
+		}
 	}
 
 	// @MARKER POPULATE
@@ -245,6 +298,7 @@ function byEquipmentType(tmpdoc) {
 		for (const tmpentry of DIRECTORY) {
 			var tmploaded = await loadEntryDocuments(tmpentry);
 			var tmpdocs = tmploaded.docs;
+			await adoptEarlierTree(tmpentry.folder, new Set(tmpdocs.map(tmpdoc => tmpdoc.name)));
 			var tmproot = await ensureFolder(tmpentry.folder, null, DIRECTORY.indexOf(tmpentry) * 100000);
 
 			// Names the system once shipped and no longer does (see RETIRED DOCUMENTS in
@@ -299,7 +353,8 @@ function byEquipmentType(tmpdoc) {
 				}
 				for (const tmpdoc of tmpbygroup[tmpkey]) {
 					if (tmpseen.has(`${tmpfolder.id}::${tmpdoc.name}`)) { tmpskipped += 1; continue; }
-					tmptocreate.push({ ...tmpdoc, folder: tmpfolder.id });
+					tmptocreate.push({ ...tmpdoc, folder: tmpfolder.id,
+						flags: foundry.utils.mergeObject(tmpdoc.flags ?? {}, DIRECTORY_FLAG, { inplace: false }) });
 				}
 			}
 
@@ -307,11 +362,15 @@ function byEquipmentType(tmpdoc) {
 			// own -- subfoldered by pack so the 1,702 of them (docs/UNATTRIBUTED.md) do not land in
 			// one flat list nobody can scan.
 			if (tmpxxxdocs.length) {
-				tmpxxxroot ??= await ensureFolder(XXX_FOLDER_NAME, null, -100000);
+				if (!tmpxxxroot) {
+					await adoptEarlierTree(XXX_FOLDER_NAME, null);
+					tmpxxxroot = await ensureFolder(XXX_FOLDER_NAME, null, -100000);
+				}
 				var tmpxxxsub = await ensureFolder(tmpentry.folder, tmpxxxroot, DIRECTORY.indexOf(tmpentry));
 				for (const tmpdoc of tmpxxxdocs) {
 					if (tmpseen.has(`${tmpxxxsub.id}::${tmpdoc.name}`)) { tmpskipped += 1; continue; }
-					tmptocreate.push({ ...tmpdoc, folder: tmpxxxsub.id });
+					tmptocreate.push({ ...tmpdoc, folder: tmpxxxsub.id,
+						flags: foundry.utils.mergeObject(tmpdoc.flags ?? {}, DIRECTORY_FLAG, { inplace: false }) });
 				}
 			}
 
@@ -344,22 +403,54 @@ function byEquipmentType(tmpdoc) {
 
 	// @MARKER EMPTY
 	// This is the function which takes it all out again, for a Game Master who tried it and would
-	// rather have their sidebar back. Only the folders this made and what is inside them: an item
-	// filed somewhere else, or made by hand, is not touched.
+	// rather have their sidebar back. Only what this made: items and folders carrying its mark
+	// (DIRECTORY_FLAG). An item made by hand is not touched even inside one of these folders -- the
+	// folders go without their contents, so it moves up to the sidebar's root -- and a Game Master's
+	// own folder is never deleted for its name.
+	//
+	// A world filled before the mark existed (0.19.2 and earlier) has unmarked folders and items.
+	// Those are still recognised, by the name of their top folder, but only a tree in which EVERY item
+	// is one the system ships by that name goes; a tree with anything else in it is left as it is.
 	export async function clearItemDirectory({ notify = true } = {}) {
 		if (!game.user.isGM) {
 			ui.notifications.warn("Only the Game Master can empty the Items directory.");
 			return { removed: 0 };
 		}
+		var tmpnames = DIRECTORY.map(tmpentry => tmpentry.folder).concat([XXX_FOLDER_NAME]);
+		var tmpinside = (tmpitem, tmproot) => !!tmpitem.folder
+			&& (tmpitem.folder.id == tmproot.id || !!tmpitem.folder.ancestors?.some(tmpf => tmpf.id == tmproot.id));
 		var tmproots = game.folders.filter(tmpfolder => tmpfolder.type == "Item" && !tmpfolder.folder
-			&& (DIRECTORY.some(tmpentry => tmpentry.folder == tmpfolder.name) || tmpfolder.name == XXX_FOLDER_NAME));
+			&& (isDirectoryDocument(tmpfolder) || tmpnames.includes(tmpfolder.name)));
+
 		var tmpremoved = 0;
+		var tmpcleared = 0;
 		for (const tmpfolder of tmproots) {
-			tmpremoved += tmpfolder.contents?.length ?? 0;
-			// deleteSubfolders takes the whole tree; deleteContents takes the items in it.
-			await tmpfolder.delete({ deleteSubfolders: true, deleteContents: true });
+			var tmpitems = game.items.filter(tmpitem => tmpinside(tmpitem, tmpfolder));
+			var tmpours = tmpitems.filter(tmpitem => isDirectoryDocument(tmpitem));
+			if (!isDirectoryDocument(tmpfolder)) {
+				// An unmarked tree from before the mark: ours only if nothing in it is anyone else's.
+				var tmpshipped = new Set();
+				var tmpentry = DIRECTORY.find(tmpe => tmpe.folder == tmpfolder.name);
+				if (tmpentry) {
+					try { (await loadEntryDocuments(tmpentry)).docs.forEach(tmpdoc => tmpshipped.add(tmpdoc.name)); }
+					catch (tmperr) { console.warn(`Imagine RPG | could not read what "${tmpfolder.name}" should hold`, tmperr); }
+				}
+				// The shared XXX folder's name is ours alone (see adoptEarlierTree), so it is taken whole.
+				if (tmpfolder.name != XXX_FOLDER_NAME
+					&& (!tmpentry || tmpitems.some(tmpitem => !isDirectoryDocument(tmpitem) && !tmpshipped.has(tmpitem.name)))) {
+					console.warn(`Imagine RPG | "${tmpfolder.name}" holds items the system did not make; it is left as it is.`);
+					continue;
+				}
+				tmpours = tmpitems;
+			}
+			if (tmpours.length) { await Item.deleteDocuments(tmpours.map(tmpitem => tmpitem.id)); }
+			tmpremoved += tmpours.length;
+			// Whatever is still in the tree is someone else's; the folders go without their contents,
+			// which Foundry moves up rather than away.
+			await tmpfolder.delete({ deleteSubfolders: true, deleteContents: false });
+			tmpcleared += 1;
 		}
-		if (notify) { ui.notifications.info(`Imagine RPG | removed ${tmproots.length} folder tree(s).`); }
+		if (notify) { ui.notifications.info(`Imagine RPG | removed ${tmpremoved} item(s) in ${tmpcleared} folder tree(s).`); }
 		return { removed: tmpremoved };
 	}
 

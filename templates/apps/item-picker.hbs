@@ -10,6 +10,11 @@
 	{{#if noContent}}
 	<p class="alarm">No Imagine {{label}} content was found. The Game Master needs to import it
 		first, from the console: <code>game.imagine.importContent()</code></p>
+	{{!-- The blank item stays one click away even with nothing imported, as item-picker.mjs promises;
+	      it was once only in the other branch, and a world with no content had no way to add anything. --}}
+	<footer class="picker-foot">
+		<button type="button" data-action="blankItem">Make a blank {{label}} instead</button>
+	</footer>
 	{{else}}
 
 	<header class="picker-head">

@@ -346,6 +346,16 @@ check("...and a roll of 0 still counts as rolled",
 	[true, true]);
 check("the title step names the skills that title brings",
 	V.buildTitleStep(titleActor, V.newLevelUpWorking()).titleStep.skills.map(s => s.name), ["Sever"]);
+// The Endurance formula is the EFFECTIVE race's (system.raceItem), not the first race item's: a half
+// race rolls its "first|second" pair, a Formless its psyche's (bug sweep 2026-09-23).
+const halfActor = viewActor({ levelUpPending: true, titlesToRaise: 1, titleToLevel: 6, goalsToRaise: 1, goalToLevel: 15 },
+	[viewClass, { id: "r2", name: "Dryad", type: "race", system: { endurance: { titleFormula: "1d3+1" } } },
+	 { id: "r3", name: "Elf(Dark)", type: "race", system: { endurance: { titleFormula: "1d4" } } }]);
+halfActor.system.raceItem = { name: "Dryad/Elf(Dark)", system: { endurance: { titleFormula: "1d3+1|1d4" } } };
+check("a half race's title Endurance is the combined race's pair, not the first race's alone",
+	V.buildTitleStep(halfActor, V.newLevelUpWorking()).titleStep.enduranceFormula, "1d3+1|1d4");
+check("...and an actor with no combined race reads its race item as before",
+	V.buildTitleStep(titleActor, V.newLevelUpWorking()).titleStep.enduranceFormula, "1d4+1");
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;

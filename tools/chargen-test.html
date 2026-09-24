@@ -345,6 +345,33 @@ for (const race of Object.keys(KT.RACE_WILDERNESS_KIT)) {
 }
 check("no race at any social class throws, whatever the die says", kitThrew.slice(0, 3), []);
 
+// His kit tables are keyed by HIS race names. A split form is looked for under its sourceRace, and
+// Brachara under his kit switches' own spelling, "Bracharia" (bug sweep 2026-09-23): before, the eight
+// faerie forms and Brachara were given no kit and no clothing at all.
+check("a race is found under its own name first (his tables list Maginos(Clay) itself)",
+	K.getKitRaceName(KT.RACE_WILDERNESS_KIT, "Maginos(Clay)", "Maginos"), "Maginos(Clay)");
+check("...then under its sourceRace (Fairy(Winged) is his Fairy)",
+	K.getKitRaceName(KT.RACE_WILDERNESS_KIT, "Fairy(Winged)", "Fairy"), "Fairy");
+check("...then under his kit switches' spelling (Brachara is his Bracharia there)",
+	[K.getKitRaceName(KT.RACE_WILDERNESS_KIT, "Brachara", ""), K.getKitRaceName(KT.RACE_WARDROBE, "Brachara", "")],
+	["Bracharia", "Bracharia"]);
+check("a winged Fairy at social 10 gets gear and clothing",
+	[K.buildStartingKit({ raceName: "Fairy(Winged)", sourceRace: "Fairy", social: 10, byCulture: true, byStatus: true }, always(1)).items.length > 0,
+	 K.buildStartingKit({ raceName: "Fairy(Winged)", sourceRace: "Fairy", social: 10, byCulture: true, byStatus: true }, always(1)).issues],
+	[true, []]);
+check("a Brachara at social 10 gets them too", K.buildStartingKit({ raceName: "Brachara", social: 10, byCulture: true, byStatus: true },
+	always(1)).issues, []);
+
+// A Formless's second race is its host, from formlessHosts; a Half Race's, a fertile partner. The
+// generator once kept a second race only if it was a fertile partner, so every host chosen for a
+// Formless was wiped on the next change (bug sweep 2026-09-23).
+const CV = await import("../module/chargen-view.mjs");
+check("getSecondRaceNames: a Formless's hosts, a Half Race's fertile partners",
+	[CV.getSecondRaceNames({ system: { formless: true, fertileWith: [], formlessHosts: ["Elf(High)", "Saurian"] } }),
+	 CV.getSecondRaceNames({ system: { fertileWith: ["Human(Barbaric)"], formlessHosts: [] } }),
+	 CV.getSecondRaceNames(null)],
+	[["Elf(High)", "Saurian"], ["Human(Barbaric)"], []]);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =

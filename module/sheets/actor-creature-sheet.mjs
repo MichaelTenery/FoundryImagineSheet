@@ -69,6 +69,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			rollCreatureAttack: ImagineCreatureSheet.#onRollCreatureAttack,
 			setAttackHand: ImagineCreatureSheet.#onSetAttackHand,
 			usePower: ImagineCreatureSheet.#onUsePower,
+			// Every item on a creature can be opened and taken off again, as on the character sheet.
+			openItem: ImagineCreatureSheet.#onOpenItem,
+			deleteItem: ImagineCreatureSheet.#onDeleteItem,
 			openSituation: ImagineCreatureSheet.#onOpenSituation,
 			clearSituation: ImagineCreatureSheet.#onClearSituation,
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class -- the
@@ -87,6 +90,28 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			learnMartialLoreValue: ImagineCreatureSheet.#onLearnMartialLoreValue
 		}
 	};
+
+	// This is the function which opens one of the creature's items -- an attack, a power, a trait.
+	static async #onOpenItem(event, target) {
+		event.preventDefault();
+		var tmpitem = this.document.items.get(target.dataset.itemId);
+		if (tmpitem) { tmpitem.sheet.render(true); }
+	}
+
+	// This is the function which takes an item off the creature. Asked first, as on the character
+	// sheet: an item deleted here is gone, and a mis-click on a row of small buttons is easy.
+	static async #onDeleteItem(event, target) {
+		event.preventDefault();
+		var tmpitem = this.document.items.get(target.dataset.itemId);
+		if (!tmpitem) { return; }
+		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
+			window: { title: "Imagine RPG" },
+			content: `<p>Remove <strong>${foundry.utils.escapeHTML(tmpitem.name)}</strong> from ${foundry.utils.escapeHTML(this.document.name)}?</p>`,
+			rejectClose: false,
+			modal: true
+		});
+		if (tmpconfirmed) { await tmpitem.delete(); }
+	}
 
 	// @MARKER SHEET PARTS
 	static PARTS = {

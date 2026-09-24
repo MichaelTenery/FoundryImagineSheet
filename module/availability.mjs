@@ -215,10 +215,17 @@ const SKILL_TYPE_SUBSYSTEMS = {
 
 	// This is the function which refreshes every character after a switch changes, so the
 	// unavailable flags on their items update without anyone having to reload.
+	//
+	// An unlinked token's actor is its own document, and resetting the base actor does not reach it
+	// (bug sweep 2026-09-23), so an open sheet of one kept its old markings. Every actor a sheet is
+	// open for is reset as well, which takes in the token actors that anyone is looking at.
 	function refreshAfterChange() {
 		for (const tmpactor of game.actors) { tmpactor.reset(); }
 		for (const tmpapp of foundry.applications.instances.values()) {
-			if (tmpapp.document?.documentName == "Actor" && tmpapp.rendered) { tmpapp.render(); }
+			if (tmpapp.document?.documentName == "Actor" && tmpapp.rendered) {
+				if (tmpapp.document.isToken) { tmpapp.document.reset(); }
+				tmpapp.render();
+			}
 		}
 	}
 

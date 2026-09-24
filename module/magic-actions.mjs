@@ -255,6 +255,13 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 			ui.notifications.warn(`All of that poison's damage has already been applied to ${tmpentry.name}.`);
 			return;
 		}
+		// The intervals applied are counted on the card, and only its author or the Game Master can
+		// write that count. Anyone else could put the damage on and leave it uncounted, to be put on
+		// again (bug sweep 2026-09-23) -- so they are asked to leave it to the Game Master.
+		if (!tmpmessage.isOwner) {
+			ui.notifications.warn("Only the Game Master or whoever used the poison can apply its damage, so none is applied twice. Ask the Game Master.");
+			return;
+		}
 		var tmpvictim = await fromUuid(tmpentry.uuid);
 		if (!tmpvictim) { ui.notifications.warn(`${tmpentry.name} is no longer there.`); return; }
 		if (!tmpvictim.isOwner) {
@@ -390,6 +397,21 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 	export async function brewRecipe(tmpactor, tmpitem, tmpevent) {
 		var tmpkind = getItemKind(tmpitem);
 		var tmpskill = MAGIC_KINDS[tmpkind]?.use || "Potion Lore";
+
+		// A poison recipe must name one of his poisons -- read as usePoison reads it, from its fields or
+		// else its name ("Type: IV, Potency: C"). One that names none once rolled, said "success" and
+		// made nothing, with no word why (bug sweep 2026-09-23); now it is said before anything is rolled.
+		var tmpbrewpoison = null;
+		if (tmpkind == "poisonrecipe") {
+			var tmpread = readPoison(tmpitem);
+			tmpbrewpoison = makePoisonSystem(("" + tmpread.poisonType).toUpperCase(), ("" + tmpread.poisonPotency).toUpperCase(),
+				tmpitem.system.form, false);
+			if (!tmpbrewpoison) {
+				ui.notifications.warn(`${tmpitem.name} names no poison: give it a type (I to XXV) and a potency (A to Q) first.`);
+				return;
+			}
+		}
+
 		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
 			window: { title: `Brew ${tmpitem.name}` },
 			content: `<div class="form-group"><label>Doses in this batch</label>
@@ -413,8 +435,7 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		if (isLoreSuccess(tmpresult.outcome)) {
 			var tmpstock = null;
 			if (tmpkind == "poisonrecipe") {
-				var tmppoison = makePoisonSystem(tmpitem.system.poisonType, tmpitem.system.poisonPotency, tmpitem.system.form, false);
-				if (tmppoison) { tmpstock = { name: tmppoison.name, type: "consumable", system: tmppoison.system }; }
+				tmpstock = { name: tmpbrewpoison.name, type: "consumable", system: tmpbrewpoison.system };
 			} else {
 				// The potion itself, from the compendium, so the stock carries everything his row has.
 				var tmppack = game.packs.get("world.imagine-consumables");

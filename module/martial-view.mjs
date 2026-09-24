@@ -100,12 +100,22 @@ import { MARTIAL_DISCIPLINE_NAMES, MARTIAL_FAMILIES, parseMartialList } from "./
 		if ((tmpstate.lore?.made ?? []).length) { tmpsummary.push(tmpstate.lore.made.join(", ")); }
 
 		// The stance dropdown offers only what has been learned. A mastered one says so.
+		//
+		// WHAT IS SELECTED IS WHAT IS STORED (activeStance), not the stance in force. The two differ while
+		// Martial Knowledge is not usable -- not held, or its title not reached -- when no stance is in
+		// force; selecting from the resolved state then showed "No stance", and the next change anywhere
+		// on the sheet submitted the form and wrote the stored stance away (bug sweep 2026-09-23). A
+		// stored stance the list does not offer is kept as an option of its own, for the same reason.
 		var tmpmastered = parseMartialList(tmpm.masteredStances);
-		var tmpstancechoices = [{ value: "", label: "No stance", selected: !tmpstance }];
+		var tmpstored = "" + (tmpm.activeStance ?? "");
+		var tmpstancechoices = [{ value: "", label: "No stance", selected: !tmpstored }];
 		for (const tmprow of tmpm.stanceRows ?? []) {
 			tmpstancechoices.push({ value: tmprow.name,
 				label: `${tmprow.name}${tmpmastered.includes(tmprow.name) ? " (mastered)" : ""}`,
-				selected: !!tmpstance && tmpstance.name == tmprow.name });
+				selected: tmpstored == tmprow.name });
+		}
+		if (tmpstored && !(tmpm.stanceRows ?? []).some(tmprow => tmprow.name == tmpstored)) {
+			tmpstancechoices.push({ value: tmpstored, label: `${tmpstored} (not held now)`, selected: true });
 		}
 
 		var tmprows = tmpm.rows ?? {};

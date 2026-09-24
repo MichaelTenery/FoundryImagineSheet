@@ -172,6 +172,19 @@ check("mundane skill on the same character stays available", items[1].system.ava
 check("the flagged skill is still on the character, not removed", items.length, 2);
 check("the flagged skill still has its chance worked out", typeof items[0].system.totalChance, "number");
 
+// The weapon, equipment and skill sheets once drew the sourcebook and page twice, and every edit
+// saved them doubled -- "Custom,Custom" -- which no longer matched its book's switch (bug sweep
+// 2026-09-23). The models read a doubled value back as typed (module/data/source-fields.mjs).
+const SF = await import("../module/data/source-fields.mjs");
+check("a doubled sourcebook, however many times over, reads back as one",
+	["Custom,Custom", "Player's Guide,Player's Guide,Player's Guide,Player's Guide", "XXX,XXX", "12,12"].map(SF.undoubleSourceValue),
+	["Custom", "Player's Guide", "XXX", "12"]);
+check("...and anything else is left as it was", ["Custom", "", "Player's Guide, Master's Manual", 7].map(SF.undoubleSourceValue),
+	["Custom", "", "Player's Guide, Master's Manual", 7]);
+check("...so an undoubled book is switched off with its book again",
+	A.explainAvailability(skill("Wield", [], SF.undoubleSourceValue("Player's Guide,Player's Guide")),
+		rules({ sourcebooks: { "players-guide": false } })).available, false);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =
 	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")

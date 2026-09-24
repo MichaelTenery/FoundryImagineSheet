@@ -124,9 +124,33 @@ export default class ImagineCombat extends Combat {
 	// Nothing is refused. Spending past the end of the round runs into the next (carried over if
 	// the round ends that way), and an off hand spent past what it had is shown in red on the
 	// clock; either is said, because the Game Master may know better -- a held action, a ruling.
+	//
+	// ONE AT A TIME. Every clock change reads the clock, changes it and writes it back whole, so two
+	// quick clicks that both read before either write lands keep only one of the two -- a second lost
+	// (bug sweep 2026-09-23). spendSeconds, spendSurpriseSeconds, undoSeconds and setCarryOver each wait
+	// for the one before to finish on this client (#serially); the work itself is in the #...Now
+	// methods, which call one another directly so a spend inside a surprise does not wait on itself.
+	#clockQueue = Promise.resolve();
+	#serially(tmpwork) {
+		var tmpnext = this.#clockQueue.then(tmpwork, tmpwork);
+		this.#clockQueue = tmpnext.catch(() => null);
+		return tmpnext;
+	}
+
 	async spendSeconds(tmpcombatant, tmpseconds, tmpoptions = {}) {
+		return await this.#serially(() => this.#spendSecondsNow(tmpcombatant, tmpseconds, tmpoptions));
+	}
+
+	async #spendSecondsNow(tmpcombatant, tmpseconds, tmpoptions = {}) {
 		// During a surprise the seconds are the surprise's (@MARKER SURPRISE below).
-		if (getCombatantSurprise(tmpcombatant)) { return await this.spendSurpriseSeconds(tmpcombatant, tmpseconds, tmpoptions); }
+		if (getCombatantSurprise(tmpcombatant)) { return await this.#spendSurpriseNow(tmpcombatant, tmpseconds, tmpoptions); }
+		// Before Begin Combat the round is 0, and a clock kept for round 0 is not round 1's: it would
+		// be started afresh when the combat begins, the spend lost and read as a late roll. So the
+		// round's seconds wait for the round (a surprise, above, is the time before it and is spent).
+		if (!this.started) {
+			ui.notifications.warn(`The combat has not begun. Begin it before spending ${tmpcombatant.name}'s seconds.`);
+			return null;
+		}
 		var tmpactoroptions = getClockOptions(tmpcombatant.actor);
 		var tmpclock = getCombatantClock(tmpcombatant);
 		var tmpbefore = resolveRoundClock(tmpclock, tmpactoroptions);
@@ -156,6 +180,10 @@ export default class ImagineCombat extends Combat {
 
 	// This is the function which takes back the last seconds a combatant spent.
 	async undoSeconds(tmpcombatant) {
+		return await this.#serially(() => this.#undoSecondsNow(tmpcombatant));
+	}
+
+	async #undoSecondsNow(tmpcombatant) {
 		var tmpsurprise = getCombatantSurprise(tmpcombatant);
 		if (tmpsurprise) {
 			if (!tmpsurprise.spent.length) {
@@ -181,6 +209,10 @@ export default class ImagineCombat extends Combat {
 	// end of this round. On by default, since an action under way is usually meant to finish;
 	// turned off, the combatant rolls a fresh initiative next round instead.
 	async setCarryOver(tmpcombatant, tmpelected) {
+		return await this.#serially(() => this.#setCarryOverNow(tmpcombatant, tmpelected));
+	}
+
+	async #setCarryOverNow(tmpcombatant, tmpelected) {
 		var tmpsurprise = getCombatantSurprise(tmpcombatant);
 		if (tmpsurprise) {
 			tmpsurprise.carryOver = !!tmpelected;
@@ -242,6 +274,10 @@ export default class ImagineCombat extends Combat {
 	// refused: an action that runs past the surprise is carried into round 1 when it ends (unless
 	// declined), and that is said. An off-hand spend is recorded and costs the surprise nothing.
 	async spendSurpriseSeconds(tmpcombatant, tmpseconds, tmpoptions = {}) {
+		return await this.#serially(() => this.#spendSurpriseNow(tmpcombatant, tmpseconds, tmpoptions));
+	}
+
+	async #spendSurpriseNow(tmpcombatant, tmpseconds, tmpoptions = {}) {
 		var tmpsurprise = getCombatantSurprise(tmpcombatant);
 		if (!tmpsurprise) { return null; }
 		var tmpbefore = resolveSurprise(tmpsurprise);
@@ -316,7 +352,23 @@ export default class ImagineCombat extends Combat {
 	// This is the function which starts a new round: carry-over first, then fresh initiative for
 	// everyone else. A surprise still running is ended first, so what it carries is in the round
 	// that is ending.
+	//
+	// THE GAME MASTER'S ONLY. Core's nextTurn calls nextRound for a player whose combatant is last and
+	// presses End Turn; here that would reset and reroll every combatant, which a player may not write,
+	// and left their tracker showing everyone unrolled (bug sweep 2026-09-23). A player is told instead.
+	//
+	// FORWARD AGAIN AFTER GOING BACK. A clock is kept for the round it belongs to. After Previous Round
+	// the clocks stored are the NEXT round's, and going forward again should find them as they were,
+	// not reset everyone and roll afresh -- so when any clock is already ahead of this round, the round
+	// is simply moved on and nothing is rolled.
 	async nextRound() {
+		if (!game.user.isGM) {
+			ui.notifications.warn("Only the Game Master can begin the next round.");
+			return this;
+		}
+		if (this.combatants.some(c => (parseInt(c.flags?.["imagine-rpg"]?.clock?.round) || 0) > this.round)) {
+			return await super.nextRound();
+		}
 		if (hasActiveSurprise(this)) { await this.endSurprise(); }
 
 		// CARRY-OVER is read off the round that is ending, before its initiative is cleared.
@@ -397,4 +449,22 @@ export class ImagineCombatant extends Combatant {
 		return tmpallowed;
 	}
 }
+	// This is the function which finds an actor's combatant in a combat. The actor itself first --
+	// a token's own actor is its combatant's -- then by id for a linked actor only.
+	//
+	// NOT by id alone for a token. An unlinked token's actor carries its base actor's id, so three
+	// Goblins from one actor all match the first Goblin's combatant by id; the attack cards once did
+	// exactly that and charged Goblin #3's swing to Goblin #1's clock (bug sweep 2026-09-23).
+	export function findActorCombatant(tmpactor, tmpcombat) {
+		if (!tmpactor || !tmpcombat) { return null; }
+		for (const tmpcombatant of tmpcombat.combatants) {
+			if (tmpcombatant.actor === tmpactor) { return tmpcombatant; }
+		}
+		if (tmpactor.isToken) { return null; }
+		for (const tmpcombatant of tmpcombat.combatants) {
+			if (tmpcombatant.actor?.id == tmpactor.id) { return tmpcombatant; }
+		}
+		return null;
+	}
+
 // @END (CODE)

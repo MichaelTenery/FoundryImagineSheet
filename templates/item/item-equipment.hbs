@@ -67,10 +67,11 @@
 		<div class="panel">
 			<h3>Where it comes from</h3>
 			<ul class="band-list">
-				<li><label>Sourcebook</label>
-					<span><input type="text" name="system.sourcebook" value="{{system.sourcebook}}"></span></li>
-				<li><label>Page</label>
-					<span><input type="text" name="system.page" value="{{system.page}}"></span></li>
+				{{!-- Shown, not edited: the header above holds the one input for each. Two inputs of one
+				      name come back from the form as an array, which saved "Custom,Custom" and doubled
+				      again on every edit (bug sweep 2026-09-23). --}}
+				<li><label>Sourcebook</label><span>{{#if system.sourcebook}}{{system.sourcebook}}{{else}}&mdash;{{/if}}</span></li>
+				<li><label>Page</label><span>{{#if system.page}}{{system.page}}{{else}}&mdash;{{/if}}</span></li>
 			</ul>
 			<p class="muted">A sourcebook is a switch: a campaign can turn a whole book off, and
 			anything hand-authored is tagged Custom unless it says otherwise.</p>

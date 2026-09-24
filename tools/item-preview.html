@@ -398,7 +398,7 @@ const equipmentCtx = { item: crowbar, system: Object.assign(
 
 const sword = pick(weaponDocs, "Bastard Sword");
 const weaponSystem = Object.assign({ quantity: 1, location: "equipped", hand: "right", floats: false,
-	weaponType: "", page: "", magicBonus: 0, reloadSpeed: 0 }, sword.system);
+	type: "", page: "", magicBonus: 0, reloadSpeed: 0 }, sword.system);
 const weaponCtx = { item: sword, system: weaponSystem, config: {
 	locations: CARRIED, hands: ["right", "left", "both"],
 	modes: [{ key: "missile", label: "Missile" }, { key: "thrust", label: "Thrust" },

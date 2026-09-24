@@ -1964,3 +1964,26 @@ user's ruling of 2026-09-23 — the Fortune the character actually has.
 Also worth knowing: on your sheet the money is rolled when the racial features are confirmed (step
 3, 6439), before the class is chosen at step 5, so the class bonus could not be known then even if
 the field name were right. The port rolls on its Details step, after the class, for that reason.
+
+## 69. The Segmented Worm's body chart names Left and Right Foot12 twice
+
+**Status:** open · **Severity:** small — only a creature given that body chart, and the port works around it
+
+Your Segmented Worm chart (`bodyAreaNamesByType`, source HTML line 273987; `BODY_CHARTS` in the port)
+runs its feet Foot1 to Foot12, then Foot12 again after Body Segment7, then Foot13 to Foot16. The
+second pair was surely meant to be 13, with the rest numbered on. On your sheet the two pairs share a
+name; in Foundry an area's name is where its wounds are kept, and two inputs of one name broke every
+edit of such a creature. **What the port does:** keeps the second pair as its own areas, named
+"Left Foot12 (2)" and "Right Foot12 (2)", in their place in the chart (`parseBodyChart`). If you
+renumber the chart, the port takes it as it comes.
+
+## 70. The starting-kit switches spell Brachara "Bracharia"
+
+**Status:** open · **Severity:** small — a Brachara got no wilderness kit and no clothing
+
+Your three starting-kit switches — `setMoneyEquipmentByRace`, `setWildernessEquipmentByRace` and
+`setClothing` (sheet-worker.js:73492, 73836, 75501) — have `case "Bracharia":`, where the other seventy places in
+your sheet spell the race Brachara. As the sheet runs, a Brachara falls through to no kit at all.
+**What the port does:** looks a Brachara up under your kit switches' spelling
+(`KIT_RACE_SPELLINGS` in module/starting-kit.mjs), so it gets the kit those cases give. If the
+switches are corrected, the alias does no harm.

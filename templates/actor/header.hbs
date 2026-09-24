@@ -1,7 +1,9 @@
 {{!-- Character sheet header: identity, and the four characteristics that summarise a being. --}}
 <header class="imagine-header">
 
-	<img class="portrait" src="{{actor.img}}" data-edit="img" alt="{{actor.name}}">
+	{{!-- data-action="editImage" is what opens the file picker on an ApplicationV2 sheet; data-edit alone
+	      only ever worked on the old sheets (bug sweep 2026-09-23). --}}
+	<img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
 
 	<div class="identity">
 		<input class="charname" type="text" name="name" value="{{actor.name}}" placeholder="Name">

@@ -5129,3 +5129,89 @@ count -- and only once for a player: the roll is recorded in `flags.imagine-rpg.
 the generator now writes on every character it makes (the roll's line, or "Gear by culture, taken
 instead of coins"). The Game Master may roll for any empty purse, which is how a wrong roll is put
 right. The no-re-roll rule is the generator's, for the generator's reason. starting-money-test 59.
+
+## The bug sweep, and the Sonnet notes' leftovers (2026-09-23)
+
+**Asked for directly:** "Do a full bug sweep. smash them all and perform all suggested labors." Six
+readers went through the code at once, one per area (character, combat, round clock, generator and
+levelling, creatures and items, bootstrap and lore), each told to prove what it could with a script
+before reporting, and to report nothing DECISIONS.md already records as deliberate. They found 36
+defects; every one was checked against the code (and, for Foundry's own behaviour, against the V13
+client source installed on this machine) before it was fixed. No V14 install exists here to check
+against; V13's ApplicationV2, DataModel, Roll and Combat are what V14 grew from.
+
+**The ones a table would have hit first:**
+- **Item sheets doubled their sourcebook on every edit.** The weapon, equipment and skill sheets drew
+  `system.sourcebook` and `system.page` in the shared header AND in the body; Foundry's form reads two
+  inputs of one name as an array and a text field saves an array joined by commas, so "Custom" became
+  "Custom,Custom" and doubled again with each change -- and no longer matched its book's on/off
+  switch. The body shows them read-only now, and `migrateData` on the three models reads a doubled
+  value back as typed (`module/data/source-fields.mjs`; only when every comma-separated part is the
+  same, since no book or page of his holds a comma).
+- **A Formless could never keep its host.** The generator dropped any second race not in the first's
+  `fertileWith`, and a Formless's hosts are `formlessHosts`. One rule now (`getSecondRaceNames`),
+  used by the Race step and by the generator.
+- **The eight faerie forms and Brachara got no starting kit.** His kit tables are keyed by his race
+  names; the port looked up its own. A race is now looked for under its own name, then its
+  `sourceRace`, then the spelling his three kit switches use ("Bracharia", UPSTREAM 70).
+- **Unlinked tokens shared one clock and one window.** An unlinked token's actor carries its base
+  actor's id, so three Goblins' Spend buttons all charged Goblin #1, and their Situation Mods and
+  weapon mods windows were one window. Combatants are found by the actor itself first
+  (`findActorCombatant`, now in `combat-document.mjs`); per-document windows are keyed by uuid.
+
+**Four calls made in passing, each the smallest that closes the hole:**
+1. **Damage is applied only by whoever can mark the card applied** -- its author or the Game Master.
+   Before, a player could apply a Game Master's blow (or poison) to their own character, the mark
+   could not be written, and the Game Master seeing a live button applied it again. The old comment
+   already said "the Game Master should be the one applying damage from other people's attacks"; now
+   it is enforced, with a message saying so. Players still apply their own cards.
+2. **Only the Game Master begins a round.** Core's `nextTurn` calls `nextRound` for a player whose
+   combatant is last; here that resets and rerolls every combatant, which a player may not write.
+3. **Forward again after Previous Round keeps the clocks.** Clocks are keyed by round; after going
+   back, the stored clocks are the next round's, and `nextRound` now just moves on to them instead
+   of resetting and rolling everyone afresh. The round clock cannot be rewound, only returned to.
+4. **Seconds are not spent before Begin Combat** (a surprise still is). A round-0 clock was thrown
+   away at round 1 and read as a late roll. Clock changes on one client are also made one at a time
+   (`#serially`), since each reads the clock and writes it back whole and two quick clicks kept one.
+
+**The rest, briefly:** multi-missile firing modes reached melee attacks; a Gravity rune's negative
+level was cleaned to 0 by its schema (`min: 0`); a Scissor Strike's two cards each offered Spend
+(one attack, one Spend now); a damage string that is not dice ("Varies") threw after the d20;
+special-timing weapons ("S") showed 0 seconds and charged 1; the weapon sheet's Kind wrote to a field
+that does not exist (`weaponType`, not `type`); portraits had no `editImage` action and could not be
+changed; the Segmented Worm names Foot12 twice (UPSTREAM 69; a repeat is kept as " (2)"); the level-up
+rolled Endurance from the first race item, not the effective race; attribute rolls survived a change
+of character type; Create and the level-up commits had no guard against a double click; Equip Best
+Armour took armour out of the stash and ignored disabled books; the stance dropdown selected from the
+resolved stance and so could write the stored one away; a class stepped down from title 1 jumped to
+the character's title; blind fighting's skill bonus was added after the off-hand figures had read the
+skills; the language buttons could overwrite a name just typed; `clearItems()` deleted a Game
+Master's own top-level folders of the same names (the directory's folders and items now carry a
+mark, and an older unmarked tree is taken only when everything in it is the system's own); a "/" in
+a category ("Rigid/Flexible") made nested folders; the item picker let a spell be added twice; a
+poison recipe naming no poison brewed nothing and said "success"; an import that failed left a
+locked pack unlocked; the picker's blank item was unreachable with no content imported; an open
+unlinked token's sheet kept stale availability; the "+..." dialog showed the round's figures during a
+surprise; and a poisoned blow a player could not finish was applied without its poison.
+
+**The Sonnet notes' leftovers, done:** the lore picks hold their die to the list and `drawDistinct`
+gives up after 1000 tries (`pickByDie`); the Review loop runs at Social Class 5, 12 and 20 and now
+covers the races it used to skip; natural touch attacks roll his touch (`system.touch`, d20 +
+Agility missile modifier + the declared modifier, 10+, a natural 1 misses, dice alone on contact);
+the Equipment tab offers "Add natural weapons" when the race gives some the character lacks; the
+Combat tab's two multi-missile lists have "Learn a combination" (his acquisition roll; only a success
+writes the list). A creature's attacks, powers and traits can now be opened and removed from its
+sheet, which had no way to take a mis-dropped attack off.
+
+**Not done, and why:** a lost limb losing its natural attack (`getNaturalAttackLost`) -- the port
+tracks no lost limbs, and the martial-arts note already leaves limb checks to the user; ported now
+it could never fire. Famorian natural attacks -- his `setFamorianNaturalAttacks` scales damage by
+title and rolls antler, horn and quill counts when set, so they cannot be static weapon documents;
+whether a Famorian's weapons are made once or kept up with its title is a design call. Both are in
+`docs/sonnet/2026-09-23-bug-sweep.md`.
+
+**Verified:** every headless suite (`node tools/run-tests.mjs`): 17 suites, 2,175 checks, all passing
+-- including the four weapon-mods checks the headless runner used to fail for want of a DOM (its
+elements now derive `textContent` from `innerHTML`). `tools/window-test.html` 27/27 and
+`tools/syntax-check.html` clean in a browser. The sheet, creature and item previews render with no
+console errors. **Not verified:** a running V14.
