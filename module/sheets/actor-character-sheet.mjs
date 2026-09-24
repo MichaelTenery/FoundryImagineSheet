@@ -32,7 +32,7 @@ import { useConsumable, addDose, toggleMemorized, useLore, brewRecipe, addPoison
          postMagic } from "../magic-actions.mjs";
 import { provideStartingLore } from "../starting-lore.mjs";
 import { castSpell, invokeInvocation, prayForInvocation, resetAuraPool, regenerateAura,
-         removeMagicEffect } from "../casting-actions.mjs";
+         removeMagicEffect, rememorizeSpell, sleepSpells, drainAuraPool } from "../casting-actions.mjs";
 import { getWeaponCustomTags, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
 import ImagineWeaponMods from "../apps/weapon-mods.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
@@ -97,10 +97,13 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			postMagic: ImagineCharacterSheet.#onPostMagic,
 			// Casting and invoking -- module/casting-actions.mjs.
 			castSpell: ImagineCharacterSheet.#onCastSpell,
+			rememorizeSpell: ImagineCharacterSheet.#onRememorizeSpell,
 			toggleMastered: ImagineCharacterSheet.#onToggleMastered,
 			invokeInvocation: ImagineCharacterSheet.#onInvokeInvocation,
 			prayForInvocation: ImagineCharacterSheet.#onPrayForInvocation,
 			resetAuraPool: ImagineCharacterSheet.#onResetAuraPool,
+			sleepSpells: ImagineCharacterSheet.#onSleepSpells,
+			drainAuraPool: ImagineCharacterSheet.#onDrainAuraPool,
 			regenerateAura: ImagineCharacterSheet.#onRegenerateAura,
 			removeMagicEffect: ImagineCharacterSheet.#onRemoveMagicEffect,
 			provideStartingLore: ImagineCharacterSheet.#onProvideStartingLore,
@@ -874,6 +877,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		if (tmpitem) { await castSpell(this.document, tmpitem); }
 	}
 
+	// His MEM button, and his MOD beside it when Shift is held: the days of memory refreshed.
+	static async #onRememorizeSpell(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await rememorizeSpell(this.document, tmpitem, event); }
+	}
+
 	// His spell_mastery_check: +2 Aura Control, half the time, three times the range, twice the duration.
 	static async #onToggleMastered(event, target) {
 		var tmpitem = this.#magicItem(target);
@@ -898,6 +907,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	static async #onRegenerateAura(event, target) {
 		event.preventDefault();
 		await regenerateAura(this.document);
+	}
+
+	// His Sleep: a day of every spell's memory gone, and a full pool.
+	static async #onSleepSpells(event, target) {
+		event.preventDefault();
+		await sleepSpells(this.document);
+	}
+
+	// His Drain, with his set_aura box asked for.
+	static async #onDrainAuraPool(event, target) {
+		event.preventDefault();
+		await drainAuraPool(this.document);
 	}
 
 	static async #onRemoveMagicEffect(event, target) {

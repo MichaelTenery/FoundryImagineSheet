@@ -21,6 +21,8 @@
 import { MAGIC_KINDS, CONSUMABLE_KINDS, LORE_KINDS, getItemKind, getSkillStanding,
          getMemorizationTotals } from "./lore-rules.mjs";
 import { CASTING_SKILLS } from "./lore-tables.mjs";
+import { normalizeMagicSubsystems } from "./availability.mjs";
+import { getSpellDaysLeft } from "./casting-rules.mjs";
 
 	// The skills that make the Invocations section worth showing: his pray button rolls Divine
 	// Knowledge (sheet-worker.js:10605), and the wilderness form is how some classes carry it.
@@ -32,11 +34,12 @@ import { CASTING_SKILLS } from "./lore-tables.mjs";
 		return ("" + (tmpvalue ?? "")).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 	}
 
-	// This is the function which says whether a kind's magic switch lets it be shown.
+	// This is the function which says whether a kind's magic switch lets it be shown. Switches stored
+	// under the names the 2026-09-24 split retired ("bardic", "herbalism") are read as their successors.
 	function isKindEnabled(tmpkind, tmprules) {
 		if (!tmprules) { return true; }
 		if (tmprules.magicEnabled === false) { return false; }
-		return tmprules.magicSubsystems?.[MAGIC_KINDS[tmpkind]?.subsystem] !== false;
+		return normalizeMagicSubsystems(tmprules.magicSubsystems)[MAGIC_KINDS[tmpkind]?.subsystem] !== false;
 	}
 
 	// @MARKER THE PANEL
@@ -144,6 +147,7 @@ import { CASTING_SKILLS } from "./lore-tables.mjs";
 			control: tmpcontrol,
 			controlMax: parseInt(tmpaura.controlMax) || 0,
 			controlTooltip: (tmpaura.controlParts ?? []).map(tmppart => `${tmppart.label} ${tmppart.value > 0 ? "+" : ""}${tmppart.value}`).join(", ")
+				+ (tmpaura.controlDoubled ? "; doubled by Winds of Wild Magic" : "")
 				+ (tmpaura.controlCapped ? ` (held to ${tmpaura.controlMax} at this title)` : ""),
 			pool: tmpaura.pool ?? { current: 0, full: 0, drained: 0 },
 			regen: tmpaura.regen ?? "",
@@ -163,12 +167,17 @@ import { CASTING_SKILLS } from "./lore-tables.mjs";
 				var tmplevel = parseInt(tmpitem.system?.level) || 0;
 				var tmpeffectivecontrol = tmpcontrol + (tmpitem.system?.mastered ? 2 : 0);
 				var tmpfailper = parseInt(tmpitem.system?.fail) || 0;
+				var tmpmemorized = !!tmpitem.system?.memorized;
+				// His days of memory (item-spell.mjs): out of them, a memorized spell is "forgotten" and
+				// must be refreshed with MEM before it can be cast -- except a Hermeticist's (useSpell).
+				var tmpdays = getSpellDaysLeft(tmpitem.system);
 				return {
 					id: tmpitem.id ?? tmpitem._id, name: tmpitem.name, level: tmplevel,
 					memTime: tmpitem.system?.memTime ?? "", castTime: tmpitem.system?.castTime ?? "",
 					range: tmpitem.system?.range ?? "", duration: tmpitem.system?.duration ?? "",
 					save: tmpitem.system?.save ?? "",
-					memorized: !!tmpitem.system?.memorized, mastered: !!tmpitem.system?.mastered,
+					memorized: tmpmemorized, mastered: !!tmpitem.system?.mastered,
+					days: tmpdays, forgotten: tmpmemorized && tmpdays < 1 && tmpcasting?.name != "Hermetic Lore",
 					// Above Aura Control: his fail figure for every level over, as the cast will roll it.
 					aboveControl: tmplevel > tmpeffectivecontrol,
 					failChance: (tmplevel > tmpeffectivecontrol && tmpfailper > 0) ? Math.min(100, tmpfailper * (tmplevel - tmpeffectivecontrol)) : 0,

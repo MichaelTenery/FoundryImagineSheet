@@ -34,6 +34,13 @@
 					</select></span></li>
 				<li><label>Only affects itself</label>
 					<span><input type="checkbox" name="system.selfOnly" {{#if system.selfOnly}}checked{{/if}}></span></li>
+				<li><label>Magic switch</label>
+					<span><select name="system.subsystem"
+						data-tooltip="Which of the Content Availability switches turns this power off">
+						{{#each config.powerSubsystems as |s|}}
+						<option value="{{s.id}}" {{#if (eq s.id ../system.subsystem)}}selected{{/if}}>{{s.label}}</option>
+						{{/each}}
+					</select></span></li>
 			</ul>
 			<p class="muted">A Power resolves by looking its name up as a spell, then as an invocation.
 			That engine belongs to the magic phase, so using one spends a use and leaves the effect

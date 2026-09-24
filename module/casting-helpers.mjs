@@ -97,10 +97,12 @@ var currentCast = null;
 		return tmpcast;
 	}
 
-	// This is the function which notes one change to the caster.
-	function recordChange(tmplabel, tmpbefore, tmpafter) {
+	// This is the function which notes one change to the caster. tmpkey is his attribute's name when
+	// the change came through his setAttrs ("aura", "willforce"), so a change the card can apply for
+	// itself -- a mishap's AUR or WIL, casting-rules.mjs MISHAP_EFFECT_ATTRIBUTES -- is known by it.
+	function recordChange(tmplabel, tmpbefore, tmpafter, tmpkey) {
 		if (!currentCast) { return; }
-		currentCast.changes.push({ label: tmplabel, before: tmpbefore, after: tmpafter });
+		currentCast.changes.push({ label: tmplabel, before: tmpbefore, after: tmpafter, key: tmpkey ?? "" });
 	}
 
 
@@ -179,7 +181,7 @@ export const CASTER_ATTRIBUTE_LABELS = {
 		for (const [tmpkey, tmpvalue] of Object.entries(tmpvalues ?? {})) {
 			if (tmpkey.startsWith("repeating_")) { continue; }
 			var tmplabel = (tmpkey in CASTER_ATTRIBUTE_LABELS) ? CASTER_ATTRIBUTE_LABELS[tmpkey] : tmpkey;
-			if (tmplabel) { recordChange(tmplabel, currentCast.attrs[tmpkey], tmpvalue); }
+			if (tmplabel) { recordChange(tmplabel, currentCast.attrs[tmpkey], tmpvalue, tmpkey); }
 			currentCast.attrs[tmpkey] = tmpvalue;
 		}
 	}

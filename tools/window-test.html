@@ -204,7 +204,9 @@ function buildPowerContext() {
 			"invoked, and what its limits are before a Game Master allows it at the table."
 	} };
 	return { item, system: item.system,
-		config: { powerKinds: ["unknown", "spell", "invocation", "magicItem", "divineItem"] } };
+		config: { powerKinds: ["unknown", "spell", "invocation", "magicItem", "divineItem"],
+			powerSubsystems: [{ id: "powers", label: "Powers" }, { id: "enchanting", label: "Magic Item Empowering" },
+				{ id: "divineItems", label: "Divine Item Empowering" }, { id: "none", label: "None (a title's benefit, not magic)" }] } };
 }
 
 function buildTraitContext(source) {

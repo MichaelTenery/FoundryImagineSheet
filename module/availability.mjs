@@ -27,6 +27,9 @@
 // equipment handling and experience display, not content availability. This layer is new.
 //==================================================================================================================
 
+import { MAGIC_KINDS } from "./lore-rules.mjs";
+import { ARCH_MORTAL_INVULNERABILITY } from "./advancement-rules.mjs";
+
 // @MARKER SOURCEBOOKS
 // Every book the extracted content cites, plus Custom for homebrew. Books not listed here
 // are still picked up from the content itself at runtime; this list just gives them names
@@ -50,30 +53,92 @@ export const SOURCEBOOKS = {
 // One entry per independently switchable kind of magic. "sections" records which repeating
 // sections of the original Roll20 sheet each one covers, so the grouping can be checked
 // against his sheet -- and split further if a finer switch is ever wanted.
+//
+// SPLIT 2026-09-24, from the parallel magic branch (wip/magic-m1): "bardic" was ballads, hymns,
+// poems and songs under one switch, and "herbalism" herbs, potions and elixirs. Hymns are divine and
+// the other three arcane, so a Game Master could not keep the one without the others; and CLAUDE.md
+// promises "20+ individually-toggleable" subsystems. Now one switch per repeating section of his, 21
+// in all. A world that switched "bardic" or "herbalism" off keeps its successors off -- see LEGACY
+// SUBSYSTEMS below.
+//
+//   switch        label                         his repeating sections
 export const MAGIC_SUBSYSTEMS = {
-	arcane:      { label: "Arcane Magic (Aura)",   sections: ["spells"] },
-	divine:      { label: "Divine Magic (Piety)",  sections: ["invocations"] },
-	evoke:       { label: "Evocation",             sections: ["evoketree", "evokeskill"] },
-	powers:      { label: "Powers",                sections: ["powers"] },
-	enchanting:  { label: "Magic Item Empowering", sections: ["mitempowers"] },
+	arcane:      { label: "Arcane Magic (Aura)",    sections: ["spells"] },
+	divine:      { label: "Divine Magic (Piety)",   sections: ["invocations"] },
+	evoke:       { label: "Evocation",              sections: ["evoketree", "evokeskill"] },
+	powers:      { label: "Powers",                 sections: ["powers"] },
+	enchanting:  { label: "Magic Item Empowering",  sections: ["mitempowers"] },
 	divineItems: { label: "Divine Item Empowering", sections: ["ditempowers"] },
-	herbalism:   { label: "Herbs, Potions & Elixirs", sections: ["herb", "potion", "elixir", "potionrecipe"] },
-	poisons:     { label: "Poisons",               sections: ["poison", "poisonrecipe"] },
-	charms:      { label: "Charms",                sections: ["charm"] },
-	bardic:      { label: "Bardic Magic",          sections: ["ballad", "hymn", "poem", "song"] },
-	candlelore:  { label: "Candle Lore",           sections: ["candlelore"] },
-	empathy:     { label: "Empathy Magic",         sections: ["empathymagic"] },
-	sympathy:    { label: "Sympathy Magic",        sections: ["sympathymagic"] },
-	glyphs:      { label: "Glyphs",                sections: ["glyph"] },
-	runes:       { label: "Runes",                 sections: ["rune"] },
-	rituals:     { label: "Rituals",               sections: ["ritual"] }
+	herbs:       { label: "Herbs",                  sections: ["herb"] },
+	potions:     { label: "Potions",                sections: ["potion", "potionrecipe"] },
+	elixirs:     { label: "Elixirs",                sections: ["elixir"] },
+	poisons:     { label: "Poisons",                sections: ["poison", "poisonrecipe"] },
+	charms:      { label: "Charms",                 sections: ["charm"] },
+	ballads:     { label: "Ballads",                sections: ["ballad"] },
+	hymns:       { label: "Hymns",                  sections: ["hymn"] },
+	poems:       { label: "Poems",                  sections: ["poem"] },
+	songs:       { label: "Songs",                  sections: ["song"] },
+	candlelore:  { label: "Candle Lore",            sections: ["candlelore"] },
+	empathy:     { label: "Empathy Magic",          sections: ["empathymagic"] },
+	sympathy:    { label: "Sympathy Magic",         sections: ["sympathymagic"] },
+	glyphs:      { label: "Glyphs",                 sections: ["glyph"] },
+	runes:       { label: "Runes",                  sections: ["rune"] },
+	rituals:     { label: "Rituals",                sections: ["ritual"] }
+};
+
+// @MARKER LEGACY SUBSYSTEMS
+// The two switches the split above retired, and what each became. Kept so nothing a world stored
+// under the old names is lost: a campaign setting of { bardic: false } still switches all four off
+// (normalizeMagicSubsystems), and an item made before the split, carrying subsystem "bardic",
+// answers to its own kind's switch (getLegacySubsystem, which the item data models call on load).
+//
+//   old switch    became                                         read by the kind
+export const LEGACY_SUBSYSTEMS = {
+	bardic:    ["ballads", "hymns", "poems", "songs"],       // ballad, hymn, poem, song
+	herbalism: ["herbs", "potions", "elixirs"]               // herb, potion (and potionrecipe), elixir
 };
 
 // Skill types that make a skill magical, and which subsystem each one answers to.
-// A skill typed "Magical,Divine" belongs to both, and needs both switched on.
+// A skill typed "Magical,Divine" belongs to both, and needs both switched on (DECISIONS 2026-09-11).
+//
+// ONE ADDITION, 2026-09-24: a magical skill that LEARNS or USES one of his lore kinds answers to that
+// kind's switch AS WELL -- Ballad Lore to Ballads, Intone and Hymn Lore to Hymns, Recite and Poem Lore
+// to Poems, Sing and Song Lore to Songs, Rune Lore to Runes, Candle Lore to Candle Lore, Evoke to
+// Evocation (MAGIC_KINDS in lore-rules.mjs names them). An ADDITION, never a replacement: the skill
+// still answers to its types' switches, so every one of them has to be on. His skilldict types these
+// skills three ways, and all three keep the 2026-09-11 rule:
+//     Magical          Ballad Lore, Poem Lore, Recite, Song Lore, Sing, Rune Lore, Glyph, Empathy Magic,
+//                      Sympathy Magic                              -- Arcane Magic and the kind's switch
+//     Divine           Hymn Lore, Intone, Evoke                    -- Divine Magic and the kind's switch
+//     Magical,Divine   Candle Lore, Potion Lore, Ritual Lore       -- both, and the kind's switch
+// So Sing needs Arcane Magic and Songs; Intone needs Divine Magic and Hymns. A world with Divine Magic
+// off still has no Evoke, Intone or Hymn Lore, and one with Arcane Magic off no Sing or Rune Lore --
+// as before the split. What is new is only that switching a kind off now reaches the skills that learn
+// and use it too, where until now it reached the kind's own items and left the skill (Songs off left
+// Sing). getSkillSubsystems below. (The first port of this, the same day, REPLACED the types' switches
+// with the kind's, which brought Evoke, Intone and Hymn Lore back into worlds with Divine Magic off, and
+// Sing and Rune Lore into worlds with Arcane Magic off. Corrected on review before it was merged.)
 const SKILL_TYPE_SUBSYSTEMS = {
 	"Magical": "arcane",
 	"Divine":  "divine"
+};
+
+// @MARKER MAGIC RULES
+// Optional casting rules -- rules, not content, so they never flag an item unavailable; they change
+// what a roll does. A world setting of their own (magicRules) beside the switches, each rule also
+// needing its sourcebook switched on, and the master switch above them all (isMagicRuleOn).
+//
+// EMPTY FOR NOW, deliberately: casting plays only what his sheet always does. Registered now, from
+// the parallel magic branch's design, so the first optional rule has a home to arrive in. The ones
+// that design expected first:
+//     highAuraFatigue   the AUR save above 21 Aura under title 11      Player's Guide p.217
+//     spellTuning       speed casting, stabilizing, overloading, reach  Mysteries of the Planes pp.389-390
+//     burningAura       one AUR burned for 20 Aura                     Player's Guide p.217
+//     specialization    aspect mastery, +/-3 Aura Control              (his 16538, 170522)
+//     combinedCasting   the Combine spell's circle                     (his 161574)
+//
+//   rule     label     sourcebook (a key of SOURCEBOOKS, or "" for none)     default
+export const MAGIC_RULES = {
 };
 
 
@@ -101,21 +166,150 @@ const SKILL_TYPE_SUBSYSTEMS = {
 		return tmptext;
 	}
 
-	// This is the function which works out which magic subsystems an item belongs to.
-	// Skills answer through their types. Magic content items, once they exist, will carry a
-	// subsystem field of their own. Everything else belongs to none.
-	export function getItemMagicSubsystems(tmpitem) {
-		var tmpsystem = tmpitem.system ?? {};
-		if (tmpsystem.subsystem) { return [tmpsystem.subsystem]; }
+	// This is the function which builds the name-to-switch table for the skills that learn or use a
+	// lore kind, once, from MAGIC_KINDS -- so a kind that changes its skill carries its switch with it.
+	var kindSkillSubsystems = null;
+	function getKindSkillTable() {
+		if (kindSkillSubsystems) { return kindSkillSubsystems; }
+		kindSkillSubsystems = {};
+		for (const tmpdef of Object.values(MAGIC_KINDS)) {
+			for (const tmpname of [tmpdef.learn, tmpdef.use]) {
+				if (tmpname && !kindSkillSubsystems[tmpname]) { kindSkillSubsystems[tmpname] = tmpdef.subsystem; }
+			}
+		}
+		return kindSkillSubsystems;
+	}
 
+	// This is the function which says which switches a MAGICAL skill (typed Magical or Divine)
+	// answers to: its types' switches, as the 2026-09-11 entry has it, and then -- if it learns or
+	// uses one of his lore kinds -- that kind's switch as well. A wilderness or underground form
+	// ("Rune Lore(w)") is read as its plain name. Every switch returned has to be on for the skill to
+	// be available (explainAvailability). A skill that is not magical answers to none, whatever it is
+	// called (Poison Lore is typed Informational), so no kind's switch reaches it either.
+	//
+	//     Sing           ["Magical"]              ->  ["arcane", "songs"]
+	//     Intone         ["Divine"]               ->  ["divine", "hymns"]
+	//     Candle Lore    ["Magical", "Divine"]    ->  ["arcane", "divine", "candlelore"]
+	//     Abasement      ["Magical"]              ->  ["arcane"]
+	export function getSkillSubsystems(tmpname, tmptypes) {
+		var tmpmagical = (tmptypes ?? []).filter(tmptype => SKILL_TYPE_SUBSYSTEMS[tmptype]);
+		if (!tmpmagical.length) { return []; }
+
+		// Its types' switches first -- never dropped (DECISIONS 2026-09-11).
 		var tmpout = [];
-		if (tmpitem.type == "skill" && Array.isArray(tmpsystem.types)) {
-			for (const tmptype of tmpsystem.types) {
-				var tmpsub = SKILL_TYPE_SUBSYSTEMS[tmptype];
-				if (tmpsub && !tmpout.includes(tmpsub)) { tmpout.push(tmpsub); }
+		for (const tmptype of tmpmagical) {
+			var tmpsub = SKILL_TYPE_SUBSYSTEMS[tmptype];
+			if (!tmpout.includes(tmpsub)) { tmpout.push(tmpsub); }
+		}
+
+		// Then its kind's switch, if it learns or uses one of his lore kinds.
+		var tmptable = getKindSkillTable();
+		var tmpplain = ("" + (tmpname ?? "")).replace(/\((w|u)\)$/, "");
+		var tmpkind = tmptable[tmpname] ?? tmptable[tmpplain];
+		if (tmpkind && !tmpout.includes(tmpkind)) { tmpout.push(tmpkind); }
+		return tmpout;
+	}
+
+	// This is the function which says what a subsystem stored before the 2026-09-24 split became,
+	// for one item of a given kind: "bardic" on a hymn is "hymns", "herbalism" on a potion recipe is
+	// "potions". Anything that is not a retired switch comes back as it was. Pure, so the item data
+	// models can call it from migrateData.
+	export function getLegacySubsystem(tmpsubsystem, tmpkind) {
+		if (!LEGACY_SUBSYSTEMS[tmpsubsystem]) { return tmpsubsystem; }
+		var tmpnow = MAGIC_KINDS[tmpkind]?.subsystem ?? "";
+		if (LEGACY_SUBSYSTEMS[tmpsubsystem].includes(tmpnow)) { return tmpnow; }
+		// A kind the old switch never covered: the first of the switches it became.
+		return LEGACY_SUBSYSTEMS[tmpsubsystem][0];
+	}
+
+	// This is the function which reads a stored set of magic switches in today's names. A world that
+	// switched "bardic" off before the split has all four of its successors off, unless one of them
+	// has been set since; the retired names are dropped, so the next save stores only today's.
+	export function normalizeMagicSubsystems(tmpstored) {
+		var tmpout = {};
+		for (const [tmpkey, tmpvalue] of Object.entries(tmpstored ?? {})) {
+			if (!LEGACY_SUBSYSTEMS[tmpkey]) { tmpout[tmpkey] = tmpvalue; }
+		}
+		for (const [tmpold, tmpnew] of Object.entries(LEGACY_SUBSYSTEMS)) {
+			if (tmpstored?.[tmpold] === undefined) { continue; }
+			for (const tmpkey of tmpnew) {
+				if (tmpout[tmpkey] === undefined) { tmpout[tmpkey] = tmpstored[tmpold]; }
 			}
 		}
 		return tmpout;
+	}
+
+	// This is the function which works out which magic subsystems an item belongs to.
+	//
+	//     a title's power   none -- his Arch Mortal invulnerability, or any power stored with the
+	//                       switch "none" (isTitlePower). Not magic, so no switch reaches it
+	//     magic content     its own stored subsystem -- a spell, an invocation, a lore, a consumable,
+	//                       a power; one stored under a retired switch reads as its successor
+	//     a power           with none stored (made before 2026-09-24), from its kind: a magic item's
+	//                       power answers to Magic Item Empowering, a divine item's to Divine Item
+	//                       Empowering, anything else to Powers -- his three repeating sections
+	//     a magical skill   getSkillSubsystems: its types' switches, and its kind's as well
+	//     anything else     none
+	export function getItemMagicSubsystems(tmpitem) {
+		var tmpsystem = tmpitem?.system ?? {};
+		// Before the stored subsystem, because a title's power may carry "powers" -- the field's
+		// initial value -- from before it was told apart.
+		if (isTitlePower(tmpitem)) { return []; }
+		if (tmpsystem.subsystem) { return [getLegacySubsystem(tmpsystem.subsystem, tmpsystem.kind)]; }
+
+		if (tmpitem?.type == "power") { return [getPowerSubsystem(tmpsystem.powerKind)]; }
+		if (tmpitem?.type == "skill" && Array.isArray(tmpsystem.types)) {
+			return getSkillSubsystems(tmpitem.name, tmpsystem.types);
+		}
+		return [];
+	}
+
+	// This is the function which says which switch a power of a given kind answers to. The power
+	// item's data model gives the same to one stored before it carried a switch.
+	export function getPowerSubsystem(tmppowerkind) {
+		if (tmppowerkind == "magicItem") { return "enchanting"; }
+		if (tmppowerkind == "divineItem") { return "divineItems"; }
+		return "powers";
+	}
+
+	// @MARKER A TITLE'S POWER
+	// This is the function which says whether a power is a TITLE'S BENEFIT rather than magic, and so
+	// answers to no magic switch at all -- not Powers, and not the master "all magic off" either.
+	//
+	// His Arch Mortal invulnerability is the one there is. His setArchMortalInvulnerability
+	// (sheet-worker.js:27574-27593) writes it into the plain "powers" text attribute (attr_powers),
+	// NOT his repeating_powers section, which is the one the Powers switch stands for (MAGIC SUBSYSTEMS
+	// above). It is what reaching 11th, 13th and 15th title gives an Arch Mortal, like the attribute
+	// maximums and Sense Supernatural beside it, and a campaign that switches creature powers off has
+	// not switched off the titles. Before 2026-09-24 no power answered to any switch, so this keeps
+	// every Arch Mortal as they were.
+	//
+	// Two ways to be one:
+	//     its stored switch is "none"      what advancement.mjs gives the power it creates since
+	//                                      2026-09-24, and what the power sheet's "Magic switch" can set
+	//     its name is one of his three     the power main's advancement created before then, stored
+	//     invulnerability wordings         with no switch -- which the data model's migrateData has
+	//                                      filled in as "powers" by the time anything reads it, so the
+	//                                      name, his own text word for word, is what tells it apart
+	export const NO_MAGIC_SWITCH = "none";
+	var titlePowerNames = null;
+	export function isTitlePower(tmpitem) {
+		if (tmpitem?.type != "power") { return false; }
+		if (tmpitem.system?.subsystem == NO_MAGIC_SWITCH) { return true; }
+		if (!titlePowerNames) { titlePowerNames = Object.values(ARCH_MORTAL_INVULNERABILITY); }
+		return titlePowerNames.includes(tmpitem.name);
+	}
+
+	// This is the function which says whether one of the optional casting rules (MAGIC_RULES) is in
+	// play: never with all magic off, never with its sourcebook off, and otherwise as the world's
+	// magicRules setting says, or its own default when the setting has never been touched.
+	export function isMagicRuleOn(tmprule, tmprules) {
+		var tmpdef = MAGIC_RULES[tmprule];
+		if (!tmpdef) { return false; }
+		if (tmprules?.magicEnabled === false) { return false; }
+		if (tmpdef.sourcebook && tmprules?.sourcebooks?.[tmpdef.sourcebook] === false) { return false; }
+		var tmpset = tmprules?.magicRules?.[tmprule];
+		return tmpset === undefined ? !!tmpdef.default : !!tmpset;
 	}
 
 	// This is the function which builds the key an override is stored under.
@@ -157,14 +351,16 @@ const SKILL_TYPE_SUBSYSTEMS = {
 	export function explainAvailability(tmpitem, tmprules) {
 		if (!tmprules) { return { available: true, reason: "" }; }
 
-		// 1. Magic switches -- a ceiling nothing else can lift.
+		// 1. Magic switches -- a ceiling nothing else can lift. Switches stored under the names the
+		// 2026-09-24 split retired are read as their successors.
 		var tmpsubsystems = getItemMagicSubsystems(tmpitem);
 		if (tmpsubsystems.length) {
 			if (tmprules.magicEnabled === false) {
 				return { available: false, reason: "All magic is switched off in this campaign." };
 			}
+			var tmpswitches = normalizeMagicSubsystems(tmprules.magicSubsystems);
 			for (const tmpsub of tmpsubsystems) {
-				if (tmprules.magicSubsystems?.[tmpsub] === false) {
+				if (tmpswitches[tmpsub] === false) {
 					var tmplabel = MAGIC_SUBSYSTEMS[tmpsub]?.label ?? tmpsub;
 					return { available: false, reason: `${tmplabel} is switched off in this campaign.` };
 				}
@@ -207,9 +403,10 @@ const SKILL_TYPE_SUBSYSTEMS = {
 	export function getAvailabilityRules() {
 		return {
 			magicEnabled:    game.settings.get("imagine-rpg", "magicEnabled"),
-			magicSubsystems: game.settings.get("imagine-rpg", "magicSubsystems"),
+			magicSubsystems: normalizeMagicSubsystems(game.settings.get("imagine-rpg", "magicSubsystems")),
 			overrides:       game.settings.get("imagine-rpg", "contentOverrides"),
-			sourcebooks:     game.settings.get("imagine-rpg", "sourcebooks")
+			sourcebooks:     game.settings.get("imagine-rpg", "sourcebooks"),
+			magicRules:      game.settings.get("imagine-rpg", "magicRules")
 		};
 	}
 
@@ -229,7 +426,7 @@ const SKILL_TYPE_SUBSYSTEMS = {
 		}
 	}
 
-	// This is the function which registers the four world settings the switches live in.
+	// This is the function which registers the five world settings the switches live in.
 	// All are hidden from the default settings list; they are edited through the
 	// Content Availability window instead, where they make sense together.
 	export function registerAvailabilitySettings() {
@@ -246,6 +443,12 @@ const SKILL_TYPE_SUBSYSTEMS = {
 			onChange: refreshAfterChange
 		});
 		game.settings.register("imagine-rpg", "sourcebooks", {
+			scope: "world", config: false, type: Object, default: {},
+			onChange: refreshAfterChange
+		});
+		// The optional casting rules (MAGIC_RULES), { rule: true/false }. Empty until the first of
+		// them is built; registered now so the setting exists before anything reads it.
+		game.settings.register("imagine-rpg", "magicRules", {
 			scope: "world", config: false, type: Object, default: {},
 			onChange: refreshAfterChange
 		});

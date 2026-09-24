@@ -56,6 +56,98 @@ check("Disciplined skill belongs to none", A.getItemMagicSubsystems(skill("a", [
 check("an item's own subsystem field wins",
 	A.getItemMagicSubsystems({ type: "rune", name: "r", system: { subsystem: "runes" } }), ["runes"]);
 
+// --- a skill that learns or uses a lore kind answers to that kind's switch AS WELL (2026-09-24) ---
+// Read off the real skills pack, with the types his skilldict gives them -- Hymn Lore, Intone and Evoke
+// are Divine, and Candle, Potion and Ritual Lore Magical,Divine, not all Magical. The types' switches
+// are kept (DECISIONS 2026-09-11) and the kind's is added; replacing them was the first port's error.
+const skillPack = await (await fetch("../src/packs/documents/skills.json")).json();
+const realSkill = (n) => { const d = skillPack.find(x => x.name === n); return skill(n, d ? d.system.types : ["missing"]); };
+check("each kind's learn and use skills: their types' switches, then the kind's",
+	["Ballad Lore", "Poem Lore", "Recite", "Song Lore", "Sing", "Rune Lore", "Glyph", "Empathy Magic", "Sympathy Magic",
+	 "Hymn Lore", "Intone", "Evoke", "Candle Lore", "Potion Lore", "Ritual Lore"].map(n => [n, A.getItemMagicSubsystems(realSkill(n))]),
+	[["Ballad Lore", ["arcane", "ballads"]], ["Poem Lore", ["arcane", "poems"]], ["Recite", ["arcane", "poems"]],
+	 ["Song Lore", ["arcane", "songs"]], ["Sing", ["arcane", "songs"]], ["Rune Lore", ["arcane", "runes"]],
+	 ["Glyph", ["arcane", "glyphs"]], ["Empathy Magic", ["arcane", "empathy"]], ["Sympathy Magic", ["arcane", "sympathy"]],
+	 ["Hymn Lore", ["divine", "hymns"]], ["Intone", ["divine", "hymns"]], ["Evoke", ["divine", "evoke"]],
+	 ["Candle Lore", ["arcane", "divine", "candlelore"]], ["Potion Lore", ["arcane", "divine", "potions"]],
+	 ["Ritual Lore", ["arcane", "divine", "rituals"]]]);
+check("...a wilderness form reads as its plain name", A.getItemMagicSubsystems(skill("Rune Lore(w)", ["Magical"])), ["arcane", "runes"]);
+check("...Divine Knowledge to divine alone, its wilderness form too",
+	[A.getItemMagicSubsystems(skill("Divine Knowledge", ["Divine"])), A.getItemMagicSubsystems(skill("Divine Knowledge(w)", ["Divine"]))],
+	[["divine"], ["divine"]]);
+check("...a casting skill still answers to arcane alone, by its type", A.getItemMagicSubsystems(skill("Scroll Knowledge", ["Magical"])), ["arcane"]);
+check("...and a skill that is not magical answers to nothing, whatever its name (Poison Lore is Informational)",
+	A.getItemMagicSubsystems(realSkill("Poison Lore")), []);
+
+// The reviewer's four worlds, 2026-09-24. With Divine or Arcane Magic off, nothing comes BACK that the
+// 2026-09-11 rule hid; with a kind off, its skills go with its items -- the one new reach.
+const unavailable = (names, patch) => names.filter(n => !A.isItemAvailable(realSkill(n), rules({ magicSubsystems: patch })));
+check("Divine Magic off still hides Evoke, Intone, Hymn Lore, and the Magical,Divine Candle, Potion and Ritual Lore",
+	unavailable(["Evoke", "Intone", "Hymn Lore", "Candle Lore", "Potion Lore", "Ritual Lore", "Sing"], { divine: false }),
+	["Evoke", "Intone", "Hymn Lore", "Candle Lore", "Potion Lore", "Ritual Lore"]);
+check("Arcane Magic off still hides Rune Lore, Sing, Glyph, and Candle, Potion and Ritual Lore",
+	unavailable(["Rune Lore", "Sing", "Glyph", "Candle Lore", "Potion Lore", "Ritual Lore", "Intone"], { arcane: false }),
+	["Rune Lore", "Sing", "Glyph", "Candle Lore", "Potion Lore", "Ritual Lore"]);
+check("a kind switched off now takes its own skills: Runes, Glyphs, Rituals, Evocation, Candle Lore",
+	unavailable(["Rune Lore", "Glyph", "Ritual Lore", "Evoke", "Candle Lore", "Sing"],
+		{ runes: false, glyphs: false, rituals: false, evoke: false, candlelore: false }),
+	["Rune Lore", "Glyph", "Ritual Lore", "Evoke", "Candle Lore"]);
+check("...and a world's stored { bardic: false, herbalism: false } takes Intone, Hymn Lore, Sing and Potion Lore",
+	unavailable(["Intone", "Hymn Lore", "Sing", "Potion Lore", "Rune Lore"], { bardic: false, herbalism: false }),
+	["Intone", "Hymn Lore", "Sing", "Potion Lore"]);
+check("Sing needs both Arcane Magic and Songs",
+	[A.isItemAvailable(realSkill("Sing"), rules({ magicSubsystems: { arcane: false } })),
+	 A.isItemAvailable(realSkill("Sing"), rules({ magicSubsystems: { songs: false } })),
+	 A.isItemAvailable(realSkill("Sing"), allOn)], [false, false, true]);
+
+// --- the split switches, and the retired names (2026-09-24) ---------------------------------
+check("21 switches", Object.keys(A.MAGIC_SUBSYSTEMS).length, 21);
+check("bardic and herbalism are retired", ["bardic", "herbalism"].map(k => k in A.MAGIC_SUBSYSTEMS), [false, false]);
+check("an item stored as bardic or herbalism reads as its kind's switch",
+	[A.getItemMagicSubsystems({ type: "lore", system: { kind: "hymn", subsystem: "bardic" } }),
+	 A.getItemMagicSubsystems({ type: "lore", system: { kind: "potionrecipe", subsystem: "herbalism" } }),
+	 A.getItemMagicSubsystems({ type: "consumable", system: { kind: "elixir", subsystem: "herbalism" } })],
+	[["hymns"], ["potions"], ["elixirs"]]);
+check("a world's { bardic: false } switches all four off, and is read in today's names",
+	A.normalizeMagicSubsystems({ bardic: false, runes: true }), { runes: true, ballads: false, hymns: false, poems: false, songs: false });
+check("...unless one of them has been set since", A.normalizeMagicSubsystems({ herbalism: false, potions: true }).potions, true);
+check("switching off hymns leaves songs",
+	[A.isItemAvailable({ type: "lore", name: "h", system: { kind: "hymn", subsystem: "hymns" } }, rules({ magicSubsystems: { hymns: false } })),
+	 A.isItemAvailable({ type: "lore", name: "s", system: { kind: "song", subsystem: "songs" } }, rules({ magicSubsystems: { hymns: false } }))],
+	[false, true]);
+check("an old world's bardic switch still reaches a hymn stored as bardic",
+	A.isItemAvailable({ type: "lore", name: "h", system: { kind: "hymn", subsystem: "bardic" } }, rules({ magicSubsystems: { bardic: false } })), false);
+
+// --- powers (2026-09-24): the Powers switches reach power items ------------------------------
+check("a power answers to its stored switch", A.getItemMagicSubsystems({ type: "power", system: { subsystem: "enchanting" } }), ["enchanting"]);
+check("one stored before it had a switch answers by its kind",
+	["unknown", "spell", "magicItem", "divineItem"].map(k => A.getItemMagicSubsystems({ type: "power", system: { powerKind: k } })[0]),
+	["powers", "powers", "enchanting", "divineItems"]);
+check("Powers off flags a creature's power", A.isItemAvailable({ type: "power", name: "Fire Breath", system: { powerKind: "spell" } },
+	rules({ magicSubsystems: { powers: false } })), false);
+
+// --- a title's power answers to no switch (2026-09-24) -----------------------------------------------
+// His Arch Mortal invulnerability is written into his plain powers attribute, not repeating_powers:
+// a title's benefit, not magic. Neither Powers off nor all magic off reaches it.
+const invuln = "Special Invulnerability (Constant: Normal weapons do 1/4. Blessed do 1/2 and +1 do full.)";
+check("the Arch Mortal power made since 2026-09-24, stored with the switch none, answers to nothing",
+	A.getItemMagicSubsystems({ type: "power", name: invuln, system: { powerKind: "unknown", subsystem: "none" } }), []);
+check("...one made before, carrying Powers from the field's initial value, is told apart by his own wording",
+	A.getItemMagicSubsystems({ type: "power", name: invuln, system: { powerKind: "unknown", subsystem: "powers" } }), []);
+check("...so Powers off and all magic off both leave the Arch Mortal his invulnerability",
+	[A.isItemAvailable({ type: "power", name: invuln, system: { powerKind: "unknown", subsystem: "powers" } }, rules({ magicSubsystems: { powers: false } })),
+	 A.isItemAvailable({ type: "power", name: invuln, system: { powerKind: "unknown", subsystem: "none" } }, rules({ magicEnabled: false }))],
+	[true, true]);
+check("...while a creature's power of any other name still answers to Powers",
+	A.isItemAvailable({ type: "power", name: "Invulnerability", system: { powerKind: "unknown", subsystem: "powers" } },
+		rules({ magicSubsystems: { powers: false } })), false);
+check("...and the switch none is a power's only: a lore item carrying it is not a title's power",
+	A.isTitlePower({ type: "lore", name: invuln, system: { subsystem: "none" } }), false);
+
+// --- optional casting rules: the setting exists, empty -----------------------------------------
+check("no optional casting rule is built yet", Object.keys(A.MAGIC_RULES), []);
+check("an unknown rule is never on", A.isMagicRuleOn("spellTuning", rules({ magicRules: { spellTuning: true } })), false);
+
 // --- the master magic switch -------------------------------------------------------
 const noMagic = rules({ magicEnabled: false });
 check("master off hides Magical skills",  A.isItemAvailable(skill("Abasement", ["Magical"]), noMagic), false);

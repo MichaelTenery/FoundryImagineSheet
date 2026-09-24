@@ -56,9 +56,12 @@ check("the two names his dictionaries do not hold are reported", T.LORE_NAMES_NO
 	{ getUnalignedHymnList: ["Injury"], getHerbLoreList: ["Zebra Gras"] });
 
 // --- kinds -----------------------------------------------------------------------------------------
+// The 21 switches since the 2026-09-24 split (bardic and herbalism divided by kind).
 check("every kind answers to a switch availability.mjs has", Object.values(L.MAGIC_KINDS).map(k => k.subsystem).filter(s =>
-	!["arcane", "divine", "evoke", "powers", "enchanting", "divineItems", "herbalism", "poisons", "charms", "bardic",
-	  "candlelore", "empathy", "sympathy", "glyphs", "runes", "rituals"].includes(s)), []);
+	!["arcane", "divine", "evoke", "powers", "enchanting", "divineItems", "herbs", "potions", "elixirs", "poisons", "charms",
+	  "ballads", "hymns", "poems", "songs", "candlelore", "empathy", "sympathy", "glyphs", "runes", "rituals"].includes(s)), []);
+check("hymns are divine and songs arcane, so each has its own switch now",
+	[L.MAGIC_KINDS.hymn.subsystem, L.MAGIC_KINDS.song.subsystem, L.MAGIC_KINDS.potionrecipe.subsystem], ["hymns", "songs", "potions"]);
 check("a hymn is learned with Hymn Lore and intoned", [L.MAGIC_KINDS.hymn.learn, L.MAGIC_KINDS.hymn.use], ["Hymn Lore", "Intone"]);
 check("getItemKind reads spells and invocations by type", [L.getItemKind({ type: "spell", system: {} }),
 	L.getItemKind({ type: "invocation" }), L.getItemKind({ type: "lore", system: { kind: "rune" } })], ["spell", "invocation", "rune"]);
@@ -279,7 +282,9 @@ check("his misspelt Zebra Gras is reported, not invented", tmpmade.issues.some(i
 check("a potion recipe is made from the potion, at rating 15", tmpmade.create.filter(c => c.system.kind == "potionrecipe").map(c => [c.type, c.system.rating]), [["lore", 15]]);
 check("two stocks of one poison in one run are one stack", tmpmade.create.filter(c => c.system.kind == "poison").map(c => c.system.doses), [3]);
 check("the primer is equipment, carried", tmpmade.create.filter(c => c.type == "equipment").map(c => [c.name, c.system.location]), [["A Primer", "carried"]]);
-check("everything known arrives unmemorized", tmpmade.create.filter(c => c.type != "consumable" && c.type != "equipment").every(c => c.system.memorized === false), true);
+check("every LORE entry arrives unmemorized, as his adders write them", tmpmade.create.filter(c => c.type == "lore").every(c => c.system.memorized === false), true);
+check("a starting SPELL arrives memorized with 30 less its level in days (his addSpellByName, 160107)",
+	tmpmade.create.filter(c => c.type == "spell").map(c => [c.name, c.system.memorized, c.system.days]), [["Chill", true, 29]]);
 
 // --- the tab (magic-view.mjs) ------------------------------------------------------------------------
 var tmpsheetactor = {
@@ -298,7 +303,11 @@ check("everything else is under Add other lore", tmppanel.otherLore.some(o => o.
 check("memorization: (1 + 1) x 5, one song of rating 16 memorized -- over the total, but alone",
 	[tmppanel.memorization.total, tmppanel.memorization.used, tmppanel.memorization.over], [10, 10, false]);
 check("the consumables list the herb", tmppanel.consumables.rows.map(r => [r.name, r.doses]), [["Aloe Vera", 2]]);
-check("bardic magic switched off takes the songs away", V.buildMagicPanel(tmpsheetactor,
+check("songs switched off take the songs away", V.buildMagicPanel(tmpsheetactor,
+	{ magicEnabled: true, magicSubsystems: { songs: false } }, true).loreGroups.map(g => g.kind), ["rune"]);
+check("...hymns switched off leave them", V.buildMagicPanel(tmpsheetactor,
+	{ magicEnabled: true, magicSubsystems: { hymns: false } }, true).loreGroups.map(g => g.kind), ["rune", "song"]);
+check("...and a world that switched off \"bardic\" before the split still has them off", V.buildMagicPanel(tmpsheetactor,
 	{ magicEnabled: true, magicSubsystems: { bardic: false } }, true).loreGroups.map(g => g.kind), ["rune"]);
 check("all magic off shows nothing", Object.keys(V.buildMagicPanel(tmpsheetactor, { magicEnabled: false }, false)), ["isGM", "magicOff"]);
 tmpsheetactor.system.identity.race.disabilities = ["No Intake"];
@@ -333,6 +342,8 @@ for (const tmpladder of Object.values(T.STARTING_SPELL_LADDERS)) {
 }
 check("every name his starting lists can draw is a built document, but his two", tmpunfound, ["Injury", "Zebra Gras"]);
 check("every built lore entry carries a kind and its switch", tmplore.every(d => L.MAGIC_KINDS[d.system.kind]?.subsystem == d.system.subsystem), true);
+check("...and every built consumable, in the split switches' names", [tmpconsumables.every(d => L.MAGIC_KINDS[d.system.kind]?.subsystem == d.system.subsystem),
+	[...new Set(tmpconsumables.map(d => d.system.subsystem))].sort()], [true, ["charms", "elixirs", "herbs", "potions"]]);
 check("names shared between kinds really are shared (why the packs match on kind)", ["Anger", "Healing", "Break Love"].map(n =>
 	new Set(tmplore.filter(d => d.name == n).map(d => d.system.kind)).size > 1), [true, true, true]);
 check("hymns carry the alignment of the starting list they are on", ["Absolution", "Concealment", "Aeromancy", "Communion"].map(n =>

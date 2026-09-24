@@ -39,7 +39,10 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 	// @MARKER MAGIC KINDS
 	// Every kind of thing his Magic/Lore tab holds, keyed by his own repeating-section name -- the
 	// same key MAGIC_SUBSYSTEMS in availability.mjs groups its switches by, so a kind always knows
-	// which switch turns it off.
+	// which switch turns it off. Since 2026-09-24 that is one switch per kind of his: "bardic" was
+	// split into ballads, hymns, poems and songs, and "herbalism" into herbs, potions and elixirs
+	// (availability.mjs, MAGIC SUBSYSTEMS). Its learn and use skills answer to the same switch, as well
+	// as to their own types' switches (availability.mjs, getSkillSubsystems).
 	//
 	// "learn" is the skill his add button rolls to learn an entry (learnNewBallad and its siblings);
 	// "use" is the skill his use button rolls. They differ for three: a hymn is learned with Hymn
@@ -49,22 +52,22 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 	//
 	//   kind              item type        subsystem       label              heading             learn            use
 	export const MAGIC_KINDS = {
-		herb:          { type: "consumable", subsystem: "herbalism", label: "Herb",            heading: "Herbs",            learn: "",               use: "" },
-		potion:        { type: "consumable", subsystem: "herbalism", label: "Potion",          heading: "Potions",          learn: "",               use: "" },
-		elixir:        { type: "consumable", subsystem: "herbalism", label: "Elixir",          heading: "Elixirs",          learn: "",               use: "" },
+		herb:          { type: "consumable", subsystem: "herbs",     label: "Herb",            heading: "Herbs",            learn: "",               use: "" },
+		potion:        { type: "consumable", subsystem: "potions",   label: "Potion",          heading: "Potions",          learn: "",               use: "" },
+		elixir:        { type: "consumable", subsystem: "elixirs",   label: "Elixir",          heading: "Elixirs",          learn: "",               use: "" },
 		charm:         { type: "consumable", subsystem: "charms",    label: "Charm",           heading: "Charms",           learn: "",               use: "" },
 		poison:        { type: "consumable", subsystem: "poisons",   label: "Poison",          heading: "Poisons",          learn: "",               use: "" },
-		ballad:        { type: "lore",       subsystem: "bardic",    label: "Ballad",          heading: "Ballads",          learn: "Ballad Lore",    use: "Ballad Lore" },
+		ballad:        { type: "lore",       subsystem: "ballads",   label: "Ballad",          heading: "Ballads",          learn: "Ballad Lore",    use: "Ballad Lore" },
 		candlelore:    { type: "lore",       subsystem: "candlelore",label: "Candle ritual",   heading: "Candle Lore",      learn: "Candle Lore",    use: "Candle Lore" },
 		empathymagic:  { type: "lore",       subsystem: "empathy",   label: "Empathy ritual",  heading: "Empathy Magic",    learn: "Empathy Magic",  use: "Empathy Magic" },
 		glyph:         { type: "lore",       subsystem: "glyphs",    label: "Glyph",           heading: "Glyphs",           learn: "Glyph",          use: "Glyph" },
-		hymn:          { type: "lore",       subsystem: "bardic",    label: "Hymn",            heading: "Hymns",            learn: "Hymn Lore",      use: "Intone" },
-		poem:          { type: "lore",       subsystem: "bardic",    label: "Poem",            heading: "Poems",            learn: "Poem Lore",      use: "Recite" },
+		hymn:          { type: "lore",       subsystem: "hymns",     label: "Hymn",            heading: "Hymns",            learn: "Hymn Lore",      use: "Intone" },
+		poem:          { type: "lore",       subsystem: "poems",     label: "Poem",            heading: "Poems",            learn: "Poem Lore",      use: "Recite" },
 		poisonrecipe:  { type: "lore",       subsystem: "poisons",   label: "Poison recipe",   heading: "Poison Recipes",   learn: "Poison Lore",    use: "Poison Lore" },
-		potionrecipe:  { type: "lore",       subsystem: "herbalism", label: "Potion recipe",   heading: "Potion Recipes",   learn: "Potion Lore",    use: "Potion Lore" },
+		potionrecipe:  { type: "lore",       subsystem: "potions",   label: "Potion recipe",   heading: "Potion Recipes",   learn: "Potion Lore",    use: "Potion Lore" },
 		ritual:        { type: "lore",       subsystem: "rituals",   label: "Ritual",          heading: "Rituals",          learn: "Ritual Lore",    use: "Ritual Lore" },
 		rune:          { type: "lore",       subsystem: "runes",     label: "Rune",            heading: "Runes",            learn: "Rune Lore",      use: "Rune Lore" },
-		song:          { type: "lore",       subsystem: "bardic",    label: "Song",            heading: "Songs",            learn: "Song Lore",      use: "Sing" },
+		song:          { type: "lore",       subsystem: "songs",     label: "Song",            heading: "Songs",            learn: "Song Lore",      use: "Sing" },
 		sympathymagic: { type: "lore",       subsystem: "sympathy",  label: "Sympathy ritual", heading: "Sympathy Magic",   learn: "Sympathy Magic", use: "Sympathy Magic" },
 		evoke:         { type: "lore",       subsystem: "evoke",     label: "Evoke",           heading: "Evokes",           learn: "",               use: "Evoke" },
 		spell:         { type: "spell",      subsystem: "arcane",    label: "Spell",           heading: "Spells",           learn: "",               use: "" },

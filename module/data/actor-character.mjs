@@ -1766,6 +1766,7 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			controlMax: tmpbestaura.max,
 			controlParts: tmpbestaura.parts,
 			controlCapped: !!tmpbestaura.capped,
+			controlDoubled: !!tmpbestaura.doubled,
 			pool: tmppool,
 			regen: getAuraRegen({ className: tmpcasterclass?.name ?? (this.classItem?.system?.baseClass || this.classItem?.name || ""),
 				title: tmpcasterclass?.title ?? tmptitle, casterStartTitle: tmpcasterclass?.start ?? 0,

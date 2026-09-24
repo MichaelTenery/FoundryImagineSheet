@@ -25,9 +25,11 @@
 // of doInvocationAction from the invoker's Piety Control, which grows with title and Wisdom.
 //
 // WHAT IS NOT BUILT, and says so rather than guessing: his spell TUNING (speed casting, stabilizing,
-// overloading, Aura reach and burning Aura), COMBINED casting, caster SPECIALIZATION, HERMETIC casting
-// (which needs his ingredient panel -- a Hermeticist is told so and nothing is cast), and the days a
-// memorized spell lasts. See docs/sonnet/2026-09-24-casting.md.
+// overloading, Aura reach and burning Aura), COMBINED casting, caster SPECIALIZATION, and HERMETIC
+// casting (which needs his ingredient panel -- a Hermeticist is told so and nothing is cast). See
+// docs/sonnet/2026-09-24-casting.md. The days a memorized spell lasts, and his MEM and Sleep buttons,
+// came across 2026-09-24 from the parallel magic branch: MEMORY below. A Wilder's halving did NOT --
+// his sheet's reading stands until the user rules on it: THE WILDER'S HALVING below.
 //==================================================================================================================
 
 import { getAuraControlTitleMod, getPietyControlTitleMod, getSpellLoreWhen, getMaxAuraControl, getMaxAuraPool,
@@ -63,7 +65,8 @@ export const SPELL_LORE_BONUS = 2;
 	//       intAdjust         Intelligence's Aura Control adjustment (his int_aura_control)
 	//       metaphysics       holds the social skill Metaphysics (+1, his mod_aura_control_metaphysics)
 	//       boost             his aura_control_boost -- runes and items; the Game Master's figure
-	//       spellLore         holds Spell Lore (a Wilder: Winds of Wild Magic) with a chance
+	//       spellLore         holds Spell Lore with a chance (never read for a Wilder: see below)
+	//       windsOfWildMagic  a Wilder holding Winds of Wild Magic with a chance
 	//       suppressed        magically suppressed: Aura Control is 0
 	//   }
 	//
@@ -81,11 +84,39 @@ export const SPELL_LORE_BONUS = 2;
 	// instead DOUBLES the whole. So a class gets +2 at the title it gains Spell Lore AND +2 while it
 	// holds it. The Player's Guide gives Spell Lore "+2 Aura Control" once (p.132); his sheet gives it
 	// twice. His sheet is followed; the question is UPSTREAM-ISSUES.md item 71.
+	//
+	// A WILDER NEVER HAS SPELL LORE'S +2. His setMagicDivineLore reads Winds of Wild Magic in its place
+	// for a Wilder, and sets spellLoreBonus to 0 whether Winds is held or not (sheet-worker.js:
+	// 96636-96670); getSpellLoreWhen gives a Wilder no Spell Lore title (95680). Until 2026-09-24 a
+	// Wilder holding Spell Lore without Winds took the +2 here.
+	//
+	// @MARKER THE WILDER'S HALVING
+	// NOT APPLIED -- HIS SHEET'S READING STANDS, AND THE QUESTION IS ASKED (2026-09-24). The Master's
+	// Manual p.47 says of the Wilder: "All Aura Control modifiers are halved (round down); apply to dual
+	// class Wilders as well" (masters-manual-fulltext.txt:7119), and the same page gives "Title
+	// Advancement: +1 Aura Control per Title". His sheet encodes exactly that page: a Wilder's
+	// getAuraControlTitleMod is 1 where a Mage's is 2 (sheet-worker.js:96291), and Intelligence,
+	// Metaphysics and the boost are added in full, then doubled by Winds of Wild Magic (96729-96733).
+	//
+	// His errata's "Should Read" block for p.47 (MM.txt, "Pg: 47 (Wilder Class)") repeats the halving
+	// sentence WORD FOR WORD; what it actually changes on that page is elsewhere -- the "18 skill
+	// points, +1 WIL 5%, +1 AUR 5%" moved to Goal Advancement, and the animal Affinity reworded. So on
+	// the halving the errata restates the book, and his sheet, which outranks the book, already read
+	// that same sentence. Whether a restated, unchanged sentence counts as the errata disagreeing with
+	// the sheet (CLAUDE.md, the 2026-09-21 ruling) is the user's call, not the port's. Until it is made
+	// the sheet is followed -- which is also what this function did before 2026-09-24 -- and the
+	// question is in docs/UPSTREAM-ISSUES.md and docs/ERRATA.md.
+	//
+	// What following the errata's wording instead would change: a Wilder at title 5 with Intelligence
+	// +2 and Winds is (5 + 2) x 2 = 14 on his sheet, and would be (5 + 1) x 2 = 12 with every modifier
+	// halved -- "round down" taken as Math.floor, so a penalty halves AWAY from 0 (-3 to -2), not
+	// toward it as parseInt would.
 	export function getAuraControl(tmpinput) {
 		var tmpclass = "" + (tmpinput.className ?? "");
 		var tmptitle = parseInt(tmpinput.title) || 0;
 		var tmpstart = parseInt(tmpinput.casterStartTitle) || 0;
 		var tmpsorcerer = tmpclass == "Sorcerer";
+		var tmpwilder = tmpclass == "Wilder";
 		var tmpresult = { value: 0, max: getMaxAuraControl(tmptitle), isCaster: tmpsorcerer || tmpstart > 0,
 			parts: [], suppressed: !!tmpinput.suppressed, doubled: false };
 		if (!tmpresult.isCaster) { return tmpresult; }
@@ -108,10 +139,11 @@ export const SPELL_LORE_BONUS = 2;
 		var tmpint = parseInt(tmpinput.intAdjust) || 0;
 		var tmpmeta = tmpinput.metaphysics ? 1 : 0;
 		var tmpboost = parseInt(tmpinput.boost) || 0;
-		var tmplore = (!tmpsorcerer && tmptitle > tmpstart && tmpinput.spellLore && !tmpinput.windsOfWildMagic) ? SPELL_LORE_BONUS : 0;
+		// his spellLoreBonus: 2 with Spell Lore found, and never for a Wilder (96663-96670)
+		var tmplore = (!tmpsorcerer && !tmpwilder && tmptitle > tmpstart && tmpinput.spellLore) ? SPELL_LORE_BONUS : 0;
 
 		var tmpvalue = tmpstartac + tmpint + tmpmeta + tmpadded + tmpboost + tmplore;
-		if (!tmpsorcerer && tmptitle > tmpstart && tmpinput.windsOfWildMagic) {
+		if (tmpwilder && tmptitle > tmpstart && tmpinput.windsOfWildMagic) {
 			tmpvalue = tmpvalue * 2; // Winds of Wild Magic doubles total Aura Control.
 			tmpresult.doubled = true;
 		}
@@ -120,7 +152,7 @@ export const SPELL_LORE_BONUS = 2;
 			{ label: "Titles as a caster", value: tmpadded },
 			{ label: "Intelligence", value: tmpint },
 			{ label: "Metaphysics", value: tmpmeta },
-			{ label: tmpinput.windsOfWildMagic ? "Winds of Wild Magic (doubles)" : "Spell Lore", value: tmplore },
+			{ label: "Spell Lore", value: tmplore },
 			{ label: "Boost", value: tmpboost }
 		].filter(tmppart => tmppart.label && tmppart.value);
 		if (tmpvalue > tmpresult.max) { tmpvalue = tmpresult.max; tmpresult.capped = true; }
@@ -234,6 +266,15 @@ export const SPELL_LORE_BONUS = 2;
 	// figure and Theology's +1; above it, the class's figure for every title reached from the start as
 	// well (his piety_control_added, summed as the Aura Control additions are). Divine Denial makes it 0.
 	// The Piety LEVEL an invocation is worked at is Piety Control plus any boost (his piety_invoke).
+	//
+	// THE START TITLE'S FIGURE, followed as his code has it. His title-up adds the class figure at every
+	// title from the invoker start ON, the start's own included (getOtherTitleImprovements, 96015, ">="),
+	// but at the start title he reads only the starting 2 (96778) and above it adds the whole sum
+	// (96783-96784) -- so a class starting above title 1 jumps by twice its figure on the title after its
+	// start: a Monk (start 3, +2 a title) is 2 at title 3 and 6 at 4, where the book's 2 x practitioner
+	// title gives 4 (PG p.285). His own comment, "already covered by getPietyControlTitleMod (when
+	// acquired)", reads as if he meant the start's figure to be counted once. The parallel magic branch
+	// took that reading; the reconciliation of 2026-09-24 kept his code, and it is asked upstream.
 	export function getPietyControl(tmpinput) {
 		var tmpclass = "" + (tmpinput.className ?? "");
 		var tmptitle = parseInt(tmpinput.title) || 0;
@@ -345,6 +386,104 @@ export const SPELL_LORE_BONUS = 2;
 
 
 //==================================================================================================================
+// @MARKER MEMORY
+//==================================================================================================================
+// How long a memorized spell stays in mind, and his MEM button that refreshes it. Brought across
+// 2026-09-24 from the parallel magic branch (wip/magic-m1): main had the memorize tick and no days.
+
+// His addSpellByName and addSpellDays: 30 days less the spell's Aura level, never under 1.
+export const MEMORY_DAYS = 30;
+
+	// This is the function which gives the days a spell stays in memory once memorized -- his
+	// addSpellDays (sheet-worker.js:160855): 30 less its Aura level, at least 1. The book agrees
+	// (Player's Guide p.215, "30 days, minus one day per Aura Level").
+	export function getSpellDays(tmplevel) {
+		var tempDays = parseInt(MEMORY_DAYS - (parseInt(tmplevel) || 0));
+		if (tempDays < 1) { tempDays = 1; }
+		return tempDays;
+	}
+
+	// This is the function which reads the days a spell has left. A spell's days are null until they
+	// are first counted (item-spell.mjs, DAYS OF MEMORY): a memorized one reads its full count, as his
+	// add would have given it, and one not memorized has none.
+	export function getSpellDaysLeft(tmpsystem) {
+		var tmpdays = tmpsystem?.days;
+		if (tmpdays === null || tmpdays === undefined || tmpdays === "") {
+			return tmpsystem?.memorized ? getSpellDays(tmpsystem?.level) : 0;
+		}
+		return parseInt(tmpdays) || 0;
+	}
+
+	// This is the function behind his Sleep button for one spell -- subtractDayFromAllSpells
+	// (160889): a day less, none below 0. The pool is refilled by the caller.
+	export function sleepSpellDays(tmpdays) {
+		var tempDays = parseInt(tmpdays) || 0;
+		if (tempDays != 0) { tempDays--; }
+		if (tempDays < 0) { tempDays = 0; } // just in case they clicked it really fast.
+		return tempDays;
+	}
+
+	// This is the function which settles his MEM button -- handleRemorizeSpell (160766): the best
+	// casting skill, plus his MOD button's modifier when Shift is held, capped at 200. Magic suppressed
+	// refuses before any roll. His outcomes, in his order:
+	//     200% always rememorizes ("a Grandmaster of ... automatically")
+	//     a 100 fails
+	//     more than 20 over the chance is a critical failure (nothing more happens)
+	//     over the chance fails
+	//     otherwise it is rememorized
+	// A success memorizes the spell (his checkSpellMemorize) with its full days (addSpellDays), so MEM
+	// works on a spell not ticked as well. The book wants no roll to re-memorize (PG p.215); his sheet
+	// rolls, and his sheet wins.
+	//
+	// A SORCERER'S spell types are not checked. His handler refuses an Arcane Pact caster a spell not
+	// of the pact's types (checkSorcSpellType, 160793; refused at 160804); the port has no pact types yet (they come with
+	// learning spells), so the roll is made and the result says the check was not made -- refusing
+	// instead would leave a Sorcerer's spells forgotten for good after their first Sleep.
+	//
+	//   tmpinput = { suppressed, castingSkill: { name, chance }, modifier, level }
+	// Returns { outcome ("suppressed", "grandmaster", "fumble", "critical", "failure", "success"),
+	//           roll, total, days (the spell's new days on a success, else null), pactUnchecked }.
+	export function resolveRememorize(tmpinput, tmproll) {
+		var tmpskill = tmpinput?.castingSkill ?? { name: "", chance: 0 };
+		var totalChance = (parseInt(tmpskill.chance) || 0) + (parseInt(tmpinput?.modifier) || 0);
+		if (totalChance > 200) { totalChance = 200; }
+		var total = parseInt(tmproll) || 0;
+		var tmpresult = { outcome: "", roll: total, total: totalChance, days: null, pactUnchecked: tmpskill.name == ARCANE_PACT };
+		if (tmpinput?.suppressed) { tmpresult.outcome = "suppressed"; tmpresult.roll = null; return tmpresult; }
+		if (totalChance == 200) { tmpresult.outcome = "grandmaster"; }
+		else if (total == 100) { tmpresult.outcome = "fumble"; }
+		else if (total > (totalChance + 20)) { tmpresult.outcome = "critical"; }
+		else if (total > totalChance) { tmpresult.outcome = "failure"; }
+		else { tmpresult.outcome = "success"; }
+		if (tmpresult.outcome == "grandmaster" || tmpresult.outcome == "success") { tmpresult.days = getSpellDays(tmpinput?.level); }
+		return tmpresult;
+	}
+
+	// This is the function which says what a MEM roll did -- his handleRemorizeSpell's lines, word for
+	// word but for his spelling ("supressed").
+	//   tmpwords = { name, spell, skill, memTime }
+	export function describeRememorize(tmpresult, tmpwords) {
+		var tmpname = tmpwords?.name ?? "";
+		var tmpspell = tmpwords?.spell ?? "";
+		var tmpskill = tmpwords?.skill || "no casting skill";
+		var tmpafter = tmpwords?.memTime ? ` after ${tmpwords.memTime}` : "";
+		var tmpline = "";
+		switch (tmpresult?.outcome) {
+			case "suppressed":  return `${tmpname} is currently magically suppressed and cannot rememorize any spells. Nothing done.`;
+			case "grandmaster": tmpline = `${tmpname} is a Grandmaster of ${tmpskill} and automatically rememorized the ${tmpspell} spell${tmpafter}`; break;
+			case "fumble":      tmpline = `${tmpname} rolled a ${tmpresult.roll}% ${tmpskill} and failed to rememorize the ${tmpspell} spell${tmpafter}`; break;
+			case "critical":    tmpline = `${tmpname} rolled a ${tmpresult.roll}% against a ${tmpresult.total}% ${tmpskill} and critically failed to rememorize the ${tmpspell} spell.`; break;
+			case "failure":     tmpline = `${tmpname} rolled a ${tmpresult.roll}% against a ${tmpresult.total}% ${tmpskill} and failed to rememorize the ${tmpspell} spell${tmpafter}`; break;
+			default:            tmpline = `${tmpname} rolled a ${tmpresult?.roll}% against a ${tmpresult?.total}% ${tmpskill} and rememorized the ${tmpspell} spell${tmpafter}`; break;
+		}
+		if (tmpresult?.pactUnchecked) {
+			tmpline = tmpline + ` (Whether it is of a type the Arcane Pact allows is not checked yet: the Game Master decides.)`;
+		}
+		return tmpline;
+	}
+
+
+//==================================================================================================================
 // @MARKER A CAST
 //==================================================================================================================
 
@@ -358,13 +497,16 @@ export const SPELL_LORE_BONUS = 2;
 	//       aura                 the Aura the caster puts in
 	//       castTime             "10 sec." -- halved when the spell is mastered
 	//       memorized, mastered  his mem and mastery ticks
+	//       days                 the days of memory left (getSpellDaysLeft); left out, not checked
 	//       suppressed, halfMagic
 	//       auraControl, auraPool, title, auraSave
 	//       castingSkill         { name, chance } -- the best casting skill held
 	//   }
 	//
 	// Returns { outcome, ... }. Outcomes, in his order of precedence:
-	//   "notMemorized"  "suppressed"  "noAura"      nothing cast, nothing drained
+	//   "notMemorized"  "forgotten"  "suppressed"  "noAura"
+	//                                               nothing cast, nothing drained. "forgotten" is a
+	//                                               memorized spell out of days (never a Hermeticist's)
 	//   "hermetic"                                  not built; nothing cast
 	//   "mishap"                                    the failure roll came up: the Aura is drained and
 	//                                               getMagicalMishap is rolled (mishapRoll)
@@ -402,6 +544,11 @@ export const SPELL_LORE_BONUS = 2;
 
 		// OUTPUT, in his order.
 		if (!tmpcast.memorized) { tmpresult.outcome = "notMemorized"; return tmpresult; }
+		// currently out of days of memorization -- his tempSpellDays<1 && !isHermetics (161896)
+		var tmpdays = tmpcast.days;
+		if (tmpdays !== undefined && tmpdays !== null && (parseInt(tmpdays) || 0) < 1 && tmpskill.name != HERMETIC_LORE) {
+			tmpresult.outcome = "forgotten"; return tmpresult;
+		}
 		if (tmpcast.suppressed) { tmpresult.outcome = "suppressed"; return tmpresult; }
 		if (tmpaura < 1) { tmpresult.outcome = "noAura"; return tmpresult; }
 		if (tmpskill.name == HERMETIC_LORE) { tmpresult.outcome = "hermetic"; return tmpresult; }
@@ -493,13 +640,15 @@ export const SPELL_LORE_BONUS = 2;
 	//   tmpoptions = { self: true to target the caster, missileDefense }
 	//
 	// Returns { outcome, text, resolved, attacks, changes, effectsAdded, effectsRemoved, powersAdded,
-	//           powersRemoved, forgetSpell, drain, suppressAfter, halfMagicAfter }.
+	//           powersRemoved, forgetSpell, drain, suppressAfter, halfMagicAfter, mishapEffects }.
+	// mishapEffects are a mishap's lasting changes to the caster, for the card's Apply buttons
+	// (getMishapEffects); the same changes are left out of the card's list of changes.
 	export function performSpellCast(tmpworker, tmpspell, tmpcast, tmpcaster, tmpoptions, tmpdie) {
 		var tmpresolved = resolveSpellCast(tmpcast, tmpdie);
 		var tmpname = tmpcaster.name ?? "";
 		var tmpout = { outcome: tmpresolved.outcome, resolved: tmpresolved, text: "", attacks: [], changes: [],
 			effectsAdded: [], effectsRemoved: [], powersAdded: [], powersRemoved: [], forgetSpell: false,
-			drain: tmpresolved.drain, suppressAfter: false, halfMagicAfter: false };
+			drain: tmpresolved.drain, suppressAfter: false, halfMagicAfter: false, mishapEffects: [] };
 		var tmpself = tmpoptions?.self ? "on" : "";
 		var tmpflags = getSpecialCasterFlags(tmpcaster.className, tmpcast.castingSkill?.name, tmpspell.name);
 		var tmpchart = tmpcaster.chart ?? {};
@@ -520,6 +669,9 @@ export const SPELL_LORE_BONUS = 2;
 				case "notMemorized":
 					tmpout.text = ` ${tmpname} has not memorized the ${tmpspell.name} spell. Cannot remember how to cast this spell.`;
 					break;
+				case "forgotten":
+					tmpout.text = ` ${tmpname} has forgotten ${tmpspell.name} spell and must refresh it. Cannot remember how to cast this spell.`;
+					break;
 				case "suppressed":
 					tmpout.text = ` ${tmpname} is currently in magically supressed and cannot cast spells. The Aura pocket does not form.`;
 					break;
@@ -530,7 +682,10 @@ export const SPELL_LORE_BONUS = 2;
 					tmpout.text = ` ${tmpname} casts with Hermetic Lore, which mixes ingredients into a ritual. Hermetic casting is not built yet; the Game Master settles it.`;
 					break;
 				case "overControl":
-					tmpout.text = ` ${tmpname} cannot put more than ${tmpresolved.auraControl} Aura into a spell. Reduce ${tmpresolved.aura} by ${tmpresolved.aura - tmpresolved.auraControl} or more, and recast. The spell fizzles.`;
+					// His sentence has the subtraction the wrong way round, (tmpAC-tempSpellAura), so it
+					// reads "Reduce 8 by -3" (sheet-worker.js:161955, 161962); the amount to take off is the
+					// Aura put in less the Aura Control. Reported upstream 2026-09-24.
+					tmpout.text =` ${tmpname} cannot put more than ${tmpresolved.auraControl} Aura into a spell. Reduce ${tmpresolved.aura} by ${tmpresolved.aura - tmpresolved.auraControl} or more, and recast. The spell fizzles.`;
 					break;
 				case "overPool":
 					tmpout.text = ` ${tmpname} does not have ${tmpresolved.aura} Aura in their pool. They have ${tmpcast.auraPool} Aura remaining. The spell fizzles.`;
@@ -543,7 +698,9 @@ export const SPELL_LORE_BONUS = 2;
 					tmpout.text = ` ${tmpname} rolled a ${tmpresolved.roll}% against a ${tmpresolved.pact.chance}% ${ARCANE_PACT}, and failed. The spell fizzles.`;
 					break;
 				case "mishap":
-					tmpout.text = runMishap(tmpworker, tmpspell, tmpresolved, tmpname, tmpaction, tmpself);
+					var tmpmishap = runMishap(tmpworker, tmpspell, tmpresolved, tmpname, tmpaction, tmpself);
+					tmpout.text = tmpmishap.text;
+					tmpout.mishapEffects = getMishapEffects(tmpmishap.result);
 					break;
 				case "cast":
 					var tmpmastery = tmpcast.mastered ? "on" : "";
@@ -577,6 +734,9 @@ export const SPELL_LORE_BONUS = 2;
 		if (tmpresolved.highAura?.fatigue) {
 			tmpout.changes.unshift({ label: "Every attribute (Magic, Aura Fatigue)", before: null, after: "" + tmpresolved.highAura.attributes });
 		}
+		// A change a mishap's Apply button makes is not listed a second time in words.
+		var tmpapplied = tmpout.mishapEffects.map(tmpeffect => MISHAP_EFFECT_ATTRIBUTES[tmpeffect.kind]);
+		if (tmpapplied.length) { tmpout.changes = tmpout.changes.filter(tmpchange => !tmpapplied.includes(tmpchange.key)); }
 		return tmpout;
 	}
 
@@ -624,8 +784,58 @@ export const SPELL_LORE_BONUS = 2;
 		} else if (tempMishapResult.includes("Explosion")) {
 			tempSpellAction = ` MISHAP SPELL: Explosion at ${tempSpellAura} Aura to ` + tmpaction("Explosion", tempSpellAura, "on", "");
 		}
-		return ` ${tmpname} tried to cast ${tmpspell.name} that was ${tmpresolved.difference} levels higher than their Aura Control, giving a ${tmpresolved.failChance}% failure chance. `
-			+ `${tmpresolved.failRoll}% rolled resulting in mishap! Rolled a ${tmpresolved.mishapRoll}% for a magical mishap of ${tempMishapResult}${tempSpellAction}`;
+		return { result: tempMishapResult,
+			text: ` ${tmpname} tried to cast ${tmpspell.name} that was ${tmpresolved.difference} levels higher than their Aura Control, giving a ${tmpresolved.failChance}% failure chance. `
+				+ `${tmpresolved.failRoll}% rolled resulting in mishap! Rolled a ${tmpresolved.mishapRoll}% for a magical mishap of ${tempMishapResult}${tempSpellAction}` };
+	}
+
+	// @MARKER A MISHAP'S LASTING EFFECTS
+	// What his getMagicalMishap does to the caster for good (sheet-worker.js:28871), read back off his
+	// own words for the band that came up, for the cast card's Apply buttons. Brought across 2026-09-24
+	// from the parallel magic branch; main listed these on the card in words and applied none of them.
+	//
+	// His sheet applied them on the spot, through setAttrs in a getAttrs callback. Here they wait for a
+	// button, as a poison's damage does -- a permanent AUR loss is not a thing to happen by itself on a
+	// character sheet a player may have misclicked on -- and the button can be pressed once only
+	// (casting-actions.mjs applyMishapEffect). A Loss of Spell is not here: it is applied with the
+	// cast, the spell unticked and its days cleared, as main has done since the cast was built.
+	//
+	//   his band        his words                                      the Apply button
+	//   Aura Loss       "1d3=N AUR lost permanently"                   AUR -N, its permanent modifier
+	//   Aura Gain       "1d3=N AUR gained permanently"                 AUR +N
+	//   Will Loss       "1d4=N WIL lost permanently"                   WIL -N
+	//   Will Gain       "1d4=N WIL gained permanently"                 WIL +N
+	//   Burnout         "The ability to use Aura for spellcasting      magically suppressed
+	//                    is lost"
+	//   Wild Wish       "make a wish or lose 1d4=N AUR permanently"    AUR -N, if no wish is made --
+	//                                                                  his sheet leaves this one to the
+	//                                                                  table; the button is the table's
+	//
+	// Which of his attribute names each kind is (casting-helpers.mjs records his setAttrs by them), so
+	// a change the Apply button makes is not also listed in words.
+	export const MISHAP_EFFECT_ATTRIBUTES = { aur: "aura", wil: "willforce", suppress: "magic_suppression" };
+
+	// This is the function which reads a mishap's lasting effects off his words for it.
+	// Returns [{ kind ("aur", "wil", "suppress"), value (the change; 0 for suppress), label }].
+	export function getMishapEffects(tmpmishaptext) {
+		var tmptext = "" + (tmpmishaptext ?? "");
+		var tmpout = [];
+		var tmpmatch = null;
+		if ((tmpmatch = tmptext.match(/^Aura (Loss|Gain): 1d3=(\d+) AUR/))) {
+			var tmpaur = parseInt(tmpmatch[2]) || 0;
+			tmpout.push({ kind: "aur", value: tmpmatch[1] == "Loss" ? -tmpaur : tmpaur,
+				label: `${tmpmatch[1] == "Loss" ? "Lose" : "Gain"} ${tmpaur} AUR permanently` });
+		} else if ((tmpmatch = tmptext.match(/^Will (Loss|Gain): 1d4=(\d+) WIL/))) {
+			var tmpwil = parseInt(tmpmatch[2]) || 0;
+			tmpout.push({ kind: "wil", value: tmpmatch[1] == "Loss" ? -tmpwil : tmpwil,
+				label: `${tmpmatch[1] == "Loss" ? "Lose" : "Gain"} ${tmpwil} WIL permanently` });
+		} else if (/^Burnout:/.test(tmptext)) {
+			tmpout.push({ kind: "suppress", value: 0, label: "Burned out: magically suppressed, no casting" });
+		} else if ((tmpmatch = tmptext.match(/^Wild Wish:.*lose 1d4=(\d+) AUR permanently/))) {
+			var tmpwish = parseInt(tmpmatch[1]) || 0;
+			tmpout.push({ kind: "aur", value: -tmpwish, label: `No wish made within the minute: lose ${tmpwish} AUR permanently` });
+		}
+		return tmpout;
 	}
 
 
@@ -757,6 +967,15 @@ export const SPELL_DAMAGE_TYPES = {
 // The words a resistance's key is written in, on the card.
 export const RESIST_LABELS = { magic: "Magic", control: "Control", illusion: "Illusion", disease: "Disease", poison: "Poison" };
 
+	// This is the function which says whether a spell or invocation can only be aimed at its caster --
+	// his self tick, which his change handlers force on for a spell whose range or distance is "Self"
+	// and an invocation whose AREA or distance is (sheet-worker.js:22101-22140). Each as he wrote it.
+	// The Cast and Invoke dialogs open on the caster for one.
+	export function isSelfOnly(tmptype, tmpsystem) {
+		if (tmptype == "invocation") { return tmpsystem?.area == "Self" || tmpsystem?.distance == "Self"; }
+		return tmpsystem?.range == "Self" || tmpsystem?.distance == "Self";
+	}
+
 	// This is the function which gives the resistance a Save column names, or null.
 	export function getSaveResistance(tmpsave) {
 		return SAVE_RESISTANCES[("" + (tmpsave ?? "")).trim()] ?? null;
@@ -788,7 +1007,8 @@ export const RESIST_LABELS = { magic: "Magic", control: "Control", illusion: "Il
 	// for the card's flag, which its Apply buttons read back.
 	//   tmpcaster = { uuid, name }
 	//   tmpcast   = { kind, name, aura, pietyLevel, usesLeft, outcome, went, drained, text, attacks, changes,
-	//                 effectsAdded, effectsRemoved, powersAdded, powersRemoved, forgot, save, self, seconds }
+	//                 effectsAdded, effectsRemoved, powersAdded, powersRemoved, forgot, save, self, seconds,
+	//                 mishapEffects }
 	//   tmptargets  from resolveTargetResistance
 	export function buildCastCard(tmpcaster, tmpcast, tmptargets) {
 		var tmpresistkey = getSaveResistance(tmpcast.save);
@@ -811,7 +1031,10 @@ export const RESIST_LABELS = { magic: "Magic", control: "Control", illusion: "Il
 			effectsAdded: tmpcast.effectsAdded ?? [], effectsRemoved: tmpcast.effectsRemoved ?? [],
 			powersAdded: tmpcast.powersAdded ?? [], powersRemoved: tmpcast.powersRemoved ?? [],
 			forgot: !!tmpcast.forgot, self: !!tmpcast.self,
-			seconds: tmpcast.seconds ?? 0, spent: false
+			seconds: tmpcast.seconds ?? 0, spent: false,
+			// A mishap's lasting effects, each with its own Apply button and its own once-only mark.
+			mishapEffects: (tmpcast.mishapEffects ?? []).map((tmpeffect, tmpi) => ({ index: tmpi, kind: tmpeffect.kind,
+				value: tmpeffect.value, label: tmpeffect.label, applied: false }))
 		};
 	}
 
