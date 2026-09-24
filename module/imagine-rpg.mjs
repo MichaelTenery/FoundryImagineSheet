@@ -50,6 +50,7 @@ import ImagineCombat, { ImagineCombatant } from "./combat/combat-document.mjs";
 import ImagineCombatTracker from "./combat/combat-tracker.mjs";
 import ImagineRoundClock, { loadClockTemplates } from "./apps/round-clock.mjs";
 import { rollWeaponAttack, registerAttackCardListeners } from "./combat/attack.mjs";
+import { registerCastCardListeners } from "./casting-actions.mjs";
 import { rollCreatureAttack } from "./combat/creature-attack.mjs";
 import { loadMartialTemplates } from "./combat/martial-attack.mjs";
 import {
@@ -248,6 +249,8 @@ Hooks.once("init", function () {
 	CONFIG.Combat.documentClass = ImagineCombat;
 	CONFIG.Combat.initiative = { formula: "1d10 + @combat.initiativeMod", decimals: 0 };
 	registerAttackCardListeners();
+	// A spell's or invocation's card: its Apply buttons and its seconds (module/casting-actions.mjs).
+	registerCastCardListeners();
 	// The martial arts panel is a partial both Combat tabs include; loaded here, and awaited again
 	// by the sheets before they render.
 	loadMartialTemplates();

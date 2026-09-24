@@ -1489,6 +1489,33 @@ input.source-unknown {
 .imagine-magic .magic-other button { width: auto; }
 .imagine.item-picker .learn-by-roll { font-size: 12px; display: flex; align-items: center; gap: 6px; }
 .imagine-chat .imagine-magic-card p, .imagine-magic-card p { margin: 4px 0; }
+
+/* Casting and invoking: the Aura and Piety lines at the head of each group, the ticks and boxes
+   beside them, what is running on the character, and the cast card (templates/chat/cast-card.hbs). */
+.imagine-magic .aura-summary { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0; }
+.imagine-magic .aura-summary button { width: auto; }
+.imagine-magic .aura-summary .alarm, .imagine-magic .magic-table .alarm { color: var(--imagine-alarm); font-weight: 700; }
+.imagine-magic .aura-flags { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; margin: 4px 0; }
+.imagine-magic .aura-flags label { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.imagine-magic .aura-flags input.short, .imagine-magic .aura-summary input.short { width: 4em; }
+.imagine-magic .aura-flags input[type="text"] { width: 14em; }
+.imagine-magic .magic-table .col-roll { white-space: nowrap; }
+.imagine-magic .magic-effects { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0; font-size: 12px; }
+.imagine-magic .magic-effects .chip { border: 1px solid var(--imagine-muted); border-radius: 10px; padding: 0 2px 0 8px; }
+.imagine-chat.cast-card .cast-level, .imagine-chat.cast-card .target { font-size: 11px; margin-left: 6px; }
+.imagine-chat.cast-card .cast-outcome { font-weight: 600; margin: 4px 0; }
+.imagine-chat.cast-card .outcome-mishap { color: var(--imagine-alarm); }
+.imagine-chat.cast-card .cast-text { font-size: 12px; margin: 4px 0; }
+.imagine-chat.cast-card .cast-attacks { width: 100%; font-size: 11px; border-collapse: collapse; margin: 4px 0; }
+.imagine-chat.cast-card .cast-attacks td { padding: 1px 3px; vertical-align: middle; }
+.imagine-chat.cast-card .cast-attacks tr.hit  { background: #e3eed9; color: #2f5a1c; }
+.imagine-chat.cast-card .cast-attacks tr.miss { background: #efe9e0; color: #6d675e; }
+.imagine-chat.cast-card .cast-attacks button { width: auto; padding: 0 6px; line-height: 18px; }
+.imagine-chat.cast-card .cast-attacks button.applied { opacity: 0.6; }
+.imagine-chat.cast-card .cast-targets p { font-size: 11px; margin: 3px 0; }
+.imagine-chat.cast-card button.inline { width: auto; display: inline; padding: 0 6px; line-height: 18px; font-size: 11px; }
+.imagine-chat.cast-card .cast-effects, .imagine-chat.cast-card .cast-changes { font-size: 11px; }
+.imagine-chat.cast-card .cast-changes ul { margin: 2px 0 2px 16px; padding: 0; }
 .imagine-starting-lore ul { margin: 4px 0 4px 16px; padding: 0; }
 
 

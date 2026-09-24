@@ -29,6 +29,8 @@ import { buildMagicPanel } from "../magic-view.mjs";
 import { useConsumable, addDose, toggleMemorized, useLore, brewRecipe, addPoison,
          postMagic } from "../magic-actions.mjs";
 import { provideStartingLore } from "../starting-lore.mjs";
+import { castSpell, invokeInvocation, prayForInvocation, resetAuraPool, regenerateAura,
+         removeMagicEffect } from "../casting-actions.mjs";
 import { getWeaponCustomTags, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
 import ImagineWeaponMods from "../apps/weapon-mods.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
@@ -90,6 +92,14 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			useLore: ImagineCharacterSheet.#onUseLore,
 			brewRecipe: ImagineCharacterSheet.#onBrewRecipe,
 			postMagic: ImagineCharacterSheet.#onPostMagic,
+			// Casting and invoking -- module/casting-actions.mjs.
+			castSpell: ImagineCharacterSheet.#onCastSpell,
+			toggleMastered: ImagineCharacterSheet.#onToggleMastered,
+			invokeInvocation: ImagineCharacterSheet.#onInvokeInvocation,
+			prayForInvocation: ImagineCharacterSheet.#onPrayForInvocation,
+			resetAuraPool: ImagineCharacterSheet.#onResetAuraPool,
+			regenerateAura: ImagineCharacterSheet.#onRegenerateAura,
+			removeMagicEffect: ImagineCharacterSheet.#onRemoveMagicEffect,
 			provideStartingLore: ImagineCharacterSheet.#onProvideStartingLore,
 			openWeaponMods: ImagineCharacterSheet.#onOpenWeaponMods,
 			rollAttributeSave: ImagineCharacterSheet.#onRollAttributeSave,
@@ -847,6 +857,44 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	static async #onPostMagic(event, target) {
 		var tmpitem = this.#magicItem(target);
 		if (tmpitem) { await postMagic(this.document, tmpitem); }
+	}
+
+	// @MARKER CASTING AND INVOKING
+	// The spell and invocation buttons, and the Aura pool's. The work is in module/casting-actions.mjs.
+	static async #onCastSpell(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await castSpell(this.document, tmpitem); }
+	}
+
+	// His spell_mastery_check: +2 Aura Control, half the time, three times the range, twice the duration.
+	static async #onToggleMastered(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await tmpitem.update({ "system.mastered": !tmpitem.system.mastered }); }
+	}
+
+	static async #onInvokeInvocation(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await invokeInvocation(this.document, tmpitem); }
+	}
+
+	static async #onPrayForInvocation(event, target) {
+		var tmpitem = this.#magicItem(target);
+		if (tmpitem) { await prayForInvocation(this.document, tmpitem, event); }
+	}
+
+	static async #onResetAuraPool(event, target) {
+		event.preventDefault();
+		await resetAuraPool(this.document);
+	}
+
+	static async #onRegenerateAura(event, target) {
+		event.preventDefault();
+		await regenerateAura(this.document);
+	}
+
+	static async #onRemoveMagicEffect(event, target) {
+		event.preventDefault();
+		if (target.dataset.effect) { await removeMagicEffect(this.document, target.dataset.effect); }
 	}
 
 	// This is the function behind the Game Master's "Provide starting lore" -- his "If unchecked GM

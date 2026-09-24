@@ -3,11 +3,11 @@
 //==================================================================================================================
 // Schema for an invocation -- one row of his invocationslist (sheet-worker.js:152811), 460 of them.
 //
-// As with spells, every column is kept as he wrote it. "Uses/Per" is a fraction of a day -- ".166"
-// is once in six days -- and "15 min./PC" a duration in Piety Control, which is the invoking
-// engine's to work out when the deferred magic phase builds it (CLAUDE.md, Layer 4). Until then
-// an invocation is known, memorized at its level, and read. His pray button rolls Divine Knowledge
-// (sheet-worker.js:10605); that roll needs Piety Control and devotions, and is not ported yet.
+// As with spells, every column is kept as he wrote it. "Uses/Per" is the uses each point of Piety
+// Control buys when it is prayed for (his addUsageByName: uses x Piety Control, + .9, cut down), and
+// "15 min./PC" a duration in Piety Control, which his doInvocationAction works out when it is invoked
+// (module/casting-worker.mjs). An invocation is prayed for with Divine Knowledge (his pray and
+// re-pray buttons), which memorizes it and gives it its uses; each invoke spends one.
 //==================================================================================================================
 
 const fields = foundry.data.fields;
@@ -35,6 +35,8 @@ export default class ImagineInvocationData extends foundry.abstract.TypeDataMode
 
 			// @MARKER MEMORIZED
 			memorized: new fields.BooleanField({ required: true, initial: false, label: "Memorized" }),
+			// His invoc_uses: the uses left from the last prayer. A prayer sets it; each invoke takes one.
+			usesLeft:  new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, label: "Uses Left" }),
 
 			// @MARKER PROVENANCE
 			sourcebook:  new fields.StringField({ required: true, initial: "" }),

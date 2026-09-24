@@ -1,0 +1,321 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG casting test</title>
+<style>body{font:13px monospace;padding:1rem}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for casting and invoking: module/casting-rules.mjs (his setMagicDivineLore, useSpell,
+// useInvocation and the prayers), module/casting-helpers.mjs (his doMagicalAttack, and what his
+// sheet's own changes to the caster become), the two generated modules module/casting-titles.mjs and
+// module/casting-worker.mjs (his own code, carried across by tools/extract/extract_casting.py), the
+// character model's _prepareMagic, and module/magic-view.mjs's Aura and Piety lines.
+//
+// The strongest check is the sweep near the end: EVERY spell and invocation in the built packs is
+// run through his own code at several Aura and Piety levels, on self and on another, and none may
+// throw, print "undefined" or "NaN", or be missing from his switch.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/casting-test.html
+// or headless: node tools/run-tests.mjs casting
+globalThis.foundry = {
+	abstract: { TypeDataModel: class { constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+const R = await import("../module/casting-rules.mjs");
+const H = await import("../module/casting-helpers.mjs");
+const T = await import("../module/casting-titles.mjs");
+const W = await import("../module/casting-worker.mjs");
+const V = await import("../module/magic-view.mjs");
+const { getAttackChart } = await import("../module/combat/combat-rules.mjs");
+const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+	return ok;
+}
+// Dice from a list, in order -- and a loud failure if a rule rolls more than the test planned for.
+function dice(...tmpvalues) {
+	var tmpqueue = [...tmpvalues];
+	return (tmpsides) => {
+		if (!tmpqueue.length) { throw new Error("rolled more dice than the test scripted (d" + tmpsides + ")"); }
+		return tmpqueue.shift();
+	};
+}
+// castingRandom from a list of die faces, each "face/sides": face f on a die of n sides is (f - 0.5) / n.
+function faces(...tmpfaces) {
+	var tmpqueue = [...tmpfaces];
+	H.setCastingRandom(() => {
+		var tmpentry = ("" + (tmpqueue.length ? tmpqueue.shift() : "1/100")).split("/");
+		return ((parseInt(tmpentry[0]) || 1) - 0.5) / (parseInt(tmpentry[1]) || 100);
+	});
+}
+// A repeatable pseudo-random source, for the sweep.
+function seeded(tmpseed) {
+	var tmpstate = tmpseed;
+	return () => { tmpstate = (tmpstate * 1103515245 + 12345) % 2147483648; return tmpstate / 2147483648; };
+}
+
+// --- the generated modules -------------------------------------------------------------------------
+check("the worker exports his four roots and the setter",
+	["doSpellAction", "doInvocationAction", "getMagicalMishap", "getRandomSpell", "setHisGlobals"].map(n => typeof W[n]),
+	["function", "function", "function", "function", "function"]);
+check("the titles module exports his per-class functions",
+	["getAuraControlTitleMod", "getPietyControlTitleMod", "getSpellLoreWhen", "getMaxAuraControl", "getMaxAuraPool",
+	 "getAuraRegenRate", "checkDevotion", "getDevotionList"].map(n => typeof T[n]), Array(8).fill("function"));
+check("his Aura Control per title: a Mage +2, a Wilder +1, a Warrior 0",
+	["Mage", "Wilder", "Warrior"].map(T.getAuraControlTitleMod), [2, 1, 0]);
+check("his Spell Lore titles: Mage 7, Bard 14, White Witch 11", ["Mage", "Bard", "Witch(White)"].map(T.getSpellLoreWhen), [7, 14, 11]);
+check("his ceiling on Aura Control: 25 to title 10, then 26 ... 30, 50 at 16", [1, 10, 11, 15, 16, 21, 30].map(T.getMaxAuraControl),
+	[25, 25, 26, 30, 50, 75, 1000]);
+check("his ceiling on the pool: twice the Aura to title 11, then 60, 70 ...", [T.getMaxAuraPool(5, 14), T.getMaxAuraPool(11, 20),
+	T.getMaxAuraPool(12, 20), T.getMaxAuraPool(16, 20)], [28, 40, 60, 100]);
+check("his devotions: Heal is a Healing invocation and not a Combat one",
+	[T.checkDevotion("Heal", "Healing"), T.checkDevotion("Heal", "Combat")], [true, false]);
+check("Sand Form's 'breakAcid' is corrected to a break, so it no longer falls into Aura of Acid", (() => {
+	H.beginCasting({}); var t = W.doSpellAction("Sand Form", 10, "on", 7, 7, "", 14, 13, 70, 65, 14, 60, 1, 70, "Novice",
+		16, 14, 12, 10, 8, 7, 6, 5, 4, 2, "", "Passive Good", 14, 12, "", false, false, false, false, false); H.endCasting();
+	return [t.includes("magical sand"), t.includes("acid")]; })(), [true, false]);
+
+// --- Aura Control (his setMagicDivineLore) --------------------------------------------------------
+var tmpac = (tmpclass, tmpstart, tmptitle, tmpextra = {}) => R.getAuraControl({ className: tmpclass, title: tmptitle, casterStartTitle: tmpstart, ...tmpextra }).value;
+check("the book's own example: a Gray Witch (Scroll Knowledge at 4) at title 8 is practitioner 5, Aura Control 10 (Player's Guide p.216)",
+	tmpac("Witch(Gray)", 4, 8), 10);
+check("a Gray Witch below her start title has none from her class", [tmpac("Witch(Gray)", 4, 3), tmpac("Witch(Gray)", 4, 4)], [0, 2]);
+check("a Mage starts at 2 and gains 2 a title", [1, 2, 3, 6].map(t => tmpac("Mage", 1, t)), [2, 4, 6, 12]);
+check("...and at title 7, where Spell Lore arrives, +2 more once, and +2 while it is held: his sheet's double (UPSTREAM 71)",
+	[tmpac("Mage", 1, 7), tmpac("Mage", 1, 7, { spellLore: true }), tmpac("Mage", 1, 8, { spellLore: true })], [16, 18, 20]);
+check("Intelligence, Metaphysics and the boost add", tmpac("Mage", 1, 3, { intAdjust: 2, metaphysics: true, boost: 3 }), 12);
+check("held to his ceiling for the title", tmpac("Mage", 1, 14, { spellLore: true, intAdjust: 5 }), 29);
+check("magically suppressed: 0", tmpac("Mage", 1, 5, { suppressed: true }), 0);
+check("a Sorcerer has his class figure from title 1, with no caster start", [tmpac("Sorcerer", 0, 1), tmpac("Sorcerer", 0, 4)], [2, 8]);
+check("a Wilder's Winds of Wild Magic doubles the whole above the start", [tmpac("Wilder", 1, 3), tmpac("Wilder", 1, 3, { windsOfWildMagic: true })], [3, 6]);
+check("a Warrior is no caster", R.getAuraControl({ className: "Warrior", title: 9, casterStartTitle: 0 }).isCaster, false);
+
+// --- the pool, and getting it back ---------------------------------------------------------------
+check("the pool is the Aura, less what is drained", R.getAuraPool({ title: 5, aura: 14, drained: 4 }), { max: 28, full: 14, drained: 4, current: 10 });
+check("...extra Aura from items adds, and nothing is drained past empty", R.getAuraPool({ title: 5, aura: 14, additional: 3, drained: 40 }),
+	{ max: 28, full: 17, drained: 17, current: 0 });
+check("drainAura never takes more than the pool holds", R.drainAura({ drained: 10, full: 14 }, 9), 14);
+check("a Mage of title 5 regenerates 1 per 2 seconds; a Warrior 1 an hour",
+	[R.getAuraRegen({ className: "Mage", title: 5, casterStartTitle: 1 }), R.getAuraRegen({ className: "Warrior", title: 5 })],
+	["1/per 2 Seconds", "1/per Hour"]);
+check("his regen by time: 20 seconds at 1 per 2 seconds is 10", R.regenAuraByTime("1/per 2 Seconds", 20, "sec", 12), { regained: 10, reset: false });
+check("...an hour at any rate per second refills it", R.regenAuraByTime("3/per Second", 1, "hour", 12), { regained: 12, reset: true });
+check("...9 seconds at 1 per 10 seconds is nothing", R.regenAuraByTime("1/per 10 Seconds", 9, "sec", 12), { regained: 0, reset: false });
+check("...and 1 per hour counts hours, which his hours branch left out (UPSTREAM 72)", R.regenAuraByTime("1/per Hour", 3, "hour", 5), { regained: 3, reset: false });
+
+// --- Piety Control and prayer ---------------------------------------------------------------------
+var tmppc = (tmptitle, tmpextra = {}) => R.getPietyControl({ className: "Priest", title: tmptitle, invokerStartTitle: 1, ...tmpextra });
+check("a Priest starts at 2, plus Wisdom and Theology", [tmppc(1).value, tmppc(1, { wisAdjust: 1, theology: true }).value], [2, 4]);
+check("...and gains his class figure for each title reached", [tmppc(2).value, tmppc(5).value], [4, 10]);
+check("...the Piety level adds the boost; Divine Denial makes Piety Control 0",
+	[tmppc(5, { levelBoost: 3 }).level, tmppc(5, { denial: true }).value], [13, 0]);
+check("an Exorcist before his invoker start has none", R.getPietyControl({ className: "Exorcist", title: 4, invokerStartTitle: 5 }).value, 0);
+check("uses: uses-per times Piety Control, + .9, cut down", [R.getInvocationUses(".5", 7), R.getInvocationUses(".166", 6), R.getInvocationUses("2", 3)], [4, 1, 6]);
+check("alignment bars: Non-Evil bars the evil, Good bars the neutral",
+	[R.isAlignmentBarred("Non-Evil", "Active Evil"), R.isAlignmentBarred("Good", "True Neutral"), R.isAlignmentBarred("None", "Active Evil")], [true, true, false]);
+check("devotions: in one of them, or ignored", [R.isInDevotion("Heal", "Combat, Healing", false), R.isInDevotion("Heal", "Combat", false),
+	R.isInDevotion("Heal", "Combat", true)], [true, false, true]);
+var tmppray = { chance: 60, level: 3, pietyControl: 6, memoryUsed: 5, memoryAvailable: 10, inDevotion: true, alignment: "Passive Good", restriction: "None" };
+check("a prayer's gates in his order: alignment before Piety Control",
+	R.resolvePrayer({ ...tmppray, restriction: "Evil", level: 9 }, 5).outcome, "wrongAlignment");
+check("...over Piety Control", R.resolvePrayer({ ...tmppray, level: 9 }, 5).outcome, "overPietyControl");
+check("...no memory, unless nothing is memorized yet",
+	[R.resolvePrayer({ ...tmppray, memoryAvailable: 2 }, 5).outcome, R.resolvePrayer({ ...tmppray, memoryAvailable: 2, memoryUsed: 0 }, 5).outcome],
+	["noMemory", "success"]);
+check("...not in a devotion", R.resolvePrayer({ ...tmppray, inDevotion: false }, 5).outcome, "noDevotion");
+check("the roll: success, failure, a critical over +20 (Divine Denial), a 100",
+	[60, 61, 81, 100].map(r => R.resolvePrayer(tmppray, r).outcome), ["success", "failure", "critical", "fumble"]);
+check("a repray needs it memorized, and skips the first prayer's gates",
+	[R.resolvePrayer({ ...tmppray, repray: true, memorized: false }, 5).outcome, R.resolvePrayer({ ...tmppray, repray: true, memorized: true, level: 99 }, 5).outcome],
+	["notMemorized", "success"]);
+
+// --- deciding a cast (his useSpell) ---------------------------------------------------------------
+var tmpcast = { level: 5, fail: 10, aura: 6, castTime: "10 sec.", memorized: true, auraControl: 8, auraPool: 14, title: 5, auraSave: 60,
+	castingSkill: { name: "Scroll Knowledge", chance: 50 } };
+check("a cast within Aura Control goes off at the Aura put in, drains it, no fail roll",
+	(() => { var r = R.resolveSpellCast(tmpcast, dice(40)); return [r.outcome, r.castAura, r.drain, r.failChance]; })(), ["cast", 6, 6, 0]);
+check("not memorized wins over everything, even a failure rolled", R.resolveSpellCast({ ...tmpcast, memorized: false, level: 12 }, dice(40, 1, 50)).outcome, "notMemorized");
+check("suppressed, then no Aura", [R.resolveSpellCast({ ...tmpcast, suppressed: true }, dice(40)).outcome, R.resolveSpellCast({ ...tmpcast, aura: 0 }, dice(40)).outcome],
+	["suppressed", "noAura"]);
+check("more Aura than Aura Control, or than the pool: it fizzles",
+	[R.resolveSpellCast({ ...tmpcast, aura: 9 }, dice(40)).outcome, R.resolveSpellCast({ ...tmpcast, auraPool: 5 }, dice(40)).outcome], ["overControl", "overPool"]);
+var tmphigh = R.resolveSpellCast({ ...tmpcast, level: 11 }, dice(40, 30, 77));
+check("three levels above Aura Control at 10% a level: a 30% failure; 30 rolled is a mishap, and his mishap roll follows",
+	[tmphigh.outcome, tmphigh.failChance, tmphigh.difference, tmphigh.mishapRoll, tmphigh.drain], ["mishap", 30, 3, 77, 6]);
+check("...31 rolled and it goes off", R.resolveSpellCast({ ...tmpcast, level: 11, aura: 8 }, dice(40, 31)).outcome, "cast");
+check("mastered: +2 Aura Control and half the casting time",
+	(() => { var r = R.resolveSpellCast({ ...tmpcast, aura: 10, mastered: true }, dice(40)); return [r.outcome, r.auraControl, r.castTime]; })(), ["cast", 10, "5 sec."]);
+check("half magic halves the Aura the spell works at, not what is drained",
+	(() => { var r = R.resolveSpellCast({ ...tmpcast, halfMagic: true, aura: 5 }, dice(40)); return [r.castAura, r.drain]; })(), [3, 5]);
+check("a mortal putting 22+ into a spell makes an Aura save or suffers Aura Fatigue",
+	(() => { var r = R.resolveSpellCast({ ...tmpcast, aura: 25, auraControl: 25, auraPool: 30 }, dice(40, 90)); return [r.highAura.fatigue, r.highAura.attributes, r.highAura.halfMagic]; })(),
+	[true, -4, true]);
+check("a Hermeticist is told Hermetic casting is not built", R.resolveSpellCast({ ...tmpcast, castingSkill: { name: "Hermetic Lore", chance: 80 } }, dice(40)).outcome, "hermetic");
+var tmppact = { ...tmpcast, castingSkill: { name: "Arcane Pact", chance: 50 } };
+check("a Sorcerer rolls Arcane Pact: under 30 a critical (+2 Aura), 50 a success, 51 a failure, 71 a critical failure",
+	[[20, "cast", 8], [50, "cast", 6], [51, "pactFailed", 6], [71, "pactCritical", 6]].map(([d]) => { var r = R.resolveSpellCast(tmppact, dice(d)); return [d, r.outcome, r.castAura]; }),
+	[[20, "cast", 8], [50, "cast", 6], [51, "pactFailed", 6], [71, "pactCritical", 6]]);
+
+// --- a cast, through his own code -----------------------------------------------------------------
+var tmpchart = getAttackChart("Novice");
+var tmpcaster = { name: "Aldo", title: 7, practitionerTitle: 7, effectList: "", alignment: "Passive Good", int: 14, wil: 13, wis: 12,
+	aur: 14, end: 14, intSave: 70, wilSave: 65, auraSave: 60, absorbAuraChance: 0, missileMod: 1, attackSkill: "Novice", chart: tmpchart,
+	className: "Mage", attrs: { title: 7, aura: 14 } };
+faces("60/100", "3/6", "3/6", "3/6", "3/6", "3/6");
+var tmpfinger = R.performSpellCast(W, { name: "Finger of Fire", magicName: "Ath" }, { ...tmpcast, level: 5, fail: 0, aura: 10, auraControl: 10 },
+	tmpcaster, { self: false }, dice(40));
+check("Finger of Fire at 10 Aura: his range (5 x Aura) and dice ((Aura / 2)d6) in his words", [tmpfinger.text.includes("up to 50`"), tmpfinger.text.includes("5d6 fire damage")], [true, true]);
+check("...one INT attack, recorded with its dice and type", [tmpfinger.attacks.length, tmpfinger.attacks[0].kind, tmpfinger.attacks[0].dice, tmpfinger.attacks[0].damageType],
+	[1, "INT", "5d6", "Fire"]);
+check("...60 against INT save 70 hits, and five 3s on a d6 is 15", [tmpfinger.attacks[0].isHit, tmpfinger.attacks[0].damage], [true, 15]);
+check("...his line opens as his does", tmpfinger.text.startsWith(" Aldo spent 10 sec. with a final intonation of “Ath”, casting Finger of Fire at 10 Aura to "), true);
+H.setCastingRandom(null);
+
+faces("16/20", "1/10", "10/20", "1/10", "3/20", "1/10");
+var tmpbolts = R.performSpellCast(W, { name: "Storm of Bolts" }, { ...tmpcast, level: 12, fail: 0, aura: 6, auraControl: 12 },
+	tmpcaster, { self: false, missileDefense: -2 }, dice(40));
+check("Storm of Bolts at 6 Aura: three bolts (Aura / 2), each a Missile attack on his chart", [tmpbolts.attacks.length, tmpbolts.attacks.map(a => a.kind)],
+	[3, ["Missile", "Missile", "Missile"]]);
+check("...the target's defence goes onto each: 16 +1 -2 = 15", [tmpbolts.attacks[0].natural, tmpbolts.attacks[0].total, tmpbolts.attacks[0].defense], [16, 15, -2]);
+check("...a bolt bypasses non-magic armour, in his note", R.isSpellBypassingArmor(tmpbolts.attacks[0].special), true);
+H.setCastingRandom(null);
+
+var tmpfly = R.performSpellCast(W, { name: "Fly" }, { ...tmpcast, level: 5, aura: 8, auraControl: 8 }, tmpcaster, { self: true }, dice(40));
+check("Fly on self goes on the effects list, and his flight is listed for the Game Master",
+	[tmpfly.effectsAdded, tmpfly.changes.map(c => c.label)], [["Spell: Fly"], ["Special movement"]]);
+var tmpagain = R.performSpellCast(W, { name: "Fly" }, { ...tmpcast, level: 5, aura: 8, auraControl: 8 }, { ...tmpcaster, effectList: "Spell: Fly" }, { self: true }, dice(40));
+check("...cast again while it runs, his case refuses it", tmpagain.text.includes("already in use"), true);
+check("the effects list: added once, removed by name", [R.updateEffectList("Spell: Fly", ["Invoke: Chill", "Spell: Fly"], []),
+	R.updateEffectList("Spell: Fly, Invoke: Chill", [], ["Spell: Fly"])], ["Spell: Fly, Invoke: Chill", "Invoke: Chill"]);
+
+var tmpmishap = R.performSpellCast(W, { name: "Finger of Fire" }, { ...tmpcast, level: 11, fail: 20, aura: 6, auraControl: 6 }, tmpcaster, {}, dice(40, 5, 57));
+check("a mishap roll of 57 is his Backfire: the spell is cast anyway, and his words say why",
+	[tmpmishap.outcome, tmpmishap.text.includes("Backfire"), tmpmishap.text.includes("5 levels higher than their Aura Control, giving a 100% failure chance")],
+	["mishap", true, true]);
+H.setCastingRandom(seeded(7));
+var tmpchaos = R.performSpellCast(W, { name: "Finger of Fire" }, { ...tmpcast, level: 11, fail: 20, aura: 6, auraControl: 6 }, tmpcaster, {}, dice(40, 5, 83));
+check("Raging Chaos casts every spell of its list, two-word names included (UPSTREAM 73)",
+	[tmpchaos.text.includes("Raging Chaos"), (tmpchaos.text.match(/SPELL \d+:/g) ?? []).length > 2, tmpchaos.text.includes("Missing Spell Details")], [true, true, false]);
+H.setCastingRandom(null);
+
+// --- invoking -------------------------------------------------------------------------------------
+var tmpinvoker = { ...tmpcaster, pietyLevel: 6, pty: 14, blessChance: 40, blasphemyChance: 0, divineKnowledgeChance: 60, denial: false };
+var tmpchill = R.performInvocation(W, { name: "Chill", invokeTime: "10 sec.", memorized: true, uses: 3 }, tmpinvoker, { self: false });
+check("an invocation is worked at the Piety level (Chill: 5' x PC, 15 min. x PC) and spends a use",
+	[tmpchill.outcome, tmpchill.usesAfter, tmpchill.text.includes("up to 30`"), tmpchill.text.includes("90 min.")], ["invoked", 2, true, true]);
+check("no uses, not memorized, Divine Denial: nothing done",
+	[R.performInvocation(W, { name: "Chill", memorized: true, uses: 0 }, tmpinvoker, {}).outcome,
+	 R.performInvocation(W, { name: "Chill", memorized: false, uses: 3 }, tmpinvoker, {}).outcome,
+	 R.performInvocation(W, { name: "Chill", memorized: true, uses: 3 }, { ...tmpinvoker, denial: true }, {}).outcome],
+	["noUses", "notMemorized", "denial"]);
+
+// --- on the targets -------------------------------------------------------------------------------
+check("the Save column names the resistance rolled", ["Magic", "Control", "Illusion", "None", "Varies"].map(s => R.SAVE_RESISTANCES[s] ?? null),
+	["magic", "control", "illusion", null, null]);
+var tmpfingertext = "MR is used to avoid damage. MR made by half or more means no damage. Made but not by half causes half damage. Failed MR causes full damage.";
+check("the Finger spells' rule: failed full, made by half none, made not by half half",
+	[R.getResistedFraction({ resisted: false }, tmpfingertext), R.getResistedFraction({ resisted: true, byHalf: true }, tmpfingertext),
+	 R.getResistedFraction({ resisted: true, byHalf: false }, tmpfingertext)], [1, 0, 0.5]);
+check("...the book's wording of the same rule reads the same", R.getResistedFraction({ resisted: true, byHalf: false },
+	"If the resistance was made, but was greater than a 1/2 save, then half damage is taken."), 0.5);
+check("...an Aura bolt has 'no save at all' but a magical armour's: resisted or not, all of it",
+	R.getResistedFraction({ resisted: true, byHalf: true }, "Each bolt does 1d10+1 ... with no save at all except for magical armor"), 1);
+check("...a spell without it: resisted is none; nothing rolled is all", [R.getResistedFraction({ resisted: true, byHalf: false }, "A successful Magic Resistance equals no damage."),
+	R.getResistedFraction(null, "")], [0, 1]);
+check("his damage types onto the body's: Fire is Flame, Cold/Fire is Frost then Flame, Magical is Aura/Divine",
+	[R.getSpellDamageTypes("Fire"), R.getSpellDamageTypes("Cold/Fire"), R.getSpellDamageTypes("Magical")], [["Flame"], ["Frost", "Flame"], ["Aura/Divine"]]);
+
+// --- his doMagicalAttack, on its own --------------------------------------------------------------
+H.beginCasting({ missileDefense: 0 });
+faces("1/20");
+var tmpmiss = H.doMagicalAttack("Aura Dart", "Missile", -5, "1d4", "Magical", "", 60, "Beginner", 16, 14, 12, 10, 8, 7, 6, 5, 4, 2);
+check("a Missile total under 1 is read down his ladder, never floored or fumbled", tmpmiss, "Used a Missile attack. Rolled -4 as a Beginner, with a result of .");
+faces("20/20", "4/4");
+var tmphit = H.doMagicalAttack("Aura Dart", "Missile", 0, "1d4", "Magical", "", 60, "Beginner", 16, 14, 12, 10, 8, 7, 6, 5, 4, 2);
+check("his slip kept in his text: a hit with no note prints the TYPE where the number goes; the record has the number",
+	[tmphit, H.endCasting().attacks[1].damage], ["Used a Missile attack. Rolled 20 as a Beginner, with a result of Hit(Center), causing (1d4)=Magical damage.", 4]);
+H.setCastingRandom(null);
+
+// --- the character model --------------------------------------------------------------------------
+function makeMage(tmptitle, tmpskills) {
+	var tmpitems = (tmpskills ?? []).map(n => ({ type: "skill", name: n, system: { totalChance: 45, category: "class", acquiredAtTitle: 1 } }));
+	var tmpc = new ImagineCharacterData({
+		identity: { title: tmptitle, goal: 0 },
+		attributes: { int: { value: 17, mods: { auraControlAdjust: 1 } }, wis: { value: 10, mods: { pietyControl: 0 } }, aur: { value: 15 } },
+		magic: { drainedAura: 5, additionalAura: 0, auraControlBoost: 0, magicSuppressed: false, pietyLevelBoost: 0, divineDenial: false, effectList: "" }
+	});
+	tmpc.parent = { items: tmpitems };
+	tmpc.classItems = [{ name: "Mage", system: { baseClass: "Mage", title: 0, casting: { isCaster: true, casterStartTitle: 1, isInvoker: false } } }];
+	tmpc._prepareMagic();
+	return tmpc;
+}
+var tmpmage = makeMage(3, ["Scroll Knowledge"]);
+check("a Mage of title 3 with Intelligence 17: Aura Control 6 + 1, a pool of 15 less 5 drained",
+	[tmpmage.magic.aura.isCaster, tmpmage.magic.aura.control, tmpmage.magic.aura.pool.current, tmpmage.magic.aura.pool.full], [true, 7, 10, 15]);
+check("...cast with Scroll Knowledge at practitioner title 3, regenerating 1 per 10 seconds",
+	[tmpmage.magic.aura.casting.name, tmpmage.magic.aura.casting.practitionerTitle, tmpmage.magic.aura.regen], ["Scroll Knowledge", 3, "1/per 10 Seconds"]);
+check("...and no invoker", tmpmage.magic.piety.isInvoker, false);
+
+// --- the tab --------------------------------------------------------------------------------------
+var tmppanel = V.buildMagicPanel({ system: { identity: { title: 3 }, magic: { aura: tmpmage.magic.aura, piety: tmpmage.magic.piety, effectList: "Spell: Fly" } },
+	items: [{ id: "a", name: "Finger of Fire", type: "spell", system: { level: 5, fail: "10", memorized: true } },
+	        { id: "b", name: "Chill", type: "spell", system: { level: 1, fail: "0", memorized: true, mastered: true } }] }, null, false);
+check("the tab: Aura Control, the pool, and what is running", [tmppanel.aura.control, tmppanel.aura.pool.current, tmppanel.effects], [7, 10, ["Spell: Fly"]]);
+check("...a spell above Aura Control shows its mishap chance; a mastered one within it none",
+	tmppanel.spells.rows.map(r => [r.name, r.aboveControl, r.failChance, r.mastered]), [["Chill", false, 0, true], ["Finger of Fire", false, 0, false]]);
+var tmppanel2 = V.buildMagicPanel({ system: { identity: { title: 1 }, magic: { aura: { ...tmpmage.magic.aura, control: 2 } } },
+	items: [{ id: "a", name: "Finger of Fire", type: "spell", system: { level: 5, fail: "10", memorized: true } }] }, null, false);
+check("...Finger of Fire (level 5, 10%) at Aura Control 2: 30%", [tmppanel2.spells.rows[0].aboveControl, tmppanel2.spells.rows[0].failChance], [true, 30]);
+
+// --- EVERY spell and invocation, through his code -------------------------------------------------
+var tmpload = async (tmpname) => (await fetch(`../src/packs/documents/${tmpname}.json`, { cache: "no-store" })).json();
+var tmpspells = await tmpload("spells");
+var tmpinvocations = await tmpload("invocations");
+var tmpproblems = [];
+var tmpruns = 0;
+H.setCastingRandom(seeded(11));
+W.setHisGlobals({ tmpEND: 14, tempAlignment: "Passive Good" });
+for (const tmpspell of tmpspells) {
+	for (const tmpaura of [1, 5, 12, 25]) {
+		for (const tmpself of ["on", ""]) {
+			H.beginCasting({ attrs: { title: 7, aura: 14 } });
+			try {
+				var tmptext = W.doSpellAction(tmpspell.name, tmpaura, tmpself, 7, 7, "", 14, 13, 70, 65, 14, 60, 1, 70, "Novice",
+					16, 14, 12, 10, 8, 7, 6, 5, 4, 2, "", "Passive Good", 14, 12, "", false, false, false, false, false);
+				tmpruns++;
+				if (/Missing Spell Details/.test(tmptext)) { tmpproblems.push(`${tmpspell.name}: not in his switch`); }
+				else if (/undefined|NaN/.test(tmptext)) { tmpproblems.push(`${tmpspell.name} at ${tmpaura}: ${tmptext.match(/.{0,60}(undefined|NaN)/)[0]}`); }
+			} catch (tmperror) { tmpproblems.push(`${tmpspell.name} at ${tmpaura}: throws ${tmperror.message}`); }
+			H.endCasting();
+		}
+	}
+}
+for (const tmpinvocation of tmpinvocations) {
+	for (const tmplevel of [1, 6, 15]) {
+		for (const tmpself of ["on", ""]) {
+			H.beginCasting({ attrs: { title: 7 } });
+			try {
+				var tmptext = W.doInvocationAction(tmpinvocation.name, tmpself, tmplevel, 7, "", 14, 13, 50, 50, 60, 1, 70, "Novice",
+					16, 14, 12, 10, 8, 7, 6, 5, 4, 2);
+				tmpruns++;
+				if (/Missing Invocation Details/.test(tmptext)) { tmpproblems.push(`${tmpinvocation.name}: not in his switch`); }
+				else if (/undefined|NaN/.test(tmptext)) { tmpproblems.push(`${tmpinvocation.name} at ${tmplevel}: ${tmptext.match(/.{0,60}(undefined|NaN)/)[0]}`); }
+			} catch (tmperror) { tmpproblems.push(`${tmpinvocation.name} at ${tmplevel}: throws ${tmperror.message}`); }
+			H.endCasting();
+		}
+	}
+}
+H.setCastingRandom(null);
+check(`every spell (${tmpspells.length}) and invocation (${tmpinvocations.length}) runs through his code at four and three levels, on self and not, cleanly`,
+	[tmpruns, tmpproblems.slice(0, 5)], [tmpspells.length * 8 + tmpinvocations.length * 6, []]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

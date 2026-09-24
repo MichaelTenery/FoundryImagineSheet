@@ -595,22 +595,87 @@ export async function applyAttackDamage(tmpmessage) {
 	var tmpoptions = await askDamageOptions(tmptargetactor, tmpattack);
 	if (!tmpoptions) { return; }
 
+	// @MARKER POISONED WEAPON
+	// A coated weapon's poison goes in with a hit that reaches the flesh -- or, from an Envenomed
+	// blade, a thrust of 10 or more (resolveCoatingDelivery). It is read off the weapon as it is now,
+	// so a coating another hit already spent is not spent twice. Spending it needs the right to
+	// change the attacker's weapon, as applying the damage needs the right to change the target.
+	// Worked out once the blow knows what reached the flesh, and said in the same message.
+	var tmpdelivery = null;
+	var tmpcoatedweapon = null;
+	var tmpcoatingnotes = async (tmpfleshdamage) => {
+		var tmpnotes = [];
+		if (!tmpattack.coating || !tmpattack.weaponId) { return tmpnotes; }
+		var tmpattacker = await fromUuid(tmpattack.attackerUuid);
+		tmpcoatedweapon = tmpattacker?.items?.get(tmpattack.weaponId) ?? null;
+		if (!tmpcoatedweapon) { return tmpnotes; }
+		tmpdelivery = resolveCoatingDelivery({ coating: tmpcoatedweapon.system.coating, envenomed: isEnvenomed(tmpcoatedweapon.system),
+			mode: tmpattack.mode, fleshDamage: tmpfleshdamage });
+		if (tmpdelivery.delivers && !tmpcoatedweapon.isOwner) {
+			// Refused before any damage above; kept so a weapon changing hands mid-dialog still
+			// spends nothing it may not. The wounds are on, so the Game Master applies only the poison.
+			tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} would go in, but you cannot change that weapon. `
+				+ `The wounds are applied; the Game Master should use the poison on the target from that weapon by hand.`);
+			tmpdelivery = null;
+		} else if (!tmpdelivery.delivers && tmpdelivery.reason != "not poisoned") {
+			tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} is not delivered: ${esc(tmpdelivery.reason)}.`);
+		}
+		return tmpnotes;
+	};
+
+	var tmplanded = await applyBlowToActor(tmptargetactor, { total: tmpattack.damage.total, type: tmpoptions.type,
+		area: tmpoptions.area, bypass: tmpoptions.bypass, magicPlus: tmpattack.damage.magic ?? 0, beforeReport: tmpcoatingnotes });
+	if (!tmplanded) { return; }
+
+	// Only the message's author or the Game Master may mark it -- and only they get this far (see the
+	// test at the head of this function), so the mark is always written.
+	if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
+
+	// The poison delivered: the target rolls their Poison Resistance on its own card, as a poison used
+	// from the tab does, and a dose comes off the weapon -- the coating gone with its last one.
+	if (tmpdelivery?.delivers) {
+		var tmpcoat = tmpcoatedweapon.system.coating;
+		await tmpcoatedweapon.update({ "system.coating": tmpdelivery.remaining > 0 ? { ...tmpcoat, doses: tmpdelivery.remaining }
+			: { name: "", poisonType: "", poisonPotency: "", form: "", doses: 0 } });
+		await postPoisonOnVictims({
+			speaker: tmpcoatedweapon.parent,
+			flavor: `The poison on <strong>${esc(tmpcoatedweapon.name)}</strong> goes in: <strong>${esc(tmpcoat.name)}</strong>`
+				+ (tmpcoat.form ? ` (${esc(tmpcoat.form)})` : ""),
+			poison: { poisonType: tmpcoat.poisonType, poisonPotency: tmpcoat.poisonPotency },
+			victims: [tmptargetactor], modifier: 0,
+			footer: tmpdelivery.remaining > 0 ? `${tmpdelivery.remaining} dose(s) left in the hilt.` : "The coating is spent."
+		});
+	}
+}
+
+// @MARKER A BLOW ON AN AREA
+// This is the function which puts one blow onto one body area of an actor and reports it in chat:
+// whether it lands at all, endured or rebounded, pain threshold, magical protection, armour and
+// hide, absorption, and the wounds. Shared by the weapon attack card and the spell card
+// (magic-actions.mjs), so a Finger of Fire meets the same armour a sword does.
+//
+//   tmpblow = { total, type, area, bypass, magicPlus, beforeReport }
+//   beforeReport(fleshDamage) -- optional, async: more lines for the same message, once it is known
+//                                what reached the wounds (the attack card's poison coating)
+// Returns null if the area is not found; otherwise { hurt, fleshDamage } -- hurt false when the blow
+// did nothing (under 1, endured, rebounded), fleshDamage what reached the wounds.
+export async function applyBlowToActor(tmptargetactor, tmpblow) {
+	var tmpoptions = { area: tmpblow.area, type: tmpblow.type, bypass: !!tmpblow.bypass };
 	var tmpsys = tmptargetactor.system;
 	var tmparea = tmpsys.body.areas.find(a => a.name == tmpoptions.area);
-	if (!tmparea) { return; }
+	if (!tmparea) { return null; }
 
 	// Whether the blow lands at all is read off the RAW figure, before any modifier touches it.
 	// His whole apply block sits inside that test, so a hit that rolled under 1 does nothing --
 	// no wounds, no armour damage, no absorption spent.
-	var tmpraw = parseInt(tmpattack.damage.total) || 0;
+	var tmpraw = parseInt(tmpblow.total) || 0;
 	if (!blowLands(tmpraw, false)) {
 		await ChatMessage.create({
 			speaker: ChatMessage.getSpeaker({ actor: tmptargetactor }),
 			content: `<div class="imagine-chat damage-result"><p>The blow lands on
 				<strong>${esc(tmptargetactor.name)}</strong> for no damage. Nothing is hurt.</p></div>`
 		});
-		if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
-		return;
+		return { hurt: false, fleshDamage: 0 };
 	}
 
 	// Endured and rebounded blows do nothing at all: his handler branches past the whole apply
@@ -625,8 +690,7 @@ export async function applyAttackDamage(tmpmessage) {
 			content: `<div class="imagine-chat damage-result"><p><strong>${esc(tmptargetactor.name)}</strong>
 				${tmpwhy} ${esc(tmpoptions.type)} damage. The blow does nothing.</p></div>`
 		});
-		if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
-		return;
+		return { hurt: false, fleshDamage: 0 };
 	}
 
 	// The target's pain threshold comes off -- or goes on -- before armour sees the blow, which
@@ -644,7 +708,7 @@ export async function applyAttackDamage(tmpmessage) {
 		invulnerable: tmpsys.combat.invulnerable,
 		// The weapon's magical plus, which is what invulnerability reads to decide whether the
 		// blow touches the target at all. Both attack cards record it as damage.magic.
-		magicPlus:    tmpattack.damage.magic ?? 0,
+		magicPlus:    tmpblow.magicPlus ?? 0,
 		spiritArmor:  tmpsys.combat.spiritArmor,
 		forceArmor:   tmpsys.combat.forceArmor,
 		outerKinetic: tmpsys.combat.outerKinetic,
@@ -698,29 +762,10 @@ export async function applyAttackDamage(tmpmessage) {
 		tmpnotes.push(`Magical protection takes ${tmpfelt - tmpmagical.damage} before armour.`);
 	}
 
-	// @MARKER POISONED WEAPON
-	// A coated weapon's poison goes in with a hit that reaches the flesh -- or, from an Envenomed
-	// blade, a thrust of 10 or more (resolveCoatingDelivery). It is read off the weapon as it is now,
-	// so a coating another hit already spent is not spent twice. Spending it needs the right to
-	// change the attacker's weapon, as applying the damage needs the right to change the target.
-	var tmpdelivery = null;
-	var tmpcoatedweapon = null;
-	if (tmpattack.coating && tmpattack.weaponId) {
-		var tmpattacker = await fromUuid(tmpattack.attackerUuid);
-		tmpcoatedweapon = tmpattacker?.items?.get(tmpattack.weaponId) ?? null;
-		if (tmpcoatedweapon) {
-			tmpdelivery = resolveCoatingDelivery({ coating: tmpcoatedweapon.system.coating, envenomed: isEnvenomed(tmpcoatedweapon.system),
-				mode: tmpattack.mode, fleshDamage: tmpabsorbed.damage });
-			if (tmpdelivery.delivers && !tmpcoatedweapon.isOwner) {
-				// Refused before any damage above; kept so a weapon changing hands mid-dialog still
-				// spends nothing it may not. The wounds are on, so the Game Master applies only the poison.
-				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} would go in, but you cannot change that weapon. `
-					+ `The wounds are applied; the Game Master should use the poison on the target from that weapon by hand.`);
-				tmpdelivery = null;
-			} else if (!tmpdelivery.delivers && tmpdelivery.reason != "not poisoned") {
-				tmpnotes.push(`The poison on ${esc(tmpcoatedweapon.name)} is not delivered: ${esc(tmpdelivery.reason)}.`);
-			}
-		}
+	// Anything the caller has to say once it knows what reached the flesh -- a weapon's poison
+	// coating, on the attack card -- goes into the same message.
+	if (tmpblow.beforeReport) {
+		for (const tmpnote of (await tmpblow.beforeReport(tmpabsorbed.damage)) ?? []) { tmpnotes.push(tmpnote); }
 	}
 	if (tmpfelt != tmpraw) {
 		tmpnotes.push(`Pain threshold ${tmpthreshold > 0 ? "+" : ""}${tmpthreshold}`
@@ -731,7 +776,7 @@ export async function applyAttackDamage(tmpmessage) {
 	await ChatMessage.create({
 		speaker: ChatMessage.getSpeaker({ actor: tmptargetactor }),
 		content: `<div class="imagine-chat damage-result">
-			<p><strong>${esc(tmptargetactor.name)}</strong> takes ${tmpattack.damage.total} ${esc(tmpoptions.type)}
+			<p><strong>${esc(tmptargetactor.name)}</strong> takes ${tmpraw} ${esc(tmpoptions.type)}
 			damage to the ${esc(tmparea.name)}${tmpoptions.bypass ? " (bypassing armour)" : ` (armour ${tmparea.armor})`}.</p>
 			<p>${tmpblow.blocked} stopped, <strong>${tmpabsorbed.damage}</strong> through.
 			Wounds there: ${tmpafter.wounds} / ${tmparea.endurance}.</p>
@@ -739,25 +784,7 @@ export async function applyAttackDamage(tmpmessage) {
 		</div>`
 	});
 
-	// Only the message's author or the Game Master may mark it -- and only they get this far (see the
-	// test at the head of this function), so the mark is always written.
-	if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
-
-	// The poison delivered: the target rolls their Poison Resistance on its own card, as a poison used
-	// from the tab does, and a dose comes off the weapon -- the coating gone with its last one.
-	if (tmpdelivery?.delivers) {
-		var tmpcoat = tmpcoatedweapon.system.coating;
-		await tmpcoatedweapon.update({ "system.coating": tmpdelivery.remaining > 0 ? { ...tmpcoat, doses: tmpdelivery.remaining }
-			: { name: "", poisonType: "", poisonPotency: "", form: "", doses: 0 } });
-		await postPoisonOnVictims({
-			speaker: tmpcoatedweapon.parent,
-			flavor: `The poison on <strong>${esc(tmpcoatedweapon.name)}</strong> goes in: <strong>${esc(tmpcoat.name)}</strong>`
-				+ (tmpcoat.form ? ` (${esc(tmpcoat.form)})` : ""),
-			poison: { poisonType: tmpcoat.poisonType, poisonPotency: tmpcoat.poisonPotency },
-			victims: [tmptargetactor], modifier: 0,
-			footer: tmpdelivery.remaining > 0 ? `${tmpdelivery.remaining} dose(s) left in the hilt.` : "The coating is spent."
-		});
-	}
+	return { hurt: true, fleshDamage: tmpabsorbed.damage };
 }
 
 // This is the function which spends the attack's seconds for the attacker, if they are fighting:

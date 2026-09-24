@@ -28,6 +28,16 @@
 		{{/if}}
 	</div>
 
+	{{!-- What the character has cast or invoked on themselves and is still running -- his effects
+	      list. A cross ends one. --}}
+	{{#if magic.effects.length}}
+	<div class="magic-effects">
+		<label>Running:</label>
+		{{#each magic.effects as |e|}}<span class="chip">{{e}} <button type="button" class="row-button" data-action="removeMagicEffect"
+			data-effect="{{e}}" data-tooltip="It has ended">&times;</button></span>{{/each}}
+	</div>
+	{{/if}}
+
 	{{!-- @MARKER CONSUMABLES --}}
 	{{#if magic.consumables.show}}
 	<details class="skill-group magic-group" data-sync open>
@@ -130,11 +140,33 @@
 	</details>
 	{{/each}}
 
-	{{!-- @MARKER SPELLS --}}
+	{{!-- @MARKER SPELLS
+	      A spell is cast with the Aura put into it: Aura Control is the most that may go in and the
+	      highest level cast safely, the pool what is left. Above Aura Control a spell risks a mishap.
+	      Cast asks the Aura and the target (module/casting-actions.mjs). --}}
 	{{#if magic.spells.show}}
 	<details class="skill-group magic-group" data-sync open>
 		<summary>Spells <span class="count">{{magic.spells.rows.length}}</span>
-			{{#if magic.spells.casting}}<span class="magic-skill">{{magic.spells.casting.name}} {{magic.spells.casting.chance}}%</span>{{/if}}</summary>
+			{{#if magic.spells.casting}}<span class="magic-skill">{{magic.spells.casting.name}} {{magic.spells.casting.chance}}%
+				&middot; <span class="muted">practitioner title {{magic.spells.casting.practitionerTitle}}</span></span>{{/if}}</summary>
+		<div class="slot-summary aura-summary">
+			<span class="slot" data-tooltip="{{magic.aura.controlTooltip}}"><label>Aura Control</label> {{magic.aura.control}}
+				<span class="sub">at most {{magic.aura.controlMax}} at this title</span></span>
+			<span class="slot {{#unless magic.aura.pool.current}}alarm{{/unless}}"><label>Aura Pool</label> {{magic.aura.pool.current}} / {{magic.aura.pool.full}}
+				{{#if magic.aura.pool.drained}}<span class="sub">{{magic.aura.pool.drained}} drained</span>{{/if}}</span>
+			<span class="slot"><label>Regenerates</label> {{magic.aura.regen}}</span>
+			{{#if magic.aura.absorbAura}}<span class="slot"><label>Absorb Aura</label> {{magic.aura.absorbAura}}%</span>{{/if}}
+			<button type="button" data-action="regenerateAura" data-tooltip="Aura back after a while (his Regen by time)"><i class="fa-solid fa-hourglass-half"></i> Regenerate</button>
+			<button type="button" data-action="resetAuraPool" data-tooltip="A full pool, after a night of rest"><i class="fa-solid fa-rotate"></i> Reset pool</button>
+		</div>
+		<div class="aura-flags">
+			<label><input type="checkbox" name="system.magic.magicSuppressed" {{#if magic.aura.suppressed}}checked{{/if}}> Magically suppressed (no casting)</label>
+			<label><input type="checkbox" name="system.magic.halfMagic" {{#if magic.aura.halfMagic}}checked{{/if}}> Half magic (Aura Fatigue)</label>
+			<label data-tooltip="Additional Aura from items (his additional_aura)">Extra Aura <input type="number" class="short" name="system.magic.additionalAura" value="{{magic.aura.additional}}"></label>
+			<label data-tooltip="Aura Control from runes, items and the like (his aura_control_boost)">Aura Control boost <input type="number" class="short" name="system.magic.auraControlBoost" value="{{magic.aura.boost}}"></label>
+		</div>
+		{{#if magic.aura.fatigueWarning}}<p class="muted">Aura Fatigue: a mortal (under title 11) putting 22 or more Aura into a spell makes an Aura save or suffers it.</p>{{/if}}
+		{{#if magic.aura.hermetic}}<p class="muted">Hermetic Lore casts through a ritual of ingredients, which is not built yet: the Game Master settles a Hermeticist's casting.</p>{{/if}}
 		<div class="gear-add">
 			<button type="button" data-action="addMagic" data-what="spell">Add a spell</button>
 		</div>
@@ -142,18 +174,23 @@
 		<table class="skill-table magic-table">
 			<thead><tr>
 				<th class="col-name">Spell</th><th class="col-num">Level</th><th class="col-detail">Cast / range / lasts</th>
+				<th class="col-num" data-tooltip="Mastered: +2 Aura Control, half the time, triple range, double duration">Mst</th>
 				<th class="col-num">Mem</th><th class="col-roll"></th><th class="col-row-actions"></th>
 			</tr></thead>
 			<tbody>
 				{{#each magic.spells.rows as |r|}}
 				<tr data-item-id="{{r.id}}" data-tooltip="{{r.tooltip}}">
-					<td class="col-name">{{r.name}}</td>
+					<td class="col-name">{{r.name}}{{#if r.aboveControl}} <span class="alarm" data-tooltip="Above Aura Control: a {{r.failChance}}% chance of a magical mishap">!</span>{{/if}}</td>
 					<td class="col-num muted">{{r.level}}</td>
-					<td class="col-detail muted">{{r.castTime}} &middot; {{r.range}} &middot; {{r.duration}}</td>
+					<td class="col-detail muted">{{r.castTime}} &middot; {{r.range}} &middot; {{r.duration}}{{#if r.save}}{{#unless (eq r.save "None")}} &middot; {{r.save}}{{/unless}}{{/if}}</td>
+					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.mastered}}on{{/if}}" data-action="toggleMastered"
+						data-tooltip="{{#if r.mastered}}Mastered: click to unmark{{else}}Not mastered{{/if}}">{{#if r.mastered}}&#9733;{{else}}&#9734;{{/if}}</button></td>
 					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.memorized}}on{{/if}}" data-action="toggleMemorized"
 						data-tooltip="Memorizing takes {{r.memTime}}">{{#if r.memorized}}&#9679;{{else}}&#9675;{{/if}}</button></td>
-					<td class="col-roll"><button type="button" data-action="postMagic" data-tooltip="Read it out to chat">Show</button></td>
+					<td class="col-roll"><button type="button" data-action="castSpell" {{#unless r.memorized}}disabled{{/unless}}
+						data-tooltip="{{#if r.memorized}}Cast it: choose the Aura, and target tokens first to cast at them{{else}}Memorize it first{{/if}}">Cast</button></td>
 					<td class="col-row-actions">
+						<button type="button" class="row-button" data-action="postMagic" data-tooltip="Read it out to chat"><i class="fa-solid fa-comment"></i></button>
 						<button type="button" class="row-button" data-action="openItem" data-item-id="{{r.id}}" data-tooltip="Open">&#9998;</button>
 						<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{r.id}}" data-tooltip="Remove">&times;</button>
 					</td>
@@ -164,16 +201,30 @@
 		{{else}}
 		<p class="empty">No spells known.</p>
 		{{/if}}
-		<p class="muted">Casting &mdash; Aura Control, spell lore, the fail chance &mdash; belongs to the magic phase still to come.
-			Until then a spell is known, memorized at its level, and read out.</p>
+		<p class="muted">Not built yet: spell tuning (speed, stabilize, overload, Aura reach, burning Aura), combined casting,
+			specialization and Hermetic rituals.</p>
 	</details>
 	{{/if}}
 
-	{{!-- @MARKER INVOCATIONS --}}
+	{{!-- @MARKER INVOCATIONS
+	      An invocation is prayed for with Divine Knowledge (which memorizes it and gives it its uses)
+	      and invoked at the Piety level: Piety Control plus any boost. --}}
 	{{#if magic.invocations.show}}
 	<details class="skill-group magic-group" data-sync open>
 		<summary>Invocations <span class="count">{{magic.invocations.rows.length}}</span>
 			{{#if magic.invocations.knowledge}}<span class="magic-skill">{{magic.invocations.knowledge.name}} {{magic.invocations.knowledge.chance}}%</span>{{/if}}</summary>
+		<div class="slot-summary aura-summary">
+			<span class="slot" data-tooltip="{{magic.piety.controlTooltip}}"><label>Piety Control</label> {{magic.piety.control}}</span>
+			<span class="slot"><label>Piety level</label> {{magic.piety.level}}</span>
+			<label class="aura-flags" data-tooltip="Piety level from items and the like (his piety_level_boost)">Boost
+				<input type="number" class="short" name="system.magic.pietyLevelBoost" value="{{magic.piety.boost}}"></label>
+		</div>
+		<div class="aura-flags">
+			<label><input type="checkbox" name="system.magic.divineDenial" {{#if magic.piety.denial}}checked{{/if}}> Divine Denial (24 hours)</label>
+			<label data-tooltip="Comma-separated: Body, Celestial, Combat, Control, Divination, Elemental, General, Healing, Mind, Nature, Necromancy, Protection, Summoning">Devotions
+				<input type="text" name="system.magic.devotions" value="{{magic.piety.devotions}}" placeholder="General, Healing"></label>
+			<label><input type="checkbox" name="system.magic.ignoreDevotions" {{#if magic.piety.ignoreDevotions}}checked{{/if}}> Ignore devotions</label>
+		</div>
 		<div class="gear-add">
 			<button type="button" data-action="addMagic" data-what="invocation">Add an invocation</button>
 		</div>
@@ -181,18 +232,25 @@
 		<table class="skill-table magic-table">
 			<thead><tr>
 				<th class="col-name">Invocation</th><th class="col-num">Level</th><th class="col-detail">Align / invoke / lasts</th>
+				<th class="col-num" data-tooltip="Uses left from the last prayer">Uses</th>
 				<th class="col-num">Mem</th><th class="col-roll"></th><th class="col-row-actions"></th>
 			</tr></thead>
 			<tbody>
 				{{#each magic.invocations.rows as |r|}}
 				<tr data-item-id="{{r.id}}" data-tooltip="{{r.tooltip}}">
-					<td class="col-name">{{r.name}}</td>
+					<td class="col-name">{{r.name}}{{#if r.overControl}} <span class="alarm" data-tooltip="Its Piety Level is above Piety Control: it cannot be prayed for">!</span>{{/if}}</td>
 					<td class="col-num muted">{{r.level}}</td>
 					<td class="col-detail muted">{{r.alignment}} &middot; {{r.invokeTime}} &middot; {{r.duration}}</td>
+					<td class="col-num">{{r.usesLeft}}</td>
 					<td class="col-num"><button type="button" class="row-button mem-toggle {{#if r.memorized}}on{{/if}}" data-action="toggleMemorized"
 						data-tooltip="Prayer time {{r.prayerTime}}">{{#if r.memorized}}&#9679;{{else}}&#9675;{{/if}}</button></td>
-					<td class="col-roll"><button type="button" data-action="postMagic" data-tooltip="Read it out to chat">Show</button></td>
+					<td class="col-roll">
+						<button type="button" data-action="prayForInvocation" data-tooltip="{{#if r.memorized}}Repray for new uses{{else}}Pray for it{{/if}} with Divine Knowledge (Shift: add a modifier)">Pray</button>
+						<button type="button" data-action="invokeInvocation" {{#unless r.usesLeft}}disabled{{/unless}}
+							data-tooltip="{{#if r.usesLeft}}Invoke it: target tokens first to invoke at them{{else}}No uses left: pray for it{{/if}}">Invoke</button>
+					</td>
 					<td class="col-row-actions">
+						<button type="button" class="row-button" data-action="postMagic" data-tooltip="Read it out to chat"><i class="fa-solid fa-comment"></i></button>
 						<button type="button" class="row-button" data-action="openItem" data-item-id="{{r.id}}" data-tooltip="Open">&#9998;</button>
 						<button type="button" class="row-button" data-action="deleteItem" data-item-id="{{r.id}}" data-tooltip="Remove">&times;</button>
 					</td>

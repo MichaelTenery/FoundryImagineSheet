@@ -503,8 +503,8 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 
 	// @MARKER READING OUT
 	// This is the function which posts a spell, invocation or evoke to chat as the book gives it.
-	// Casting and invoking are the deferred magic phase's (CLAUDE.md, Layer 4); until then this is how
-	// a table reads what one does without opening its sheet.
+	// Casting and invoking are module/casting-actions.mjs; this is how a table reads what one does
+	// without casting it or opening its sheet.
 	export async function postMagic(tmpactor, tmpitem) {
 		var tmpkind = getItemKind(tmpitem);
 		var tmpsystem = tmpitem.system;

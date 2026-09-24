@@ -47,8 +47,12 @@
 
     "Creature actor type":                { "dependsOn": ["Design Actor data model", "Combat module — phase 1", "Attributes module", "Obtain Bestiary"] },
 
-    "Base Magic":                         { "dependsOn": ["Combat module — phase 2", "Skills module", "Character Generation"], "note": "Deferred until the core phase is complete." },
-    "Base Divine Magic":                  { "dependsOn": ["Combat module — phase 2", "Skills module", "Character Generation"], "note": "Deferred until the core phase is complete." },
+    "Base Magic":                         { "dependsOn": ["Combat module — phase 2", "Skills module", "Magic & Lore tab"], "note": "Casting built 2026-09-24 at the user's request, ahead of the Layer 4 deferral: Aura Control, the pool, his doSpellAction carried across, targets and the attack card." },
+    "Base Divine Magic":                  { "dependsOn": ["Combat module — phase 2", "Skills module", "Magic & Lore tab"], "note": "Invoking built 2026-09-24 with casting: Piety Control, prayer, his doInvocationAction." },
+    "Casting: the caster changes":        { "dependsOn": ["Base Magic", "Base Divine Magic"] },
+    "Casting: tuning":                    { "dependsOn": ["Base Magic"] },
+    "Casting: Hermetic":                  { "dependsOn": ["Base Magic"] },
+    "Casting and invoking for creatures": { "dependsOn": ["Base Magic", "Base Divine Magic", "Creature actor type"] },
     "Per-subsystem magic":                { "dependsOn": ["Base Magic", "Base Divine Magic", "Extend extraction"] },
     "Magic & Lore tab":                   { "dependsOn": ["Extend extraction", "Skills module", "Design content/compendium layer"], "note": "The lore side of Layer 4, built ahead of the deferral at the user's request; casting is still Base Magic's." },
     "Starting lore":                      { "dependsOn": ["Magic & Lore tab", "Character Generation"] },

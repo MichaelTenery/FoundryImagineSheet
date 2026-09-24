@@ -135,15 +135,46 @@ import { CASTING_SKILLS } from "./lore-tables.mjs";
 		var tmpspells = tmpbykind("spell");
 		var tmpcasting = CASTING_SKILLS.map(tmpname => tmpstanding(tmpname)).filter(tmps => tmps.held)
 			.sort((a, b) => b.chance - a.chance)[0] ?? null;
+		// How far the character has come as a caster -- derived on the actor (actor-character.mjs
+		// _prepareMagic, from casting-rules.mjs); an actor prepared without it reads as no caster.
+		var tmpaura = tmpsystem.magic?.aura ?? {};
+		var tmpcontrol = parseInt(tmpaura.control) || 0;
+		tmppanel.aura = {
+			isCaster: !!tmpaura.isCaster,
+			control: tmpcontrol,
+			controlMax: parseInt(tmpaura.controlMax) || 0,
+			controlTooltip: (tmpaura.controlParts ?? []).map(tmppart => `${tmppart.label} ${tmppart.value > 0 ? "+" : ""}${tmppart.value}`).join(", ")
+				+ (tmpaura.controlCapped ? ` (held to ${tmpaura.controlMax} at this title)` : ""),
+			pool: tmpaura.pool ?? { current: 0, full: 0, drained: 0 },
+			regen: tmpaura.regen ?? "",
+			absorbAura: parseInt(tmpaura.absorbAura) || 0,
+			fatigueWarning: !!tmpaura.fatigueWarning,
+			suppressed: !!tmpsystem.magic?.magicSuppressed,
+			halfMagic: !!tmpsystem.magic?.halfMagic,
+			// The Game Master's two figures, stored (his additional_aura and aura_control_boost).
+			additional: parseInt(tmpsystem.magic?.additionalAura) || 0,
+			boost: parseInt(tmpsystem.magic?.auraControlBoost) || 0,
+			hermetic: tmpcasting?.name == "Hermetic Lore"
+		};
 		tmppanel.spells = {
-			show: isKindEnabled("spell", tmprules) && (tmpspells.length > 0 || !!tmpcasting),
+			show: isKindEnabled("spell", tmprules) && (tmpspells.length > 0 || !!tmpcasting || !!tmpaura.isCaster),
 			casting: tmpcasting,
-			rows: tmpspells.map(tmpitem => ({
-				id: tmpitem.id ?? tmpitem._id, name: tmpitem.name, level: parseInt(tmpitem.system?.level) || 0,
-				memTime: tmpitem.system?.memTime ?? "", castTime: tmpitem.system?.castTime ?? "",
-				range: tmpitem.system?.range ?? "", duration: tmpitem.system?.duration ?? "",
-				memorized: !!tmpitem.system?.memorized, tooltip: plainText(tmpitem.system?.description)
-			}))
+			rows: tmpspells.map(tmpitem => {
+				var tmplevel = parseInt(tmpitem.system?.level) || 0;
+				var tmpeffectivecontrol = tmpcontrol + (tmpitem.system?.mastered ? 2 : 0);
+				var tmpfailper = parseInt(tmpitem.system?.fail) || 0;
+				return {
+					id: tmpitem.id ?? tmpitem._id, name: tmpitem.name, level: tmplevel,
+					memTime: tmpitem.system?.memTime ?? "", castTime: tmpitem.system?.castTime ?? "",
+					range: tmpitem.system?.range ?? "", duration: tmpitem.system?.duration ?? "",
+					save: tmpitem.system?.save ?? "",
+					memorized: !!tmpitem.system?.memorized, mastered: !!tmpitem.system?.mastered,
+					// Above Aura Control: his fail figure for every level over, as the cast will roll it.
+					aboveControl: tmplevel > tmpeffectivecontrol,
+					failChance: (tmplevel > tmpeffectivecontrol && tmpfailper > 0) ? Math.min(100, tmpfailper * (tmplevel - tmpeffectivecontrol)) : 0,
+					tooltip: plainText(tmpitem.system?.description)
+				};
+			})
 		};
 		if (!tmppanel.spells.show && isKindEnabled("spell", tmprules)) {
 			tmppanel.otherLore.push({ what: "spell", label: "Spells" });
@@ -151,17 +182,37 @@ import { CASTING_SKILLS } from "./lore-tables.mjs";
 
 		var tmpinvocations = tmpbykind("invocation");
 		var tmpknowledge = INVOKING_SKILLS.map(tmpname => tmpstanding(tmpname)).find(tmps => tmps.held) ?? null;
+		var tmppiety = tmpsystem.magic?.piety ?? {};
+		tmppanel.piety = {
+			isInvoker: !!tmppiety.isInvoker,
+			control: parseInt(tmppiety.control) || 0,
+			level: parseInt(tmppiety.level) || 0,
+			controlTooltip: (tmppiety.controlParts ?? []).map(tmppart => `${tmppart.label} +${tmppart.value}`).join(", "),
+			denial: !!tmpsystem.magic?.divineDenial,
+			boost: parseInt(tmpsystem.magic?.pietyLevelBoost) || 0,
+			devotions: tmpsystem.magic?.devotions ?? "",
+			ignoreDevotions: !!tmpsystem.magic?.ignoreDevotions
+		};
 		tmppanel.invocations = {
-			show: isKindEnabled("invocation", tmprules) && (tmpinvocations.length > 0 || !!tmpknowledge),
+			show: isKindEnabled("invocation", tmprules) && (tmpinvocations.length > 0 || !!tmpknowledge || !!tmppiety.isInvoker),
 			knowledge: tmpknowledge,
 			rows: tmpinvocations.map(tmpitem => ({
 				id: tmpitem.id ?? tmpitem._id, name: tmpitem.name, level: parseInt(tmpitem.system?.level) || 0,
 				alignment: tmpitem.system?.alignment ?? "", prayerTime: tmpitem.system?.prayerTime ?? "",
 				invokeTime: tmpitem.system?.invokeTime ?? "", uses: tmpitem.system?.uses ?? "",
+				usesLeft: parseInt(tmpitem.system?.usesLeft) || 0,
 				duration: tmpitem.system?.duration ?? "",
+				// A Piety Level above Piety Control cannot be prayed for (his handlePrayForInvocation).
+				overControl: (parseInt(tmpitem.system?.level) || 0) > (parseInt(tmppiety.control) || 0),
 				memorized: !!tmpitem.system?.memorized, tooltip: plainText(tmpitem.system?.description)
 			}))
 		};
+
+		// @MARKER RUNNING ON THE CHARACTER
+		// His effects list, "Spell: Fly, Invoke: Chill" -- what the character has cast or invoked on
+		// themselves and is still running. A cross ends one (his standardSpellRemovalEffect, by hand).
+		tmppanel.effects = ("" + (tmpsystem.magic?.effectList ?? "")).split(",").map(tmpe => tmpe.trim())
+			.filter(tmpe => tmpe && tmpe != "None");
 		if (!tmppanel.invocations.show && isKindEnabled("invocation", tmprules)) {
 			tmppanel.otherLore.push({ what: "invocation", label: "Invocations" });
 		}

@@ -72,10 +72,10 @@ that. Leaving it written down also keeps a deferral from turning into a silent o
 
 Coverage is currently **JS/Python code only** (`module/` and `tools/`, via AST extraction — no LLM key needed). `styles/`, `templates/`, `packs/`, `lang/`, and the top-level docs are *not* in the graph yet: Graphify's semantic extraction for non-code files (markdown, JSON-as-data, HBS templates) needs an LLM API key set as an env var (`ANTHROPIC_API_KEY` etc.) that isn't configured — that's a separate credential from this session's own access, ask the user before setting one. `docs/reference/` (rulebook dumps) is deliberately excluded regardless — local-only, and too large to be worth it. `src/packs` (raw compendium data) is excluded as noise, not architecture.
 
-To rebuild after code changes:
+To rebuild after code changes (the installed Graphify's command is `update`; `extract` now exits silently and writes nothing — found 2026-09-24):
 ```
-graphify extract ./module --code-only
-graphify extract ./tools --code-only
+graphify update ./module --no-cluster
+graphify update ./tools --no-cluster
 graphify merge-graphs ./module/graphify-out/graph.json ./tools/graphify-out/graph.json --out graphify-out/graph.json
 ```
 Note: the `graphify.exe` shim in `.local/bin` can mis-resolve itself on multi-argument or backgrounded invocations (Windows symlink issue) — if `graphify <cmd>` fails oddly, call the venv's `python.exe -m graphify <cmd>` directly instead (find the venv with `pipx environment --value PIPX_LOCAL_VENVS` or under `AppData\Local\pipx\pipx\venvs\graphifyy`). `graphify-out/` (at any depth) is gitignored — the graph is a local cache, not something to commit or treat as source of truth over the code itself.

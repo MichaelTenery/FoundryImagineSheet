@@ -1,8 +1,9 @@
 {{!--
 	Spell body. One root element, as every PART must be.
 
-	Every column of his spellslist, as text where he wrote a formula ("5 sec./AUR"). Casting is the
-	deferred magic phase's; this is the spell as the book gives it, and whether it is memorized.
+	Every column of his spellslist, as text where he wrote a formula ("5 sec./AUR"): what the spell does
+	at the Aura put into it is worked out when it is cast (the Magic & Lore tab's Cast button, his own
+	doSpellAction). This is the spell as the book gives it, and whether it is memorized and mastered.
 --}}
 <section class="imagine-item-body spell">
 
@@ -22,6 +23,8 @@
 					<span><input type="text" name="system.fail" value="{{system.fail}}"></span></li>
 				<li><label>Memorized</label>
 					<span><input type="checkbox" name="system.memorized" {{#if system.memorized}}checked{{/if}}></span></li>
+				<li><label data-tooltip="+2 Aura Control, half the casting time, three times the range, twice the duration; others resist it at -20%">Mastered</label>
+					<span><input type="checkbox" name="system.mastered" {{#if system.mastered}}checked{{/if}}></span></li>
 			</ul>
 		</div>
 

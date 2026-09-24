@@ -26,8 +26,8 @@
 // some of them change the character (Badger Thorn adds half Endurance). Those switches run to many
 // thousands of lines and are a port of their own; until it is done a use reports the roll, the
 // practitioner title and the entry's own description, and leaves the effect to the Game Master.
-// Spells and invocations are the same, and more so: casting needs Aura and Piety Control, which
-// belong to the deferred magic phase (CLAUDE.md, Layer 4).
+// Spells and invocations are cast and invoked through their own switches, his doSpellAction and
+// doInvocationAction, carried across whole: see module/casting-rules.mjs.
 //
 // Dice are passed in as a function (tmpRoll(sides) -> 1..sides), never taken from Math.random here,
 // so every rule can be tested with known dice -- the same practice as the combat and generation rules.

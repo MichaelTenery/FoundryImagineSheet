@@ -1987,3 +1987,66 @@ your sheet spell the race Brachara. As the sheet runs, a Brachara falls through 
 **What the port does:** looks a Brachara up under your kit switches' spelling
 (`KIT_RACE_SPELLINGS` in module/starting-kit.mjs), so it gets the kit those cases give. If the
 switches are corrected, the alias does no harm.
+
+## 71. Spell Lore's +2 Aura Control is counted twice
+
+**Status:** open · **Severity:** medium — every caster class that gains Spell Lore casts at +2 Aura Control more than the book gives
+
+The Player's Guide says of Spell Lore, "Acquiring this skill gives +2 Aura Control" (p.132). Your sheet
+gives it in two places. `getOtherTitleImprovements` (sheet-worker.js:95997) adds a one-off +2 into
+`aura_control_added` on the title `getSpellLoreWhen` names ("only when first acquiring Spell Lore do they
+get a +2 Aura Control ... in addition to their usual +2"). Then `setMagicDivineLore` (96635) adds
+`spellLoreBonus = 2` again, on every recalculation, whenever `checkForClassSkill("Spell Lore")` finds it.
+So a Mage reaching title 7 goes from 12 to 18, not 16. **What the port does:** follows your sheet (both
++2s), by the source-of-truth rule, and tests it (`tools/casting-test.html`). If one of them should go,
+it is one line in `getAuraControl` (module/casting-rules.mjs).
+
+## 72. Regenerating Aura by hours does nothing at "1/per Hour"
+
+**Status:** open · **Severity:** small — a caster below their casting title, or anyone at practitioner title 0
+
+`regenAuraPoolByTime` (sheet-worker.js:161036) handles time in hours only for rates per second, per ten
+minutes and per minute. Your slowest rate, "1/per Hour" (practitioner title 0), has no branch, so eight
+hours of rest regenerate nothing and the message says "Not enough time passed". **What the port does:**
+counts it, one point an hour times the rate's number, which is what the rate says
+(`regenAuraByTime`). The Reset pool button does what a full night's rest does either way.
+
+## 73. Raging and Continuous Chaos never cast a spell of two words
+
+**Status:** open · **Severity:** small — two of the rarer mishaps
+
+`useSpell` (161798, 161825) takes the random spells a Raging Chaos or Continuous Chaos mishap lists
+and runs `replaceAll(" ","")` over the whole list before looking each one up. That joins "Finger of
+Fire" into "FingerofFire", which `getSpellDetails` does not know, so `doSpellAction` answers "do
+nothing (Missing Spell Details)" for every spell whose name has a space. **What the port does:** reads
+the names whole, so every spell on the list is cast.
+
+## 74. Sand Form ends in "breakAcid", so it can never be cast
+
+**Status:** open · **Severity:** medium — one spell does not work at all
+
+In `doSpellAction`, the case for Sand Form (sheet-worker.js:167548) ends with the line `breakAcid`
+where `break;` belongs. JavaScript reads that as a variable, and reading a name that was never declared
+throws, so casting Sand Form on your sheet stops with an error. **What the port does:** this is the one
+correction the extractor makes to the code it carries across (`CORRECTIONS` in
+tools/extract/extract_casting.py). It writes `break;`, marked in the generated code. Without it, the
+port would run straight on into the Aura of Acid case below.
+
+## 75. divideWithMinAndMax never applies its maximum
+
+**Status:** open · **Severity:** small — some invocations can scale past a cap you meant them to have
+
+`divideWithMinAndMax` (sheet-worker.js:25601) ends with `if (tempValue>tmpMaxValue) { tempValue=>tmpMaxValue; }`.
+`tempValue=>tmpMaxValue` is an arrow function that is built and thrown away, not an assignment, so the
+value is never capped. It is used only in `doInvocationAction`. **What the port does:** keeps it as
+written, since it changes numbers rather than stopping anything; the fix is `tempValue=tmpMaxValue;`.
+
+## 76. A magical missile hit with no note prints the damage type instead of the damage
+
+**Status:** open · **Severity:** small — the chat text only
+
+In `doMagicalAttack` (28196), when a Missile attack hits and has no special note, the line is
+`"causing ("+tempAttackDamage+")="+tempDamageType+" damage."`, which gives "causing (1d6)=Fire
+damage." with the number missing. The INT-save branch and the branch with a note both print it.
+**What the port does:** keeps your text as it is, and shows the rolled number separately on the cast
+card, where the Apply button reads it.

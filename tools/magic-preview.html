@@ -129,8 +129,69 @@ const warrior = await preview({ title: "A new Warrior, who holds no lore: the ta
 	name: "Brom", race: "Human(Civilized:Village)", klass: "Warrior",
 	ratings: { ...high, str: 18, int: 10, knw: 10, wis: 10 }, alignment: "Good", racialSkills: [], seed: 3 });
 
+// @MARKER A CASTER, AND A CAST
+// A Mage of title 5, made the same way, with four spells memorized -- one above her Aura Control --
+// and Aura already spent; then two casts at a targeted Orc through his own code
+// (module/casting-worker.mjs), rendered as the chat card templates/chat/cast-card.hbs.
+const R = await import("../module/casting-rules.mjs");
+const H = await import("../module/casting-helpers.mjs");
+const W = await import("../module/casting-worker.mjs");
+const { getAttackChart } = await import("../module/combat/combat-rules.mjs");
+Handlebars.registerHelper("gt", (a, b) => a > b);
+const cardTemplate = Handlebars.compile(await (await fetch("../templates/chat/cast-card.hbs", { cache: "no-store" })).text());
+
+const mageRace = races.find(r => r.name == "Human(Civilized:Village)");
+const mageClass = classes.find(c => c.name == "Mage");
+const mageAssembled = CR.assembleCharacter({ name: "Corvin Hale", raceNames: [mageRace.name], className: "Mage", alignment: "Neutral",
+	ratings: high, classSkills: CR.getStartingClassSkills(mageClass.system, false), racialSkillNames: [], socialSkillNames: [] }, content, seeded(19));
+mageAssembled.actor.system.identity.title = 5;
+mageAssembled.actor.system.magic = { drainedAura: 4, additionalAura: 0, auraControlBoost: 0, magicSuppressed: false, halfMagic: false,
+	pietyLevelBoost: 0, divineDenial: false, devotions: "", ignoreDevotions: false, effectList: "Spell: Night Vision" };
+const mageSpells = ["Finger of Fire", "Storm of Bolts", "Storm of Arrows", "Fly", "Finger of Cold"].map(n => {
+	const s = structuredClone(spells.find(d => d.name == n)); s.system.memorized = true; return s; });
+mageSpells[4].system.mastered = true;
+let mage = derive(mageAssembled.actor, [...mageAssembled.items, ...mageSpells]);
+const magePanel = V.buildMagicPanel(mage, game.imagine.getAvailabilityRules(), true);
+
+const orc = { uuid: "Actor.orc", name: "Grishnak", system: { resistances: { magic: { value: 35, immune: false } } } };
+const mageAura = mage.system.magic.aura;
+const caster = { name: mage.name, title: 5, practitionerTitle: mageAura.casting?.practitionerTitle ?? 5, className: "Mage",
+	effectList: mage.system.magic.effectList, alignment: "Neutral", int: 17, wil: 15, wis: 18, aur: 17, end: 14,
+	intSave: mage.system.attributes.int.save, wilSave: mage.system.attributes.wil.save, absorbAuraChance: 0,
+	missileMod: mage.system.combat.missileAttack, attackSkill: mage.system.combat.attackSkill,
+	chart: getAttackChart(mage.system.combat.attackSkill), attrs: { title: 5, aura: 17 } };
+let seedState = 5;
+H.setCastingRandom(() => { seedState = (seedState * 1103515245 + 12345) % 2147483648; return seedState / 2147483648; });
+function castCard(spellName, aura, targetRoll) {
+	const spell = mageSpells.find(s => s.name == spellName);
+	const result = R.performSpellCast(W, { name: spell.name, magicName: spell.system.magicName },
+		{ level: spell.system.level, fail: spell.system.fail, aura, castTime: spell.system.castTime, memorized: true,
+		  mastered: spell.system.mastered, auraControl: mageAura.control, auraPool: mageAura.pool.current, title: 5,
+		  auraSave: mage.system.attributes.aur.save, castingSkill: mageAura.casting },
+		caster, { self: false, missileDefense: -1 }, H.getDieRoll);
+	const target = R.resolveTargetResistance({ uuid: orc.uuid, name: orc.name, track: orc.system.resistances.magic },
+		R.getSaveResistance(spell.system.save), spell.system.mastered ? R.MASTERY_RESIST_MOD : 0, targetRoll, result.text + " " + spell.system.description);
+	const card = R.buildCastCard({ uuid: "Actor.mage", name: mage.name }, { kind: "spell", name: spell.name, aura: result.resolved.castAura,
+		outcome: result.outcome, went: result.outcome == "cast", drained: result.drain, text: result.text, attacks: result.attacks,
+		changes: result.changes, effectsAdded: result.effectsAdded, save: spell.system.save, seconds: 10 }, result.outcome == "cast" ? [target] : []);
+	return cardTemplate({ ...card, inCombat: true });
+}
+const mageFrame = document.createElement("div");
+mageFrame.innerHTML = `<div class="chat-title">A Mage of title 5: Aura Control ${mageAura.control}, a pool of ${mageAura.pool.current} of ${mageAura.pool.full};
+	Storm of Bolts (level 17) is above her Aura Control; Finger of Cold is mastered</div>
+	<div class="frame imagine sheet actor character"><div class="frame-title">${mage.name} &mdash; Human Mage, title 5 &mdash; Magic &amp; Lore</div>
+	<div class="window-content">${tabTemplate({ magic: magePanel, tab: { active: true }, actor: { name: mage.name } })}</div></div>
+	<div class="chat-title">Finger of Fire at 10 Aura, cast at a targeted Orc (Magic Resistance 35%, rolls 30: resisted, not by half)</div>
+	<div class="chat">${castCard("Finger of Fire", 10, 30)}</div>
+	<div class="chat-title">Storm of Arrows at 8 Aura: four Aura arrows, each a missile attack, the Orc's defence -1 on each; no save but magical armour's</div>
+	<div class="chat">${castCard("Storm of Arrows", 8, 10)}</div>
+	<div class="chat-title">Storm of Bolts at 8 Aura, six levels above her Aura Control: a 90% chance of a magical mishap</div>
+	<div class="chat">${castCard("Storm of Bolts", 8, 90)}</div>`;
+document.getElementById("previews").appendChild(mageFrame);
+H.setCastingRandom(null);
+
 document.getElementById("status").textContent =
 	`Witch: ${witch.made.added.length} added, groups ${witch.panel.loreGroups.map(g => g.kind).join(", ")}; `
 	+ `Bard: ${bard.made.added.length} added, groups ${bard.panel.loreGroups.map(g => g.kind).join(", ")}; `
-	+ `Warrior: ${warrior.made.added.length} added.`;
+	+ `Warrior: ${warrior.made.added.length} added; Mage: Aura Control ${mageAura.control}, pool ${mageAura.pool.current}/${mageAura.pool.full}.`;
 </script>

@@ -5215,3 +5215,137 @@ whether a Famorian's weapons are made once or kept up with its title is a design
 elements now derive `textContent` from `innerHTML`). `tools/window-test.html` 27/27 and
 `tools/syntax-check.html` clean in a browser. The sheet, creature and item previews render with no
 console errors. **Not verified:** a running V14.
+
+## Casting and invoking: targets, attacks, and his own arithmetic for every spell (2026-09-24)
+
+**Asked for directly:** "while our magic etc tab has spells etc on it, we have no way target others
+with it and perform attacks with offensive spells. also be sure that spells scale with appropriate
+stats and levels." Two questions went to the user first: the model (Opus, the protocol's question),
+and whether invocations came in the same pass or the next (**both now**). This brings the casting
+half of Layer 4 forward, as the Magic & Lore pass brought the lore half (CLAUDE.md defers it until
+the core is done; the user asked for it).
+
+**What "scale with stats and levels" means in his game.** A spell is cast with an amount of Aura the
+caster chooses. Each of his 552 spell cases works out its range, duration, dice and number of bolts
+from that amount ("tempSpellRange1=parseInt(tempSpellAura*5)", "(Aura/2)d6"). The amount is capped by
+**Aura Control**, which grows with the class, the title, Intelligence and Spell Lore, and by the
+**Aura Pool**, which is the Aura attribute. Aura Control is also the highest level cast safely:
+above it, each level adds the spell's fail figure to a chance of a magical mishap. An invocation is
+worked at the invoker's **Piety level**, which grows with class, title and Wisdom. None of the three
+existed in the port, so they are now derived on the character (`_prepareMagic`) from his
+setMagicDivineLore (sheet-worker.js:96635), and they are what scales every spell.
+
+**His code is carried across, not retyped.** doSpellAction (7,800 lines) and doInvocationAction
+(6,300) are hand-written cases, one per spell, every one of them his arithmetic. Retyping them would
+be the largest transcription in the project, with no way to check it. They are already JavaScript;
+what stops them running in Foundry is the platform, not the logic. A new extractor,
+`tools/extract/extract_casting.py`, walks them out of his file by brace depth, follows every
+function of his they call, and writes them into `module/casting-worker.mjs` verbatim, with three
+changes:
+- **His implicit globals are declared.** An ES module is strict, and assigning an undeclared name
+  throws (STYLE.md section 7). They are declared once at MODULE scope, not per function. In his
+  sheet they are one shared set, and a function reading what another left behind still does.
+- **His calls that change the caster are replaced by recorders.** These are setAttrs, modAttrib,
+  standardSpellAddEffect and 30 others, in `module/casting-helpers.mjs`. Roll20's getAttrs
+  callbacks are queued until the case has returned, as Roll20 runs them, so the text his case
+  returns is exactly his.
+- **Math.random is routed through castingRandom**, so Foundry rolls with its own generator and a
+  test can fix the dice.
+
+His per-class functions (Aura Control per title, Spell Lore's title, the ceilings, regeneration,
+devotions) go the same way into the small `module/casting-titles.mjs`, read on every prepare. The
+worker is about 1.5 MB, so it is imported the first time anything is cast, not at load. **The
+proof:** the test runs every spell and invocation in the built packs, at four Aura levels and three
+Piety levels, on self and on another, 7,160 runs. None throws, prints "undefined" or "NaN", or is
+missing from his switch.
+
+**One correction to his code, and only one.** Sand Form's case ends in `breakAcid` where `break;`
+belongs. Reading an undeclared name throws, so on his sheet the spell cannot be cast; declared, it
+would fall into Aura of Acid. The extractor makes that one edit, marked in the generated code, and
+refuses to run if it ever stops matching exactly once. Slips that only change a number are followed
+and reported instead (UPSTREAM 71, 75, 76).
+
+**Targeting, which his sheet could not do.** Roll20 never knew who a spell was aimed at, so his text
+says "MR is used to avoid damage" and leaves the rest to the table. Here the Cast and Invoke dialogs
+take the tokens the user has targeted (or oneself, or an area), and three things follow:
+- **His doMagicalAttack records each bolt, dart or finger** as well as writing his words. A Missile
+  is a d20 plus the caster's missile modifier down their own attack chart; it now also takes the
+  target's defensive adjustment when there is one target, as a missile weapon does on the port's
+  attack card. An INT attack is a d100 against the caster's Intelligence save.
+- **Each target rolls the resistance the spell's Save column names**, at -20% against a mastered
+  spell (his mastery text). The share of damage that leaves them is read from the spell's own words,
+  his and the book's together (`getResistedFraction`):
+  - a failure takes all of it;
+  - a success by half takes none;
+  - a success not by half takes half where the spell says so (the Finger spells);
+  - the Aura daggers, arrows and bolts take all of it whatever the roll: "no save at all except for
+    magical armor".
+- **Each hit is applied from the card** through the weapon attack's own damage pipeline:
+  - pain threshold, magical protection, armour, hide and absorption. `applyAttackDamage`'s body
+    became `applyBlowToActor`, shared, with the poison coating passed in as a hook so its message is
+    unchanged;
+  - the armour tick defaults from his note ("bypassing non-magic armor", "leather absorbs 1 for 1");
+  - spell damage types map to his body-damage types (Fire is Flame, Cold is Frost, Magical is
+    Aura/Divine);
+  - against an invulnerable target the dialog asks for the "magical plus", since a spell has none
+    of its own (+5 lands in full). That is the Game Master's call, not a rule.
+
+  Damage a spell does with no attack of its own (a storm, a blast) gets an Apply per target with the
+  amount left to the Game Master, read off his text above it.
+
+**What a cast does to the caster.** Applied:
+- the Aura drained;
+- the effects list ("Spell: Fly", his tmp_effect_list, which his cases read to refuse a second copy),
+  shown on the tab with a cross to end each;
+- Arcane Pact's suppression and Aura Fatigue's half magic;
+- Loss of Spell unticking the spell.
+
+Everything else his cases change is listed on the card in words ("Missile to hit (temporary): 0 to 2"),
+for the Game Master: +2 to hit, invisibility, Force Armor, -1 Aura. The port keeps those figures in
+different places, and mapping each one is its own row on the board.
+
+**Ported line for line** (casting-rules.mjs), each with its outcomes in his order:
+- his useSpell: not memorized, suppressed, no Aura, the fail roll and mishap, more than Aura Control,
+  more than the pool, the Sorcerer's Arcane Pact roll, half magic, Aura Fatigue, mastery;
+- his mishap block: Backfire, Double Backfire, the Chaos family, Incineration, Explosion;
+- useInvocation;
+- the prayer and the repray: alignment, Piety Control, memory, devotion, Divine Knowledge, Divine
+  Denial;
+- his uses formula;
+- regeneration by time.
+
+**Three calls that were the port's to make:**
+- **Aura Control is SUMMED, not accumulated.** His sheet adds each title's figure into
+  aura_control_added at the title-up; the port adds the same figures over the same titles, which is
+  the same number for anyone who advanced a title at a time, and cannot drift. Piety Control the
+  same.
+- **His half magic returns a string** ("3") that his later sums would join rather than add; the port
+  keeps the number.
+- **Regeneration by hours at "1/per Hour"** had no branch in his code; one is added (UPSTREAM 72).
+
+**Two of his that are followed though they look like slips:**
+- **Spell Lore's +2 Aura Control is counted twice**, once at the title and once while held
+  (UPSTREAM 71). The book says once; his sheet wins.
+- **doMagicalAttack's hit line prints the damage type where the number goes** (UPSTREAM 76). The card
+  shows the number beside it.
+
+Raging and Continuous Chaos read their list whole where his code squashes the spaces out, which made
+every two-word spell uncastable (UPSTREAM 73).
+
+**Not built, each on the board:**
+- spell tuning (speed, stabilize, overload, Aura reach, burning Aura), combined casting and
+  specialization;
+- Hermetic rituals: a Hermeticist is told so, and nothing is cast;
+- the days a memorized spell lasts;
+- a creature casting;
+- applying his other changes to the caster.
+
+**Verified:**
+- `tools/casting-test.html`, 79 checks, including the book's worked example. A Gray Witch, Scroll
+  Knowledge at 4th title, is 10 at 8th (Player's Guide p.216).
+- Every suite headless: 18 suites, 2,254 checks, all passing.
+- `tools/magic-preview.html` renders a real title 5 Mage (Aura Control 11, pool 13 of 17) and three
+  real cast cards against a targeted Orc, with no console errors.
+
+**Not verified:** anything needing a running V14: the dialogs, the updates, the card's buttons, the
+round clock spend.
