@@ -36,7 +36,11 @@
 //      ("add all bonuses listed next to the social skill to those skills as well") all say it should.
 //   2. UPSTREAM 52: getExtraSocialMods hands getRaceClassSocialMod the whole racial-skill ARRAY, so a
 //      racial skill never lifts a social one. Here each racial AND class skill held is asked in turn,
-//      as his own later getNewSocialSkillModifier does (125673-125679).
+//      as his own later getNewSocialSkillModifier does (125673-125679). That function reads EVERY
+//      title's class-skill rows, class_skill_1_1 to class_skill_15_1 (125658), and his sheet has them
+//      all from creation (63288 onward) -- so at creation the class skills asked are every title's,
+//      and an Assassin's Disguise, which arrives at title 2, lifts Acting from the start. The later
+//      grant (class-advancement.mjs) never goes back to a social skill: it was counted already.
 //   3. The "only the excess" rule is skipped when the trait switch gave nothing. As written it turns
 //      a published race penalty into a bonus: a Brok's Tame Animal -10% becomes 0 - (-10) = +10.
 //   4. The Loud disability takes Surprise Attack -20. His sheet writes "tmp_tmp_disabilities_loud"
@@ -80,9 +84,17 @@ import { SOCIAL_SKILL_RACE_MODS, SOCIAL_FROM_SOCIAL_BONUS, SOCIAL_TO_RACE_CLASS_
 	//   famorianEvokes    the evoke keys a Famorian took ("climbing", "hooves" ...), or nothing
 	//   title             the title the skill is gained at, for Instinct(Navigation)
 	//   socialSkillNames, racialSkillNames, classSkillNames   the skills held, by name
+	//   laterClassSkills  [{ name, title }]: the class's skills of titles 2 and up, which his sheet
+	//                     already holds AT CREATION (setFinalClassSkills writes every title's rows,
+	//                     63288 onward) -- given only by character creation; see assembleCharacter
 	//
 	// The abilities and disabilities are every race's, joined: his flags (abilities_climbing and the
 	// rest) are set from the whole race line-up, and a Half Race holds both parents' traits.
+	//
+	// The evokes count only while a race is a Famorian one, as the character's own model reads them
+	// (module/data/actor-character.mjs, @MARKER FAMORIAN). Nothing clears physical.famorian.evokes
+	// when a race item is swapped on the sheet, so a Famorian made Human still carries its old evoke
+	// keys -- and they must not reach a later title's Climb or Listen.
 	export function buildSkillModContext(tmpParts) {
 		var tmpRaceDocs = (tmpParts?.raceDocs ?? []).filter(tmpDoc => tmpDoc);
 		var tmpAbilities = [];
@@ -91,15 +103,32 @@ import { SOCIAL_SKILL_RACE_MODS, SOCIAL_FROM_SOCIAL_BONUS, SOCIAL_TO_RACE_CLASS_
 			for (const tmpName of tmpDoc.system?.abilities ?? []) { if (!tmpAbilities.includes(tmpName)) { tmpAbilities.push(tmpName); } }
 			for (const tmpName of tmpDoc.system?.disabilities ?? []) { if (!tmpDisabilities.includes(tmpName)) { tmpDisabilities.push(tmpName); } }
 		}
+		var tmpIsFamorian = tmpRaceDocs.some(tmpDoc => tmpDoc.system?.famorian?.isFamorian);
+		var tmpRacialSkills = [...(tmpParts?.racialSkillNames ?? [])].filter(tmpName => tmpName);
+		var tmpClassSkills = [...(tmpParts?.classSkillNames ?? [])].filter(tmpName => tmpName);
+		// A later title's class skill counts as a class skill held; the title it arrives at is kept
+		// only to say so on the Review step, and only for one the character does not hold already.
+		// A class listing the skill at two titles gives it at the earlier (getClassSkillTitle).
+		var tmpHeldNow = [...tmpRacialSkills, ...tmpClassSkills];
+		var tmpLaterTitles = {};
+		for (const tmpSkill of tmpParts?.laterClassSkills ?? []) {
+			if (!tmpSkill?.name || tmpHeldNow.includes(tmpSkill.name)) { continue; }
+			var tmpTitle = parseInt(tmpSkill.title) || 0;
+			if (!(tmpSkill.name in tmpLaterTitles)) { tmpClassSkills.push(tmpSkill.name); }
+			if (!(tmpSkill.name in tmpLaterTitles) || tmpTitle < tmpLaterTitles[tmpSkill.name]) {
+				tmpLaterTitles[tmpSkill.name] = tmpTitle;
+			}
+		}
 		return {
 			raceName: getSocialModRaceName(tmpRaceDocs[0]),
 			abilities: tmpAbilities,
 			disabilities: tmpDisabilities,
-			evokes: [...(tmpParts?.famorianEvokes ?? [])],
+			evokes: tmpIsFamorian ? [...(tmpParts?.famorianEvokes ?? [])] : [],
 			title: parseInt(tmpParts?.title) || 0,
 			socialSkills: [...(tmpParts?.socialSkillNames ?? [])].filter(tmpName => tmpName),
-			racialSkills: [...(tmpParts?.racialSkillNames ?? [])].filter(tmpName => tmpName),
-			classSkills: [...(tmpParts?.classSkillNames ?? [])].filter(tmpName => tmpName)
+			racialSkills: tmpRacialSkills,
+			classSkills: tmpClassSkills,
+			laterClassSkillTitles: tmpLaterTitles
 		};
 	}
 
@@ -242,7 +271,8 @@ import { SOCIAL_SKILL_RACE_MODS, SOCIAL_FROM_SOCIAL_BONUS, SOCIAL_TO_RACE_CLASS_
 	// skill, besides the race's own modifier:
 	//   #1  each racial and class skill held, asked of getRaceClassSocialMod -- Disguise gives Acting
 	//       and Begging +15, Speak to Animal and Tame Animal each give Animal Training +15 (UPSTREAM
-	//       52, departure 2). A skill held twice counts once.
+	//       52, departure 2). A skill held twice counts once. At creation the class skills are every
+	//       title's (laterClassSkills, departure 2); one not arrived yet says its title in the label.
 	//   #2  Falconry +15 with Animal Training held as a social skill AND Speak to Animal or Tame Animal
 	//       held as a RACIAL skill -- his loop reads raceskills only (57615-57618).
 	//   #3  each social skill held that his table lists as lifting this one.
@@ -258,8 +288,11 @@ import { SOCIAL_SKILL_RACE_MODS, SOCIAL_FROM_SOCIAL_BONUS, SOCIAL_TO_RACE_CLASS_
 
 		// #1 racial and class skills
 		for (const tmpHeld of new Set([...tmpRacialHeld, ...(tmpContext?.classSkills ?? [])])) {
+			var tmpLater = tmpContext?.laterClassSkillTitles?.[tmpHeld];
 			for (const [tmpGiver, tmpPercent] of RACE_CLASS_TO_SOCIAL_BONUS[tmpSkillName] ?? []) {
-				if (matchesSkillName(tmpGiver, tmpHeld)) { tmpAdd(tmpHeld, tmpPercent); }
+				if (matchesSkillName(tmpGiver, tmpHeld)) {
+					tmpAdd(tmpLater ? `${tmpHeld} (class skill, title ${tmpLater})` : tmpHeld, tmpPercent);
+				}
 			}
 		}
 

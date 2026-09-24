@@ -23,6 +23,13 @@
 // onward), with the same terms; granting them when the title arrives is the port's, and reads the
 // social skills the character holds by then.
 //
+// The other way round -- a class skill lifting a social skill already held, Disguise giving Acting
+// +15 -- is NOT done here, and no held skill is touched for it: character creation counted it
+// already, from every title's class skills, since his sheet holds them all from creation and his
+// getNewSocialSkillModifier reads every title's rows (125658; chargen-rules.mjs assembleCharacter).
+// A class added to the character later -- a dual class, which his sheet has no provision for
+// (DECISIONS 2026-09-16) -- therefore lifts no social skill the character holds.
+//
 // WHAT IT NEVER DOES. It never removes a skill, never touches one the character already holds, and
 // never grants past a class's skill list. Slots it does not police either: the slot panel already
 // reports an overrun, and his own sheet marks the excess "REMOVED" rather than refusing the title.
@@ -136,11 +143,14 @@ const granting = new Set();
 	// class skill granted at title 7 takes the same terms it would have at creation.
 	//
 	// The race items are the actor's own, first race first (a Half Race's first race is the one his
-	// social tables read); their abilities and disabilities are joined, as at creation. The title is
-	// 1, the creation title: his Famorian Instinct(Navigation) is fixed when the character is made
-	// (53495-53497, and his sheet rolled every title's class skills then) -- the recommended default,
-	// taken 2026-09-23 while the user was away and provisional until confirmed (DECISIONS.md). A GME
-	// never reaches here -- it has no class skills to grant.
+	// social tables read); their abilities and disabilities are joined, as at creation. The Famorian
+	// evokes are handed over as stored, and buildSkillModContext drops them unless one of those race
+	// items is still a Famorian -- nothing clears them when the race is swapped on the sheet.
+	//
+	// The title is 1, the creation title: his Famorian Instinct(Navigation) is fixed when the
+	// character is made (53495-53497, and his sheet rolled every title's class skills then) -- the
+	// recommended default, taken 2026-09-23 while the user was away and provisional until confirmed
+	// (DECISIONS.md, 2026-09-23). A GME never reaches here -- it has no class skills to grant.
 	export function getActorSkillModContext(tmpactor) {
 		var tmpitems = [...(tmpactor?.items ?? [])];
 		var tmpskills = tmpitems.filter(tmpitem => tmpitem.type == "skill");

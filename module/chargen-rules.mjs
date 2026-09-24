@@ -24,6 +24,7 @@ import { chooseBestArmor } from "./equip-rules.mjs";
 import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapons.mjs";
 import { buildSkillModContext, getSocialSkillRaceMod, getExtraSocialMods, getExtraClassRacialMods,
 	describeSkillBonusParts } from "./social-skill-rules.mjs";
+import { getEveryClassSkill } from "./class-rules.mjs";
 
 	// The twelve attributes, in the order his sheet and the Player's Guide list them.
 	export const ATTRIBUTE_ORDER = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "pty", "wil"];
@@ -434,13 +435,24 @@ import { buildSkillModContext, getSocialSkillRaceMod, getExtraSocialMods, getExt
 		// of the character's skills is known up front, from the choices, so each skill's terms can be
 		// worked out in any order; none of them reads another skill's chance. The title is the one the
 		// character starts at, which is all his Famorian Instinct(Navigation) ever used (53495).
+		//
+		// The class skills a SOCIAL skill is lifted by are every title's, not the first title's alone
+		// (laterClassSkills): his sheet writes every title's class skills at creation (63288 onward)
+		// and his getNewSocialSkillModifier reads them all (125658). So an Assassin's Disguise, which
+		// it gains at title 2, gives Acting its +15 now, and the grant at title 2 leaves Acting alone.
+		// Nothing else here reads the class skills. Which of a caster/non-caster pair is this
+		// character's is the generator's cannotCast; without it, the races' own disabilities.
+		var tmpCannotCast = tmpChoices.cannotCast ?? tmpRaceDocs.some(tmpDoc =>
+			(tmpDoc.system?.disabilities ?? []).includes("Cannot Cast Spells"));
 		var tmpModContext = buildSkillModContext({
 			raceDocs: tmpRaceDocs,
 			famorianEvokes: tmpChoices.famorian?.evokes,
 			title: tmpNonClassed ? 0 : 1,
 			socialSkillNames: tmpChoices.socialSkillNames,
 			racialSkillNames: tmpChoices.racialSkillNames,
-			classSkillNames: tmpNonClassed ? [] : (tmpChoices.classSkills ?? []).map(tmpSkill => tmpSkill.name)
+			classSkillNames: tmpNonClassed ? [] : (tmpChoices.classSkills ?? []).map(tmpSkill => tmpSkill.name),
+			laterClassSkills: (tmpNonClassed || !tmpClassDoc) ? []
+				: getEveryClassSkill(tmpClassDoc.system, tmpCannotCast).filter(tmpSkill => tmpSkill.title > 1)
 		});
 		var tmpContextFor = (tmpName) => ({ ...tmpModContext, skillName: tmpName });
 

@@ -148,6 +148,42 @@ check("a Changeling's Acting: race +15 and a racial Disguise +15",
 	C.getSocialSkillBonuses({ startingDice: "" }, always(1),
 		{ ...ctx({ raceDocs: [race("Changeling")], racialSkillNames: ["Disguise"] }), skillName: "Acting" }).abilityBonus, 30);
 
+// --- a later title's class skills, at creation --------------------------------------------------
+// His sheet writes every title's class skills at creation (63288) and his getNewSocialSkillModifier
+// reads every title's rows (125658), so a class skill lifts a social skill whatever title it comes at.
+check("a class Disguise lifts Acting the same whether it is held now or comes at title 2; the label says which",
+	[S.getExtraSocialMods("Acting", ctx({ classSkillNames: ["Disguise"] })).parts,
+	 S.getExtraSocialMods("Acting", ctx({ laterClassSkills: [{ name: "Disguise", title: 2 }] })).parts],
+	[[{ label: "Disguise", percent: 15 }], [{ label: "Disguise (class skill, title 2)", percent: 15 }]]);
+check("...held as a racial skill as well, it counts once, as the racial skill it already is",
+	S.getExtraSocialMods("Acting", ctx({ racialSkillNames: ["Disguise"], laterClassSkills: [{ name: "Disguise", title: 2 }] })).parts,
+	[{ label: "Disguise", percent: 15 }]);
+const assassinMade = (() => {
+	const klass = classes.find(c => c.name === "Assassin");
+	const out = C.assembleCharacter({ name: "Test", raceNames: ["Human(Civilized:Village)"], className: "Assassin",
+		classSkills: C.getStartingClassSkills(klass.system, false), racialSkillNames: [], socialSkillNames: ["Acting", "Begging"],
+		ratings: Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 12])), languages: [] }, content, always(1));
+	return out;
+})();
+const bonusEntry = (out, name) => out.skillBonuses.find(b => b.name === name);
+check("an Assassin, who gains Disguise at title 2, starts with Acting and Begging lifted +15 by it",
+	["Acting", "Begging"].map(n => bonusEntry(assassinMade, n).parts.find(p => p.label.startsWith("Disguise"))),
+	[{ label: "Disguise (class skill, title 2)", percent: 15 }, { label: "Disguise (class skill, title 2)", percent: 15 }]);
+check("...on top of the race's own modifier, as a title-1 class skill would be",
+	bonusEntry(assassinMade, "Acting").abilityBonus,
+	S.getSocialSkillRaceMod("Acting", "Human(Civilized:Village)").percent + 15);
+check("...but is not given Disguise itself before title 2",
+	assassinMade.items.some(i => i.type === "skill" && i.name === "Disguise"), false);
+
+// --- a Famorian's evokes need a Famorian race --------------------------------------------------------
+check("the evokes count with a Famorian race and not without one (a race swapped on the sheet leaves them stored)",
+	[S.buildSkillModContext({ raceDocs: [race("Famorian")], famorianEvokes: ["climbing"] }).evokes,
+	 S.buildSkillModContext({ raceDocs: [race("Human(Civilized:Village)")], famorianEvokes: ["climbing"] }).evokes],
+	[["climbing"], []]);
+check("...a Famorian half race still counts them",
+	S.buildSkillModContext({ raceDocs: [race("Human(Civilized:Village)"), race("Famorian")], famorianEvokes: ["climbing"] }).evokes,
+	["climbing"]);
+
 // --- Falconry and Swimming ----------------------------------------------------------------------
 const gryph = (racial, social) => C.getSocialSkillBonuses({ startingDice: "" }, always(1),
 	{ ...S.buildSkillModContext({ raceDocs: [race("Gryphara")], racialSkillNames: racial, socialSkillNames: social }), skillName: "Falconry" }).abilityBonus;
@@ -253,6 +289,7 @@ check("the Review lists each skill's bonus and what it is made of",
 // 18. A Bandit-like class owing Disguise at title 2, on a character holding Acting and Cosmetics.
 skillPack = { getDocuments: async () => skills.map(d => ({ ...d, toObject: () => structuredClone(d) })) };
 const created = [];
+const updated = [];
 const classItem = { id: "cls1", type: "class", name: "Tester",
 	system: { classMods: [], advancement: { classSkillList: [{ title: 2, name: "Disguise", core: false, requires: "" }] } } };
 const skillItem = (name, category) => ({ id: "s" + name, type: "skill", name, system: { category } });
@@ -261,7 +298,8 @@ const actor = {
 	items: [classItem, race("Human(Civilized:Village)"), skillItem("Acting", "social"), skillItem("Cosmetics", "social")],
 	system: { identity: { cannotCast: false, classProgression: [{ id: "cls1", title: 2, owed: [{ name: "Disguise" }] }] },
 	          physical: { famorian: { evokes: [] } } },
-	createEmbeddedDocuments: async (type, docs) => { created.push(...docs); }
+	createEmbeddedDocuments: async (type, docs) => { created.push(...docs); },
+	updateEmbeddedDocuments: async (type, updates) => { updated.push(...updates); }
 };
 actor.items[1] = { ...actor.items[1], id: "r1", type: "race" };
 actor.items.get = (id) => actor.items.find(i => i.id === id);
@@ -271,6 +309,27 @@ check("the actor's context names its race and its skills by category",
 const granted = await G.grantClassSkills(actor, { notify: false });
 check("18. a class skill granted at title 2 takes the social skills held: Disguise +15 +10",
 	[granted.granted, created.find(d => d.name === "Disguise")?.system.abilityBonus], [["Disguise"], 25]);
+check("...and leaves Acting, already held, alone: Disguise's +15 to it was counted when the character was made",
+	updated, []);
+
+// A Famorian who took the Climbing evoke, then had its race item swapped for a Human's on the sheet:
+// the evoke keys are still stored, and must not give a title-2 Climb its +40.
+const created2 = [];
+const climber = {
+	id: "a2", type: "character", name: "Ex-Famorian",
+	items: [{ id: "cls2", type: "class", name: "Tester",
+	          system: { classMods: [], advancement: { classSkillList: [{ title: 2, name: "Climb", core: false, requires: "" }] } } },
+	        { ...race("Human(Civilized:Village)"), id: "r2", type: "race" }],
+	system: { identity: { cannotCast: false, classProgression: [{ id: "cls2", title: 2, owed: [{ name: "Climb" }] }] },
+	          physical: { famorian: { evokes: ["climbing"] } } },
+	createEmbeddedDocuments: async (type, docs) => { created2.push(...docs); }
+};
+climber.items.get = (id) => climber.items.find(i => i.id === id);
+check("a character no longer of a Famorian race has no evokes in its context",
+	G.getActorSkillModContext(climber).evokes, []);
+await G.grantClassSkills(climber, { notify: false });
+check("...so a Climb granted at title 2 takes no +40 from the stale Climbing evoke",
+	created2.find(d => d.name === "Climb")?.system.abilityBonus, 0);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;

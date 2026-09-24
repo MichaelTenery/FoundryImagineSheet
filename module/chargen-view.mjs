@@ -535,6 +535,9 @@ import {
 			raceNames: tmpDerived.raceNames, className: tmpState.className,
 			ratings: tmpDerived.ratings,
 			classSkills: tmpDerived.classSkills,
+			// which of a caster/non-caster pair of class skills is this character's, at every title --
+			// read for the later titles' skills that lift a social skill (assembleCharacter)
+			cannotCast: tmpDerived.cannotCast,
 			racialSkillNames: tmpState.racialSkillNames, socialSkillNames: tmpState.socialSkillNames,
 			chosenAttackSkill: tmpState.chosenAttackSkill,
 			handedness: tmpState.handedness, age: tmpState.age, famorian: tmpState.famorian,
