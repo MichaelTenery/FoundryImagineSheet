@@ -14,6 +14,7 @@
 
 import { rollWeaponAttack } from "../combat/attack.mjs";
 import { chooseBestArmor } from "../equip-rules.mjs";
+import { GEM_TYPES, COIN_TYPES, getWealthInGold, changeCoins, changeValuables } from "../wealth-rules.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
 import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
          getSecondWeaponFlags } from "../combat/combat-rules.mjs";
@@ -107,6 +108,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			deleteItem: ImagineCharacterSheet.#onDeleteItem,
 				removeAllArms: ImagineCharacterSheet.#onRemoveAllArms,
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
+				changeWealth: ImagineCharacterSheet.#onChangeWealth,
 				rollHandedness: ImagineCharacterSheet.#onRollHandedness,
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class.
 			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
@@ -184,6 +186,14 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		// The Situation Mods bar, one line, as his combat page shows it.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
 		tmpcontext.languages = ImagineCharacterSheet.#buildLanguageRows(this.document.system);
+		// @MARKER WEALTH -- his Loose Equipment money panel, on the Equipment tab. module/wealth-rules.mjs.
+		tmpcontext.wealthPanel = {
+			inGold: getWealthInGold(this.document.system.wealth),
+			coinTypes: COIN_TYPES.map(([tmplabel]) => tmplabel),
+			gemTypes: GEM_TYPES,
+			gems: (this.document.system.wealth.gems || "").split(",").map(tmpentry => tmpentry.trim()).filter(tmpentry => tmpentry),
+			jewelry: (this.document.system.wealth.jewelry || "").split(",").map(tmpentry => tmpentry.trim()).filter(tmpentry => tmpentry)
+		};
 		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
@@ -820,6 +830,41 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// This is the function which puts the character in the best armour they own: the strongest
 	// legal set under the layering rules (see module/equip-rules.mjs). Armour already worn but not in
 	// that set is taken off, to carried. Shields and weapons are not touched.
+	// @MARKER WEALTH
+	// This is the function which runs one of his six money buttons: ADD or SUBTRACT on the coins, the
+	// gems or the jewelry row (data-kind, data-mode). The row's inputs carry no name, so typing in
+	// them never writes to the character; they are read here, cleared, and the result goes to chat in
+	// his words, as his buttons post theirs.
+	static async #onChangeWealth(event, target) {
+		event.preventDefault();
+		var tmprow = target.closest(".wealth-update");
+		var tmpread = (tmpfield) => tmprow?.querySelector(`[data-wealth="${tmpfield}"]`)?.value ?? "";
+		var tmpadd = target.dataset.mode == "add";
+		var tmpwealth = this.document.system.wealth;
+		var tmpresult;
+		var tmpupdate = {};
+		var tmptitle = "";
+		if (target.dataset.kind == "coins") {
+			tmptitle = tmpadd ? "Adding Coins" : "Subtracting Coins";
+			tmpresult = changeCoins(tmpwealth, tmpread("type"), tmpread("count"), tmpadd);
+			for (const [tmpkey, tmpvalue] of Object.entries(tmpresult.update)) { tmpupdate["system.wealth." + tmpkey] = tmpvalue; }
+		} else {
+			var tmpgems = target.dataset.kind == "gems";
+			tmptitle = tmpgems ? (tmpadd ? "Adding Gem(s)" : "Subtracting Gem(s)")
+				: (tmpadd ? "Adding Jewelry or other valuables" : "Subtracting Jewelry or other valuables");
+			tmpresult = changeValuables(tmpgems ? tmpwealth.gems : tmpwealth.jewelry, tmpread("name"), tmpread("count"),
+				tmpread("value"), tmpadd, tmpgems ? "gems" : "item(s)");
+			if (tmpresult.ok) { tmpupdate[tmpgems ? "system.wealth.gems" : "system.wealth.jewelry"] = tmpresult.list; }
+		}
+		if (tmpresult.ok) { await this.document.update(tmpupdate); }
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: this.document }),
+			flavor: tmptitle,
+			content: `<div>${tmpresult.message}</div>`
+		});
+		if (!tmpresult.ok) { ui.notifications.warn(tmpresult.message); }
+	}
+
 	static async #onEquipBestArmor(event, target) {
 		event.preventDefault();
 		var tmparmor = this.document.items.filter(tmpitem => tmpitem.type == "armor" && !tmpitem.system.isShield);

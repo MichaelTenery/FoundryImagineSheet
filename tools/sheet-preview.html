@@ -79,6 +79,7 @@ const C = await import("../module/class-rules.mjs");
 const SV = await import("../module/situational-view.mjs");
 const W = await import("../module/weapon-custom-rules.mjs");
 const { buildMagicPanel } = await import("../module/magic-view.mjs");
+const WR = await import("../module/wealth-rules.mjs");
 
 Handlebars.registerHelper("eq", (a, b) => a === b);
 Handlebars.registerHelper("gt", (a, b) => a > b);
@@ -184,7 +185,7 @@ const character = new ImagineCharacterData({
 	            bodyCovering: "", eyes: "Green", skin: "Fair, weathered", age: 24, apparentAge: 24,
 	            maxAge: "90 (Human)" },
 	wealth: { copper: 40, silver: 12, gold: 3, platinum: 0, special: "",
-	          gems: "A cracked blue quartz, uncut", jewelry: "A plain silver band" },
+	          gems: "3 Ruby w/50,1 Opal w/20", jewelry: "1 Plain Silver Band w/12" },
 	// Intelligence 18 allows four slots, two of them writing. The fourth row is left open, as the
 	// Player's Guide allows, and the fifth is one too many and also a third written language --
 	// so both of the allowance's flags are actually rendered here, not only tested.
@@ -321,6 +322,12 @@ const weaponRows = [sword, dagger, garrote].map(w => {
 });
 
 const ctx = {
+	// @MARKER WEALTH -- as #_prepareContext builds it on the real sheet.
+	wealthPanel: {
+		inGold: WR.getWealthInGold(character.wealth),
+		coinTypes: WR.COIN_TYPES.map(([c]) => c), gemTypes: WR.GEM_TYPES,
+		gems: character.wealth.gems.split(",").filter(e => e), jewelry: character.wealth.jewelry.split(",").filter(e => e)
+	},
 	actor: { name: "Calanar Elfriend", img: "" },
 	system: character,
 	attributes: attrRows,

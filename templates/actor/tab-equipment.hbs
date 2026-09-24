@@ -10,6 +10,48 @@
 		<span class="muted">{{system.encumbrance.carried}} / {{system.encumbrance.maxLoad}} lb carried</span>
 	</div>
 
+	{{!-- @MARKER WEALTH
+	      His Loose Equipment money panel: Wealth(in Gold), the coins, gems, jewelry and special, and
+	      his three update rows. The update inputs have no name on purpose -- they are read by the
+	      changeWealth action and never written to the character. The same fields can still be edited
+	      directly on the Description tab. module/wealth-rules.mjs. --}}
+	<div class="wealth-panel">
+		<div class="wealth-line">
+			<span><strong>Wealth (in Gold):</strong> {{wealthPanel.inGold}}</span>
+			<span><strong>Platinum:</strong> {{system.wealth.platinum}}</span>
+			<span><strong>Gold:</strong> {{system.wealth.gold}}</span>
+			<span><strong>Silver:</strong> {{system.wealth.silver}}</span>
+			<span><strong>Copper:</strong> {{system.wealth.copper}}</span>
+		</div>
+		<div class="wealth-line"><strong>Gems:</strong> {{#each wealthPanel.gems as |g|}}<span class="race-chip">{{g}}</span>{{else}}<span class="muted">none</span>{{/each}}</div>
+		<div class="wealth-line"><strong>Jewelry/Other:</strong> {{#each wealthPanel.jewelry as |j|}}<span class="race-chip">{{j}}</span>{{else}}<span class="muted">none</span>{{/each}}</div>
+		<div class="wealth-line"><strong>Special:</strong> {{#if system.wealth.special}}{{system.wealth.special}}{{else}}<span class="muted">none</span>{{/if}}</div>
+
+		<div class="wealth-update">
+			<strong>Update Coins:</strong> Type
+			<select data-wealth="type"><option value=""></option>{{#each wealthPanel.coinTypes as |c|}}<option value="{{c}}">{{c}}</option>{{/each}}</select>
+			No. of Coins <input type="number" min="1" data-wealth="count">
+			<button type="button" data-action="changeWealth" data-kind="coins" data-mode="add">Add</button>
+			<button type="button" data-action="changeWealth" data-kind="coins" data-mode="subtract">Subtract</button>
+		</div>
+		<div class="wealth-update">
+			<strong>Update Gems:</strong> Type
+			<select data-wealth="name"><option value=""></option>{{#each wealthPanel.gemTypes as |g|}}<option value="{{g}}">{{g}}</option>{{/each}}</select>
+			No. of Gems <input type="number" min="1" data-wealth="count">
+			Value/Each <input type="number" min="1" data-wealth="value">
+			<button type="button" data-action="changeWealth" data-kind="gems" data-mode="add">Add</button>
+			<button type="button" data-action="changeWealth" data-kind="gems" data-mode="subtract">Subtract</button>
+		</div>
+		<div class="wealth-update">
+			<strong>Update Jewelry/Other:</strong> Name
+			<input type="text" maxlength="30" data-wealth="name">
+			No. <input type="number" min="1" data-wealth="count">
+			Value/Each <input type="number" min="1" data-wealth="value">
+			<button type="button" data-action="changeWealth" data-kind="jewelry" data-mode="add">Add</button>
+			<button type="button" data-action="changeWealth" data-kind="jewelry" data-mode="subtract">Subtract</button>
+		</div>
+	</div>
+
 	{{!-- Adding gear by hand, for something no compendium holds. Dragging from a compendium still
 	      works and is the better route for anything the system already knows. --}}
 	<div class="gear-add">

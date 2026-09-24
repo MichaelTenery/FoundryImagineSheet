@@ -177,6 +177,7 @@ they run in any browser. As of 2026-09-22 the figures are:
 | Advancement rules | `tools/advancement-test.html` | 101 |
 | Character generation | `tools/chargen-test.html` | 83 |
 | Starting money (rules, and the generator rolling it) | `tools/starting-money-test.html` | 51 |
+| Wealth panel (his money panel on the Equipment tab) | `tools/wealth-test.html` | 22 |
 | Content availability | `tools/availability-test.html` | 46 |
 | Level-up walk (real writing code) | `tools/levelup-walk.html` | 37 |
 | Equip rules | `tools/equip-test.html` | 21 |

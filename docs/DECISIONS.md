@@ -5097,3 +5097,19 @@ every character already made, and a stored copy can drift from the title. Endura
 `titleBonus`, because that one is rolled. Shown on the model as `titleAdd` and `classMod`.
 `derive-test` 517 (+7). This also makes the sheet's Fortune agree with the one the generator's
 money roll uses (`getStartingFortune`).
+
+## His money panel on the Equipment tab (2026-09-23)
+
+Asked for by the user from a paste of his Loose Equipment panel. `module/wealth-rules.mjs` ports it:
+Wealth(in Gold) is platinum x10 + gold + silver/10 + copper/100 (each coin rounded down on its own, his
+`parseInt`) + every gem and jewelry entry at count x value (`getGemValue`, 26523), and the Update
+Coins / Gems / Jewelry rows add and subtract (12691-13240), refusing to take what is not there, and
+report to chat in his words.
+
+**No data change.** Gems and jewelry stay in `system.wealth.gems` / `.jewelry` as his comma-separated
+"<count> <name> w/<value>" strings, so the Description tab's text fields are untouched and a line typed
+there is read the same way. The Equipment tab shows them; the Description tab still edits them.
+
+**One departure:** his match for an existing entry is a substring test, so taking "Ruby w/50" could
+hit "3 Ruby w/500". Here the name and value are compared exactly. A comma in a jewelry name is turned
+into a space, since the comma separates entries. `tools/wealth-test.html` 22.

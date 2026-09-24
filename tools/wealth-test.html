@@ -1,0 +1,61 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG wealth test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/wealth-rules.mjs, his Loose Equipment money panel (sheet-worker.js:12691-13240,
+// getGemValue 26523). Must be served over HTTP, like the other suites.
+const W = await import("../module/wealth-rules.mjs");
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+const purse = (extra) => ({ copper: 0, silver: 0, gold: 0, platinum: 0, gems: "", jewelry: "", special: "", ...extra });
+
+// --- Wealth(in Gold) -----------------------------------------------------------------------------
+check("the pasted sheet: 27 gold and 10 silver is 28 in gold", W.getWealthInGold(purse({ gold: 27, silver: 10 })), 28);
+check("platinum is 10 gold each", W.getWealthInGold(purse({ platinum: 3 })), 30);
+check("each coin rounds down on its own, as his parseInt does: 9 silver and 99 copper add nothing",
+	W.getWealthInGold(purse({ silver: 9, copper: 99 })), 0);
+check("gems and jewelry count at count x value",
+	W.getWealthInGold(purse({ gold: 1, gems: "3 Ruby w/50,1 Diamond w/500", jewelry: "2 Silver Ring w/12" })), 1 + 150 + 500 + 24);
+
+// --- his getGemValue ------------------------------------------------------------------------------
+check("an entry is count x value", W.getGemValue("3 Ruby w/50"), 150);
+check("no count reads as one", W.getGemValue("Ruby w/50"), 50);
+check("no value is worth nothing", W.getGemValue("3 Ruby"), 0);
+check("blank is worth nothing", W.getGemValue(""), 0);
+
+// --- Update Coins ---------------------------------------------------------------------------------
+const addGold = W.changeCoins(purse({ gold: 27 }), "Gold", 5, true);
+check("adding 5 gold writes 32 and says so in his words",
+	[addGold.ok, addGold.update, addGold.message], [true, { gold: 32 }, "Adding 5 coins of Gold resulting in a change in wealth of 5 Gold"]);
+check("subtracting what is there", W.changeCoins(purse({ silver: 10 }), "Silver", 10, false).update, { silver: 0 });
+check("subtracting more than there is does nothing",
+	[W.changeCoins(purse({ silver: 3 }), "Silver", 10, false).ok, W.changeCoins(purse({ silver: 3 }), "Silver", 10, false).message],
+	[false, "Not enough coins of Silver to subtract 10. Nothing done."]);
+check("no type, or no number, does nothing",
+	[W.changeCoins(purse(), "", 5, true).ok, W.changeCoins(purse(), "Gold", 0, true).ok], [false, false]);
+
+// --- Update Gems / Jewelry ------------------------------------------------------------------------
+const g1 = W.changeValuables("", "Ruby", 3, 50, true, "gems");
+check("a first gem line", [g1.ok, g1.list], [true, "3 Ruby w/50"]);
+check("the same gem at the same value raises its count", W.changeValuables(g1.list, "Ruby", 2, 50, true, "gems").list, "5 Ruby w/50");
+check("at a different value it is its own line", W.changeValuables(g1.list, "Ruby", 1, 500, true, "gems").list, "3 Ruby w/50,1 Ruby w/500");
+check("a 50 is not mistaken for a 500 when taking",
+	W.changeValuables("1 Ruby w/500", "Ruby", 1, 50, false, "gems").ok, false);
+check("taking some leaves the rest", W.changeValuables("3 Ruby w/50,1 Opal w/20", "Ruby", 2, 50, false, "gems").list, "1 Ruby w/50,1 Opal w/20");
+check("taking all removes the line", W.changeValuables("3 Ruby w/50,1 Opal w/20", "Ruby", 3, 50, false, "gems").list, "1 Opal w/20");
+check("taking more than there are does nothing",
+	W.changeValuables("3 Ruby w/50", "Ruby", 4, 50, false, "gems").message, "Not enough gems of Ruby each worth 50 to remove. Nothing done.");
+check("the change in wealth is reported",
+	W.changeValuables("", "Silver Ring", 2, 12, true).message, "Adding 2 item(s) of Silver Ring each worth 12 resulting in a change in wealth of 24 Gold");
+check("a comma in a jewelry name cannot split the list", W.changeValuables("", "Ring, gold", 1, 5, true).list, "1 Ring  gold w/5");
+check("his 24 gem types", W.GEM_TYPES.length, 24);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+document.getElementById("out").innerHTML = results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${results.length - passed} failed`;
+</script>

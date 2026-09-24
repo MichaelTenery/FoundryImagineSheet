@@ -636,6 +636,21 @@ input.source-unknown {
 
 /* @MARKER EQUIPMENT */
 
+/* @MARKER WEALTH -- his Loose Equipment money panel on the Equipment tab */
+.wealth-panel {
+	padding: 6px 8px;
+	margin-bottom: 8px;
+	background: var(--imagine-panel);
+	border: 1px solid var(--imagine-rule);
+	border-radius: 3px;
+}
+.wealth-panel .wealth-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 3px; }
+.wealth-panel .wealth-update { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; }
+.wealth-panel .wealth-update select { width: auto; min-width: 7em; }
+.wealth-panel .wealth-update input[type="number"] { width: 5em; }
+.wealth-panel .wealth-update input[type="text"] { width: 12em; }
+.wealth-panel .wealth-update button { flex: 0 0 auto; width: auto; }
+
 .encumbrance-bar {
 	display: flex;
 	align-items: baseline;
