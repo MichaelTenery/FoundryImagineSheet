@@ -212,10 +212,9 @@ import {
 		var tmpKnwRow = ATTRIBUTE_TABLES.knw[Math.max(0, Math.min(30, tmpFinals.knw.final))] ?? {};
 
 		// @MARKER STARTING FORTUNE
-		// The Fortune the starting money is rolled against: his whole FORTUNE calculation on the day
-		// the character is made, race and class and first title included (getStartingFortune).
-		var tmpFortune = getStartingFortune(tmpFinals.aur.final, tmpFinals.pty.final, tmpFinals.wil.final,
-			tmpRace?.characteristicMods?.fortune, tmpClass?.system?.classMods, tmpNonClassed);
+		// The Fortune the starting money is rolled against: Aura, Piety and Will Force alone, race and
+		// class left out -- the 2026-09-25 ruling, and what his setCoins does (getStartingFortune).
+		var tmpFortune = getStartingFortune(tmpFinals.aur.final, tmpFinals.pty.final, tmpFinals.wil.final);
 
 		// @MARKER SHOP
 		// The shopping list, priced against the purse in the order it was made -- module/shop-rules.mjs.

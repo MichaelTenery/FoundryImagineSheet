@@ -92,13 +92,10 @@ check("5 and 20 are inside, and roll nothing extra",
 	[M.rollStartingMoney(5, 0, always(1)).apparent, M.rollStartingMoney(20, 0, always(1)).apparent], [false, false]);
 
 // --- the Fortune it is rolled against (UPSTREAM-ISSUES item 68) -------------------------------
-check("the average of AUR, PTY and WIL rounded up, plus 1 for the first title",
-	[M.getStartingFortune(13, 14, 15, 0, [], false), M.getStartingFortune(10, 10, 11, 0, [], false)], [15, 12]);
-check("plus the race's modifier, which his setCoins fetched and never added",
-	M.getStartingFortune(13, 14, 15, 5, [], false), 20);
-check("plus 5 for a '+5% Fortune' class, which his setCoins could never see",
-	M.getStartingFortune(13, 14, 15, 0, ["+30% to core skills", "+5% Fortune"], false), 20);
-check("a GME has no first title, so no +1", M.getStartingFortune(13, 14, 15, 0, [], true), 14);
+check("the average of AUR, PTY and WIL rounded up, and nothing else (ruling 2026-09-25)",
+	[M.getStartingFortune(13, 14, 15), M.getStartingFortune(10, 10, 11)], [14, 11]);
+check("race and class are left out: extra arguments change nothing",
+	M.getStartingFortune(13, 14, 15, 5, ["+5% Fortune"], false), 14);
 
 // --- what it says ------------------------------------------------------------------------------
 check("the line names the class, the dice, the Fortune roll, the multiplier and the total",
@@ -136,8 +133,8 @@ const makeState = () => {
 const derive = (s) => V.deriveGenerator(s, content, () => true);
 
 const s1 = makeState();
-check("the generator's Fortune for a Mage is his whole calculation: 12 + 1 + 5",
-	derive(s1).fortune, 18);
+check("the generator's Fortune for a Mage is AUR, PTY and WIL alone: 12, no class or title (ruling 2026-09-25)",
+	derive(s1).fortune, 12);
 check("the money is due on Equipment with race, attributes and class chosen", V.startingMoneyIsDue(s1, derive(s1)), true);
 check("...and not on the Skills step before it",
 	V.startingMoneyIsDue({ ...s1, step: V.STEPS.indexOf("Skills") }, derive(s1)), false);
@@ -208,10 +205,10 @@ check("nobody rolls starting money onto a purse that has anything in it -- a cop
 check("a 'special' note alone does not count as money", M.canRollStartingMoney({ ...emptyPurse, special: "owed a favour" }, undefined, false), true);
 const sheetSystem = { attributes: { soc: { value: 12 }, aur: { value: 13 }, pty: { value: 14 }, wil: { value: 15 } },
 	characteristics: { fortune: { raceMod: -5 } } };
-check("an existing character: its Social Class, and its first-day Fortune -- 14 + 1 + 5 (Mage) - 5 (race)",
-	M.getCharacterMoneyInputs(sheetSystem, [{ classMods: ["+5% Fortune"], nonClassed: false }]), { social: 12, fortune: 15 });
-check("...a GME has no first title", M.getCharacterMoneyInputs(sheetSystem, [{ classMods: [], nonClassed: true }]).fortune, 9);
-check("...and a character with no class yet still gets the first title", M.getCharacterMoneyInputs(sheetSystem, []).fortune, 10);
+check("an existing character: its Social Class, and a Fortune of AUR, PTY and WIL alone -- 14, race and class left out",
+	M.getCharacterMoneyInputs(sheetSystem, [{ classMods: ["+5% Fortune"], nonClassed: false }]), { social: 12, fortune: 14 });
+check("...a GME's is the same", M.getCharacterMoneyInputs(sheetSystem, [{ classMods: [], nonClassed: true }]).fortune, 14);
+check("...and so is a character with no class yet", M.getCharacterMoneyInputs(sheetSystem, []).fortune, 14);
 
 // His two race hints: gear instead of coins, and fairy-sized coins. Keyed on his race name, so a
 // split form (Fairy(Winged)) reads its parent's.

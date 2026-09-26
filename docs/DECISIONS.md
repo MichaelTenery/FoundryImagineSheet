@@ -6189,3 +6189,13 @@ What he said, and whether the port already agrees:
 - **Casting is a pool (Aura, Aura Control, Aura Pool), not Vancian slots.** That is how it is built.
 
 No rule changed.
+
+## Daryl's 2026-09-25 notes: starting Fortune, shift-click, untrained odds, skill page (2026-09-25)
+
+Relayed by the user from Daryl.
+
+- **Starting-money Fortune leaves out race and class.** This replaces the user's ruling of 2026-09-23 ("the whole Fortune"). `getStartingFortune` is now the average of Aura, Piety and Will Force rounded up, and nothing more: no race modifier, no "+5% Fortune", no +1 first title. That is what his `setCoins` actually computes (UPSTREAM 68). The check itself is unchanged: made at or under Fortune (UPSTREAM 40), which Daryl confirms, and Social Class 15+ (nobles) make no roll.
+- **Shift-click for a modifier now works on the character sheet.** The changelog said it did. Only the creature sheet and the character's resistances actually had it. Attribute saves, Perception/Affinity/Fortune and skill rolls now ask too, and the modifier is added to the chance.
+- **An untrained attempt shows each skill's chance in the picker**, before the player chooses.
+- **The skills tab's Source column shows the page as well** ("Source, Page").
+- **Choosing class skills at creation is NOT built. It conflicts with the Player's Guide.** Daryl wants the character's whole class list shown at creation, with the player choosing up to their Knowledge class slots. A skill not chosen would never be a class skill for that character, with no base score. The Player's Guide says the opposite: a class skill is taken or skipped when its Title is reached, and a skipped skill "can continue to be used as nonacquired skills" (Class skill slots). His `setFinalClassSkills` gives only the first-title skills at creation. This is on the board waiting for a ruling.

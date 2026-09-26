@@ -94,7 +94,7 @@
 					<th class="col-num">Base</th>
 					<th class="col-num">Total</th>
 					<th class="col-roll"></th>
-					<th class="col-src">Source</th>
+					<th class="col-src">Source, Page</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -112,7 +112,7 @@
 					<td class="col-roll">
 						<button type="button" data-action="rollSkill" data-item-id="{{skill.id}}">Roll</button>
 					</td>
-					<td class="col-src muted">{{skill.sourcebook}}</td>
+					<td class="col-src muted">{{skill.sourcebook}}{{#if skill.page}}, p.{{skill.page}}{{/if}}</td>
 				</tr>
 				{{/each}}
 			</tbody>
