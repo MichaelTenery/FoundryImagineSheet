@@ -25,6 +25,7 @@ import { MAGIC_KINDS, rollStartingLore, getCountedSkillNames, findBestCastingSki
          makePotionRecipe, makePoisonSystem, CONSUMABLE_KINDS } from "./lore-rules.mjs";
 import { CASTING_SKILLS } from "./lore-tables.mjs";
 import { getSpellDays } from "./casting-rules.mjs";
+import { isClassSkillForCharacter } from "./class-rules.mjs";
 
 // The compendia the starting lore draws from, as the content importer names them.
 const LORE_PACKS = {
@@ -72,8 +73,8 @@ const LORE_PACKS = {
 		for (const tmpclass of tmpclasses) {
 			for (const tmpskill of tmpclass.advancement?.classSkillList ?? []) {
 				if (!CASTING_SKILLS.includes(tmpskill.name)) { continue; }
-				if (tmpskill.requires == "nonCaster" && !tmpcannotcast) { continue; }
-				if (tmpskill.requires == "caster" && tmpcannotcast) { continue; }
+				// his nocast, and a row given up at creation -- class-rules.mjs isClassSkillForCharacter
+				if (!isClassSkillForCharacter(tmpskill, tmpcannotcast)) { continue; }
 				var tmpchance = tmpheldchance(tmpskill.name);
 				tmpclasscasting.push({ name: tmpskill.name, title: parseInt(tmpskill.title) || 0,
 				                       chance: tmpchance ?? tmpbase(tmpskill.name) });

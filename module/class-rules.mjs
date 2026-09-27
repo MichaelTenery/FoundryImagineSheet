@@ -23,17 +23,36 @@
 // The first is ported here as checkClassSkillTitle. The second needs no rule: a skill the character
 // does not hold has no bonuses to read.
 //
-// WHAT IS NOT HERE. Whether the character has a free class skill slot for the skill. His sheet
-// marks a skill "REMOVED" when the slots run short (63268), and the slot accounting already lives
-// in skills-rules.mjs and _prepareSkillSlots; a grant that overruns is therefore reported by the
-// slot panel that is already there, exactly as one made by hand is.
+// WHAT IS NOT HERE. Whether the character has a free class skill slot for the skill; the slot
+// accounting lives in skills-rules.mjs and _prepareSkillSlots.
+//
+// "REMOVED" IS THE PLAYER'S CHOICE, NOT AN AUTOMATIC MARK. His Step 6 lists the whole career, every
+// title 1-15 with its CORE marker and a tick box (HTML 40148-40153), and compares it with the class
+// slots Knowledge gives. The player ticks the non-core skills to give up and presses REMOVE (sheet-worker.js
+// 7675-7736), which refuses a CORE one ("CORE skills cannot be removed. Nothing done.") and writes
+// "REMOVED" over the rest; or converts racial or social slots to class slots. Step 6 will not confirm
+// while the slots are still short (7828-7835). setFinalClassSkills (63268) then leaves the REMOVED rows
+// off the sheet, so the skill never arrives at its title. (This comment used to call it "automatic
+// marking of the excess"; that was wrong, corrected 2026-09-26.) Here a removed row keeps its place
+// in the class item's classSkillList with removed:true, and every reader skips it.
+//
+// @MARKER CLASS CUSTOMIZATION
+// A row may also have been SWAPPED, the Master's Manual's "Customizing Classes" (MM p.55): its name is
+// the incoming skill and replaces holds the one it replaced. Nothing here treats a swapped row
+// differently -- that is the point of rewriting the name: it is granted, counted and shown as the
+// class's own skill at that title, which is what "the player is actually changing the class itself"
+// means. His sheet has no general swap; its Knight(Templar) is the book's worked example, fixed.
+//==================================================================================================================
 //==================================================================================================================
 
 	// This is the function which decides whether a class skill is for this character at all.
 	// His nocast, set by the racial disability "Cannot Cast Spells": a few casting classes give a
 	// race that cannot cast a different skill in the same slot, so each of the pair is tagged and
 	// only one of them is ever this character's.
+	//
+	// A row the player gave up at creation (removed, see above) is no one's.
 	export function isClassSkillForCharacter(tmpskill, tmpcannotcast) {
+		if (tmpskill?.removed) { return false; }
 		if (tmpskill?.requires == "nonCaster") { return !!tmpcannotcast; }
 		if (tmpskill?.requires == "caster")    { return !tmpcannotcast; }
 		return true;
@@ -45,7 +64,8 @@
 		return tmplist
 			.filter(tmpskill => (parseInt(tmpskill.title) || 0) == (parseInt(tmptitle) || 0))
 			.filter(tmpskill => isClassSkillForCharacter(tmpskill, tmpcannotcast))
-			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0 }));
+			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0,
+			                    replaces: tmpskill.replaces ?? "" }));
 	}
 
 	// This is the function which lists every class skill the character's title entitles them to --
@@ -60,7 +80,8 @@
 				return tmpneeded > 0 && tmpneeded <= tmpat;
 			})
 			.filter(tmpskill => isClassSkillForCharacter(tmpskill, tmpcannotcast))
-			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0 }));
+			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0,
+			                    replaces: tmpskill.replaces ?? "" }));
 	}
 
 	// This is the function which lists every class skill the class gives this character, at every
@@ -73,7 +94,8 @@
 		return tmplist
 			.filter(tmpskill => (parseInt(tmpskill.title) || 0) > 0)
 			.filter(tmpskill => isClassSkillForCharacter(tmpskill, tmpcannotcast))
-			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0 }));
+			.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: parseInt(tmpskill.title) || 0,
+			                    replaces: tmpskill.replaces ?? "" }));
 	}
 
 	// This is the function which says which entitled class skills the character does not hold yet,
@@ -98,6 +120,7 @@
 		var tmpearliest = 0;
 		for (const tmpskill of tmplist) {
 			if (tmpskill.name != tmpname) { continue; }
+			if (tmpskill.removed) { continue; }   // given up at creation: the class no longer gives it
 			var tmptitle = parseInt(tmpskill.title) || 0;
 			if (tmptitle > 0 && (tmpearliest == 0 || tmptitle < tmpearliest)) { tmpearliest = tmptitle; }
 		}
@@ -127,6 +150,10 @@
 	//
 	// Rows run from title 1 to the highest title the class lists, and a title with no skills of its
 	// own is left out rather than rendered empty -- most classes have several.
+	//
+	// A row given up at creation is still listed, struck through (removedSkills / removedText), so the
+	// player can see what the class would have given and was declined; a swapped row reads
+	// "Shield Knowledge (replaces Stun)". A title whose every skill was given up still has its row.
 	export function buildClassProgression(tmpclasssystem, tmptitle, tmpcannotcast) {
 		var tmplist = tmpclasssystem?.advancement?.classSkillList ?? [];
 		var tmpat = parseInt(tmptitle) || 0;
@@ -136,16 +163,213 @@
 		var tmprows = [];
 		for (var tmpwhich = 1; tmpwhich <= tmphighest; tmpwhich++) {
 			var tmpskills = getClassSkillsAtTitle(tmpclasssystem, tmpwhich, tmpcannotcast);
-			if (!tmpskills.length) { continue; }
+			// The rows this character would have had at this title and gave up -- the caster test
+			// alone, so the other half of a caster/non-caster pair is not shown as "removed".
+			var tmpremoved = tmplist
+				.filter(tmpskill => tmpskill.removed && (parseInt(tmpskill.title) || 0) == tmpwhich)
+				.filter(tmpskill => isClassSkillForCharacter({ ...tmpskill, removed: false }, tmpcannotcast))
+				.map(tmpskill => ({ name: tmpskill.name, core: !!tmpskill.core, title: tmpwhich, removed: true }));
+			if (!tmpskills.length && !tmpremoved.length) { continue; }
 			tmprows.push({
 				title:     tmpwhich,
 				reached:   tmpat >= tmpwhich,
 				current:   tmpat == tmpwhich,
 				skills:    tmpskills,
-				skillText: tmpskills.map(tmpskill => tmpskill.core ? `${tmpskill.name} (core)` : tmpskill.name).join(", ")
+				skillText: tmpskills.map(tmpskill => tmpskill.name
+					+ (tmpskill.core ? " (core)" : "")
+					+ (tmpskill.replaces ? ` (replaces ${tmpskill.replaces})` : "")).join(", "),
+				removedSkills: tmpremoved,
+				removedText:   tmpremoved.map(tmpskill => tmpskill.name).join(", ")
 			});
 		}
 		return tmprows;
+	}
+
+	// @MARKER WHOLE CAREER
+	// This is the function which lists the whole career the way his Step 6 lays it out (HTML
+	// 40148-40153): every row of the class this character could have, title by title, with its CORE
+	// marker, whether it was given up, and what it replaced if it was swapped. The other half of a
+	// caster/non-caster pair is left out, as his nocast leaves it out of his list.
+	export function getWholeCareerRows(tmpclasssystem, tmpcannotcast) {
+		var tmplist = tmpclasssystem?.advancement?.classSkillList ?? [];
+		return tmplist
+			.filter(tmpskill => (parseInt(tmpskill.title) || 0) > 0)
+			.filter(tmpskill => isClassSkillForCharacter({ ...tmpskill, removed: false }, tmpcannotcast))
+			.map(tmpskill => ({ title: parseInt(tmpskill.title) || 0, name: tmpskill.name, core: !!tmpskill.core,
+			                    removed: !!tmpskill.removed, replaces: tmpskill.replaces ?? "" }));
+	}
+
+	// This is the function which counts the class slots the whole career takes -- his
+	// getSlotsNeededForClass (sheet-worker.js:62881), less whatever was given up. Counted from the rows
+	// rather than read from his table, so a removal, a swap or a homebrew class is always right: his
+	// figure and his own rows agree for all but two classes, Bard (46 against 47 rows) and Hero (48
+	// against 49), where the rows are what his Step 6 actually lists. A caster/non-caster pair counts
+	// once, the half this character gets -- which is how his figure counts it for the other 99.
+	export function countClassSlotsNeeded(tmpclasssystem, tmpcannotcast) {
+		if (tmpclasssystem?.nonClassed) { return 0; }
+		return getWholeCareerRows(tmpclasssystem, tmpcannotcast).filter(tmpskill => !tmpskill.removed).length;
+	}
+
+	// @MARKER CLASS CUSTOMIZATION
+	// This is the function which gives a class's skill list with the player's edits made to it, as the
+	// character's own class item will carry it. Swaps first, then removals (a swapped row cannot also be
+	// removed -- a removal naming it is ignored):
+	//     tmpswaps    [{ title, out, in }]   the row at that title named out becomes in, replaces:out.
+	//                                        Its CORE mark is kept as it was: a core row cannot be
+	//                                        swapped (MM p.55 rule 2, checkClassSkillSwaps), so it is
+	//                                        false on every row a valid swap touches.
+	//     tmpremoved  [{ title, name }]      that row (by the name it has AFTER the swaps) is removed:true.
+	//                                        A CORE row is never removed, whatever is asked.
+	// Every row comes back with removed and replaces set, so the class item's list is whole.
+	// Incomplete swaps (no out or no in) are skipped: a half-filled row on screen changes nothing.
+	export function applyClassSkillEdits(tmpclasssystem, tmpswaps, tmpremoved) {
+		var tmplist = (tmpclasssystem?.advancement?.classSkillList ?? []).map(tmpskill => ({
+			...tmpskill, removed: !!tmpskill.removed, replaces: tmpskill.replaces ?? "" }));
+		for (const tmpswap of tmpswaps ?? []) {
+			if (!tmpswap?.out || !tmpswap?.in) { continue; }
+			var tmprow = tmplist.find(tmpskill => tmpskill.name == tmpswap.out && !tmpskill.replaces
+				&& (parseInt(tmpskill.title) || 0) == (parseInt(tmpswap.title) || 0));
+			if (!tmprow) { continue; }
+			tmprow.replaces = tmprow.name;
+			tmprow.name = tmpswap.in;
+		}
+		for (const tmpremove of tmpremoved ?? []) {
+			var tmpgone = tmplist.find(tmpskill => tmpskill.name == tmpremove?.name
+				&& (parseInt(tmpskill.title) || 0) == (parseInt(tmpremove?.title) || 0));
+			if (!tmpgone || tmpgone.core || tmpgone.replaces) { continue; }
+			tmpgone.removed = true;
+		}
+		return tmplist;
+	}
+
+	// The most rows a class may have swapped (MM p.55 rule 6).
+	export const CLASS_SKILL_SWAP_LIMIT = 3;
+
+	// This is the function which reads a skill's types off its document. One skill carries "ALL"
+	// (Know); MM p.235 says a skill in two types counts for both, and ALL is read the same way, as
+	// every type at once.
+	function getSkillTypes(tmpdoc) {
+		return (tmpdoc?.system?.types ?? []).map(tmptype => "" + tmptype);
+	}
+
+	// This is the function which says whether two skills share a type (MM p.55 rule 1). A skill with
+	// no type at all -- every social skill -- shares none.
+	export function doSkillTypesMatch(tmpdoca, tmpdocb) {
+		var tmpa = getSkillTypes(tmpdoca);
+		var tmpb = getSkillTypes(tmpdocb);
+		if (!tmpa.length || !tmpb.length) { return false; }
+		if (tmpa.includes("ALL") || tmpb.includes("ALL")) { return true; }
+		return tmpa.some(tmptype => tmpb.includes(tmptype));
+	}
+
+	// This is the function which lists the rows that may be swapped OUT (MM p.55): this character's
+	// rows, not CORE (rule 2), not given up, not already swapped, and not a prerequisite of another row
+	// (rule 5). Rule 5 reads the rows' requires field, the only prerequisite data a class list has --
+	// and in his data requires only ever says "caster" or "nonCaster", never a skill's name, so today it
+	// excludes nothing. The skills' own prerequisites (MM pp.238-242) are not extracted; see
+	// describeSwapAdvice.
+	// tmpremoved, when given, is the rows the player has given up ([{ title, name }], as
+	// applyClassSkillEdits takes them): those are not offered either, since a swap applied first would
+	// quietly take back the removal (a removal names the row as it reads after the swaps).
+	export function getSwapOutCandidates(tmpclasssystem, tmpcannotcast, tmpremoved) {
+		if (tmpremoved && tmpremoved.length) {
+			tmpclasssystem = { ...tmpclasssystem, advancement: { ...(tmpclasssystem?.advancement ?? {}),
+				classSkillList: applyClassSkillEdits(tmpclasssystem, [], tmpremoved) } };
+		}
+		var tmplist = tmpclasssystem?.advancement?.classSkillList ?? [];
+		var tmprequired = tmplist.map(tmpskill => tmpskill.requires).filter(tmpname => tmpname
+			&& tmpname != "caster" && tmpname != "nonCaster");
+		return getWholeCareerRows(tmpclasssystem, tmpcannotcast)
+			.filter(tmpskill => !tmpskill.core && !tmpskill.removed && !tmpskill.replaces)
+			.filter(tmpskill => !tmprequired.includes(tmpskill.name));
+	}
+
+	// This is the function which lists the skills that may come IN for one outgoing skill: a class or
+	// racial skill (MM p.55 "from the class/racial skills lists" -- the social list is not one), of a
+	// type the outgoing one has (rule 1), not already anywhere in the class (rule 3, both halves of a
+	// caster pair counted), and allowed in this campaign. tmpskilldocs are the skill documents;
+	// tmpavail the campaign's availability test. Sorted by name.
+	export function getSwapInCandidates(tmpclasssystem, tmpoutname, tmpskilldocs, tmpavail) {
+		var tmpisavail = tmpavail ?? (() => true);
+		var tmpoutdoc = (tmpskilldocs ?? []).find(tmpdoc => tmpdoc.name == tmpoutname);
+		if (!tmpoutdoc) { return []; }
+		var tmpinclass = (tmpclasssystem?.advancement?.classSkillList ?? []).flatMap(tmpskill =>
+			[tmpskill.name, tmpskill.replaces].filter(tmpname => tmpname));
+		return (tmpskilldocs ?? [])
+			.filter(tmpdoc => tmpdoc.system?.category != "social")
+			.filter(tmpdoc => !tmpinclass.includes(tmpdoc.name))
+			.filter(tmpdoc => doSkillTypesMatch(tmpdoc, tmpoutdoc))
+			.filter(tmpdoc => tmpisavail(tmpdoc))
+			.map(tmpdoc => tmpdoc.name)
+			.sort((a, b) => a.localeCompare(b));
+	}
+
+	// This is the function which checks the player's swaps against MM p.55, against the class's OWN
+	// list (before any edit). Returns the problems, [] when there are none. Rules 1, 2, 3, 5 and 6 are
+	// enforced; rule 4 (the incoming skill's minimum title and prerequisites, MM pp.238-242) is advice
+	// only, because neither his sheet nor the port has those pages' data (user's ruling 2026-09-26).
+	// A row with nothing chosen yet is not a problem, only unfinished.
+	// tmpremoved (optional) is the rows given up; swapping one of those out is refused, see
+	// getSwapOutCandidates.
+	export function checkClassSkillSwaps(tmpclasssystem, tmpswaps, tmpskilldocs, tmpcannotcast, tmpremoved) {
+		var tmpissues = [];
+		var tmpchosen = (tmpswaps ?? []).filter(tmpswap => tmpswap?.out || tmpswap?.in);
+		if (tmpchosen.length > CLASS_SKILL_SWAP_LIMIT) {
+			tmpissues.push(`No more than ${CLASS_SKILL_SWAP_LIMIT} skills can be substituted; ${tmpchosen.length} are.`);
+		}
+		var tmplist = tmpclasssystem?.advancement?.classSkillList ?? [];
+		var tmpoutable = getSwapOutCandidates(tmpclasssystem, tmpcannotcast, tmpremoved);
+		var tmpinclass = tmplist.map(tmpskill => tmpskill.name);
+		var tmpfind = (tmpname) => (tmpskilldocs ?? []).find(tmpdoc => tmpdoc.name == tmpname) ?? null;
+		var tmpusedrows = [];
+		var tmpusedins = [];
+		for (const tmpswap of tmpchosen) {
+			if (!tmpswap.out || !tmpswap.in) { continue; }
+			var tmptitle = parseInt(tmpswap.title) || 0;
+			var tmprow = tmplist.find(tmpskill => tmpskill.name == tmpswap.out && (parseInt(tmpskill.title) || 0) == tmptitle);
+			var tmprowkey = tmptitle + ":" + tmpswap.out;
+			if (!tmprow) {
+				tmpissues.push(`The class has no ${tmpswap.out} at title ${tmptitle}.`);
+				continue;
+			}
+			if (tmprow.core) {
+				tmpissues.push(`${tmpswap.out} is a core skill; core skills cannot be substituted.`);
+			} else if (!tmpoutable.some(tmpskill => tmpskill.name == tmpswap.out && tmpskill.title == tmptitle)) {
+				tmpissues.push(`${tmpswap.out} cannot be taken out of the class.`);
+			}
+			if (tmpusedrows.includes(tmprowkey)) {
+				tmpissues.push(`${tmpswap.out} at title ${tmptitle} is substituted twice.`);
+			}
+			tmpusedrows.push(tmprowkey);
+			if (tmpinclass.includes(tmpswap.in)) {
+				tmpissues.push(`${tmpswap.in} is already in the class.`);
+			}
+			if (tmpusedins.includes(tmpswap.in)) {
+				tmpissues.push(`${tmpswap.in} is brought in twice.`);
+			}
+			tmpusedins.push(tmpswap.in);
+			var tmpindoc = tmpfind(tmpswap.in);
+			var tmpoutdoc = tmpfind(tmpswap.out);
+			if (!tmpindoc) {
+				tmpissues.push(`${tmpswap.in} is not in the skill compendium.`);
+			} else if (tmpindoc.system?.category == "social") {
+				tmpissues.push(`${tmpswap.in} is a social skill; only class and racial skills can be substituted in.`);
+			} else if (!doSkillTypesMatch(tmpindoc, tmpoutdoc)) {
+				tmpissues.push(`${tmpswap.in} (${getSkillTypes(tmpindoc).join("/") || "no type"}) is not the same type as `
+					+ `${tmpswap.out} (${getSkillTypes(tmpoutdoc).join("/") || "no type"}).`);
+			}
+		}
+		return tmpissues;
+	}
+
+	// This is the function which gives MM p.55 rule 4 as advice for one swap: the incoming skill "must
+	// meet all of the skill requirements listed on pages 238-242", a minimum title and prerequisite
+	// skills "in the class at the same or previous Titles". Those pages are not extracted, so this only
+	// says what to check and where.
+	export function describeSwapAdvice(tmpswap) {
+		if (!tmpswap?.in) { return ""; }
+		return `Check ${tmpswap.in}'s minimum title and prerequisites (Master's Manual pp.238-242): it arrives at `
+			+ `title ${parseInt(tmpswap.title) || 0}, and its prerequisites must be in the class at that title or earlier.`;
 	}
 
 	// @MARKER USAGE RESTRICTIONS

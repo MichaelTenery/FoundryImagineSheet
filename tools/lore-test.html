@@ -140,6 +140,12 @@ var tmpcounted = L.getCountedSkillNames(["Wood Lore"], [tmpranger], false);
 check("his count reads the racial skills, then the class list for titles 1-10 only", tmpcounted,
 	["Wood Lore", "Track", "Herb Lore", "Herb Lore", "Scroll Knowledge"]);
 check("...a race that cannot cast counts the no-casting slot instead", L.getCountedSkillNames([], [tmpranger], true).includes("Ritual Lore"), true);
+// A row given up at character creation (removed, @MARKER WHOLE CAREER) is not on his sheet at all, so
+// his count never reads it; the Herb Lore rows kept are still counted.
+var tmprangercut = { advancement: { classSkillList: tmpranger.advancement.classSkillList.map(r =>
+	(r.title == 2 && r.name == "Herb Lore") ? { ...r, removed: true } : r) } };
+check("...and a removed row is not counted", L.getCountedSkillNames(["Wood Lore"], [tmprangercut], false),
+	["Wood Lore", "Track", "Herb Lore", "Scroll Knowledge"]);
 
 // --- drawing ------------------------------------------------------------------------------------
 check("drawDistinct redraws a repeat", L.drawDistinct(["a", "b", "c"], 2, dice(1, 1, 3)), ["a", "c"]);

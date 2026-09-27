@@ -76,7 +76,11 @@
     "Character sheet: Updater button":    { "dependsOn": ["ApplicationV2 character sheet", "Experience & Levelling"], "note": "Asked 2026-09-25. Hub for his update_what dropdown; ~16 of ~40 options still missing." },
     "Equipment tab: grouped list":        { "dependsOn": ["ApplicationV2 character sheet", "Equipment module"] },
     "Armour weight by wearer size":       { "dependsOn": ["Equipment module"], "waitingOn": "a ruling on the formula", "note": "Book says adjust from a 6' human; no formula given." },
-    "Class skills chosen at creation":    { "dependsOn": ["Character Generation module"], "waitingOn": "a ruling (conflicts with the Player's Guide)" },
+    "Class skills chosen at creation":    { "dependsOn": ["Character Generation module"], "note": "Ruled and built 2026-09-26: his whole-career Step 6 plan." },
+    "Class skill prerequisites":          { "dependsOn": ["Class skills chosen at creation", "Skills module"], "note": "MM swap rule 4; data from MM pp.238-242, MM errata, supplement Requirements lines." },
+    "Class slot sacrifice":               { "dependsOn": ["Class skills chosen at creation", "Experience & Levelling"], "waitingOn": "a ruling", "note": "PG p.78; deferred 2026-09-26." },
+    "Additional Social Skills table":     { "dependsOn": ["Character Generation module"], "note": "PG p.75; over up-to-N warns until built." },
+    "Social skill \"up to N\"":           { "dependsOn": ["Character Generation module"], "waitingOn": "the book pages (37 classes)" },
 
     "Races assigned inline rather than from the dictionary": { "dependsOn": ["Races & Classes", "Generate src/packs"], "note": "Done 2026-09-21: every race in his specieslist, including the split faerie/Maginos forms, Formless and Famorian, is now a document." },
     "Formless: inhabit and switch bodies": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Pinned by the user 2026-09-22, revisited once the rest of the core is done. A free-text identity.formlessBodies field stands in until body-switching is built." },

@@ -35,6 +35,7 @@
 
 import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIES, CASTING_SKILLS,
          STARTING_SPELL_LADDERS, SPELL_PRIMERS } from "./lore-tables.mjs";
+import { isClassSkillForCharacter } from "./class-rules.mjs";
 
 	// @MARKER MAGIC KINDS
 	// Every kind of thing his Magic/Lore tab holds, keyed by his own repeating-section name -- the
@@ -649,7 +650,9 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 	// This is the function which lists the skill rows his count reads: the racial skills held, then
 	// each class's skills for titles 1 to 10 in its own order. A class slot that differs for a race
 	// that cannot cast counts only the one this character would get -- his nocast, as the
-	// generator's own class skills do.
+	// generator's own class skills do. A row given up at creation is not counted: his sheet has no
+	// such row at all once REMOVED (setFinalClassSkills, sheet-worker.js:63268 onward), so his count
+	// never saw it.
 	//
 	// A dual-classed character counts both classes. His sheet has one class and never faces it;
 	// a second class's lores are as much this character's as the first's.
@@ -659,8 +662,8 @@ import { STARTING_LORE_CHAIN, STARTING_LORE_LISTS, POISON_TYPES, POISON_POTENCIE
 			for (const tmpSkill of tmpClassSystem?.advancement?.classSkillList ?? []) {
 				var tmpTitle = parseInt(tmpSkill.title) || 0;
 				if (tmpTitle < 1 || tmpTitle > 10) { continue; }
-				if (tmpSkill.requires == "nonCaster" && !tmpCannotCast) { continue; }
-				if (tmpSkill.requires == "caster" && tmpCannotCast) { continue; }
+				// his nocast, and a row given up at creation (removed) -- class-rules.mjs
+				if (!isClassSkillForCharacter(tmpSkill, tmpCannotCast)) { continue; }
 				tmpNames.push(tmpSkill.name);
 			}
 		}

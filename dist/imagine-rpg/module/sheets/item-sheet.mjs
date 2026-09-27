@@ -409,6 +409,9 @@ export class ImagineClassSheet extends ImagineItemSheet {
 			title: tmprow.title,
 			name: tmprow.name,
 			core: tmprow.core,
+			// A character's own copy carries its creation edits (item-class.mjs): shown, not editable here.
+			removed: !!tmprow.removed,
+			replaces: tmprow.replaces ?? "",
 			requiresLabel: tmpRequiresLabels[tmprow.requires] ?? tmpRequiresLabels[""]
 		}));
 

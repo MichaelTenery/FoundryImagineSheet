@@ -31,6 +31,14 @@
 			{{/if}}
 		</div>
 
+		{{!-- @MARKER ALIGNMENT
+		      Warned, never refused (user's ruling 2026-09-26): an alignment or tendency the class's list
+		      does not offer, beside the class-qualification issues. --}}
+		{{#if alignmentIssues.length}}
+		<div class="identity-line dual-class-issues alignment-issues">
+			{{#each alignmentIssues as |issue|}}<span class="alarm">{{issue}}</span>{{/each}}
+		</div>
+		{{/if}}
 		{{#if system.identity.raceWarning}}
 		<div class="identity-line dual-class-issues"><span class="alarm">{{system.identity.raceWarning}}</span></div>
 		{{/if}}
@@ -70,8 +78,10 @@
 
 		<div class="identity-line">
 			<span class="field"><label>Alignment</label>
-				<input type="text" name="system.identity.alignment" value="{{system.identity.alignment}}"
-					title="{{system.identity.alignment}}"></span>
+				{{!-- @MARKER ALIGNMENT -- the class's list; a value off it stays as "(current)". --}}
+				<select name="system.identity.alignment" title="{{system.identity.alignment}}">
+					{{#each alignmentChoices as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}
+				</select></span>
 			<span class="field"><label>Exp</label>
 				<input type="number" name="system.identity.exp" value="{{system.identity.exp}}"></span>
 			<span class="field"><label>Goal</label>

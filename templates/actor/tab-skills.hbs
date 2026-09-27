@@ -14,6 +14,7 @@
 	<div class="slot-summary">
 		<span class="slot {{#if system.skillSlots.classOver}}alarm{{/if}}"><label>Class</label>
 			{{system.skillSlots.classUsed}} / {{system.skillSlots.class}}
+			{{#if system.skillSlots.classReserved}}<span class="sub" title="Class skills of later titles, which his sheet reserves at creation">{{system.skillSlots.classReserved}} still to come</span>{{/if}}
 			{{#unless (eq system.skillSlots.class system.skillSlots.classBase)}}<span class="sub">was {{system.skillSlots.classBase}}</span>{{/unless}}</span>
 		<span class="slot {{#if system.skillSlots.racialOver}}alarm{{/if}}"><label>Racial</label>
 			{{system.skillSlots.racialUsed}} / {{system.skillSlots.racial}}
@@ -66,7 +67,7 @@
 			{{#each klass.rows as |row|}}
 			<tr class="{{#if row.current}}current-title{{/if}} {{#unless row.reached}}unreached-title{{/unless}}">
 				<td class="col-title">{{row.title}}<span class="muted">{{row.titleName}}</span></td>
-				<td class="col-skills">{{row.skillText}}</td>
+				<td class="col-skills">{{row.skillText}}{{#if row.removedText}}{{#if row.skillText}}, {{/if}}<s class="muted" title="Given up at character creation">{{row.removedText}}</s>{{/if}}</td>
 			</tr>
 			{{/each}}
 		</tbody>

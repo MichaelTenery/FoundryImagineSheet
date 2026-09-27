@@ -12,8 +12,11 @@
 
 	<ul class="band-list tendencies-row">
 		<li><label>Tendencies</label>
-			<span><input type="text" name="system.identity.tendencies" value="{{system.identity.tendencies}}"
-				title="{{system.identity.tendencies}}" placeholder="Moral, Amoral, Aggressive..."></span></li>
+			{{!-- @MARKER ALIGNMENT -- his tendency list for the class (one combined string, "Moral/Order");
+			      a value off it stays as "(current)". --}}
+			<span><select name="system.identity.tendencies" title="{{system.identity.tendencies}}">
+				{{#each tendencyChoices as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}
+			</select></span></li>
 	</ul>
 
 	{{!-- What the race gives. For a half race this is already the two combined: skills from both

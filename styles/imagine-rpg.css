@@ -783,6 +783,39 @@ input.source-unknown {
 	padding: 2px 6px;
 }
 
+/* The Game Master's Alignments & Tendencies window (module/apps/alignment-config.mjs). */
+.imagine.alignment-config fieldset {
+	border: 1px solid var(--imagine-rule);
+	border-radius: 3px;
+	margin: 0 0 10px 0;
+	padding: 6px 10px 10px;
+}
+.imagine.alignment-config legend {
+	font-weight: 600;
+	padding: 0 4px;
+}
+.imagine.alignment-config .hint {
+	margin: 2px 0 8px;
+	font-size: 11px;
+	color: var(--imagine-muted);
+}
+.imagine.alignment-config .custom-table {
+	width: 100%;
+	margin-bottom: 8px;
+}
+.imagine.alignment-config .custom-table th,
+.imagine.alignment-config .custom-table td {
+	text-align: left;
+	padding: 2px 6px;
+}
+.imagine.alignment-config .custom-table td.centre {
+	text-align: center;
+}
+.imagine.alignment-config .empty {
+	color: var(--imagine-muted);
+	font-style: italic;
+}
+
 /* @MARKER CHANGELOG
    The What's New window (module/changelog.mjs). The window content scrolls as one column; each
    release is a panel, its Markdown rendered as ordinary prose. */
@@ -1123,6 +1156,16 @@ input.source-unknown {
 	gap: 2px 10px; max-height: 150px; overflow-y: auto; padding: 4px; border: 1px solid var(--imagine-rule);
 	border-radius: 3px; font-size: 12px; }
 .chargen .pick-list.tall { max-height: 220px; }
+/* @MARKER WHOLE CAREER -- the Skills step's whole-career table (his Step 6), in its own scroll box. */
+.chargen .chargen-career { max-height: 260px; overflow-y: auto; margin-bottom: 6px; }
+.chargen .chargen-career-table { width: 100%; border-collapse: collapse; }
+.chargen .chargen-career-table th, .chargen .chargen-career-table td { padding: 1px 6px; text-align: left; }
+.chargen .chargen-career-table tr.removed td { opacity: 0.6; }
+/* @MARKER SOCIAL SKILLS -- the class's own list above the rest; its Required rows stand out. */
+.chargen .pick-list .required { font-weight: bold; }
+.chargen h4 { margin: 8px 0 2px; font-size: 13px; }
+/* @MARKER ALIGNMENT -- his description of the chosen alignment and tendency, under each dropdown. */
+.chargen .chargen-alignment-description { margin: 2px 0 8px 12px; font-size: 12px; }
 /* The evoke picker: ~120 rows of varying length (a name alone, or a name plus a full rule), so it
    is one column rather than the skill pick-list's compact grid -- a multi-column grid of ragged,
    sometimes-long rows reads far worse than a single scrolling column does. */

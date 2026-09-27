@@ -47,6 +47,7 @@ import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
+import ImagineAlignmentConfig from "./apps/alignment-config.mjs";
 import ImagineCharacterGenerator, { registerCharacterGeneratorButton } from "./apps/character-generator.mjs";
 import ImagineCombat, { ImagineCombatant } from "./combat/combat-document.mjs";
 import ImagineCombatTracker from "./combat/combat-tracker.mjs";
@@ -450,6 +451,36 @@ Hooks.once("init", function () {
 	registerAvailabilitySettings();
 	registerAvailabilityEnforcement();
 
+	// @MARKER CUSTOM ALIGNMENTS
+	// The Game Master's own alignments and tendencies, added to his lists wherever they qualify --
+	// see module/alignment-rules.mjs. Edited in the Alignments & Tendencies window, not the plain
+	// settings list, because each row needs its axes and is checked before it is saved. Pure rules
+	// modules never read it; a window reads it and passes it in.
+	game.settings.register("imagine-rpg", "customAlignments", {
+		scope: "world",
+		config: false,
+		type: Object,
+		default: { alignments: [], tendencies: [] },
+		onChange: () => refreshOpenWindows()
+	});
+
+	// @MARKER CLASS CUSTOMIZATION
+	// The Master's Manual's Customizing Classes (MM p.55): a character may swap up to three of a
+	// class's skills for others of the same type. Nothing in his sheet does it; on by default because
+	// it is a rule of his books, off for a table that plays the classes as printed. The generator
+	// reads it and passes it in.
+	game.settings.register("imagine-rpg", "classCustomization", {
+		name: "Allow Master's Manual class customization (swap up to 3 class skills)",
+		hint: "On: the character generator lets a player swap up to three class skills for others of "
+		    + "the same type, under the Master's Manual's Customizing Classes rules (p.55). Off: every "
+		    + "class is played exactly as printed.",
+		scope: "world",
+		config: true,
+		type: Boolean,
+		default: true,
+		onChange: () => refreshOpenWindows()
+	});
+
 	// @MARKER CHARACTER GENERATOR
 	// A Create Character button in the Actors directory. See module/apps/character-generator.mjs.
 	registerCharacterGeneratorButton();
@@ -477,6 +508,15 @@ Hooks.once("init", function () {
 		hint: "Switch sourcebooks and magic on or off for this campaign, and allow or forbid individual items such as a class.",
 		icon: "fa-solid fa-book-open",
 		type: ImagineAvailabilityConfig,
+		restricted: true
+	});
+
+	game.settings.registerMenu("imagine-rpg", "alignmentMenu", {
+		name: "Alignments & Tendencies",
+		label: "Configure",
+		hint: "Add this campaign's own alignments and tendencies. Each appears in every class's list it qualifies for.",
+		icon: "fa-solid fa-scale-balanced",
+		type: ImagineAlignmentConfig,
 		restricted: true
 	});
 });

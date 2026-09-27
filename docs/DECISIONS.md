@@ -2505,6 +2505,11 @@ skills are acquired**, so granting on the title is his rule and not a simplifica
   disallow is skipped and named, not forced on: the Game Master turned it off deliberately.
 - *Slots are not policed by the grant.* His own sheet marks the excess "REMOVED" rather than refusing
   the title, and the slot panel already reports an overrun.
+  **Corrected 2026-09-26:** his sheet does not mark the excess automatically. REMOVED is the
+  player's own choice, ticked at his Step 6 (REMOVE button, sheet-worker.js:7675-7736);
+  `setFinalClassSkills` (63268 on) only skips rows already marked. The port now builds that choice
+  in the generator — see "Character generation: alignments, social skill lists, and the whole-career
+  class skill plan (2026-09-26)".
 - *A class skill above the character's title is refused on the roll*, not hidden — his
   `handleHighTitleClassSkillRoll` (64169), "this skill cannot be used before <name> title", by title
   NAME. This also closes the second of the two per-skill flags left open on the Skills row (his
@@ -6199,3 +6204,145 @@ Relayed by the user from Daryl.
 - **An untrained attempt shows each skill's chance in the picker**, before the player chooses.
 - **The skills tab's Source column shows the page as well** ("Source, Page").
 - **Choosing class skills at creation is NOT built. It conflicts with the Player's Guide.** Daryl wants the character's whole class list shown at creation, with the player choosing up to their Knowledge class slots. A skill not chosen would never be a class skill for that character, with no base score. The Player's Guide says the opposite: a class skill is taken or skipped when its Title is reached, and a skipped skill "can continue to be used as nonacquired skills" (Class skill slots). His `setFinalClassSkills` gives only the first-title skills at creation. This is on the board waiting for a ruling.
+
+## Character generation: alignments, social skill lists, and the whole-career class skill plan (2026-09-26)
+
+Five features, built on `wip/chargen-notes`. The user answered four questions directly; **every other
+call below is a provisional default taken on the brief's recommendation — confirm or overrule.** The
+Daryl entry above ("Choosing class skills at creation is NOT built") is now superseded: the user ruled
+for his Step 6 whole-career plan (feature 4).
+
+**What the user ruled (2026-09-25/26):**
+1. Custom alignments live in a new GM menu, **Alignments & Tendencies** (world setting, restricted,
+   built like Content Availability). Custom entries appear in every dropdown they qualify for.
+2. A class's social list shows **"choose up to N"** where a book gives N. Going over N **warns** and
+   needs an override tick. Knowledge still caps the total.
+3. Class skills at creation follow **his whole-career plan**: every title 1-15, CORE marked, compared
+   with Knowledge class slots; the player ticks non-core rows to remove; his CONVERT (racial→class,
+   social→class) is offered; blocked while short, with a GM override tick.
+4. **Master's Manual p.55 class skill swaps**, in the generator only, behind a world setting "Allow
+   Master's Manual class customization", default **on**. Prerequisites and minimum titles are advisory.
+
+### 1. Alignment and tendency lists (his, with one fix)
+
+- **His dropdowns, exactly** (HTML 45293-45833), keyed by his case strings (73089-73275) — *not* his
+  requirement strings, which are narrower in places (UPSTREAM 108). Insane is last in every list and
+  never filtered. `module/alignment-rules.mjs` holds the 21 rows, each citing his case and HTML line.
+- His list is **15 alignments plus Insane**. The brief said "16 + Insane"; the PG pp.39-41 headings
+  count 15.
+- Each row also carries an **axis predicate** (moral set / activity set / fanatical) that reproduces
+  his list exactly; `tools/alignment-test.html` proves it for all 21 rows by reading his files. Custom
+  alignments are filtered by the same predicate.
+- An unknown requirement gets the full list, flagged (his unlabelled `default` block is unreachable).
+  A blank requirement (no class yet) gets the full list unflagged.
+- **Stored as his exact spaced strings** ("Fanatical Good (Active)"), so every existing substring
+  reader (`isAlignmentBarred`, hymns, poisons, blessings, weapon mods) keeps working unchanged. The
+  tendency is his single combined string.
+- **Order/Immoral classes get their default tendency pre-set** (Order, Order, Immoral, as his HTML
+  preselects). *Fixes his slip* (UPSTREAM 106): his code clears it and the final tendency becomes None.
+- His description texts are shown under each select; "tum" corrected to "turn" (PG p.41), backtick
+  apostrophes made plain.
+- **Generator:** the alignment and tendency are selects filtered by the class; a disallowed value is
+  refused unless the existing class-qualification override is ticked (re-shown on Details). A class
+  change clears a value the new class forbids. The tendency is never required (his step 7 never checks
+  it); blank is written as None, as his `setFinalAlignment`.
+- **Alignmentless** (MM pp.170-171) is a per-character "GM discretion" tick, writing N/A to both, as
+  his `setFinalAlignment`.
+- **PG p.41's moral/order rule** (evil cannot be Moral and Order, etc.) is **not enforced**, matching
+  his sheet.
+- **Character sheet:** selects built from the character's class items; an off-list stored value is kept
+  and shown "(current)"; a warning sits beside the class-qualification issues. **Dual class:** the
+  intersection of both lists, and the sheet warns when the classes share nothing — even with the
+  alignment blank or N/A (a review finding, fixed).
+- **Creatures** keep free text, with a datalist of suggestions — a creature has no class and the
+  bestiary prose does not fit a closed list. New idiom for the port.
+- Book-vs-sheet disagreements (Legendier, Berserker, Epitaph Death Knight/Paladin, Elementalist): the
+  sheet is followed; logged as UPSTREAM 109.
+
+### 2. Custom alignments and tendencies (port extension)
+
+- A custom alignment declares its axes: reads as Good / Neutral / Evil / None; Active / Passive /
+  True; fanatical or not. **Its name must contain its axis words** (and not the other moral words;
+  "Active" iff Active; "Fanatical" iff fanatical; no "Non-"), validated case-sensitively on save, so
+  every substring reader treats it correctly without change. A None custom joins only lists with no
+  moral restriction. Customs sit after his 15 and before Insane.
+- Custom tendencies join one list: any, order (also the full list) or immoral (also the full list).
+- A custom alignment's aura colour reads Translucent (`getAuraColor` is exact-match). Accepted.
+- The window keeps what is typed across outside re-renders (review finding, fixed).
+
+### 3. Social skills from the class list
+
+- New extractor `tools/extract/extract_class_social_skills.py` reads his `setSocialSkillLists`
+  (sheet-worker.js:53591): 92 base classes, 58 Required, 1,356 Recommend. Each class document carries
+  `system.socialSkills {required, recommended, upTo, upToSource, anyList}`; paths inherit their base
+  class's list. Sage and GME have `anyList` (any social skill).
+- **"Up to N" comes from the books only** (the sheet has no count): 55 base classes, each with its
+  printed page; 37 have no local book text and show no count. MM printed page = PDF page - 10.
+- **Up to N counts every social pick except the class's Required ones** (PG p.55 "Required: Tumbling.
+  Up to two from the following"). PG p.47 says no more may be chosen until the Additional Social
+  Skills table (p.75); that table is deferred, so over N warns and needs the override.
+- **Required skills block until taken** — `min(Required the character can take, social slots)`, not
+  counting ones switched off or BLOCKED for the race. *His step 6 check only enforces #1 and #3*
+  (UPSTREAM 110); the port counts them all.
+- One Skills-step override (`socialOverride`) covers Required and up-to-N. It is separate from the
+  class override: being allowed an unqualified class does not waive its Required skills. Knowledge
+  overflow is never overridable.
+- **Data repairs:** Healer Philosophy → Physiology (**errata**, MM p.46 — outranks the sheet; see
+  `docs/ERRATA.md`). Witch Hunter row 16 read as Recommend (his type lines shift, UPSTREAM 112). His
+  data **kept** for Ranger (no Animal Training), Intercessor (14 names, likely missing Heraldry) and
+  the identical Innominate/Obscuratum lists — asked upstream (111, 113).
+- KNW 25-30 slots kept from his dictionary.
+
+### 4. The whole-career class skill plan (his Step 6)
+
+- The generator lists every title 1-15 with CORE marked, beside "class slots N / needed M / short K".
+  Non-core rows can be ticked off. **REMOVED is the player's own choice** (his REMOVE button,
+  7675-7736); nothing marks it automatically.
+- **"Needed" is counted from the class's own rows** (caster/non-caster pair counted once, removed rows
+  not counted), not his `getSlotsNeededForClass` table. They agree for 101 of 103 documents; Bard and
+  Hero differ by one (UPSTREAM 114) and the rows win, since they are what his Step 6 lists.
+- **His CONVERT:** racial→class 1 for 1 (7324, 52649), social→class 2 for 1 (7627, 56433), reusing
+  `SLOT_TRANSFERS`, capped at what Knowledge gives. Written to the actor as `skillSlotMoves`. His
+  convert-after-remove recompute quirk is not ported; needed is always recomputed from the rows.
+- **Short class slots block** with his 7828-7835 wording plus the figures, unless a separate
+  `classSlotOverride` tick is set. Order of Skills checks: swap problems (never overridable), CORE
+  removal, short slots, then racial, social, BLOCKED, Required, up to N.
+- Storage: rows of the **character's own embedded class item** gain `removed: Boolean` and
+  `replaces: String`. Removed rows stay, struck through; they are never granted, owed, reserved or
+  lore-counted. `isClassSkillForCharacter` skips them, and the three direct iterators
+  (`getStartingClassSkills`, `getCountedSkillNames`, the starting-lore casting list) now go through it.
+  Level-up grants read the character's own class item.
+- **The sheet reserves the whole career**: class slots used = held class skills + every later row not
+  removed and not held (`skillSlots.classReserved`, "N still to come" on the Skills tab). A skill on
+  both of a dual class's lists reserves once; within one class every row counts (his count is per row).
+- **Visible consequence of this ruling:** existing characters made before this pass had no way to
+  remove rows or convert, so **a low-Knowledge character may now show class slots over** on the Skills
+  tab although nothing about it changed. It is not gated: under his model that character really is
+  short, and a grandfather flag would hide it. Fix by editing the class item's rows (tick `removed`)
+  or ask for a grandfather ruling.
+- Deferred: PG p.78 class-slot sacrifice and a per-title skip at level-up; dual-class removals (PG
+  p.45) are unexamined — the generator makes one class.
+
+### 5. Master's Manual p.55 swaps (port extension — not in his sheet)
+
+His sheet has no swap. The port builds MM p.55's rules in the generator only, behind the
+`classCustomization` world setting (default on; with no setting passed, swaps are off):
+- same skill type (rule 1; a skill typed ALL matches every type; social skills never match); never a
+  CORE row (2); not already in the class, either caster half or a replaced name (3); a row not used
+  twice; at most 3 (6); cannot remove a skill another row `requires` (5) — coded generically, but
+  `requires` holds only caster/nonCaster today, so it excludes nothing;
+- **rule 4 (minimum title, prerequisites, MM pp.238-242) is advisory text only** — the data is not
+  extracted;
+- the incoming skill takes the replaced row's title; the row's name becomes the incoming skill and
+  `replaces` names the outgoing one;
+- a removed row cannot also be swapped out (review finding: a swap was silently undoing a removal);
+- swaps apply before removals. Knight Stun→Shield Knowledge at 4 plus Meditate→Fearless at 6
+  reproduces his Knight(Templar) as a set per title (order within title 6 differs).
+- MM p.55's closing line (a swapped-in skill usable non-acquired as a class skill) is not examined.
+
+**Also this pass:** CLAUDE.md's model-choice rule changed (user, 2026-09-25): **Opus for all tasks**,
+implementation included; no longer stop to ask Opus-or-Fable.
+
+**Verified:** `node tools/run-tests.mjs` — see the test table in `docs/PROGRESS.md`. New suites
+`alignment-test`, `chargen-lists-test`, `class-edits-test`. **Not verified:** anything in a running
+Foundry V14 (listed in `docs/sonnet/2026-09-26-chargen-notes.md`).

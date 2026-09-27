@@ -25,7 +25,7 @@ import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapon
 import { rollStartingEndurance, needsStartingEnduranceRoll } from "./race-rules.mjs";
 import { buildSkillModContext, getSocialSkillRaceMod, getExtraSocialMods, getExtraClassRacialMods,
 	describeSkillBonusParts } from "./social-skill-rules.mjs";
-import { getEveryClassSkill } from "./class-rules.mjs";
+import { getEveryClassSkill, isClassSkillForCharacter } from "./class-rules.mjs";
 
 	// The twelve attributes, in the order his sheet and the Player's Guide list them.
 	export const ATTRIBUTE_ORDER = ["str", "agl", "vit", "int", "wis", "knw", "app", "chm", "soc", "aur", "pty", "wil"];
@@ -258,11 +258,8 @@ import { getEveryClassSkill } from "./class-rules.mjs";
 	export function getStartingClassSkills(tmpClassSystem, tmpCannotCast) {
 		var tmpList = tmpClassSystem?.advancement?.classSkillList ?? [];
 		return tmpList.filter(tmpSkill => (parseInt(tmpSkill.title) || 0) == 1)
-			.filter(tmpSkill => {
-				if (tmpSkill.requires == "nonCaster") { return !!tmpCannotCast; }
-				if (tmpSkill.requires == "caster")    { return !tmpCannotCast; }
-				return true;
-			})
+			// his nocast, and a row the player gave up in the generator (removed) -- class-rules.mjs
+			.filter(tmpSkill => isClassSkillForCharacter(tmpSkill, tmpCannotCast))
 			.map(tmpSkill => ({ name: tmpSkill.name, core: !!tmpSkill.core }));
 	}
 
@@ -417,7 +414,22 @@ import { getEveryClassSkill } from "./class-rules.mjs";
 
 		var tmpClassDoc = tmpByName(tmpContent.classes, tmpChoices.className);
 		if (tmpChoices.className && !tmpClassDoc) { tmpIssues.push(`Class "${tmpChoices.className}" was not found.`); }
-		if (tmpClassDoc) { tmpItems.push(tmpItem(tmpClassDoc)); }
+		// @MARKER WHOLE CAREER
+		// The class item the character carries is ITS OWN copy, with the edits made in the generator's
+		// Skills step written into its classSkillList (tmpChoices.classSkillList, from
+		// applyClassSkillEdits): the rows given up (removed) and the rows swapped (the incoming name,
+		// replaces the outgoing one). Every later reader -- the title grants, the owed list, the
+		// progression panel, the lore counts -- reads this copy, so a removed skill never arrives and a
+		// swapped-in one arrives at its row's title. The class in the compendium is untouched: MM p.55's
+		// "the player is actually changing the class itself" is this one character's class.
+		var tmpClassSystem = tmpClassDoc?.system ?? null;
+		if (tmpClassDoc && Array.isArray(tmpChoices.classSkillList)) {
+			tmpClassSystem = { ...tmpClassDoc.system,
+				advancement: { ...structuredClone(tmpClassDoc.system?.advancement ?? {}),
+				               classSkillList: structuredClone(tmpChoices.classSkillList) } };
+		}
+		if (tmpClassDoc) { tmpItems.push(tmpItem(tmpClassDoc, tmpClassSystem === tmpClassDoc.system ? null
+			: { advancement: tmpClassSystem.advancement })); }
 		var tmpNonClassed = !!tmpClassDoc?.system?.nonClassed;
 
 		// Skills. A skill the pack does not hold is still created, bare, so nothing the player chose
@@ -462,7 +474,7 @@ import { getEveryClassSkill } from "./class-rules.mjs";
 			racialSkillNames: tmpChoices.racialSkillNames,
 			classSkillNames: tmpNonClassed ? [] : (tmpChoices.classSkills ?? []).map(tmpSkill => tmpSkill.name),
 			laterClassSkills: (tmpNonClassed || !tmpClassDoc) ? []
-				: getEveryClassSkill(tmpClassDoc.system, tmpCannotCast).filter(tmpSkill => tmpSkill.title > 1)
+				: getEveryClassSkill(tmpClassSystem, tmpCannotCast).filter(tmpSkill => tmpSkill.title > 1)
 		});
 		var tmpContextFor = (tmpName) => ({ ...tmpModContext, skillName: tmpName });
 
@@ -513,7 +525,12 @@ import { getEveryClassSkill } from "./class-rules.mjs";
 			type: "character",
 			system: {
 				identity: { title: tmpNonClassed ? 0 : 1, goal: 0, exp: 0,
-				            alignment: tmpChoices.alignment ?? "", gender: tmpChoices.gender ?? "" },
+				            alignment: tmpChoices.alignment ?? "", gender: tmpChoices.gender ?? "",
+				            // His step 7's tendency, one combined string ("Moral/Order"). A blank one beside a
+				            // chosen alignment is "None", as his setFinalAlignment writes it (73418-73422);
+				            // Alignmentless arrives here as N/A in both (choicesFromState).
+				            tendencies: (tmpChoices.tendencies ?? "") != "" ? tmpChoices.tendencies
+				            	: ((tmpChoices.alignment ?? "") != "" && tmpChoices.alignment != "N/A" ? "None" : "") },
 				attributes: tmpAttributes,
 				physical: {
 					heightFeet: parseInt(tmpChoices.heightFeet) || 0, heightInches: parseInt(tmpChoices.heightInches) || 0,
@@ -541,7 +558,18 @@ import { getEveryClassSkill } from "./class-rules.mjs";
 					.map(tmpLang => ({ name: tmpLang.name, speak: true, write: !!tmpLang.write })),
 				wealth: { copper: parseInt(tmpChoices.wealth?.copper) || 0, silver: parseInt(tmpChoices.wealth?.silver) || 0,
 				          gold: parseInt(tmpChoices.wealth?.gold) || 0, platinum: parseInt(tmpChoices.wealth?.platinum) || 0 },
-				combat: { chosenAttackSkill: tmpChoices.chosenAttackSkill || "Beginner" }
+				combat: { chosenAttackSkill: tmpChoices.chosenAttackSkill || "Beginner" },
+				// @MARKER WHOLE CAREER
+				// His CONVERT buttons, pressed in the generator: racial slots given for class slots (1 for
+				// 1) and social slots given for class slots (2 for 1) -- skills-rules.mjs SLOT_TRANSFERS.
+				// Written as the same counts the Skills tab's own trades keep, so the sheet's allowance is
+				// the one the generator showed.
+				skillSlotMoves: {
+					racialToClass: Math.max(0, parseInt(tmpChoices.skillSlotMoves?.racialToClass) || 0),
+					racialToSocial: 0, socialToRacial: 0,
+					socialToClass: Math.max(0, parseInt(tmpChoices.skillSlotMoves?.socialToClass) || 0),
+					racialSacrificed: 0, socialSacrificed: 0
+				}
 			}
 		};
 		// @MARKER STARTING KIT

@@ -1545,6 +1545,12 @@ def build_classes():
     # extract_combat_tables.py -- see build_class_skills below.
     skilllists = (load_named("classSkillLists") or {}).get("entries", {})
 
+    # Every class's own social skills, Required and Recommend, from setSocialSkillLists, and the
+    # books' "up to N" beside them -- both via extract_class_social_skills.py. Looked up by base
+    # class, so a path (Knight(Templar), Elementalist(Call of Death)) carries its class's list.
+    socialmap = (load_named("classSocialSkillLists") or {}).get("entries", {})
+    socialuptomap = (load_named("classSocialSkillUpTo") or {}).get("entries", {})
+
     # The rows to build from: his dictionary, plus the five classes his checkClassQualification
     # answers inline before it ever reaches the dictionary (Elemental Dancer, Elementalist,
     # Summoner, Inquisitor, GME). Those rows have the dictionary's 22 columns, so the dictionary's
@@ -1611,6 +1617,10 @@ def build_classes():
 
         if tmpbasename not in skilllists:
             note("class-missing-skill-list", where, "no case in setClassSkillLists")
+        if tmpbasename not in socialmap:
+            note("class-missing-social-list", where, "no case in setSocialSkillLists")
+        tmpsocialrow = socialmap.get(tmpbasename, {})
+        tmpsocialupto = socialuptomap.get(tmpbasename, {})
 
         # One document per path for a class with a choice; one document otherwise.
         for tmpname, tmppathvar, tmppath in class_paths(tmpbasename):
@@ -1655,6 +1665,13 @@ def build_classes():
             "secondWeaponLoreTitle": to_number(lore2ndmap.get(tmpbasename, 0), where, "secondWeaponLoreTitle"),
             "multiMissileLoreTitle": to_number(multimissileloremap.get(tmpbasename, 0), where, "multiMissileLoreTitle"),
             "skillSlotsNeeded": to_number(slotsmap.get(tmpbasename, 0), where, "skillSlotsNeeded"),
+            "socialSkills": {
+                "required": list(tmpsocialrow.get("required", [])),
+                "recommended": list(tmpsocialrow.get("recommended", [])),
+                "upTo": tmpsocialupto.get("upTo"),
+                "upToSource": tmpsocialupto.get("page", ""),
+                "anyList": bool(tmpsocialrow.get("anyList", False)),
+            },
             "classType": clean_text(str(tmprow.get("classType", ""))),
             "description": clean_text(str(tmprow.get("description", ""))),
             # A class barred to "Fairy" is barred to both forms of one: his own name for a race

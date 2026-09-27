@@ -199,9 +199,35 @@
 			{{#each system.blockedRaces as |r|}}<span class="race-chip">{{r}}</span>{{else}}<span class="muted">none -- any race may take this class</span>{{/each}}</p>
 
 		<p><label>Class skills</label>
-			{{#each classSkillListRows as |s|}}<span class="race-chip" title="{{s.requiresLabel}}">T{{s.title}} {{s.name}}{{#if s.core}} (core){{/if}}</span>{{else}}<span class="muted">none listed -- his classtitledict carries no skill column; see the Titles and Class Skills section above</span>{{/each}}</p>
+			{{#each classSkillListRows as |s|}}<span class="race-chip" title="{{s.requiresLabel}}">T{{s.title}} {{#if s.removed}}<s>{{s.name}}</s> (removed){{else}}{{s.name}}{{/if}}{{#if s.core}} (core){{/if}}{{#if s.replaces}} (replaces {{s.replaces}}){{/if}}</span>{{else}}<span class="muted">none listed -- his classtitledict carries no skill column; see the Titles and Class Skills section above</span>{{/each}}</p>
 		<p class="muted">Hover a chip for which races it requires. "Core" marks the class's own +30%
 		skills, from his setClassSkillLists.</p>
+	</div>
+
+	{{!-- SOCIAL SKILLS. The class's own social skills, which the generator lists first, from his
+	      setSocialSkillLists. The two lists are chips, not editable rows -- the same call as the
+	      class skills above: they come from his tables, and a Game Master changes one with the
+	      raw-data editor. The count and the any-list flag are single values a Game Master may well
+	      want to rule on, so they are inputs. upTo is BOOK-ONLY ("Up to two from the following");
+	      blank means no book gives one, and his sheet never had one. --}}
+	<h3 class="section-head">Social Skills</h3>
+	<div class="panel race-panel">
+		<p><label>Required</label>
+			{{#each system.socialSkills.required as |s|}}<span class="race-chip">{{s}}</span>{{else}}<span class="muted">none</span>{{/each}}</p>
+		<p><label>Recommended</label>
+			{{#each system.socialSkills.recommended as |s|}}<span class="race-chip">{{s}}</span>{{else}}<span class="muted">none</span>{{/each}}</p>
+		<ul class="band-list">
+			<li><label>Choose up to</label>
+				<span><input type="number" name="system.socialSkills.upTo" value="{{system.socialSkills.upTo}}" min="0"
+					placeholder="no book count"></span></li>
+			<li><label>Count from</label>
+				<span><input type="text" name="system.socialSkills.upToSource" value="{{system.socialSkills.upToSource}}"
+					placeholder="Player's Guide p.48"></span></li>
+			<li><label>Any social skill (no class list)</label>
+				<span><input type="checkbox" name="system.socialSkills.anyList" {{#if system.socialSkills.anyList}}checked{{/if}}></span></li>
+		</ul>
+		<p class="muted">Required skills must be taken. "Choose up to" is the book's count; his sheet has
+		none, and Knowledge still caps the total. Any social skill is his Sage and GME.</p>
 	</div>
 
 	{{!-- ARCH MORTAL. What a character of this class must hold before passing 10th title, from his

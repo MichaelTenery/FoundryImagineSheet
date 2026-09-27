@@ -1364,6 +1364,34 @@ check("one held ahead of its title is refused, and says which title",
 	[mageling.parent.items[3].system.usableByTitle, mageling.parent.items[3].system.titleGateReason],
 	[false, "This skill cannot be used before title 7."]);
 
+// --- the whole career reserved, and a row given up at creation (@MARKER WHOLE CAREER) -----------
+// His Step 6 reserves every title's class slots at creation; a row the player REMOVED is never granted,
+// never owed and never counted. Detect Magic and Absorb Aura are held; Scroll Knowledge and both
+// Identify rows are still to come (a caster: Hermetic Lore is the other half of a pair).
+check("the rows still to come are reserved in the class slots used",
+	[mageling.skillSlots.classUsed, mageling.skillSlots.classReserved], [5, 3]);
+check("...and the whole career is the slots needed, counted off the rows",
+	mageling.identity.classSlotsNeeded, 5);
+const magelingTwice = makeCharacter({}, 3, [makeRace(), progClass, { ...progClass, id: "second", name: "Second Mageling" },
+	heldSkill("Detect Magic", 1), heldSkill("Absorb Aura", 7)]);
+check("dual class: a skill on both lists reserves one slot, not two",
+	magelingTwice.skillSlots.classReserved, 3);
+const magelingEdited = { ...progClass, system: { ...progClass.system, advancement: { ...progClass.system.advancement,
+	classSkillList: C.applyClassSkillEdits(progClass.system, [], [{ title: 3, name: "Identify" }]) } } };
+const magelingCut = makeCharacter({}, 3, [makeRace(), magelingEdited, heldSkill("Detect Magic", 1), heldSkill("Absorb Aura", 7)]);
+check("a removed row is not owed", magelingCut.identity.classProgression[0].owed.map(s => s.name), ["Scroll Knowledge"]);
+check("...nor reserved", [magelingCut.skillSlots.classUsed, magelingCut.skillSlots.classReserved], [4, 2]);
+check("...nor needed", magelingCut.identity.classSlotsNeeded, 4);
+check("...and the progression shows it struck through, not gone",
+	magelingCut.identity.classProgression[0].rows.map(r => [r.title, r.skillText, r.removedText]),
+	[[1, "Detect Magic (core), Scroll Knowledge (core)", ""], [3, "", "Identify"],
+	 [7, "Absorb Aura (core)", ""], [9, "Identify (core)", ""]]);
+check("the later Identify row, a different title, is still granted at 9",
+	C.getClassSkillsToGrant(magelingEdited.system, 9, false, ["Detect Magic", "Scroll Knowledge", "Absorb Aura"]).map(s => [s.name, s.title]),
+	[["Identify", 9]]);
+check("a class with no skill list keeps his own figure for the slots needed",
+	singleClassed.identity.classSlotsNeeded, 0);
+
 // --- the title gate on a character with no class ----------------------------------------------
 // A class skill is refused until its title, measured against the class's title. A character whose
 // class was removed -- or a GME given a class skill by hand -- has no class to measure against,

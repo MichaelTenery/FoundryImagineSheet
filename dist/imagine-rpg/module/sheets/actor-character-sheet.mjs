@@ -17,6 +17,8 @@ import { chooseBestArmor } from "../equip-rules.mjs";
 import { GEM_TYPES, COIN_TYPES, getWealthInGold, changeCoins, changeValuables } from "../wealth-rules.mjs";
 import { canRollStartingMoney, getCharacterMoneyInputs, rollStartingMoney, describeStartingMoney } from "../starting-money.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
+import { getAlignmentChoicesForClasses, buildAlignmentSelectOptions, checkAlignmentForClasses,
+	ALIGNMENT_NONE, ALIGNMENT_NOT_APPLICABLE } from "../alignment-rules.mjs";
 import { grantNaturalWeapons, getMissingNaturalWeaponNames } from "../natural-weapons.mjs";
 import { needsStartingEnduranceRoll, getStartingEnduranceLabel } from "../race-rules.mjs";
 import { rollRaceStartingEndurance, confirmRaceStartingEnduranceRoll } from "../race-endurance.mjs";
@@ -209,6 +211,22 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			ImagineCharacterSheet.#buildHandednessChoices(this.document.system.physical.handedness);
 		tmpcontext.handednessLabel = ImagineCharacterSheet.#buildHandednessChoices(
 			this.document.system.physical.handedness).find(tmpchoice => tmpchoice.selected)?.label ?? "Right (default)";
+		// @MARKER ALIGNMENT
+		// The header's alignment dropdown and the Description tab's tendency dropdown, from the class or
+		// classes the character holds (module/alignment-rules.mjs; a dual class is offered what both allow)
+		// and the Game Master's custom entries. The sheet WARNS rather than refuses (user's ruling
+		// 2026-09-26): a stored value off the list stays, shown as "(current)", and the warning sits with
+		// the class-qualification issues in the header.
+		var tmpcustomalign = null;
+		try { tmpcustomalign = game.settings.get("imagine-rpg", "customAlignments") ?? null; }
+		catch (tmperr) { tmpcustomalign = null; }
+		var tmpalignreqs = (this.document.system.classItems ?? []).map(tmpclass => tmpclass.system?.requirements?.alignment ?? "");
+		tmpcontext.alignmentChoices = ImagineCharacterSheet.#buildAlignmentChoices(tmpalignreqs,
+			this.document.system.identity.alignment, tmpcustomalign);
+		tmpcontext.tendencyChoices = ImagineCharacterSheet.#buildTendencyChoices(tmpalignreqs,
+			this.document.system.identity.tendencies, tmpcustomalign);
+		tmpcontext.alignmentIssues = checkAlignmentForClasses(tmpalignreqs,
+			this.document.system.identity.alignment, this.document.system.identity.tendencies, tmpcustomalign);
 		// A GME picks its attack chart outright; the same selected-flag list the handedness
 		// dropdown uses, so it renders the same way everywhere.
 		tmpcontext.chosenAttackSkillChoices = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert", "Master"]
@@ -406,6 +424,22 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		return tmpchoices;
 	}
 
+	// @MARKER ALIGNMENT
+	// This is the function which builds the header's alignment dropdown: a blank, the class's list (his
+	// step-7 dropdown for its requirement; every class's list at once for a dual class), and his None and
+	// N/A -- the two values his setFinalAlignment writes (73409-73420). A stored value not among them is
+	// kept as "(current)", the same way #buildHandednessChoices keeps its value selected.
+	static #buildAlignmentChoices(tmprequirements, tmpcurrent, tmpcustom) {
+		var tmpchoices = getAlignmentChoicesForClasses(tmprequirements, tmpcustom);
+		return buildAlignmentSelectOptions([...tmpchoices.alignments, ALIGNMENT_NONE, ALIGNMENT_NOT_APPLICABLE], tmpcurrent, "");
+	}
+
+	// This is the function which builds the Description tab's tendency dropdown, the same way.
+	static #buildTendencyChoices(tmprequirements, tmpcurrent, tmpcustom) {
+		var tmpchoices = getAlignmentChoicesForClasses(tmprequirements, tmpcustom);
+		return buildAlignmentSelectOptions([...tmpchoices.tendencies, ALIGNMENT_NONE, ALIGNMENT_NOT_APPLICABLE], tmpcurrent, "");
+	}
+
 	// This is the function which flattens the twelve attributes into rows a template can walk,
 	// keeping the Player's Guide's order and category grouping.
 	static #buildAttributeRows(tmpsystem) {
@@ -454,6 +488,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				baseChance: tmpsys.baseChance,
 				totalChance: tmpsys.totalChance,
 				sourcebook: tmpsys.sourcebook,
+				page:       tmpsys.page,
 				// Flagged rather than hidden: a skill the campaign's switches disallow stays
 				// visible, with the reason, so nothing vanishes from a player's sheet.
 				available: tmpsys.available !== false,
@@ -618,8 +653,17 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpattrib = this.document.system.attributes[tmpkey];
 		if (!tmpattrib) { return; }
 
+		// Shift-click asks for a modifier, added to the chance (Daryl 2026-09-25: the changelog said
+		// shift-click worked and on the character sheet it did not).
+		var tmpmodifier = 0;
+		if (event.shiftKey) {
+			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to this ${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} save:`);
+			if (tmpanswer === null) { return; }
+			tmpmodifier = tmpanswer;
+		}
+
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpresult = resolveAttributeSave(tmpattrib.save, tmproll.total);
+		var tmpresult = resolveAttributeSave((parseInt(tmpattrib.save) || 0) + tmpmodifier, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
@@ -657,6 +701,14 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpbase = parseInt(this.document.system.characteristics[tmpkey]?.value) || 0;
 		var tmpchance = tmpdouble ? tmpbase * 2 : tmpbase;
 
+		// Shift-click asks for a modifier, added to the chance; the bad band stays 100 minus the
+		// single unmodified chance, as the creature sheet's resolveCharacteristicRoll keeps it.
+		if (event.shiftKey) {
+			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to this ${tmpkey} roll:`);
+			if (tmpanswer === null) { return; }
+			tmpchance = tmpchance + tmpanswer;
+		}
+
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpoutcome = tmpresults[2];
 		if (tmproll.total <= tmpchance)           { tmpoutcome = tmpresults[0]; }
@@ -668,6 +720,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
 			flavor: `${tmplabel} Check &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
 		});
+	}
+
+	// This is the function which asks for a modifier to a roll -- his "?{Modifier}" prompt, the same
+	// one the creature sheet asks. Returns the number, or null if the dialog was closed.
+	static async #askModifier(tmpprompt) {
+		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
+			window: { title: "Roll Modifier" },
+			content: `<p>${tmpprompt}</p><input type="number" name="modifier" value="0" autofocus>`,
+			ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
+		}).catch(() => null);
+		if (tmpanswer === null || tmpanswer === undefined) { return null; }
+		return parseInt(tmpanswer) || 0;
 	}
 
 	// @MARKER RESISTANCE ROLL
@@ -735,12 +799,20 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpcopies = this.document.items.filter(i => i.type == "skill" && i.name == tmpitem.name);
 		if (!tmpcopies.length) { tmpcopies = [tmpitem]; }
 
+		// Shift-click asks for a modifier, added to every copy's chance -- his skill-rollmod button.
+		var tmpmodifier = 0;
+		if (event.shiftKey) {
+			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to ${foundry.utils.escapeHTML(tmpitem.name)}:`);
+			if (tmpanswer === null) { return; }
+			tmpmodifier = tmpanswer;
+		}
+
 		var tmprolls = [];
 		var tmpresults = [];
 		for (const tmpcopy of tmpcopies) {
 			var tmproll = await new Roll("1d100").evaluate();
 			tmprolls.push(tmproll);
-			var tmpresult = resolveSkillRoll(tmpcopy.system.totalChance, tmproll.total);
+			var tmpresult = resolveSkillRoll((parseInt(tmpcopy.system.totalChance) || 0) + tmpmodifier, tmproll.total);
 			tmpresult.category = tmpcopy.system.category;
 			tmpresults.push(tmpresult);
 		}
@@ -1244,8 +1316,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			return;
 		}
 
+		// Each skill shows its untrained chance beside its name, so the player sees the odds before
+		// choosing (Daryl 2026-09-25). The modifier entered below is added on top when rolled.
+		var tmpsystem = this.document.system;
 		var tmpoptions = tmpoffer
-			.map(e => `<option value="${e._id}">${foundry.utils.escapeHTML(e.name)}</option>`).join("");
+			.map(e => `<option value="${e._id}">${foundry.utils.escapeHTML(e.name)} &mdash; ${
+				tmpsystem.getCommonSkillChance(e.system?.attr1, e.system?.attr2, e.system?.skillRating)}%</option>`).join("");
 		var tmpchoice = await foundry.applications.api.DialogV2.prompt({
 			window: { title: "Attempt a Skill Untrained" },
 			content: `<p class="hint">The base chance alone, with no starting bonus.</p>

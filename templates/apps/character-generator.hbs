@@ -179,21 +179,91 @@
 	{{!-- @MARKER SKILLS --}}
 	{{#if isSkills}}
 		<h2>Skills</h2>
-		<h3>Class skills <span class="muted">first title; slots {{slots.class}}</span></h3>
+		{{!-- @MARKER WHOLE CAREER
+		      His Step 6 (HTML 40148-40153): the whole career, every title's class skills, CORE marked,
+		      a box on each non-core row to give it up (his REMOVE), against the class slots Knowledge
+		      gives, with his two CONVERT buttons as counts. Next is held while short, unless the Game
+		      Master's override is ticked. The first title's skills are created now; the rest arrive at
+		      their titles, and a row given up never does. --}}
+		<h3>Class skills <span class="muted">class slots {{career.slots}}{{#if career.converted}} (was {{career.baseSlots}}){{/if}}
+			/ needed {{career.needed}}{{#if career.short}} / <span class="alarm">short {{career.short}}</span>{{/if}}</span></h3>
 		{{#if nonClassed}}<p class="muted">A GME has no class skills.</p>{{else}}
-		<p>{{#each classSkills as |s|}}<span class="race-chip">{{s.name}}{{#if s.core}} (core){{/if}}</span>{{else}}<span class="muted">none</span>{{/each}}</p>
+		{{#if career.has}}
+		<p class="muted">The whole career, as his sheet plans it at creation: every skill takes a class slot now, the later
+			titles' as well. Tick a skill that is not CORE to give it up; it is never granted. First-title skills are created
+			with the character.</p>
+		<div class="chargen-career">
+		<table class="chargen-career-table">
+			<thead><tr><th>Title</th><th>Skill</th><th>Core</th><th>Remove</th></tr></thead>
+			<tbody>
+			{{#each career.rows as |r|}}
+			<tr class="{{#if r.checked}}removed{{/if}}">
+				<td>{{r.title}}</td>
+				<td>{{#if r.checked}}<s>{{r.name}}</s>{{else}}{{r.name}}{{/if}}{{#if r.replaces}} <span class="muted">(replaces {{r.replaces}})</span>{{/if}}</td>
+				<td>{{#if r.core}}CORE{{/if}}</td>
+				<td>{{#if r.removable}}<input type="checkbox" name="classRemovePick" value="{{r.key}}" {{#if r.checked}}checked{{/if}}>{{/if}}</td>
+			</tr>
+			{{/each}}
+			</tbody>
+		</table>
+		</div>
+		<div class="swap-row">Convert
+			<input type="number" name="slotMoves.racialToClass" value="{{career.racialToClass}}" min="0" max="{{career.racialToClassMax}}">
+			racial slot(s) to class slots (1 for 1), and
+			<input type="number" name="slotMoves.socialToClass" value="{{career.socialToClass}}" min="0" max="{{career.socialToClassMax}}">
+			pair(s) of social slots to class slots (2 for 1).</div>
+		{{#if career.showOverride}}
+		<label class="check"><input type="checkbox" name="classSlotOverride" {{#if state.classSlotOverride}}checked{{/if}}> Go on anyway (Game Master's call: fewer class slots than the career needs)</label>
+		{{/if}}
 		{{#if cannotCast}}<p class="muted">This race cannot cast, so it takes the no-casting alternatives.</p>{{/if}}
+
+		{{!-- @MARKER CLASS CUSTOMIZATION
+		      The Master's Manual's Customizing Classes (MM p.55), when the world allows it: up to three
+		      skills swapped for others of the same type, never a CORE one, never one already in the class.
+		      The incoming skill takes the replaced one's title. Its own minimum title and prerequisites
+		      (MM pp.238-242) are not in the port's data, so they are given as advice. --}}
+		{{#if classSwaps.show}}
+		<h3>Customize the class <span class="muted">up to {{classSwaps.limit}} swaps, Master's Manual p.55</span>
+			{{#if classSwaps.canAdd}}<button type="button" data-action="addClassSwap">Add</button>{{/if}}</h3>
+		{{#each classSwaps.rows as |sw|}}
+		<div class="swap-row">
+			Replace <select name="classSwaps.{{sw.index}}.out">{{#each sw.outOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
+			with <select name="classSwaps.{{sw.index}}.in">{{#each sw.inOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
+			<button type="button" data-action="removeClassSwap" data-index="{{sw.index}}"><i class="fa-solid fa-trash"></i></button>
+			{{#if sw.advice}}<p class="muted">{{sw.advice}}</p>{{/if}}
+		</div>
+		{{/each}}
+		{{#each classSwaps.issues as |i|}}<p class="alarm">{{i}}</p>{{/each}}
+		{{/if}}
+		{{/if}}
 		{{/if}}
 		<h3>Racial skills <span class="muted">{{racialChosen}} of {{slots.racial}}</span></h3>
 		<div class="pick-list">
 			{{#each racialSkills as |s|}}<label><input type="checkbox" name="racialPick" value="{{s.name}}" {{#if s.checked}}checked{{/if}}> {{s.name}}{{#if s.bonus}} {{s.bonus}}{{/if}}</label>{{/each}}
 		</div>
 		<h3>Social skills <span class="muted">{{socialChosen}} of {{slots.social}}{{#if socialRaceName}}; modifiers for {{socialRaceName}}{{/if}}</span></h3>
-		{{!-- The first race's modifier beside each skill, as his recommended lists show it. BLOCKED
-		      ones stay listed, marked, and the step refuses them -- his copy button does the same. --}}
-		<div class="pick-list tall">
-			{{#each socialSkills as |s|}}<label><input type="checkbox" name="socialPick" value="{{s.name}}" {{#if s.checked}}checked{{/if}}> {{s.name}}{{#if s.blocked}} <span class="alarm">BLOCKED</span>{{else}}{{#if s.mod}} {{s.mod}}{{/if}}{{/if}}</label>{{/each}}
+		{{!-- @MARKER SOCIAL SKILLS
+		      The class's own list first, as his Step 6 has it: Required flagged, then Recommend, in his
+		      order; then every other social skill A-Z. Each skill is in one list only, and both share
+		      name="socialPick". The first race's modifier beside each skill, as his recommended lists
+		      show it. BLOCKED ones stay listed, marked, and the step refuses them -- his copy button
+		      does the same. Both boxes are in the window's PARTS.scrollable, so a tick keeps the place. --}}
+		{{#if classSocial.has}}
+		<h4>From the {{classSocial.className}} list{{#if classSocial.hasUpTo}} &mdash; choose up to {{classSocial.upTo}}{{#if classSocial.requiredCount}} besides the Required{{/if}}{{/if}}
+			{{#if classSocial.upToSource}}<span class="muted">({{classSocial.upToSource}})</span>{{/if}}</h4>
+		<div class="pick-list chargen-social-class">
+			{{#each classSocialSkills as |s|}}<label{{#if s.required}} class="required"{{/if}}><input type="checkbox" name="socialPick" value="{{s.name}}" {{#if s.checked}}checked{{/if}}> {{s.name}}{{#if s.required}} <strong>(Required)</strong>{{/if}}{{#if s.blocked}} <span class="alarm">BLOCKED</span>{{else}}{{#if s.mod}} {{s.mod}}{{/if}}{{/if}}</label>{{/each}}
 		</div>
+		<h4>Other social skills{{#if classSocial.hasUpTo}} <span class="muted">(these count toward the {{classSocial.upTo}} as well)</span>{{/if}}</h4>
+		{{else}}
+		{{#if classSocial.anyList}}<p class="muted">The {{classSocial.className}} may choose from any social skill{{#if classSocial.hasUpTo}}, up to {{classSocial.upTo}}{{#if classSocial.upToSource}} ({{classSocial.upToSource}}){{/if}}{{/if}}.</p>{{/if}}
+		{{/if}}
+		<div class="pick-list tall chargen-social-other">
+			{{#each otherSocialSkills as |s|}}<label><input type="checkbox" name="socialPick" value="{{s.name}}" {{#if s.checked}}checked{{/if}}> {{s.name}}{{#if s.blocked}} <span class="alarm">BLOCKED</span>{{else}}{{#if s.mod}} {{s.mod}}{{/if}}{{/if}}</label>{{/each}}
+		</div>
+		{{#if classSocial.showOverride}}
+		<label class="check"><input type="checkbox" name="socialOverride" {{#if state.socialOverride}}checked{{/if}}> Go on anyway (Game Master's call: a Required skill left out, or more than the class's count)</label>
+		{{/if}}
 		<p class="muted">Starting bonuses are worked out when the character is created, as on his sheet: a racial skill's dice count double, a class skill takes +30 if it is core, a social skill takes its race modifier, and skills lift one another (Mathematics gives Accounting +10%, Explorer gives Cartography +25%). The Review step lists them. Slots can be traded afterwards on the Skills tab.</p>
 	{{/if}}
 
@@ -249,8 +319,26 @@
 			{{#if skinChoices.length}}
 			<select name="skin">{{#each skinChoices as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
 			{{else}}<input type="text" name="skin" value="{{state.skin}}">{{/if}}</label>
-		<label class="row">Alignment <input type="text" name="alignment" value="{{state.alignment}}"
-			placeholder="{{#if klass}}{{klass.alignment}}{{/if}}"></label>
+		{{!-- @MARKER ALIGNMENT
+		      His step 7: the class's lists only (module/alignment-rules.mjs), his description under each,
+		      and his Alignmentless tick ("GM Discretion"), which writes N/A to both. --}}
+		<h3>Alignment {{#if alignment.requirement}}<span class="muted">the class allows: {{alignment.requirement}}</span>{{/if}}</h3>
+		<label class="check"><input type="checkbox" name="alignmentless" {{#if alignment.alignmentless}}checked{{/if}}> Alignmentless
+			<span class="muted">(ignore alignment and play Alignmentless; GM discretion)</span></label>
+		{{#unless alignment.alignmentless}}
+		{{#if alignment.unknown}}<p class="alarm">The class's requirement is not one of his, so every alignment is offered.</p>{{/if}}
+		{{#if alignment.empty}}<p class="alarm">The classes have no alignment in common.</p>{{/if}}
+		{{#if alignment.special}}<p class="muted">{{alignment.special}}</p>{{/if}}
+		<label class="row">Alignment
+			<select name="alignment">{{#each alignment.options as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		{{#if alignment.description}}<p class="muted chargen-alignment-description">{{alignment.description}}</p>{{/if}}
+		<label class="row">Tendency
+			<select name="tendencies">{{#each alignment.tendencyOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		{{#if alignment.tendencyDescription}}<p class="muted chargen-alignment-description">{{alignment.tendencyDescription}}</p>{{/if}}
+		{{#if alignment.showOverride}}
+		<label class="check"><input type="checkbox" name="override" {{#if state.override}}checked{{/if}}> Take it anyway (the class override: a GM's call)</label>
+		{{/if}}
+		{{/unless}}
 		<h3>Languages <span class="muted">Intelligence allows {{languageAllowance.spoken}} spoken, {{languageAllowance.written}} written</span></h3>
 		{{#each languages as |l|}}
 		<div class="swap-row"><input type="text" name="languages.{{l.n}}.name" value="{{l.name}}">
@@ -366,6 +454,7 @@
 	{{#if isReview}}
 		<h2>{{#if state.name}}{{state.name}}{{else}}New Character{{/if}}</h2>
 		<p>{{raceName}} {{#if klass}}{{klass.name}}{{/if}}, title {{review.title}}. {{typeLabel}} character.</p>
+		<p>Alignment: {{#if review.alignment}}{{review.alignment}}{{else}}none{{/if}}{{#if review.tendencies}}; tendency {{review.tendencies}}{{/if}}</p>
 		<p>Money: {{#if review.money}}{{review.money}}{{else}}none{{/if}}</p>
 		{{#if review.bought.length}}
 		<p>Bought: {{#each review.bought as |b|}}<span class="race-chip">{{b}}</span>{{/each}} <span class="muted">&mdash; spent {{review.spent}}</span></p>

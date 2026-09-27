@@ -23,6 +23,7 @@
 
 import { CREATURE_TYPES, CREATURE_BODY_TYPES, CREATURE_ATTACK_CHARTS, CREATURE_SIZES,
          BODY_AREA_TYPES } from "../creature-tables.mjs";
+import { getCreatureAlignmentSuggestions } from "../alignment-rules.mjs";
 import { resolveCharacteristicRoll, readBodyChartRows, serializeBodyChart, getStockBodyChart,
          getNewBodyAreaName, getDuplicateBodyAreaNames,
          BODY_AREA_MULTIPLIERS, moveListEntry, removeListEntry } from "../creature-sheet-rules.mjs";
@@ -191,6 +192,13 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 		tmpcontext.actor = this.document;
 		tmpcontext.system = this.document.system;
+		// @MARKER ALIGNMENT
+		// Every alignment and tendency, his and the Game Master's custom ones, with None and N/A, offered
+		// under the two free-text fields (module/alignment-rules.mjs getCreatureAlignmentSuggestions).
+		var tmpcustomalign = null;
+		try { tmpcustomalign = game.settings.get("imagine-rpg", "customAlignments") ?? null; }
+		catch (tmperr) { tmpcustomalign = null; }
+		tmpcontext.alignmentSuggestions = getCreatureAlignmentSuggestions(tmpcustomalign);
 		tmpcontext.attributes = ImagineCreatureSheet.#buildAttributeRows(this.document.system);
 		tmpcontext.skills = ImagineCreatureSheet.#buildSkillRows(this.document.system);
 		tmpcontext.attacks = ImagineCreatureSheet.#buildAttackRows(this.document);

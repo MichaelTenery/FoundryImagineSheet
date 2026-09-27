@@ -1,0 +1,234 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG whole-career class skills and class customization test</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the character generator's Skills-step class skills: his Step 6 whole-career plan (every
+// title's skills against the class slots Knowledge gives, REMOVE on a non-core row, his two CONVERT
+// buttons, Next held while short unless the Game Master's override is ticked), and the Master's
+// Manual's Customizing Classes swaps (MM p.55), when the world's setting allows them. Against the REAL
+// classes, races and skills from src/packs/documents/, and the real template rendered with Handlebars.
+//
+// The rules themselves are in module/class-rules.mjs (applyClassSkillEdits, countClassSlotsNeeded,
+// checkClassSkillSwaps and the rest); the grants that read the edited class are checked here and in
+// tools/levelup-walk.html, the reservation on the finished character in tools/derive-test.html.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/class-edits-test.html
+globalThis.foundry = globalThis.foundry ?? {
+	abstract: { TypeDataModel: class {} },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = globalThis.game ?? { imagine: { getAvailabilityRules: () => null } };
+
+const V = await import("../module/chargen-view.mjs");
+const C = await import("../module/chargen-rules.mjs");
+const K = await import("../module/class-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+const load = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`, { cache: "no-store" })).json());
+const [races, classes, skills] = await Promise.all(["races", "classes", "skills"].map(load));
+const content = { races, classes, skills, equipment: [], armor: [], weapons: [] };
+const template = Handlebars.compile(await (await fetch("../templates/apps/character-generator.hbs", { cache: "no-store" })).text());
+const byName = (name) => classes.find(c => c.name === name);
+const ON = { classCustomization: true };
+
+// A Civilized Human with every attribute 15 except Knowledge.
+const human = races.find(r => r.name.startsWith("Human(Civilized")).name;
+const stateFor = (className, knw, patch) => {
+	const s = V.newGeneratorState();
+	s.race1 = human; s.className = className;
+	s.manual = true; s.manualBase = Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 15]));
+	s.manualBase.knw = knw;
+	s.step = V.STEPS.indexOf("Skills");
+	return Object.assign(s, patch ?? {});
+};
+const derive = (s, o) => V.deriveGenerator(s, content, () => true, o);
+const view = (s, o) => V.buildGeneratorView(s, content, () => true, o);
+
+// --- his Step 6: the whole career against Knowledge's class slots ------------------------------
+const warrior = stateFor("Warrior", 12);
+const dw = derive(warrior);
+check("a KNW 12 Warrior has 32 class slots", [dw.finals.knw.final, dw.slots.class], [12, 32]);
+check("...against a whole career of 37 (his getSlotsNeededForClass), 5 short",
+	[dw.classNeeded, dw.classShort, byName("Warrior").system.skillSlotsNeeded], [37, 5, 37]);
+check("...so Next is held, in his words", V.checkStep(warrior, dw).startsWith("Not enough slots for all Class Skills"), true);
+const wv = view(warrior);
+check("the table lists every title's skill, 1 to 15", [wv.career.rows.length, wv.career.rows[0].title, wv.career.rows.at(-1).title], [37, 1, 15]);
+check("...CORE rows carry no remove box", wv.career.rows.filter(r => r.core).every(r => !r.removable), true);
+check("...every other row does", wv.career.rows.filter(r => !r.core).every(r => r.removable), true);
+check("...and the override is offered while short", wv.career.showOverride, true);
+
+// Giving up five non-core rows clears it.
+const lateFive = wv.career.rows.filter(r => !r.core).slice(-5).map(r => ({ title: r.title, name: r.name }));
+warrior.removedClassSkills = lateFive;
+const dw5 = derive(warrior);
+check("removing five non-core skills clears the shortfall", [dw5.classNeeded, dw5.classShort], [32, 0]);
+check("...and the step goes on", V.checkStep(warrior, dw5), "");
+check("...with the removed rows ticked in the table", view(warrior).career.rows.filter(r => r.checked).length, 5);
+check("...and flagged on the edited list", dw5.classSkillList.filter(r => r.removed).map(r => r.name), lateFive.map(r => r.name));
+
+// A CORE row cannot be removed: the edit refuses it, and a state that asks is refused his way.
+const core = byName("Warrior").system.advancement.classSkillList.find(r => r.core);
+const coreState = stateFor("Warrior", 20, { removedClassSkills: [{ title: core.title, name: core.name }] });
+check("applyClassSkillEdits never removes a CORE row",
+	K.applyClassSkillEdits(byName("Warrior").system, [], [{ title: core.title, name: core.name }]).some(r => r.removed), false);
+check("...and the step refuses a state that asks, in his words",
+	V.checkStep(coreState, derive(coreState)), `CORE skills cannot be removed (${core.name}).`);
+
+// The override: the Game Master's way past, which his sheet has not.
+const overridden = stateFor("Warrior", 12, { classSlotOverride: true });
+check("the override lets a short career through", V.checkStep(overridden, derive(overridden)), "");
+
+// His CONVERT buttons: 1 racial slot for 1 class slot, 2 social for 1.
+const converting = stateFor("Warrior", 12, { slotMoves: { racialToClass: 3, socialToClass: 1 } });
+const dc = derive(converting);
+check("converting 3 racial and 1 pair of social slots gives 4 class slots",
+	[dc.baseSlots.class, dc.slots.class, dc.slots.racial, dc.slots.social], [32, 36, 1, 1]);
+check("...leaving the career 1 short", dc.classShort, 1);
+converting.removedClassSkills = lateFive.slice(0, 1);
+check("...which one removal clears", V.checkStep(converting, derive(converting)), "");
+const overConverting = stateFor("Warrior", 12, { slotMoves: { racialToClass: 99, socialToClass: 99 } });
+check("a conversion is held to the slots Knowledge gives",
+	(d => [d.slotMoves.racialToClass, d.slotMoves.socialToClass, d.slots.racial, d.slots.social])(derive(overConverting)), [4, 1, 0, 1]);
+check("a racial pick past the converted slots is refused by the count",
+	(s => V.checkStep(s, derive(s)))(stateFor("Warrior", 12, { classSlotOverride: true,
+		slotMoves: { racialToClass: 4, socialToClass: 0 }, racialSkillNames: ["Swim"] })).startsWith("Only 0 racial skills"), true);
+
+// A caster/non-caster pair counts once: Mage's 38 rows are his 37.
+check("a caster/non-caster pair counts once (Mage 38 rows, his 37)",
+	[byName("Mage").system.advancement.classSkillList.length, K.countClassSlotsNeeded(byName("Mage").system, false),
+	 K.countClassSlotsNeeded(byName("Mage").system, true)], [38, 37, 37]);
+check("his figure and his rows disagree for Bard and Hero only; the rows are counted",
+	classes.filter(c => !c.system.nonClassed && K.countClassSlotsNeeded(c.system, false) != c.system.skillSlotsNeeded).map(c => c.name),
+	["Bard", "Hero"]);
+check("a GME needs no class slots and has no table",
+	(s => [derive(s).classNeeded, view(s).career.has])(stateFor("GME", 5)), [0, false]);
+
+// --- what is created: the class item carries the edits ---------------------------------------
+const early = stateFor("Warrior", 12, { removedClassSkills: [
+	...lateFive.slice(0, 4),
+	{ title: 1, name: wv.career.rows.find(r => r.title == 1 && !r.core).name }] });
+const de = derive(early);
+check("removing a first-title skill takes it off the first title's list", de.classSkills.length, 3);
+const assembled = C.assembleCharacter(V.choicesFromState(early, de), content, () => 1);
+const classItem = assembled.items.find(i => i.type == "class");
+check("the assembled class item carries the removed flags",
+	classItem.system.advancement.classSkillList.filter(r => r.removed).length, 5);
+check("...every row carrying removed and replaces", classItem.system.advancement.classSkillList.every(r =>
+	typeof r.removed == "boolean" && typeof r.replaces == "string"), true);
+check("...the removed first-title skill is not created",
+	assembled.items.filter(i => i.type == "skill" && i.system.category == "class").map(i => i.name), de.classSkills.map(s => s.name));
+check("...the compendium class is untouched", byName("Warrior").system.advancement.classSkillList.some(r => r.removed), false);
+const convAssembled = C.assembleCharacter(V.choicesFromState(converting, derive(converting)), content, () => 1);
+check("his CONVERTs are written as the Skills tab's own slot moves",
+	[convAssembled.actor.system.skillSlotMoves.racialToClass, convAssembled.actor.system.skillSlotMoves.socialToClass], [3, 1]);
+check("a later grant reads the edited class: the removed rows are never granted",
+	K.getClassSkillsToGrant(classItem.system, 15, false, []).some(s => early.removedClassSkills.some(g => g.name == s.name && g.title == s.title)), false);
+check("...and the level-up title step leaves them out",
+	early.removedClassSkills.every(g => !K.getClassSkillsAtTitle(classItem.system, g.title, false).some(s => s.name == g.name)), true);
+
+// --- the template: his table, the CONVERT inputs, the override ---------------------------------
+const warriorHtml = template(view(stateFor("Warrior", 12)));
+check("the template draws the table with a remove box per non-core row",
+	(warriorHtml.match(/name="classRemovePick"/g) ?? []).length, wv.career.rows.filter(r => !r.core).length);
+check("...the header's needed and short figures",
+	/class slots 32\s*\/ needed 37 \/ <span class="alarm">short 5<\/span>/.test(warriorHtml), true);
+check("...both CONVERT inputs and the override tick",
+	["slotMoves.racialToClass", "slotMoves.socialToClass", "classSlotOverride"].every(n => warriorHtml.includes(`name="${n}"`)), true);
+check("...in a scroll box the window keeps", warriorHtml.includes('class="chargen-career"'), true);
+
+// --- MM p.55: Customizing Classes --------------------------------------------------------------
+const knight = byName("Knight");
+const templar = byName("Knight(Templar)");
+const bookSwaps = [{ title: 4, out: "Stun", in: "Shield Knowledge" }, { title: 6, out: "Meditate", in: "Fearless" }];
+const sortRows = (list) => list.map(r => [r.title, r.name, r.core]).sort((a, b) => a[0] - b[0] || a[1].localeCompare(b[1]));
+check("the book's example on the Knight passes every rule", K.checkClassSkillSwaps(knight.system, bookSwaps, skills, false), []);
+check("...and reproduces his Knight(Templar) exactly",
+	sortRows(K.applyClassSkillEdits(knight.system, bookSwaps, [])), sortRows(templar.system.advancement.classSkillList));
+const edited = K.applyClassSkillEdits(knight.system, bookSwaps, []);
+check("...each incoming skill at the replaced one's title, saying what it replaced",
+	edited.filter(r => r.replaces).map(r => [r.title, r.name, r.replaces, r.core]),
+	[[4, "Shield Knowledge", "Stun", false], [6, "Fearless", "Meditate", false]]);
+check("a swapped-in skill is granted at its title, the swapped-out one never",
+	[K.getClassSkillsToGrant({ advancement: { classSkillList: edited } }, 4, false, []).filter(s => s.title == 4).map(s => s.name).includes("Shield Knowledge"),
+	 K.getClassSkillsToGrant({ advancement: { classSkillList: edited } }, 15, false, []).some(s => s.name == "Stun" || s.name == "Meditate")],
+	[true, false]);
+check("...and the progression panel says what it replaced",
+	K.buildClassProgression({ advancement: { classSkillList: edited } }, 4, false).find(r => r.title == 4).skillText,
+	"Disarm, Law, Shield Knowledge (replaces Stun), Sweep");
+check("a fourth swap is refused (rule 6)",
+	K.checkClassSkillSwaps(knight.system, [...bookSwaps, { title: 3, out: "Horsemanship", in: "Riding" },
+		{ title: 5, out: "Feint", in: "Dodge" }], skills, false)[0], "No more than 3 skills can be substituted; 4 are.");
+check("a cross-type swap is refused (rule 1)",
+	K.checkClassSkillSwaps(knight.system, [{ title: 4, out: "Stun", in: "Fearless" }], skills, false),
+	["Fearless (Disciplined) is not the same type as Stun (Combat)."]);
+check("a CORE row is refused (rule 2)",
+	K.checkClassSkillSwaps(knight.system, [{ title: 1, out: "Armor Knowledge", in: "Shield Knowledge" }], skills, false),
+	["Armor Knowledge is a core skill; core skills cannot be substituted."]);
+check("...and never offered", K.getSwapOutCandidates(knight.system, false).some(r => r.core), false);
+check("a skill already in the class is refused (rule 3)",
+	K.checkClassSkillSwaps(knight.system, [{ title: 4, out: "Stun", in: "Dodge" }], skills, false), ["Dodge is already in the class."]);
+check("...and never offered", K.getSwapInCandidates(knight.system, "Stun", skills, null).includes("Dodge"), false);
+check("the same row twice is refused",
+	K.checkClassSkillSwaps(knight.system, [{ title: 4, out: "Stun", in: "Shield Knowledge" }, { title: 4, out: "Stun", in: "Trip" }],
+		skills, false), ["Stun at title 4 is substituted twice."]);
+check("a social skill cannot come in",
+	K.getSwapInCandidates(knight.system, "Stun", skills, null).every(n => skills.find(d => d.name == n).system.category != "social"), true);
+check("the incoming list is availability-filtered",
+	K.getSwapInCandidates(knight.system, "Stun", skills, (d) => d.name != "Shield Knowledge").includes("Shield Knowledge"), false);
+check("rule 5 reads requires, which his data only ever sets to caster/nonCaster, so it excludes nothing today",
+	K.getSwapOutCandidates(knight.system, false).length, knight.system.advancement.classSkillList.filter(r => !r.core).length);
+check("a row given up is not offered to swap out",
+	K.getSwapOutCandidates(knight.system, false, [{ title: 4, name: "Stun" }]).some(r => r.name == "Stun" && r.title == 4), false);
+check("...and swapping it out is refused, so the swap cannot undo the removal",
+	K.checkClassSkillSwaps(knight.system, [{ title: 4, out: "Stun", in: "Shield Knowledge" }], skills, false, [{ title: 4, name: "Stun" }]),
+	["Stun cannot be taken out of the class."]);
+check("rule 4 is advice only", K.describeSwapAdvice(bookSwaps[0]).startsWith("Check Shield Knowledge's minimum title and prerequisites"), true);
+
+// In the generator, with the setting on.
+const custom = stateFor("Knight", 20, { classSkillSwaps: structuredClone(bookSwaps) });
+const dk = derive(custom, ON);
+check("the generator applies the swaps with the setting on",
+	sortRows(dk.classSkillList), sortRows(templar.system.advancement.classSkillList));
+check("...and goes on", V.checkStep(custom, dk), "");
+const kv = view(custom, ON);
+check("...offering the swap rows, no core row among the choices",
+	[kv.classSwaps.show, kv.classSwaps.rows.length, kv.classSwaps.rows[0].outOptions.some(o => o.label.startsWith("Armor Knowledge"))], [true, 2, false]);
+check("...the chosen ones selected", kv.classSwaps.rows.map(r => [r.outOptions.find(o => o.selected).value, r.inOptions.find(o => o.selected).value]),
+	[["4|Stun", "Shield Knowledge"], ["6|Meditate", "Fearless"]]);
+check("...and the table marks the swapped rows, with no remove box on them",
+	kv.career.rows.filter(r => r.replaces).map(r => [r.name, r.replaces, r.removable]), [["Shield Knowledge", "Stun", false], ["Fearless", "Meditate", false]]);
+const customHtml = template(kv);
+check("the template draws the swap panel", ["Customize the class", 'name="classSwaps.0.out"', 'name="classSwaps.1.in"', 'data-action="addClassSwap"']
+	.every(t => customHtml.includes(t)), true);
+const badCustom = stateFor("Knight", 20, { classSkillSwaps: [{ title: 4, out: "Stun", in: "Fearless" }] });
+check("a bad swap holds the step", V.checkStep(badCustom, derive(badCustom, ON)), "Fearless (Disciplined) is not the same type as Stun (Combat).");
+const fourCustom = stateFor("Knight", 20, { classSkillSwaps: [...structuredClone(bookSwaps), { title: 3, out: "Horsemanship", in: "Riding" }] });
+check("Add is hidden at three", view(fourCustom, ON).classSwaps.canAdd, false);
+check("the assembled class item carries the swaps",
+	C.assembleCharacter(V.choicesFromState(custom, dk), content, () => 1).items.find(i => i.type == "class")
+		.system.advancement.classSkillList.filter(r => r.replaces).map(r => r.name), ["Shield Knowledge", "Fearless"]);
+
+// The setting off -- or not passed at all -- hides the panel and applies nothing.
+check("with the setting off the panel is hidden", view(custom, { classCustomization: false }).classSwaps.show, false);
+check("...and the swaps are not applied", derive(custom, { classCustomization: false }).classSkillList.some(r => r.replaces), false);
+check("no options passed is the same as off", [view(custom).classSwaps.show, derive(custom).classSkillList.some(r => r.replaces)], [false, false]);
+check("...and the template draws no panel", template(view(custom)).includes("Customize the class"), false);
+check("a swap and a removal on one row: the removal is ignored",
+	K.applyClassSkillEdits(knight.system, bookSwaps.slice(0, 1), [{ title: 4, name: "Shield Knowledge" }]).find(r => r.title == 4 && r.replaces).removed, false);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

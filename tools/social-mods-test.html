@@ -331,6 +331,42 @@ await G.grantClassSkills(climber, { notify: false });
 check("...so a Climb granted at title 2 takes no +40 from the stale Climbing evoke",
 	created2.find(d => d.name === "Climb")?.system.abilityBonus, 0);
 
+// @MARKER CLASS SOCIAL SKILL LISTS
+// system.socialSkills on the class documents, from his setSocialSkillLists via
+// extract_class_social_skills.py, with the books' "up to N" beside it.
+const cls = (name) => classes.find(c => c.name === name)?.system.socialSkills;
+check("every class document carries socialSkills",
+	classes.filter(c => !c.system.socialSkills).map(c => c.name), []);
+check("92 base classes have a list of his (91 classes and GME)",
+	new Set(classes.map(c => c.system.baseClass || c.name)).size, 92);
+check("his totals: 58 Required and 1,356 Recommend across the base classes",
+	[...new Map(classes.map(c => [c.system.baseClass || c.name, c.system.socialSkills])).values()]
+		.reduce((a, s) => [a[0] + s.required.length, a[1] + s.recommended.length], [0, 0]), [58, 1356]);
+check("every name is a social skill document",
+	classes.flatMap(c => [...c.system.socialSkills.required, ...c.system.socialSkills.recommended])
+		.filter(n => !socialNames.has(n)), []);
+check("Acrobat: Tumbling Required, 15 Recommend, up to 2 (PG p.55)",
+	[cls("Acrobat").required, cls("Acrobat").recommended.length, cls("Acrobat").upTo, cls("Acrobat").upToSource],
+	[["Tumbling"], 15, 2, "Player's Guide p.55"]);
+check("Knight(Templar), a path, carries Knight's list and count",
+	cls("Knight(Templar)"), cls("Knight"));
+check("Elementalist(Call of Death) carries Elementalist's (Legends p.59, up to 2)",
+	[cls("Elementalist(Call of Death)").upTo, cls("Elementalist(Call of Death)").recommended.length > 0], [2, true]);
+check("Sage: any list, no class rows, up to four (PG p.69)",
+	[cls("Sage").anyList, cls("Sage").required, cls("Sage").recommended, cls("Sage").upTo], [true, [], [], 4]);
+check("GME: any list, no class rows, no count",
+	[cls("GME").anyList, cls("GME").required, cls("GME").recommended, cls("GME").upTo], [true, [], [], null]);
+check("no other class is any-list",
+	classes.filter(c => c.system.socialSkills.anyList).map(c => c.system.baseClass || c.name).sort(), ["GME", "Sage"]);
+check("Healer: his errata's Physiology, not Philosophy",
+	[cls("Healer").recommended.includes("Physiology"), cls("Healer").recommended.includes("Philosophy")], [true, false]);
+check("Witch Hunter: his untyped row 16, Weapon Making, read as Recommend -- 16 rows",
+	[cls("Witch Hunter").recommended.length, cls("Witch Hunter").recommended.at(-1)], [16, "Weapon Making"]);
+check("Intercessor: his 14 names kept (his select value hides them on his sheet), Theology Required",
+	[cls("Intercessor").required, cls("Intercessor").recommended.length], [["Theology"], 13]);
+check("a class with no book text has no count: Hunter",
+	[cls("Hunter").upTo, cls("Hunter").upToSource], [null, ""]);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =

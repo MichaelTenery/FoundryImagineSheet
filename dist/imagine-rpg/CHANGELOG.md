@@ -18,6 +18,53 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.21.0 — 2026-09-26
+
+**Alignment and tendency are chosen from lists your class allows.** On the character generator's
+Details step, and on the character sheet, alignment and tendency are now dropdowns. Each class
+offers the alignments his sheet offers for it, with Insane always available. His description of the
+alignment and the tendency is shown under each. Classes bound to Order or Immoral start with that
+tendency already chosen. An **Alignmentless** tick (at the Game Master's discretion) writes N/A to
+both. On the sheet, a value the class does not allow is kept, marked "(current)", and a warning
+appears beside the class-qualification notes. A character with two classes is offered only what
+both allow, and is warned if the two share nothing. Creatures keep free text, now with suggestions.
+
+**Game Masters can add their own alignments and tendencies.** A new **Alignments & Tendencies**
+button in the system settings opens a list of custom entries. A custom alignment says whether it
+reads as Good, Neutral, Evil or none, Active, Passive or True, and whether it is fanatical; its name
+must contain those words so that spells, hymns and blessings treat it correctly. It then appears in
+every class list it fits. A custom tendency joins the lists for any class, Order classes or Immoral
+classes.
+
+**Social skills start from your class's own list.** The generator's Skills step now shows the
+class's social skills first, Required ones marked, then Recommended, under "choose up to N" where
+the book gives a number, followed by every other social skill. Required skills must be taken (as far
+as the social slots allow), and choosing more than N gives a warning; the Game Master can tick
+"Go on anyway" past either. The Healer's list has Physiology rather than Philosophy, following the
+author's errata.
+
+**Your whole class skill career is planned at creation, as on his sheet.** The Skills step lists
+every class skill from the first title to the fifteenth, with the core skills marked, beside your
+Knowledge's class slots: how many you have, how many the class needs, and how many you are short.
+Tick non-core skills to give them up; those are never granted when you reach their title. You can
+also turn racial slots into class slots (one for one) or social slots into class slots (two for
+one). If you are still short, Next waits unless the Game Master ticks the override. The character
+sheet now counts class slots for the whole career ("N still to come"), so **an existing character
+with low Knowledge may now show class slots over** — nothing about the character changed; it is
+the class's later skills being counted. A Game Master can fix it by ticking "removed" on skills in
+that character's own class item.
+
+**Master's Manual class customization.** With the new world setting "Allow Master's Manual class
+customization" (on by default), the generator lets a player swap up to three non-core class skills
+for skills of the same type not already in the class (Master's Manual p.55). The new skill arrives
+at the title of the one it replaces. Minimum titles and prerequisites are shown as advice only.
+
+**Also in this version (Daryl's notes of 2026-09-25):** starting money's Fortune check uses the
+average of Aura, Piety and Will Force only, as his sheet does. Shift-click now asks for a modifier on
+the character sheet's attribute saves, Perception, Affinity, Fortune and skill rolls, not only on
+creatures. An untrained attempt shows each skill's chance in the picker. The Skills tab's Source
+column shows the page too.
+
 ## 0.20.0 — 2026-09-24
 
 **New characters can buy their equipment.** The character generator has a new **Equipment** step

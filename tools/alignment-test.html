@@ -1,0 +1,278 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG alignment test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/alignment-rules.mjs: the class alignment and tendency lists, the Game Master's
+// custom alignments, and that the existing alignment readers are unchanged by any of it.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/alignment-test.html
+// or headless:  node tools/run-tests.mjs alignment
+//
+// The option lists are checked against HIS OWN FILES, read here, not against a second copy typed
+// into this page: setAlignmentSelection (sheet-worker.js 73081-73301) names the block each
+// requirement shows, and the HTML block (45293-45833) holds the options.
+const R = await import("../module/alignment-rules.mjs");
+const C = await import("../module/casting-rules.mjs");
+const L = await import("../module/lore-rules.mjs");
+const W = await import("../module/weapon-custom-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+const classes = await (await fetch("../src/packs/documents/classes.json")).json();
+const worker = (await (await fetch("../docs/reference/sheet-worker.js")).text()).split("\n");
+const html = await (await fetch("../ImagineRoll20CharacterSheet-main/ImagineTabbedCharacterSheet.html")).text();
+
+// --- his lists, read from his files -------------------------------------------------------------
+// requirement -> block, from the switch in setAlignmentSelection.
+const blockOf = {};
+{
+	let tmpCase = null;
+	for (let i = 73081 - 1; i < 73301; i++) {
+		const tmpLine = worker[i];
+		let m = tmpLine.match(/^\s*case "(.*)":/);
+		if (m) { tmpCase = m[1]; continue; }
+		m = tmpLine.match(/select_align_sheet: "(\w+)"/);
+		if (m && tmpCase !== null) { blockOf[tmpCase] = m[1]; tmpCase = null; }
+	}
+}
+// block -> { alignments, tendencies, preselected tendency }, from the HTML.
+function readBlock(tmpBlock) {
+	const tmpStart = html.indexOf(`<div class="sheet-${tmpBlock}">`);
+	const tmpEnd = html.indexOf("</div>", tmpStart);
+	const tmpText = html.slice(tmpStart, tmpEnd);
+	const tmpSelects = tmpText.split("<select").slice(1);
+	const tmpOptions = (s) => [...s.matchAll(/<option value="([^"]*)"/g)].map(m => m[1]).filter(v => v !== "");
+	const tmpPre = tmpSelects[1]?.match(/<option value="([^"]*)" selected="selected"/);
+	return { alignments: tmpOptions(tmpSelects[0] ?? ""), tendencies: tmpOptions(tmpSelects[1] ?? ""), preselected: tmpPre ? tmpPre[1] : "" };
+}
+
+// --- every class's requirement is one of his cases, and one of ours -------------------------------
+const requirements = [...new Set(classes.map(c => c.system.requirements.alignment))].sort();
+check("the classes carry 21 distinct requirements", requirements.length, 21);
+check("every classes.json requirement is a key of ALIGNMENT_REQUIREMENT_LISTS",
+	requirements.filter(r => !R.ALIGNMENT_REQUIREMENT_LISTS[r]), []);
+check("every classes.json requirement is a case of his setAlignmentSelection",
+	requirements.filter(r => !blockOf[r]), []);
+check("the table has exactly his 21 non-blank cases",
+	Object.keys(R.ALIGNMENT_REQUIREMENT_LISTS).sort(), Object.keys(blockOf).filter(k => k !== "").sort());
+
+// --- the alignment list itself ---------------------------------------------------------------------
+check("ALIGNMENT_LIST is his dropdown's, in order (HTML 45302-45317)", R.ALIGNMENT_LIST, readBlock("align_select_any").alignments);
+check("ALIGNMENT_LIST has 16 entries: his fifteen and Insane", R.ALIGNMENT_LIST.length, 16);
+check("TENDENCY_LIST is his eight, in order", R.TENDENCY_LIST, readBlock("align_select_any").tendencies);
+check("every alignment has a description", R.ALIGNMENT_LIST.filter(a => !R.getAlignmentDescription(a)), []);
+check("every tendency has a description", R.TENDENCY_LIST.filter(t => !R.getTendencyDescription(t)), []);
+check("his 'tum' is 'turn' in the three Immoral descriptions",
+	["Immoral", "Immoral/Order", "Immoral/Chaos"].map(t => R.getTendencyDescription(t).includes("can turn a chaotic")), [true, true, true]);
+check("no description keeps his backtick apostrophe", Object.values(R.ALIGNMENT_DESCRIPTIONS).filter(d => d.includes("`")), []);
+
+// --- each requirement's options are his dropdown's -------------------------------------------------
+for (const tmpReq of Object.keys(R.ALIGNMENT_REQUIREMENT_LISTS)) {
+	const tmpHis = readBlock(blockOf[tmpReq]);
+	const tmpRow = R.ALIGNMENT_REQUIREMENT_LISTS[tmpReq];
+	check(`${tmpReq}: alignments are his ${blockOf[tmpReq]} dropdown`, R.getAlignmentOptions(tmpReq), tmpHis.alignments);
+	check(`${tmpReq}: tendencies are his dropdown's`, R.getTendencyOptions(tmpReq), tmpHis.tendencies);
+	check(`${tmpReq}: default tendency is his preselected one`, tmpRow.defaultTendency, tmpHis.preselected);
+	// The axis rule gives back exactly his list, so a custom alignment is judged as his are.
+	check(`${tmpReq}: the axis rule reproduces his list`,
+		R.ALIGNMENT_LIST.filter(a => a === R.ALIGNMENT_INSANE || R.isAxesAllowed(tmpRow, R.ALIGNMENT_AXES[a])), tmpHis.alignments);
+	check(`${tmpReq}: Insane is offered, last`, tmpRow.alignments[tmpRow.alignments.length - 1], "Insane");
+}
+
+// --- particular classes ----------------------------------------------------------------------------
+const reqOf = (name) => classes.find(c => c.name === name)?.system.requirements.alignment;
+check("Innominate(Detect Good) resolves to the Evil list",
+	R.getAlignmentOptions(reqOf("Innominate(Detect Good)")),
+	["Evil (Active)", "Evil (Passive)", "Fanatical Evil (Active)", "Fanatical Evil (Passive)", "Insane"]);
+check("Innominate(Detect Evil) resolves to the Good list",
+	R.getAlignmentOptions(reqOf("Innominate(Detect Evil)")),
+	["Fanatical Good (Active)", "Fanatical Good (Passive)", "Good (Active)", "Good (Passive)", "Insane"]);
+check("an Order class defaults to Order", R.getAlignmentChoices("Any, Order").defaultTendency, "Order");
+check("No Evil, Order defaults to Order and offers the three Order tendencies",
+	[R.getAlignmentChoices("No Evil, Order").defaultTendency, R.getTendencyOptions("No Evil, Order")],
+	["Order", ["Order", "Moral/Order", "Immoral/Order"]]);
+check("the Vivisectionist defaults to Immoral",
+	R.getAlignmentChoices(reqOf("Vivisectionist")).defaultTendency, "Immoral");
+check("an unrestricted class has no default tendency", R.getAlignmentChoices("Any").defaultTendency, "");
+check("the Sorcerer carries his patron note", R.getAlignmentChoices(reqOf("Sorcerer")).special.startsWith("One part of the Alignment"), true);
+check("isAlignmentAllowed: Good (Passive) is allowed a Paladin-style list",
+	R.isAlignmentAllowed("Good (Active), Fanatical Good (Active)", "Good (Passive)"), true);
+check("isAlignmentAllowed: True Neutral is not Any Active", R.isAlignmentAllowed("Any Active", "True Neutral"), false);
+check("isAlignmentAllowed: Insane always", R.isAlignmentAllowed("Fanatical Evil", "Insane"), true);
+check("isTendencyAllowed: Chaos is not an Order tendency", R.isTendencyAllowed("Any, Order", "Chaos"), false);
+
+// --- unknown and blank requirements ----------------------------------------------------------------
+const unknown = R.getAlignmentChoices("Any Lawful");
+check("an unknown requirement gives the full list", unknown.alignments, R.ALIGNMENT_LIST);
+check("an unknown requirement is flagged", unknown.unknown, true);
+check("a blank requirement gives the full list, unflagged",
+	[R.getAlignmentChoices("").alignments, R.getAlignmentChoices(undefined).unknown], [R.ALIGNMENT_LIST, false]);
+check("a requirement with stray spaces is still found", R.getAlignmentChoices(" Any Evil ").unknown, false);
+
+// --- dual class ------------------------------------------------------------------------------------
+const dual = R.getAlignmentChoicesForClasses(["Any Good", "No Evil, Order"]);
+check("dual class: the intersection of both lists",
+	dual.alignments, ["Fanatical Good (Active)", "Fanatical Good (Passive)", "Good (Active)", "Good (Passive)", "Neutral Good (Active)", "Neutral Good (Passive)", "Insane"]);
+check("dual class: the Order class's tendencies and default survive", [dual.tendencies, dual.defaultTendency, dual.empty],
+	[["Order", "Moral/Order", "Immoral/Order"], "Order", false]);
+const clash = R.getAlignmentChoicesForClasses(["Any Good", "Any Evil"]);
+check("dual class: good and evil leave only Insane, reported empty", [clash.alignments, clash.empty], [["Insane"], true]);
+check("dual class: no alignment in common is warned even with nothing chosen",
+	R.checkAlignmentForClasses(["Any Good", "Any Evil"], "", ""), ["The classes have no alignment and tendency in common (Any Good; Any Evil)."]);
+check("dual class: a shared alignment gives no such warning",
+	R.checkAlignmentForClasses(["Any Good", "No Evil, Order"], "", ""), []);
+const orderImmoral = R.getAlignmentChoicesForClasses(["Any, Order", "Evil (Active), Fanatical Evil (Active), Immoral"]);
+check("dual class: Order and Immoral meet at Immoral/Order", [orderImmoral.tendencies, orderImmoral.defaultTendency],
+	[["Immoral/Order"], "Immoral/Order"]);
+check("dual class of one is the single list", R.getAlignmentChoicesForClasses(["Any Neutral"]).alignments, R.getAlignmentOptions("Any Neutral"));
+check("dual class of none is the full list", R.getAlignmentChoicesForClasses([]).alignments, R.ALIGNMENT_LIST);
+
+// --- custom alignments -----------------------------------------------------------------------------
+const custom = {
+	alignments: [
+		{ name: "Wandering Good (Active)",     readsAs: "Good",    activity: "Active",  fanatical: false },
+		{ name: "Zealous Evil (Passive) Fanatical", readsAs: "Evil", activity: "Passive", fanatical: true },
+		{ name: "Balanced Neutral",            readsAs: "Neutral", activity: "True",    fanatical: false },
+		{ name: "Unbound (Active)",            readsAs: "None",    activity: "Active",  fanatical: false }
+	],
+	tendencies: [
+		{ name: "Moral/Order/Chaos", list: "any" },
+		{ name: "Strict Order",      list: "order" },
+		{ name: "Cruel",             list: "immoral" }
+	]
+};
+check("the sample customs pass validation", R.validateCustomAlignments(custom), []);
+check("Any: every custom alignment, before Insane",
+	R.getAlignmentOptions("Any", custom).slice(-5),
+	["Wandering Good (Active)", "Zealous Evil (Passive) Fanatical", "Balanced Neutral", "Unbound (Active)", "Insane"]);
+check("Any Active: only the active customs",
+	R.getAlignmentOptions("Any Active", custom).filter(a => !R.ALIGNMENT_LIST.includes(a)), ["Wandering Good (Active)", "Unbound (Active)"]);
+check("Any Good: the good custom only",
+	R.getAlignmentOptions("Any Good", custom).filter(a => !R.ALIGNMENT_LIST.includes(a)), ["Wandering Good (Active)"]);
+check("Fanatical Evil: the fanatical evil custom only",
+	R.getAlignmentOptions("Fanatical Evil", custom).filter(a => !R.ALIGNMENT_LIST.includes(a)), ["Zealous Evil (Passive) Fanatical"]);
+check("Fanatical Good: no custom qualifies",
+	R.getAlignmentOptions("Fanatical Good", custom).filter(a => !R.ALIGNMENT_LIST.includes(a)), []);
+check("Any Evil, Passive: the passive evil custom",
+	R.getAlignmentOptions("Any Evil, Passive", custom).filter(a => !R.ALIGNMENT_LIST.includes(a)), ["Zealous Evil (Passive) Fanatical"]);
+check("True Neutral or Neutral Good: the neutral custom",
+	R.getAlignmentOptions("True Neutral or Neutral Good", custom).filter(a => !R.ALIGNMENT_LIST.includes(a)), ["Balanced Neutral"]);
+check("Any Non-Neutral: the good and evil customs, not the unaligned",
+	R.getAlignmentOptions("Any Non-Neutral", custom).filter(a => !R.ALIGNMENT_LIST.includes(a)), ["Wandering Good (Active)", "Zealous Evil (Passive) Fanatical"]);
+check("isAlignmentAllowed sees customs", [R.isAlignmentAllowed("No Evil", "Balanced Neutral", custom), R.isAlignmentAllowed("No Evil", "Zealous Evil (Passive) Fanatical", custom)], [true, false]);
+check("custom tendencies: all three on a full list", R.getTendencyOptions("Any", custom).slice(-3), ["Moral/Order/Chaos", "Strict Order", "Cruel"]);
+check("custom tendencies: an Order class gets only the order one", R.getTendencyOptions("Any, Order", custom),
+	["Order", "Moral/Order", "Immoral/Order", "Strict Order"]);
+check("custom tendencies: an Immoral class gets only the immoral one",
+	R.getTendencyOptions("Evil (Active), Fanatical Evil (Active), Immoral", custom), ["Immoral", "Immoral/Order", "Immoral/Chaos", "Cruel"]);
+check("custom axes are read back", R.getAlignmentAxes("Balanced Neutral", custom), { moral: "Neutral", activity: "True", fanatical: false });
+check("his axes are read back", R.getAlignmentAxes("Neutral Evil (Passive)"), { moral: "Neutral Evil", activity: "Passive", fanatical: false });
+check("a custom alignment has a description from its axes",
+	R.getAlignmentDescription("Zealous Evil (Passive) Fanatical", custom).includes("Fanatical Evil, Passive"), true);
+check("no custom setting at all is safe", [R.getAlignmentOptions("Any", null), R.getAlignmentOptions("Any", "garbage")], [R.ALIGNMENT_LIST, R.ALIGNMENT_LIST]);
+check("normalize drops nameless rows and fills bad fields",
+	R.normalizeCustomAlignments({ alignments: [{ name: "" }, { name: " X ", readsAs: "Lawful", activity: 3 }], tendencies: [{ name: "Y", list: "odd" }] }),
+	{ alignments: [{ name: "X", readsAs: "None", activity: "Active", fanatical: false }], tendencies: [{ name: "Y", list: "any" }] });
+
+// --- validation ------------------------------------------------------------------------------------
+const bad = (entry) => R.validateCustomAlignment(entry, [entry]).length > 0;
+check("valid: Good Active with both words", bad({ name: "Kind Good (Active)", readsAs: "Good", activity: "Active", fanatical: false }), false);
+check("refused: Good without the word Good", bad({ name: "Lawful (Active)", readsAs: "Good", activity: "Active", fanatical: false }), true);
+check("refused: reads Neutral but says Good", bad({ name: "Neutral Good-ish", readsAs: "Neutral", activity: "Passive", fanatical: false }), true);
+check("refused: Active without the word Active", bad({ name: "Stern Good", readsAs: "Good", activity: "Active", fanatical: false }), true);
+check("refused: Passive with the word Active", bad({ name: "Good (Active)ish", readsAs: "Good", activity: "Passive", fanatical: false }), true);
+check("refused: fanatical without the word", bad({ name: "Zealot Evil", readsAs: "Evil", activity: "Passive", fanatical: true }), true);
+check("refused: Fanatical in the name but not fanatical", bad({ name: "Fanatical Evil Lite", readsAs: "Evil", activity: "Passive", fanatical: false }), true);
+check("refused: None that says Evil", bad({ name: "Evil-free", readsAs: "None", activity: "Passive", fanatical: false }), true);
+check("valid: None with no moral word", bad({ name: "Unaligned", readsAs: "None", activity: "Passive", fanatical: false }), false);
+check("refused: Non-", bad({ name: "Non-Evil Good", readsAs: "Good", activity: "Passive", fanatical: false }), true);
+check("refused: one of his own names", bad({ name: "Evil (Passive)", readsAs: "Evil", activity: "Passive", fanatical: false }), true);
+check("refused: N/A", bad({ name: "N/A", readsAs: "None", activity: "Passive", fanatical: false }), true);
+check("refused: lowercase good does not count as Good", bad({ name: "good (Active)", readsAs: "Good", activity: "Active", fanatical: false }), true);
+check("refused: a bad axis value", bad({ name: "Good (Active)x", readsAs: "Lawful", activity: "Active", fanatical: false }), true);
+check("refused: a duplicate name",
+	R.validateCustomAlignments({ alignments: [
+		{ name: "Kind Good (Active)", readsAs: "Good", activity: "Active", fanatical: false },
+		{ name: "Kind Good (Active)", readsAs: "Good", activity: "Active", fanatical: false }], tendencies: [] }).length > 0, true);
+check("refused: a tendency that is his", R.validateCustomAlignments({ alignments: [], tendencies: [{ name: "Chaos", list: "any" }] }).length > 0, true);
+check("refused: a tendency with no list", R.validateCustomAlignments({ alignments: [], tendencies: [{ name: "Wild", list: "" }] }).length > 0, true);
+check("refused: a nameless tendency", R.validateCustomAlignments({ alignments: [], tendencies: [{ name: " ", list: "any" }] }).length > 0, true);
+check("an empty setting is valid", R.validateCustomAlignments({ alignments: [], tendencies: [] }), []);
+
+// --- reader compatibility --------------------------------------------------------------------------
+// The readers are his substring tests. For every entry of ALIGNMENT_LIST their answers are pinned
+// here -- what they gave before this module existed -- and for every valid custom alignment they
+// must give what its declared axes say.
+//     barred      isAlignmentBarred for each of his restrictions, in the order of RESTRICTIONS
+//     hymn        getHymnList, first hymn: G/E/N/U
+//     poison      getStartingPoisonTypes doses: 1d4+1 / 2d4 / 2d6
+//     bless       getBlessingModifier to-hit
+const RESTRICTIONS = ["Non-Evil", "Non-Good", "Non-Neutral", "Good", "Evil", "Neutral", "Active", "Fanatical"];
+const hymnCode = (a) => {
+	const l = L.getHymnList(a, true, () => 1);
+	return l === L.getHymnList("Good", true, () => 1) ? "G" : l === L.getHymnList("Evil", true, () => 1) ? "E"
+		: l === L.getHymnList("Neutral", true, () => 1) ? "N" : "U";
+};
+const readers = (a) => ({
+	barred: RESTRICTIONS.map(r => C.isAlignmentBarred(r, a) ? 1 : 0).join(""),
+	hymn: hymnCode(a),
+	poison: L.getStartingPoisonTypes(a).doses,
+	bless: W.getBlessingModifier(a).toHit
+});
+const PINNED = {
+	// alignment                    barred      hymn  poison   bless
+	"Fanatical Good (Active)":   ["01001100", "G", "1d4+1",  1],
+	"Fanatical Good (Passive)":  ["01001110", "G", "1d4+1",  1],
+	"Good (Active)":             ["01001101", "G", "1d4+1",  1],
+	"Good (Passive)":            ["01001111", "G", "1d4+1",  1],
+	"Neutral Good (Active)":     ["01101001", "G", "2d4",    1],
+	"Neutral Good (Passive)":    ["01101011", "G", "2d4",    1],
+	"Neutral (Active)":          ["00111001", "N", "2d4",    0],
+	"True Neutral":              ["00111011", "N", "2d4",    0],
+	"Neutral (Passive)":         ["00111011", "N", "2d4",    0],
+	"Neutral Evil (Active)":     ["10110001", "E", "2d6",   -1],
+	"Neutral Evil (Passive)":    ["10110011", "E", "2d6",   -1],
+	"Evil (Active)":             ["10010101", "E", "2d6",   -1],
+	"Evil (Passive)":            ["10010111", "E", "2d6",   -1],
+	"Fanatical Evil (Active)":   ["10010100", "E", "2d6",   -1],
+	"Fanatical Evil (Passive)":  ["10010110", "E", "2d6",   -1],
+	"Insane":                    ["00011111", "U", "1d4+1",  0]
+};
+check("the pinned reader table covers ALIGNMENT_LIST", Object.keys(PINNED), R.ALIGNMENT_LIST);
+for (const a of R.ALIGNMENT_LIST) {
+	const r = readers(a);
+	check(`readers unchanged for ${a}`, [r.barred, r.hymn, r.poison, r.bless], PINNED[a]);
+}
+// What the axes promise, said as the readers would answer.
+const expectFromAxes = (x) => {
+	const moral = x.moral;
+	const good = moral === "Good" || moral === "Neutral Good";
+	const evil = moral === "Evil" || moral === "Neutral Evil";
+	const neutral = moral.includes("Neutral");
+	return {
+		barred: [evil, good, neutral, !good, !evil, !neutral, x.activity !== "Active", !x.fanatical].map(b => b ? 1 : 0).join(""),
+		hymn: good ? "G" : evil ? "E" : neutral ? "N" : "U",
+		poison: evil ? "2d6" : neutral ? "2d4" : "1d4+1",
+		bless: evil ? -1 : good ? 1 : 0
+	};
+};
+for (const a of R.ALIGNMENT_LIST) {
+	check(`his axes agree with the readers for ${a}`, readers(a), expectFromAxes(R.ALIGNMENT_AXES[a]));
+}
+for (const e of custom.alignments) {
+	check(`a valid custom alignment reads as its axes: ${e.name}`, readers(e.name), expectFromAxes(R.getAlignmentAxes(e.name, custom)));
+}
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${results.length - passed} failed`;
+</script>

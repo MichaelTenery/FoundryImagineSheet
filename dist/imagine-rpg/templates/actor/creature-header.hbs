@@ -47,9 +47,18 @@
 
 		<div class="identity-line">
 			<span class="field"><label>Alignment</label>
-				<input type="text" name="system.identity.alignment" value="{{system.identity.alignment}}"></span>
+				{{!-- @MARKER ALIGNMENT
+				      A free-text field with every alignment offered under it: a creature has no class to
+				      narrow the list, and the bestiaries write things no list holds ("Evil (generally
+				      passive)"). The browser's own suggestion list (a datalist) gives both at once. The
+				      list ids carry the actor's id, since two creature sheets can be open together. --}}
+				<input type="text" name="system.identity.alignment" value="{{system.identity.alignment}}"
+					list="imagine-alignments-{{actor.id}}" title="{{system.identity.alignment}}">
+				<datalist id="imagine-alignments-{{actor.id}}">{{#each alignmentSuggestions.alignments as |a|}}<option value="{{a}}"></option>{{/each}}</datalist></span>
 			<span class="field"><label>Tendencies</label>
-				<input type="text" name="system.identity.tendencies" value="{{system.identity.tendencies}}"></span>
+				<input type="text" name="system.identity.tendencies" value="{{system.identity.tendencies}}"
+					list="imagine-tendencies-{{actor.id}}" title="{{system.identity.tendencies}}">
+				<datalist id="imagine-tendencies-{{actor.id}}">{{#each alignmentSuggestions.tendencies as |t|}}<option value="{{t}}"></option>{{/each}}</datalist></span>
 			<span class="field"><label>Exp Value</label>
 				<input type="number" name="system.identity.expValue" value="{{system.identity.expValue}}"></span>
 		</div>

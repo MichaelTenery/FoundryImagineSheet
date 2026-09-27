@@ -35,6 +35,11 @@ import { buildStartingKit } from "./starting-kit.mjs";
 import { getStartingFortune, rollStartingMoney, describeStartingMoney,
 	GEAR_INSTEAD_OF_COINS_RACES, FAIRY_COIN_RACES, FAIRY_COIN_NOTE } from "./starting-money.mjs";
 import { getSocialModRaceName, getSocialSkillRaceMod } from "./social-skill-rules.mjs";
+import { getAlignmentChoicesForClasses, buildAlignmentSelectOptions, getAlignmentDescription, getTendencyDescription,
+	ALIGNMENT_NOT_APPLICABLE } from "./alignment-rules.mjs";
+import { applyClassSkillEdits, countClassSlotsNeeded, getWholeCareerRows, getSwapOutCandidates, getSwapInCandidates,
+	checkClassSkillSwaps, describeSwapAdvice, CLASS_SKILL_SWAP_LIMIT } from "./class-rules.mjs";
+import { SLOT_TRANSFERS, getSlotAllowance } from "./skills-rules.mjs";
 import {
 	ATTRIBUTE_ORDER, CHARACTER_TYPES, buildRatings, checkFinalAttributes, getCivilizedHumanAllowance,
 	checkClassQualification, getStartingClassSkills, assembleCharacter
@@ -93,7 +98,29 @@ import {
 			// What the last height/frame/weight roll said, kept so the Details step can show it.
 			physiqueSummary: "", physiqueIssues: [],
 			frame: "", hair: "", eyes: "", skin: "",
-			alignment: "", languages: [], wealth: { copper: 0, silver: 0, gold: 0, platinum: 0 },
+			alignment: "", languages: [],
+			// @MARKER ALIGNMENT
+			// His step 7: the alignment, the tendency (his one combined string, "Moral/Order"), and his
+			// Alignmentless tick (tmp_alignmentless, HTML 45267-45268, "GM Discretion"), which writes N/A
+			// to both. alignmentFor is the class the two were last checked against -- see
+			// reconcileAlignment -- so a new class re-checks them and an unchanged one never does.
+			tendencies: "", alignmentless: false, alignmentFor: null,
+			// @MARKER SOCIAL SKILLS
+			// The Skills step's own override, for the class's Required social skills and its "up to N"
+			// (checkStep). Separate from the class-qualification override: a player allowed an
+			// unqualified class has not thereby been allowed to skip its Required skills.
+			socialOverride: false,
+			// @MARKER WHOLE CAREER
+			// His Step 6 plan for the whole career (HTML 40148-40153): the rows given up ([{ title, name }],
+			// his REMOVE, sheet-worker.js:7675-7736), his two CONVERT buttons as counts -- racial slots
+			// given for class slots and social PAIRS given for class slots (7324, 7627) -- and the Game
+			// Master's way past "Not enough slots for all Class Skills" (7831), which his sheet has not.
+			removedClassSkills: [], slotMoves: { racialToClass: 0, socialToClass: 0 }, classSlotOverride: false,
+			// @MARKER CLASS CUSTOMIZATION
+			// The Master's Manual's swaps (MM p.55), [{ title, out, in }], at most three -- offered only
+			// while the world's "Allow Master's Manual class customization" setting is on.
+			classSkillSwaps: [],
+			wealth: { copper: 0, silver: 0, gold: 0, platinum: 0 },
 			// @MARKER STARTING MONEY
 			// The last starting-money roll, whole -- see module/starting-money.mjs and
 			// rollStartingMoneyIfDue below. Null until the Equipment step first rolls it.
@@ -206,16 +233,91 @@ import {
 		var tmpClassIssues = tmpClass ? checkClassQualification(tmpClass.system, tmpFinals, tmpRaceNames, tmpBlocked) : [];
 		var tmpCannotCast = (tmpRace?.disabilities ?? []).includes("Cannot Cast Spells");
 		var tmpNonClassed = !!tmpClass?.system?.nonClassed;
-		var tmpClassSkills = (tmpClass && !tmpNonClassed) ? getStartingClassSkills(tmpClass.system, tmpCannotCast) : [];
+
+		// @MARKER CLASS CUSTOMIZATION
+		// MM p.55's swaps, when the world allows them -- the classCustomization setting, read by the window
+		// and passed in (tmpOptions.classCustomization); none passed, none offered, so a caller that knows
+		// nothing of the setting gets his sheet, which has no general swap. Swaps made and then switched off
+		// are kept in the state but not applied.
+		var tmpCustomize = tmpOptions?.classCustomization === true && !!tmpClass && !tmpNonClassed;
+		var tmpSwaps = tmpCustomize ? (tmpState.classSkillSwaps ?? []) : [];
+		var tmpSwapIssues = tmpCustomize ? checkClassSkillSwaps(tmpClass.system, tmpSwaps, tmpContent.skills, tmpCannotCast,
+			tmpState.removedClassSkills ?? []) : [];
+
+		// @MARKER WHOLE CAREER
+		// The class as this character will carry it: swaps first, then the rows given up
+		// (applyClassSkillEdits, class-rules.mjs). Every figure below reads this edited class, so the
+		// first title's skills, the slots needed and the class item written at creation all agree.
+		var tmpEditedList = (tmpClass && !tmpNonClassed)
+			? applyClassSkillEdits(tmpClass.system, tmpSwaps, tmpState.removedClassSkills ?? []) : null;
+		var tmpEditedSystem = tmpEditedList
+			? { ...tmpClass.system, advancement: { ...(tmpClass.system?.advancement ?? {}), classSkillList: tmpEditedList } }
+			: (tmpClass?.system ?? null);
+		var tmpClassSkills = (tmpClass && !tmpNonClassed) ? getStartingClassSkills(tmpEditedSystem, tmpCannotCast) : [];
+
+		// @MARKER ALIGNMENT
+		// What the class allows -- module/alignment-rules.mjs, his step-7 dropdowns (HTML 45293-45833) --
+		// with the Game Master's custom alignments and tendencies, which the window reads from the
+		// customAlignments setting and passes in (tmpOptions.customAlignments); none passed, his alone.
+		// The generator makes one class, so this is one class's list; the intersection function is used
+		// so a dual class, when the generator has one, needs no change here. No class yet is his full list.
+		var tmpCustomAlignments = tmpOptions?.customAlignments ?? null;
+		var tmpAlignmentChoices = getAlignmentChoicesForClasses(
+			tmpClass ? [tmpClass.system?.requirements?.alignment ?? ""] : [], tmpCustomAlignments);
+		var tmpAlignmentAllowed = !tmpState.alignment || tmpAlignmentChoices.alignments.includes(tmpState.alignment);
+		var tmpTendencyAllowed = !tmpState.tendencies || tmpAlignmentChoices.tendencies.includes(tmpState.tendencies);
+
+		// @MARKER SOCIAL SKILLS
+		// The class's own social-skill list, his setSocialSkillLists (sheet-worker.js:53591-55406) as
+		// extracted onto the class document (system.socialSkills, tools/extract/extract_class_social_skills.py).
+		// None for a GME (non-classed) or a class whose list is "any" -- Sage and GME, his
+		// social_skill_select_none and _special -- which choose from the full list only, as his Step 6 shows.
+		var tmpSocialSource = tmpClass?.system?.socialSkills ?? null;
+		var tmpClassSocial = {
+			required:    (tmpNonClassed || tmpSocialSource?.anyList) ? [] : [...(tmpSocialSource?.required ?? [])],
+			recommended: (tmpNonClassed || tmpSocialSource?.anyList) ? [] : [...(tmpSocialSource?.recommended ?? [])],
+			upTo:        (tmpSocialSource?.upTo === null || tmpSocialSource?.upTo === undefined || tmpSocialSource?.upTo === "")
+				? null : (parseInt(tmpSocialSource.upTo) || 0),
+			upToSource:  tmpSocialSource?.upToSource ?? "",
+			anyList:     !!tmpSocialSource?.anyList || tmpNonClassed
+		};
+		// The Required ones this character CAN take: a skill the campaign has switched off, or one the
+		// first race is BLOCKED from (his race table), cannot be demanded -- the step refuses a BLOCKED
+		// pick outright, so demanding it too would leave no way on but the override.
+		var tmpSocialRace = getSocialModRaceName(tmpRace1);
+		tmpClassSocial.requiredOpen = tmpClassSocial.required.filter(tmpName =>
+			(tmpContent.skills ?? []).some(tmpDoc => tmpDoc.name == tmpName && tmpDoc.system?.category == "social" && tmpAvail(tmpDoc))
+			&& !getSocialSkillRaceMod(tmpName, tmpSocialRace).blocked);
 
 		// Skill slots are Knowledge's, as the character itself reads them (ATTRIBUTE_TABLES.knw).
 		var tmpKnwRow = ATTRIBUTE_TABLES.knw[Math.max(0, Math.min(30, tmpFinals.knw.final))] ?? {};
 
+		// @MARKER WHOLE CAREER
+		// His two CONVERT buttons into class slots, as counts: a racial slot for a class slot (1 for 1,
+		// sheet-worker.js:7324 / 52649) and two social slots for a class slot (7627 / 56433) -- the same
+		// SLOT_TRANSFERS the Skills tab trades with, so the finished sheet shows the allowance shown here.
+		// Held to what Knowledge gives: his buttons need an open slot to convert ("There are no open slots
+		// to convert. Nothing done.", 7353), and a slot a pick is filling is refused below by the count.
+		var tmpBaseSlots = {
+			class:  parseInt(tmpKnwRow.classSkills) || 0,
+			racial: parseInt(tmpKnwRow.raceSkills) || 0,
+			social: parseInt(tmpKnwRow.socialSkills) || 0
+		};
+		var tmpMoves = {
+			racialToClass: Math.max(0, Math.min(tmpBaseSlots.racial, parseInt(tmpState.slotMoves?.racialToClass) || 0)),
+			socialToClass: Math.max(0, Math.min(Math.floor(tmpBaseSlots.social / SLOT_TRANSFERS.socialToClass.cost),
+				parseInt(tmpState.slotMoves?.socialToClass) || 0))
+		};
+		var tmpSlots = getSlotAllowance(tmpBaseSlots, tmpMoves);
+		// What the whole career needs, less what was given up (countClassSlotsNeeded: a caster/non-caster
+		// pair once, as his getSlotsNeededForClass counts it), against the class slots after converting.
+		var tmpClassNeeded = (tmpClass && !tmpNonClassed) ? countClassSlotsNeeded(tmpEditedSystem, tmpCannotCast) : 0;
+		var tmpClassShort = Math.max(0, tmpClassNeeded - tmpSlots.class);
+
 		// @MARKER STARTING FORTUNE
-		// The Fortune the starting money is rolled against: his whole FORTUNE calculation on the day
-		// the character is made, race and class and first title included (getStartingFortune).
-		var tmpFortune = getStartingFortune(tmpFinals.aur.final, tmpFinals.pty.final, tmpFinals.wil.final,
-			tmpRace?.characteristicMods?.fortune, tmpClass?.system?.classMods, tmpNonClassed);
+		// The Fortune the starting money is rolled against: Aura, Piety and Will Force alone, race and
+		// class left out -- the 2026-09-25 ruling, and what his setCoins does (getStartingFortune).
+		var tmpFortune = getStartingFortune(tmpFinals.aur.final, tmpFinals.pty.final, tmpFinals.wil.final);
 
 		// @MARKER SHOP
 		// The shopping list, priced against the purse in the order it was made -- module/shop-rules.mjs.
@@ -242,11 +344,12 @@ import {
 			finals: tmpFinals, human: tmpHuman,
 			klass: tmpClass, blocked: tmpBlocked, classIssues: tmpClassIssues, cannotCast: tmpCannotCast,
 			nonClassed: tmpNonClassed, classSkills: tmpClassSkills, fortune: tmpFortune,
-			slots: {
-				class: parseInt(tmpKnwRow.classSkills) || 0,
-				racial: parseInt(tmpKnwRow.raceSkills) || 0,
-				social: parseInt(tmpKnwRow.socialSkills) || 0
-			},
+			alignmentChoices: tmpAlignmentChoices, alignmentAllowed: tmpAlignmentAllowed, tendencyAllowed: tmpTendencyAllowed,
+			customAlignments: tmpCustomAlignments, classSocial: tmpClassSocial,
+			slots: tmpSlots, baseSlots: tmpBaseSlots, slotMoves: tmpMoves,
+			classSkillList: tmpEditedList, editedClassSystem: tmpEditedSystem,
+			classNeeded: tmpClassNeeded, classShort: tmpClassShort,
+			customize: tmpCustomize, swaps: tmpSwaps, swapIssues: tmpSwapIssues,
 			intRow: ATTRIBUTE_TABLES.int[Math.max(0, Math.min(30, tmpFinals.int.final))] ?? {},
 			available: tmpAvail,
 			shopOptions: tmpShopOptions, catalog: tmpCatalog, cart: tmpCart,
@@ -272,6 +375,30 @@ import {
 				}
 				return "";
 			case "Skills":
+				// @MARKER CLASS CUSTOMIZATION
+				// A swap MM p.55 does not allow is refused outright: it is a rule of the book the player
+				// chose to use, and the fix is on the same page. The first problem is named.
+				if ((tmpDerived.swapIssues ?? []).length) {
+					return tmpDerived.swapIssues[0];
+				}
+				// @MARKER WHOLE CAREER
+				// His REMOVE refuses a CORE skill -- "CORE skills cannot be removed. Nothing done." (7707).
+				// The table offers no box on a core row, so this is only for a state made some other way.
+				var tmpCoreGone = (tmpState.removedClassSkills ?? []).filter(tmpGone =>
+					(tmpDerived.klass?.system?.advancement?.classSkillList ?? []).some(tmpRow => tmpRow.core
+						&& tmpRow.name == tmpGone.name && (parseInt(tmpRow.title) || 0) == (parseInt(tmpGone.title) || 0)));
+				if (tmpCoreGone.length) {
+					return `CORE skills cannot be removed (${tmpCoreGone.map(tmpGone => tmpGone.name).join(", ")}).`;
+				}
+				// His Step 6 confirm: "Not enough slots for all Class Skills. Remove Class Skills or convert
+				// Race or Social slots to Class slots. Nothing done." (7828-7835). His sheet has no way past;
+				// the Game Master's override tick is the port's (user's ruling 2026-09-26), as it is for an
+				// unqualified class.
+				if (tmpDerived.classShort > 0 && !tmpState.classSlotOverride) {
+					return `Not enough slots for all Class Skills: the whole career needs ${tmpDerived.classNeeded}, `
+						+ `Knowledge gives ${tmpDerived.slots.class}, ${tmpDerived.classShort} short. Remove Class Skills or `
+						+ "convert Race or Social slots to Class slots, or tick the override.";
+				}
 				if (tmpState.racialSkillNames.length > tmpDerived.slots.racial) {
 					return `Only ${tmpDerived.slots.racial} racial skills are allowed; ${tmpState.racialSkillNames.length} are chosen.`;
 				}
@@ -287,6 +414,65 @@ import {
 				if (tmpBlocked.length) {
 					return `This race cannot acquire ${tmpBlocked.join(", ")}: his race table marks `
 						+ `${tmpBlocked.length == 1 ? "it" : "them"} BLOCKED for ${tmpDerived.socialRaceName}. Untick to go on.`;
+				}
+				// @MARKER SOCIAL SKILLS
+				// The class's Required social skills must be taken -- his step 6 confirm (7789-7843), "1 or
+				// more Required Social Skills were not selected. Nothing Done." (7841), and PG p.47 "must be
+				// learned by a starting character of this class before other social skills can be learned".
+				// His check indexes the found flags by j where it means k, and reads three of its five types
+				// under names that are never set (7791), so only Required #1 and #3 ever counted; every one
+				// counts here. Where Knowledge gives fewer slots than the class has Required skills (KNW 7-10
+				// gives one slot, the Hunter has three), the slots are what can be asked for: min(required,
+				// slots), user's ruling 2026-09-26, until his slot conversions reach the generator.
+				var tmpSocial = tmpDerived.classSocial ?? { requiredOpen: [], required: [], upTo: null };
+				var tmpOverride = !!tmpState.socialOverride;
+				var tmpRequiredNeeded = Math.min(tmpSocial.requiredOpen.length, tmpDerived.slots.social);
+				var tmpRequiredTaken = tmpSocial.requiredOpen.filter(tmpName => tmpState.socialSkillNames.includes(tmpName));
+				if (tmpRequiredTaken.length < tmpRequiredNeeded && !tmpOverride) {
+					var tmpMissing = tmpSocial.requiredOpen.filter(tmpName => !tmpState.socialSkillNames.includes(tmpName));
+					return `1 or more Required Social Skills were not selected: ${tmpMissing.join(", ")}`
+						+ (tmpRequiredNeeded < tmpSocial.requiredOpen.length ? ` (${tmpRequiredNeeded} of them, as Knowledge allows)` : "")
+						+ ". Tick the override to go on without.";
+				}
+				// "Up to N" (PG p.47): the class's book count, where a book gives one. The Required skills
+				// are not part of it -- the books print "Required: Tumbling. Up to two from the following"
+				// (Acrobat, PG p.55) -- and every other social skill is, from the class's list or not:
+				// "may choose social skills up to the number listed, but may not choose more until the player
+				// has rolled on the additional social skills table". That table (PG p.75) is not in his
+				// sheet and is deferred, so going over warns and needs the override (user's ruling
+				// 2026-09-26) rather than being impossible. His sheet has no count at all; Knowledge,
+				// checked above, still caps everything.
+				if (tmpSocial.upTo !== null && tmpSocial.upTo !== undefined) {
+					var tmpExtra = tmpState.socialSkillNames.filter(tmpName => !tmpSocial.required.includes(tmpName));
+					if (tmpExtra.length > tmpSocial.upTo && !tmpOverride) {
+						return `The ${tmpDerived.klass?.name ?? "class"} starts with up to ${tmpSocial.upTo} social skills`
+							+ `${tmpSocial.required.length ? " besides its Required ones" : ""}`
+							+ `${tmpSocial.upToSource ? " (" + tmpSocial.upToSource + ")" : ""}; ${tmpExtra.length} are chosen. `
+							+ "More need a roll on the Additional Social Skills table (PG p.75): tick the override to take them.";
+					}
+				}
+				return "";
+			case "Details":
+				// @MARKER ALIGNMENT
+				// His step 7 confirm (7883-7932): Alignmentless needs nothing; otherwise "Not playing
+				// Alignmentless Imagine and The Young Adult needs a world view! No Alignment selected.
+				// Nothing done." (7907-7912). His confirm never tested the choice against the class -- his
+				// dropdown only offered what the class allows. Here the dropdown offers the same, and a
+				// value it does not (kept from before a class change, or typed by an old save) is refused
+				// unless the class-qualification override is ticked, the GM's way through (user's ruling
+				// 2026-09-26). His confirm never checks the tendency; a blank one is allowed and becomes
+				// "None", as his setFinalAlignment writes it (73418-73422).
+				if (tmpState.alignmentless) { return ""; }
+				if (!tmpState.alignment) {
+					return "Not playing Alignmentless Imagine and the young adult needs a world view! No alignment selected.";
+				}
+				if (!tmpDerived.alignmentAllowed && !tmpState.override) {
+					return `The ${tmpDerived.klass?.name ?? "class"} does not allow ${tmpState.alignment} `
+						+ `(${tmpDerived.klass?.system?.requirements?.alignment ?? ""}). Choose another, or tick the override.`;
+				}
+				if (!tmpDerived.tendencyAllowed && !tmpState.override) {
+					return `The ${tmpDerived.klass?.name ?? "class"} does not allow the ${tmpState.tendencies} tendency. `
+						+ "Choose another, or tick the override.";
 				}
 				return "";
 			case "Equipment":
@@ -472,6 +658,64 @@ import {
 		// @MARKER SKILLS
 		tmpView.slots = tmpD.slots;
 		tmpView.classSkills = tmpD.classSkills;
+
+		// @MARKER WHOLE CAREER
+		// His Step 6 table (HTML 40148-40153, 45245-45254): every title's class skills, CORE marked, a
+		// tick box on each non-core row to give it up. A swapped row shows what it replaced and has no
+		// box -- a row is swapped or removed, not both. The header is his comparison, needed against
+		// Knowledge's class slots, and the two CONVERT controls sit beside it.
+		var tmpRemovedKeys = (tmpState.removedClassSkills ?? []).map(tmpGone => (parseInt(tmpGone.title) || 0) + "|" + tmpGone.name);
+		tmpView.career = {
+			has: !!tmpD.klass && !tmpD.nonClassed,
+			rows: (tmpD.klass && !tmpD.nonClassed) ? getWholeCareerRows(tmpD.editedClassSystem, tmpD.cannotCast).map(tmpRow => ({
+				...tmpRow,
+				key: tmpRow.title + "|" + tmpRow.name,
+				removable: !tmpRow.core && !tmpRow.replaces,
+				checked: tmpRemovedKeys.includes(tmpRow.title + "|" + tmpRow.name)
+			})) : [],
+			slots: tmpD.slots.class, baseSlots: tmpD.baseSlots.class, converted: tmpD.slots.class != tmpD.baseSlots.class,
+			needed: tmpD.classNeeded, short: tmpD.classShort,
+			removedCount: (tmpD.classSkillList ?? []).filter(tmpRow => tmpRow.removed).length,
+			racialToClass: tmpD.slotMoves.racialToClass, racialToClassMax: tmpD.baseSlots.racial,
+			socialToClass: tmpD.slotMoves.socialToClass,
+			socialToClassMax: Math.floor(tmpD.baseSlots.social / SLOT_TRANSFERS.socialToClass.cost),
+			showOverride: !!tmpState.classSlotOverride || tmpD.classShort > 0
+		};
+
+		// @MARKER CLASS CUSTOMIZATION
+		// MM p.55's swap rows, copying the attribute swap rows' Add / trash pattern. "Out" is a row that
+		// may leave (getSwapOutCandidates, keyed "title|name"); "In" is what may take its place
+		// (getSwapInCandidates). A choice the rules now refuse stays on screen with the reason, rather
+		// than vanishing.
+		if (tmpD.customize) {
+			var tmpOutRows = getSwapOutCandidates(tmpD.klass.system, tmpD.cannotCast, tmpState.removedClassSkills ?? []);
+			tmpView.classSwaps = {
+				show: true,
+				limit: CLASS_SKILL_SWAP_LIMIT,
+				canAdd: tmpD.swaps.length < CLASS_SKILL_SWAP_LIMIT,
+				issues: tmpD.swapIssues,
+				rows: tmpD.swaps.map((tmpSwap, tmpIndex) => {
+					var tmpOutKey = tmpSwap.out ? (parseInt(tmpSwap.title) || 0) + "|" + tmpSwap.out : "";
+					var tmpOutOptions = [tmpOption("", "-- skill to replace --", tmpOutKey)]
+						.concat(tmpOutRows.map(tmpRow => tmpOption(tmpRow.title + "|" + tmpRow.name,
+							`${tmpRow.name} (title ${tmpRow.title})`, tmpOutKey)));
+					if (tmpOutKey && !tmpOutOptions.some(tmpO => tmpO.value == tmpOutKey)) {
+						tmpOutOptions.push(tmpOption(tmpOutKey, `${tmpSwap.out} (title ${tmpSwap.title})`, tmpOutKey));
+					}
+					var tmpIns = tmpSwap.out ? getSwapInCandidates(tmpD.klass.system, tmpSwap.out, tmpContent.skills, tmpD.available) : [];
+					if (tmpSwap.in && !tmpIns.includes(tmpSwap.in)) { tmpIns.unshift(tmpSwap.in); }
+					return {
+						index: tmpIndex,
+						outOptions: tmpOutOptions,
+						inOptions: [tmpOption("", tmpSwap.out ? "-- skill to bring in --" : "-- choose the one to replace first --", tmpSwap.in)]
+							.concat(tmpIns.map(tmpName => tmpOption(tmpName, tmpName, tmpSwap.in))),
+						advice: describeSwapAdvice(tmpSwap)
+					};
+				})
+			};
+		} else {
+			tmpView.classSwaps = { show: false, rows: [] };
+		}
 		tmpView.cannotCast = tmpD.cannotCast;
 		// A GME may take any racial skill (UPSTREAM-ISSUES.md item 22, his words), so its list is
 		// every race's; anyone else chooses from their own race's -- a Half Race's is both.
@@ -485,19 +729,75 @@ import {
 		// Each social skill with the first race's modifier beside it, "+10%" or "BLOCKED", as his
 		// class-recommended lists show it (setSocialSkillLists). A BLOCKED one stays in the list --
 		// hiding it would leave a player wondering where it went -- and the step refuses it.
-		tmpView.socialSkills = (tmpContent.skills ?? [])
+		//
+		// @MARKER SOCIAL SKILLS
+		// Two lists, as his Step 6 has them (HTML 35527-35600): the class's own first -- its Required
+		// ones flagged, then its Recommend ones, in his order -- and then every other social skill, A-Z.
+		// Each skill is in exactly one of the two, and both share name="socialPick", because the window
+		// reads every ticked socialPick on the page (character-generator.mjs @MARKER FORM). A skill the
+		// class lists but the campaign has switched off is left out of both. Sage and GME have no class
+		// list, only the full one.
+		var tmpSocialRow = (tmpDoc, tmpRequired) => {
+			var tmpRaceMod = getSocialSkillRaceMod(tmpDoc.name, tmpD.socialRaceName);
+			return { name: tmpDoc.name, checked: tmpState.socialSkillNames.includes(tmpDoc.name),
+			         mod: tmpRaceMod.text, blocked: tmpRaceMod.blocked, required: !!tmpRequired };
+		};
+		var tmpSocialDocs = new Map((tmpContent.skills ?? [])
 			.filter(tmpDoc => tmpDoc.system?.category == "social" && tmpD.available(tmpDoc))
-			.map(tmpDoc => {
-				var tmpRaceMod = getSocialSkillRaceMod(tmpDoc.name, tmpD.socialRaceName);
-				return { name: tmpDoc.name, checked: tmpState.socialSkillNames.includes(tmpDoc.name),
-				         mod: tmpRaceMod.text, blocked: tmpRaceMod.blocked };
-			})
+			.map(tmpDoc => [tmpDoc.name, tmpDoc]));
+		var tmpClassSocialNames = [];
+		tmpView.classSocialSkills = [];
+		for (const [tmpName, tmpRequired] of [...tmpD.classSocial.required.map(tmpN => [tmpN, true]),
+		                                      ...tmpD.classSocial.recommended.map(tmpN => [tmpN, false])]) {
+			if (tmpClassSocialNames.includes(tmpName) || !tmpSocialDocs.has(tmpName)) { continue; }
+			tmpClassSocialNames.push(tmpName);
+			tmpView.classSocialSkills.push(tmpSocialRow(tmpSocialDocs.get(tmpName), tmpRequired));
+		}
+		tmpView.otherSocialSkills = [...tmpSocialDocs.values()]
+			.filter(tmpDoc => !tmpClassSocialNames.includes(tmpDoc.name))
+			.map(tmpDoc => tmpSocialRow(tmpDoc, false))
 			.sort((a, b) => a.name.localeCompare(b.name));
+		// Kept whole, both lists in the order shown, for anything that wants every row at once.
+		tmpView.socialSkills = [...tmpView.classSocialSkills, ...tmpView.otherSocialSkills];
+		tmpView.classSocial = {
+			has: tmpView.classSocialSkills.length > 0,
+			className: tmpD.klass?.name ?? "",
+			upTo: tmpD.classSocial.upTo,
+			hasUpTo: tmpD.classSocial.upTo !== null,
+			upToSource: tmpD.classSocial.upToSource,
+			requiredCount: tmpD.classSocial.required.length,
+			anyList: tmpD.classSocial.anyList && !tmpD.nonClassed,
+			// The override is offered only when the step would otherwise stop on one of the two rules
+			// it is for, or is already ticked -- see checkStep.
+			showOverride: !!tmpState.socialOverride || /Required Social Skills|Additional Social Skills/.test(tmpView.blocker)
+		};
 		tmpView.socialRaceName = tmpD.socialRaceName;
 		tmpView.racialChosen = tmpState.racialSkillNames.length;
 		tmpView.socialChosen = tmpState.socialSkillNames.length;
 
 		// @MARKER DETAILS
+		// @MARKER ALIGNMENT
+		// His step 7: the class's alignment list and tendency list (module/alignment-rules.mjs), each a
+		// dropdown with his description of the one chosen under it (selected_align_descrip,
+		// getAlignmentDescription 73303 / getTendencyDescription 73361). A value not on the list -- kept
+		// from before a class change the player overrode -- stays shown as "(current)" rather than
+		// vanishing. His Order and Immoral lists have no blank option (HTML 45785-45789, 45828-45832).
+		var tmpChoices = tmpD.alignmentChoices;
+		tmpView.alignment = {
+			requirement: tmpD.klass?.system?.requirements?.alignment ?? "",
+			options: buildAlignmentSelectOptions(tmpChoices.alignments, tmpState.alignment, "-- choose --"),
+			tendencyOptions: buildAlignmentSelectOptions(tmpChoices.tendencies, tmpState.tendencies,
+				tmpChoices.defaultTendency ? null : "-- none --"),
+			description: getAlignmentDescription(tmpState.alignment, tmpD.customAlignments),
+			tendencyDescription: getTendencyDescription(tmpState.tendencies),
+			special: tmpChoices.special,
+			unknown: tmpChoices.unknown,
+			empty: tmpChoices.empty,
+			alignmentless: !!tmpState.alignmentless,
+			allowed: tmpD.alignmentAllowed && tmpD.tendencyAllowed,
+			// The class-qualification override, shown here too when it is what would let this through.
+			showOverride: !!tmpState.override || !(tmpD.alignmentAllowed && tmpD.tendencyAllowed)
+		};
 		tmpView.handednessOptions = ["", "Right", "Left", "Ambidextrous"]
 			.map(tmpValue => tmpOption(tmpValue, tmpValue || "-- roll or choose --", tmpState.handedness));
 
@@ -575,6 +875,9 @@ import {
 					.map(tmpEntry => ({ name: tmpEntry.name, category: tmpEntry.category,
 						total: (tmpEntry.abilityBonus < 0 ? "" : "+") + tmpEntry.abilityBonus + "%", summary: tmpEntry.summary })),
 				title: tmpAssembled.actor.system.identity.title,
+				// What the character will carry as its world view -- N/A for Alignmentless, "None" for no tendency.
+				alignment: tmpAssembled.actor.system.identity.alignment,
+				tendencies: tmpAssembled.actor.system.identity.tendencies,
 				// What the character's purse will hold, richest coin first: "40 pp, 3 gp", or nothing.
 				// After the shopping, which is what the character actually starts with.
 				money: describeCoins(tmpAssembled.actor.system.wealth),
@@ -678,6 +981,11 @@ import {
 			raceNames: tmpDerived.raceNames, className: tmpState.className,
 			ratings: tmpDerived.ratings,
 			classSkills: tmpDerived.classSkills,
+			// @MARKER WHOLE CAREER
+			// The class's list as edited in the Skills step -- rows given up, rows swapped -- which
+			// assembleCharacter writes onto the character's own class item; and his CONVERTs.
+			classSkillList: tmpDerived.classSkillList ?? null,
+			skillSlotMoves: tmpDerived.slotMoves ?? null,
 			// which of a caster/non-caster pair of class skills is this character's, at every title --
 			// read for the later titles' skills that lift a social skill (assembleCharacter)
 			cannotCast: tmpDerived.cannotCast,
@@ -686,7 +994,12 @@ import {
 			handedness: tmpState.handedness, age: tmpState.age, famorian: tmpState.famorian,
 			heightFeet: tmpState.heightFeet, heightInches: tmpState.heightInches, weight: tmpState.weight,
 			frame: tmpState.frame, hair: tmpState.hair, eyes: tmpState.eyes, skin: tmpState.skin,
-			alignment: tmpState.alignment, languages: tmpState.languages,
+			// @MARKER ALIGNMENT
+			// Alignmentless writes N/A to both, his setFinalAlignment (73409-73412); assembleCharacter
+			// writes "None" for a blank, as it does (73414-73422).
+			alignment: tmpState.alignmentless ? ALIGNMENT_NOT_APPLICABLE : tmpState.alignment,
+			tendencies: tmpState.alignmentless ? ALIGNMENT_NOT_APPLICABLE : tmpState.tendencies,
+			languages: tmpState.languages,
 			// No coins with Gear by culture: the kit is his wilderness equipment, taken INSTEAD. Otherwise
 			// what is LEFT once the shopping is paid for -- deriveGenerator priced it (@MARKER SHOP), and
 			// the items it bought go in as purchases, for assembleCharacter to create.
@@ -768,6 +1081,37 @@ import {
 		var tmpMoney = tmpState.startingMoney;
 		if (tmpMoney?.apparent && tmpMoney.realSocialClass == tmpSocial) { return tmpMoney.socialClass; }
 		return tmpSocial;
+	}
+
+	// @MARKER ALIGNMENT
+	// This is the function which keeps the alignment and tendency in step with the class, and is run by
+	// the window before every draw. Only when the class has CHANGED since they were last checked
+	// (alignmentFor), so an alignment kept on purpose with the override is not taken away on the next
+	// keystroke:
+	//     - an alignment the new class does not allow is cleared, for the player to choose again;
+	//     - a tendency it does not allow is cleared;
+	//     - an Order or Immoral class's default tendency is put in when the tendency is blank -- his
+	//       HTML preselects it (45786, 45810, 45829) and his code then clears it (73086, 73262-73278),
+	//       so on his sheet it came out "None"; that slip is not ported.
+	// Always re-derived from the class chosen NOW, never from a stale one: his path handlers set the
+	// requirement but never re-ran setAlignmentSelection (6504-6547), leaving the old dropdown up.
+	// Returns true when it changed anything.
+	export function reconcileAlignment(tmpState, tmpDerived) {
+		var tmpClassName = tmpState.className ?? "";
+		if (tmpState.alignmentFor === tmpClassName) { return false; }
+		var tmpChoices = tmpDerived.alignmentChoices;
+		var tmpChanged = false;
+		if (tmpState.alignment && !tmpChoices.alignments.includes(tmpState.alignment)) {
+			tmpState.alignment = ""; tmpChanged = true;
+		}
+		if (tmpState.tendencies && !tmpChoices.tendencies.includes(tmpState.tendencies)) {
+			tmpState.tendencies = ""; tmpChanged = true;
+		}
+		if (!tmpState.tendencies && tmpChoices.defaultTendency) {
+			tmpState.tendencies = tmpChoices.defaultTendency; tmpChanged = true;
+		}
+		tmpState.alignmentFor = tmpClassName;
+		return tmpChanged;
 	}
 
 // @MARKER ADD NEW character generator view functions HERE

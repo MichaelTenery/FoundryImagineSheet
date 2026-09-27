@@ -79,12 +79,14 @@ if (classView.classIssues.length) { state.override = true; }
 state.step = 4;
 const skillView = V.buildGeneratorView(state, content, () => true);
 state.racialSkillNames = skillView.racialSkills.slice(0, 2).map(s => s.name);
-state.socialSkillNames = skillView.socialSkills.slice(0, 2).map(s => s.name);
+// Two from the Mage's own list, which comes first (his setSocialSkillLists), under "choose up to 2".
+state.socialSkillNames = skillView.classSocialSkills.slice(0, 2).map(s => s.name);
 show("Step 5: Skills -- the class's first-title skills, and two racial and two social picks", state);
 
 state.step = 5; state.handedness = "Right"; state.age = 19; state.heightFeet = 5; state.heightInches = 6; state.weight = 125;
-state.alignment = "Neutral Good"; state.languages = [{ name: "Common", write: true }, { name: "Elvish", write: false }];
-show("Step 6: Details", state);
+state.alignment = "Neutral Good (Active)"; state.tendencies = "Moral/Order"; V.reconcileAlignment(state, V.deriveGenerator(state, content, () => true));
+state.languages = [{ name: "Common", write: true }, { name: "Elvish", write: false }];
+show("Step 6: Details -- his alignment and tendency dropdowns, with his descriptions", state);
 
 // The Equipment step: the money (set here rather than rolled -- its own suite rolls it), and the shop
 // with a long sword and a bundle of ten arrow heads bought out of it (module/shop-rules.mjs).

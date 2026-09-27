@@ -1,0 +1,229 @@
+{
+  "_source": {
+    "file": "tools/extract/extract_class_social_skills.py",
+    "table": "CLASS_SOCIAL_UP_TO",
+    "note": "Hand-transcribed from the books' class pages; page is the printed page."
+  },
+  "entries": {
+    "Warrior": {
+      "upTo": 2,
+      "page": "Player's Guide p.48"
+    },
+    "Bard": {
+      "upTo": 3,
+      "page": "Player's Guide p.49"
+    },
+    "Duelist": {
+      "upTo": 2,
+      "page": "Player's Guide p.50"
+    },
+    "Knight": {
+      "upTo": 2,
+      "page": "Player's Guide p.51"
+    },
+    "Knight(Dark)": {
+      "upTo": 2,
+      "page": "Player's Guide p.52"
+    },
+    "Ranger": {
+      "upTo": 2,
+      "page": "Player's Guide p.53"
+    },
+    "Rogue": {
+      "upTo": 2,
+      "page": "Player's Guide p.54"
+    },
+    "Acrobat": {
+      "upTo": 2,
+      "page": "Player's Guide p.55"
+    },
+    "Assassin": {
+      "upTo": 3,
+      "page": "Player's Guide p.56"
+    },
+    "Bandit": {
+      "upTo": 2,
+      "page": "Player's Guide p.57"
+    },
+    "Buccaneer": {
+      "upTo": 2,
+      "page": "Player's Guide p.58"
+    },
+    "Minstrel": {
+      "upTo": 3,
+      "page": "Player's Guide p.59"
+    },
+    "Priest": {
+      "upTo": 2,
+      "page": "Player's Guide p.60"
+    },
+    "Priest(Dark)": {
+      "upTo": 2,
+      "page": "Player's Guide p.61"
+    },
+    "Druid": {
+      "upTo": 2,
+      "page": "Player's Guide p.62"
+    },
+    "Monk": {
+      "upTo": 3,
+      "page": "Player's Guide p.63"
+    },
+    "Seer": {
+      "upTo": 3,
+      "page": "Player's Guide p.64"
+    },
+    "Shaman": {
+      "upTo": 2,
+      "page": "Player's Guide p.65"
+    },
+    "Mage": {
+      "upTo": 2,
+      "page": "Player's Guide p.66"
+    },
+    "Alchemist": {
+      "upTo": 3,
+      "page": "Player's Guide p.67"
+    },
+    "Mentalist": {
+      "upTo": 2,
+      "page": "Player's Guide p.68"
+    },
+    "Sage": {
+      "upTo": 4,
+      "page": "Player's Guide p.69"
+    },
+    "Trickster": {
+      "upTo": 3,
+      "page": "Player's Guide p.70"
+    },
+    "Witch(White)": {
+      "upTo": 4,
+      "page": "Player's Guide p.71"
+    },
+    "Witch(Gray)": {
+      "upTo": 4,
+      "page": "Player's Guide p.72"
+    },
+    "Witch(Black)": {
+      "upTo": 4,
+      "page": "Player's Guide p.73"
+    },
+    "Archer": {
+      "upTo": 2,
+      "page": "Master's Manual p.39"
+    },
+    "Berserker": {
+      "upTo": 2,
+      "page": "Master's Manual p.40"
+    },
+    "Bounty Hunter": {
+      "upTo": 3,
+      "page": "Master's Manual p.41"
+    },
+    "Cavalier": {
+      "upTo": 3,
+      "page": "Master's Manual p.42"
+    },
+    "Martial Artist": {
+      "upTo": 3,
+      "page": "Master's Manual p.43"
+    },
+    "Runesmith": {
+      "upTo": 2,
+      "page": "Master's Manual p.44"
+    },
+    "Delver": {
+      "upTo": 4,
+      "page": "Master's Manual p.45"
+    },
+    "Healer": {
+      "upTo": 2,
+      "page": "Master's Manual p.46"
+    },
+    "Wilder": {
+      "upTo": 3,
+      "page": "Master's Manual p.47"
+    },
+    "Beastmaster": {
+      "upTo": 2,
+      "page": "Aspects of the Wild p.25"
+    },
+    "Border Scout": {
+      "upTo": 3,
+      "page": "Aspects of the Wild p.27"
+    },
+    "Shaman(Rune)": {
+      "upTo": 2,
+      "page": "Aspects of the Wild p.29"
+    },
+    "Hermeticist": {
+      "upTo": 3,
+      "page": "Aspects of the Wild p.31"
+    },
+    "Knight(Death)": {
+      "upTo": 2,
+      "page": "Epitaph of the Fallen p.33"
+    },
+    "Paladin": {
+      "upTo": 2,
+      "page": "Epitaph of the Fallen p.35"
+    },
+    "Crypt Robber": {
+      "upTo": 3,
+      "page": "Epitaph of the Fallen p.37"
+    },
+    "Shadow Stalker": {
+      "upTo": 3,
+      "page": "Epitaph of the Fallen p.39"
+    },
+    "Exorcist": {
+      "upTo": 4,
+      "page": "Epitaph of the Fallen p.41"
+    },
+    "Necromancer": {
+      "upTo": 2,
+      "page": "Epitaph of the Fallen p.43"
+    },
+    "Channeler": {
+      "upTo": 3,
+      "page": "Epitaph of the Fallen p.45"
+    },
+    "Vivisectionist": {
+      "upTo": 2,
+      "page": "Epitaph of the Fallen p.47"
+    },
+    "Conqueror": {
+      "upTo": 2,
+      "page": "Legends of the Unknown p.45"
+    },
+    "Legendier": {
+      "upTo": 4,
+      "page": "Legends of the Unknown p.47"
+    },
+    "Explorer": {
+      "upTo": 4,
+      "page": "Legends of the Unknown p.49"
+    },
+    "Gypsy": {
+      "upTo": 3,
+      "page": "Legends of the Unknown p.51"
+    },
+    "Shaman(Drum)": {
+      "upTo": 4,
+      "page": "Legends of the Unknown p.53"
+    },
+    "Missionary": {
+      "upTo": 4,
+      "page": "Legends of the Unknown p.55"
+    },
+    "Arcanist": {
+      "upTo": 4,
+      "page": "Legends of the Unknown p.57"
+    },
+    "Elementalist": {
+      "upTo": 2,
+      "page": "Legends of the Unknown p.59"
+    }
+  }
+}

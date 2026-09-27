@@ -1,0 +1,2016 @@
+{
+  "_source": {
+    "file": "docs/reference/sheet-worker.js",
+    "function": "setSocialSkillLists",
+    "line": 53591
+  },
+  "_repairs": [
+    "REPAIR Healer row 7 Philosophy -> Physiology (his errata)",
+    "REPAIR Witch Hunter row 16 Weapon Making: no _type line names this row; read as Recommend"
+  ],
+  "entries": {
+    "Acrobat": {
+      "required": [
+        "Tumbling"
+      ],
+      "recommended": [
+        "Acting",
+        "Bartering/Haggling",
+        "Begging",
+        "Clowning/Jesting",
+        "Courtesan",
+        "Drudgery",
+        "Espionage",
+        "Harlotry",
+        "Juggling",
+        "Locksmith",
+        "Rope Making",
+        "Rope Use",
+        "Running",
+        "Story Telling",
+        "Tightrope Walking"
+      ],
+      "anyList": false
+    },
+    "Alchemist": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Baking/Cooking",
+        "Brewing",
+        "Candle/Oil Making",
+        "Chemistry",
+        "Collecting",
+        "Glass Blowing",
+        "Instruction",
+        "Leeching",
+        "Mathematics",
+        "Metallurgy",
+        "Metaphysics",
+        "Physiology",
+        "Pottery Making",
+        "Scribing",
+        "Skinning/Tanning",
+        "Smithy",
+        "Store Keeping",
+        "Theology",
+        "Tool Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Arcanist": {
+      "required": [],
+      "recommended": [
+        "Anthropology",
+        "Archaeology",
+        "Astrology",
+        "Collecting",
+        "Drawing/Sketching",
+        "Explorer",
+        "Foraging/Forestry",
+        "Fortune Telling",
+        "Geography",
+        "History",
+        "Hunting/Trapping",
+        "Librarian",
+        "Metaphysics",
+        "Scribing",
+        "Story Telling",
+        "Survival",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Archer": {
+      "required": [],
+      "recommended": [
+        "Baking/Cooking",
+        "Fire Making",
+        "Fletching/Bow Making",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Riding",
+        "Running",
+        "Signaling",
+        "Skinning/Tanning",
+        "Survival"
+      ],
+      "anyList": false
+    },
+    "Archer(Arcane)": {
+      "required": [
+        "Fletching/Bow Making",
+        "Metaphysics"
+      ],
+      "recommended": [
+        "Drilling",
+        "Foraging/Forestry",
+        "Instruction",
+        "Page",
+        "Signaling",
+        "Squire",
+        "Soldiering",
+        "Survival"
+      ],
+      "anyList": false
+    },
+    "Archer(Zen)": {
+      "required": [
+        "Fletching/Bow Making"
+      ],
+      "recommended": [
+        "Artisan",
+        "Baking/Cooking",
+        "Calligraphy",
+        "Chirugeon",
+        "Drilling",
+        "Drudgery",
+        "Instruction",
+        "Leeching",
+        "Painting",
+        "Physiology",
+        "Riding",
+        "Wood Working"
+      ],
+      "anyList": false
+    },
+    "Assassin": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Armoring",
+        "Baking/Cooking",
+        "Bartering/Haggling",
+        "Begging",
+        "Courtesan",
+        "Espionage",
+        "Fletching/Bow Making",
+        "Harlotry",
+        "Juggling",
+        "Lip Reading",
+        "Locksmith",
+        "Politics",
+        "Riding",
+        "Rope Making",
+        "Running",
+        "Skinning/Tanning",
+        "Swimming",
+        "Torturing",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Bandit": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Baking/Cooking",
+        "Bartering/Haggling",
+        "Begging",
+        "Chirugeon",
+        "Crying/Hawking",
+        "Diplomacy",
+        "Drudgery",
+        "Economics",
+        "Fletching/Bow Making",
+        "Riding",
+        "Rope Use",
+        "Running",
+        "Skinning/Tanning",
+        "Supplier",
+        "Swimming",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Banisher": {
+      "required": [
+        "Drilling"
+      ],
+      "recommended": [
+        "Armoring",
+        "Librarian",
+        "Physiology",
+        "Scribing",
+        "Soldiering",
+        "Theology",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Bard": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Baking/Cooking",
+        "Barbering",
+        "Brewing",
+        "Dancing",
+        "Diplomacy",
+        "Instruction",
+        "Instrument Making",
+        "Instrument Playing",
+        "Juggling",
+        "Leeching",
+        "Painting",
+        "Philosophy",
+        "Politics",
+        "Recite Poetry",
+        "Riding",
+        "Scribing",
+        "Sewing",
+        "Sing Songs",
+        "Story Telling",
+        "Translating",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Battlemancer": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Dancing",
+        "Leeching",
+        "Librarian",
+        "Metaphysics",
+        "Riding",
+        "Running",
+        "Scribing",
+        "Soldiering",
+        "Weapon Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Beastmaster": {
+      "required": [
+        "Animal Training"
+      ],
+      "recommended": [
+        "Animal Husbandry",
+        "Diving",
+        "Falconry",
+        "Fishing",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Leather Working",
+        "Leeching",
+        "Riding",
+        "Rope Making",
+        "Rope Use",
+        "Running",
+        "Skinning/Tanning",
+        "Survival",
+        "Swimming",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Beguiler": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Animal Training",
+        "Barbering",
+        "Bartering/Haggling",
+        "Clowning/Jesting",
+        "Crying/Hawking",
+        "Diplomacy",
+        "Espionage",
+        "Etiquette",
+        "Fashion",
+        "Leadership",
+        "Metaphysics",
+        "Overseer/Manager",
+        "Politics",
+        "Story Telling",
+        "Ventriloquism"
+      ],
+      "anyList": false
+    },
+    "Berserker": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Animal Training",
+        "Baking/Cooking",
+        "Dancing",
+        "Diving",
+        "Fire Making",
+        "Fishing",
+        "Laborer",
+        "Leeching",
+        "Running",
+        "Skinning/Tanning",
+        "Story Telling",
+        "Survival",
+        "Swimming",
+        "Tattoo Artistry",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Border Scout": {
+      "required": [],
+      "recommended": [
+        "Chirugeon",
+        "Diving",
+        "Espionage",
+        "Fire Making",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Mountaineering",
+        "Riding",
+        "Rope Use",
+        "Running",
+        "Signaling",
+        "Spelunking",
+        "Survival",
+        "Swimming",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Bounty Hunter": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Armoring",
+        "Baking/Cooking",
+        "Bartering/Haggling",
+        "Cage Making",
+        "Fletching/Bow Making",
+        "Lip Reading",
+        "Locksmith",
+        "Riding",
+        "Rope Making",
+        "Running",
+        "Skinning/Tanning",
+        "Swimming",
+        "Torturing",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Buccaneer": {
+      "required": [
+        "Rope Use"
+      ],
+      "recommended": [
+        "Armoring",
+        "Baking/Cooking",
+        "Bartering/Haggling",
+        "Begging",
+        "Crying/Hawking",
+        "Diving",
+        "Drilling",
+        "Drudgery",
+        "Fletching/Bow Making",
+        "Sing Songs",
+        "Skinning/Tanning",
+        "Soldiering",
+        "Supplier",
+        "Swimming",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Cacophonist": {
+      "required": [
+        "Composer"
+      ],
+      "recommended": [
+        "Administration",
+        "Dancing",
+        "Instruction",
+        "Instrument Making",
+        "Instrument Playing",
+        "Leadership",
+        "Lip Reading",
+        "Music Theory",
+        "Physiology",
+        "Recite Poetry",
+        "Sing Songs",
+        "Story Telling",
+        "Theology"
+      ],
+      "anyList": false
+    },
+    "Cajoler": {
+      "required": [
+        "Gossip Mongery",
+        "Mocking"
+      ],
+      "recommended": [
+        "Acting",
+        "Administration",
+        "Appraisal",
+        "Bartering/Haggling",
+        "Begging",
+        "Carousing",
+        "Clowning/Jesting",
+        "Collecting",
+        "Courtesan",
+        "Crying/Hawking",
+        "Diplomacy",
+        "Drudgery",
+        "Espionage",
+        "Etiquette",
+        "Politics",
+        "Story Telling",
+        "Supplier",
+        "Tumbling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Cavalier": {
+      "required": [
+        "Animal Husbandry",
+        "Riding"
+      ],
+      "recommended": [
+        "Animal Training",
+        "Courtesan",
+        "Crying/Hawking",
+        "Dancing",
+        "Diplomacy",
+        "Drilling",
+        "Falconry",
+        "Instruction",
+        "Page",
+        "Soldiering",
+        "Squire",
+        "Story Telling"
+      ],
+      "anyList": false
+    },
+    "Channeler": {
+      "required": [],
+      "recommended": [
+        "Candle/Oil Making",
+        "Chemistry",
+        "Chirugeon",
+        "Drawing/Sketching",
+        "Instruction",
+        "Leeching",
+        "Librarian",
+        "Metaphysics",
+        "Physiology",
+        "Pyrotechnics",
+        "Scribing",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Conqueror": {
+      "required": [
+        "Explorer"
+      ],
+      "recommended": [
+        "Armoring",
+        "Bartering/Haggling",
+        "Diplomacy",
+        "Geography",
+        "Gossip Mongery",
+        "Leadership",
+        "Mountaineering",
+        "Oceanography",
+        "Running",
+        "Soldiering",
+        "Spelunking",
+        "Story Telling",
+        "Supplier",
+        "Surveyor",
+        "Survival",
+        "Weapon Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Crypt Robber": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Anthropology",
+        "Bartering/Haggling",
+        "Begging",
+        "Collecting",
+        "Courtesan",
+        "Espionage",
+        "Fortune Telling",
+        "Gossip Mongery",
+        "Harlotry",
+        "History",
+        "Lip Reading",
+        "Locksmith",
+        "Mocking",
+        "Running",
+        "Skinning/Tanning",
+        "Story Telling",
+        "Swimming",
+        "Tightrope Walking"
+      ],
+      "anyList": false
+    },
+    "Curse Breaker": {
+      "required": [
+        "Theology",
+        "Metaphysics"
+      ],
+      "recommended": [
+        "Astrology",
+        "Candle/Oil Making",
+        "Heraldry",
+        "History",
+        "Philosophy",
+        "Scribing",
+        "Scholar",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Delver": {
+      "required": [
+        "Archaeology",
+        "History"
+      ],
+      "recommended": [
+        "Architecture/Engineering",
+        "Bartering/Haggling",
+        "Chemistry",
+        "Collecting",
+        "Drawing/Sketching",
+        "Etiquette",
+        "Explorer",
+        "Geography",
+        "Geology",
+        "Heraldry",
+        "Instrument Making",
+        "Locksmith",
+        "Metallurgy",
+        "Metaphysics",
+        "Mining/Tunneling",
+        "Philosophy",
+        "Scribing",
+        "Surveyor",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Dervish": {
+      "required": [
+        "Juggling",
+        "Tumbling"
+      ],
+      "recommended": [
+        "Dancing",
+        "Drilling",
+        "Metal Working",
+        "Metallurgy",
+        "Physiology",
+        "Running",
+        "Smithy",
+        "Soldiering",
+        "Tightrope Walking",
+        "Weapon Making",
+        "Wood Curing",
+        "Wood Cutting",
+        "Wood Working"
+      ],
+      "anyList": false
+    },
+    "Dreamer": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Animal Husbandry",
+        "Baking/Cooking",
+        "Brewing",
+        "Candle/Oil Making",
+        "Carving",
+        "Chirugeon",
+        "Courtesan",
+        "Dancing",
+        "Drawing/Sketching",
+        "Fortune Telling",
+        "Painting",
+        "Rope Making",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Druid": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Animal Training",
+        "Baking/Cooking",
+        "Brewing",
+        "Chirugeon",
+        "Falconry",
+        "Foraging/Forestry",
+        "Physiology",
+        "Riding",
+        "Running",
+        "Story Telling",
+        "Survival",
+        "Swimming"
+      ],
+      "anyList": false
+    },
+    "Duelist": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Dancing",
+        "Diplomacy",
+        "Drilling",
+        "Fashion",
+        "Fletching/Bow Making",
+        "Heraldry",
+        "Politics",
+        "Riding",
+        "Soldiering",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Elemental Dancer": {
+      "required": [
+        "Dancing",
+        "Drilling"
+      ],
+      "recommended": [
+        "Baking/Cooking",
+        "Calligraphy",
+        "Chirugeon",
+        "Diplomacy",
+        "Drawing/Sketching",
+        "Heraldry",
+        "History",
+        "Instruction",
+        "Philosophy",
+        "Physiology",
+        "Psychology",
+        "Running",
+        "Scribing",
+        "Survival",
+        "Swimming"
+      ],
+      "anyList": false
+    },
+    "Elementalist": {
+      "required": [
+        "Metaphysics"
+      ],
+      "recommended": [
+        "Chemistry",
+        "Climatology",
+        "Foraging/Forestry",
+        "Geology",
+        "Mathematics",
+        "Metallurgy",
+        "Meteorology",
+        "Oceanography",
+        "Scholar",
+        "Scribing",
+        "Wood Working"
+      ],
+      "anyList": false
+    },
+    "Enchanter": {
+      "required": [],
+      "recommended": [
+        "Calligraphy",
+        "Collecting",
+        "Drawing/Sketching",
+        "Engraving/Etching",
+        "Librarian",
+        "Metaphysics",
+        "Scribing",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Exorcist": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Animal Husbandry",
+        "Anthropology",
+        "Bartering/Haggling",
+        "Begging",
+        "Chirugeon",
+        "Crying/Hawking",
+        "Diplomacy",
+        "Drawing/Sketching",
+        "Etiquette",
+        "Gossip Mongery",
+        "History",
+        "Leeching",
+        "Lip Reading",
+        "Philosophy",
+        "Physiology",
+        "Story Telling",
+        "Theology",
+        "Translating",
+        "Undertaking",
+        "Ventriloquism"
+      ],
+      "anyList": false
+    },
+    "Explorer": {
+      "required": [
+        "Explorer",
+        "History"
+      ],
+      "recommended": [
+        "Anthropology",
+        "Appraisal",
+        "Archaeology",
+        "Astronomy",
+        "Ballooning",
+        "Boat Wright",
+        "Climatology",
+        "Collecting",
+        "Diplomacy",
+        "Drawing/Sketching",
+        "Geography",
+        "Geology",
+        "Gossip Mongery",
+        "Heraldry",
+        "Leadership",
+        "Meteorology",
+        "Mountaineering",
+        "Oceanography",
+        "Scribing",
+        "Spelunking",
+        "Story Telling",
+        "Supplier",
+        "Surveyor",
+        "Survival",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Gypsy": {
+      "required": [
+        "Fortune Telling"
+      ],
+      "recommended": [
+        "Acting",
+        "Astrology",
+        "Bartering/Haggling",
+        "Begging",
+        "Clowning/Jesting",
+        "Collecting",
+        "Dancing",
+        "Explorer",
+        "Geography",
+        "Harlotry",
+        "Hunting/Trapping",
+        "Instrument Making",
+        "Instrument Playing",
+        "Juggling",
+        "Mocking",
+        "Music Theory",
+        "Puppetry",
+        "Recite Poetry",
+        "Sing Songs",
+        "Story Telling",
+        "Tumbling",
+        "Wagon/Carriage Driving",
+        "Wagon/Carriage Making"
+      ],
+      "anyList": false
+    },
+    "Harbinger": {
+      "required": [
+        "Theology"
+      ],
+      "recommended": [
+        "Armoring",
+        "Chirugeon",
+        "Crying/Hawking",
+        "Drawing/Sketching",
+        "Drilling",
+        "Heraldry",
+        "History",
+        "Instruction",
+        "Librarian",
+        "Philosophy",
+        "Physiology",
+        "Scribing",
+        "Smithy",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Harmonist": {
+      "required": [
+        "Composer"
+      ],
+      "recommended": [
+        "Administration",
+        "Dancing",
+        "Instruction",
+        "Instrument Making",
+        "Instrument Playing",
+        "Leadership",
+        "Librarian",
+        "Lip Reading",
+        "Music Theory",
+        "Physiology",
+        "Recite Poetry",
+        "Sing Songs",
+        "Story Telling",
+        "Theology"
+      ],
+      "anyList": false
+    },
+    "Healer": {
+      "required": [
+        "Chirugeon"
+      ],
+      "recommended": [
+        "Animal Husbandry",
+        "Animal Training",
+        "Baking/Cooking",
+        "Leeching",
+        "Midwife",
+        "Physiology",
+        "Recite Poetry",
+        "Sing Songs",
+        "Theology"
+      ],
+      "anyList": false
+    },
+    "Heretic": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Begging",
+        "Carousing",
+        "Clowning/Jesting",
+        "Courtesan",
+        "Economics",
+        "Espionage",
+        "Fashion",
+        "Gossip Mongery",
+        "Harlotry",
+        "Lip Reading",
+        "Politics",
+        "Scribing",
+        "Story Telling",
+        "Supplier",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Hermeticist": {
+      "required": [],
+      "recommended": [
+        "Carving",
+        "Collecting",
+        "Fire Making",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Leather Working",
+        "Leeching",
+        "Scribing",
+        "Skinning/Tanning",
+        "Story Telling",
+        "Survival",
+        "Taxidermy"
+      ],
+      "anyList": false
+    },
+    "Hero": {
+      "required": [
+        "Drilling"
+      ],
+      "recommended": [
+        "Baking/Cooking",
+        "Chirugeon",
+        "Diplomacy",
+        "Drawing/Sketching",
+        "Fashion",
+        "Heraldry",
+        "Instruction",
+        "Philosophy",
+        "Physiology",
+        "Psychology",
+        "Running",
+        "Scribing",
+        "Story Telling",
+        "Swimming",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Hunter": {
+      "required": [
+        "Animal Training",
+        "Fletching/Bow Making",
+        "Hunting/Trapping"
+      ],
+      "recommended": [
+        "Animal Husbandry",
+        "Diving",
+        "Falconry",
+        "Fire Making",
+        "Fishing",
+        "Foraging/Forestry",
+        "Leather Working",
+        "Riding",
+        "Rope Making",
+        "Rope Use",
+        "Running",
+        "Skinning/Tanning",
+        "Survival",
+        "Swimming"
+      ],
+      "anyList": false
+    },
+    "Illuminator": {
+      "required": [],
+      "recommended": [
+        "Bookbinder",
+        "Calligraphy",
+        "Exploser",
+        "Fire Making",
+        "History",
+        "Librarian",
+        "Metaphysics",
+        "Painting",
+        "Recite Poetry",
+        "Scholar",
+        "Scribing",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Innominate": {
+      "required": [
+        "Theology"
+      ],
+      "recommended": [
+        "Acting",
+        "Armoring",
+        "Baking/Cooking",
+        "Bartering/Haggling",
+        "Courtesan",
+        "Espionage",
+        "Fletching/Bow Making",
+        "Juggling",
+        "Lip Reading",
+        "Locksmith",
+        "Physiology",
+        "Politics",
+        "Riding",
+        "Rope Making",
+        "Rope Use",
+        "Running",
+        "Skinning/Tanning",
+        "Swimming",
+        "Tightrope Walking",
+        "Tumbling",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Inquisitor": {
+      "required": [
+        "Theology",
+        "Torturing"
+      ],
+      "recommended": [
+        "Anthropology",
+        "Chemistry",
+        "Chirugeon",
+        "Diplomacy",
+        "Forensics",
+        "History",
+        "Instruction",
+        "Leadership",
+        "Mocking",
+        "Overseer/Manager",
+        "Philosophy",
+        "Physiology",
+        "Politics",
+        "Scholar",
+        "Scribing"
+      ],
+      "anyList": false
+    },
+    "Intercessor": {
+      "required": [
+        "Theology"
+      ],
+      "recommended": [
+        "Armoring",
+        "Chirugeon",
+        "Drawing/Sketching",
+        "Drilling",
+        "History",
+        "Instruction",
+        "Librarian",
+        "Philosophy",
+        "Physiology",
+        "Scribing",
+        "Smithy",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Investigator": {
+      "required": [
+        "Forensics"
+      ],
+      "recommended": [
+        "Accounting",
+        "Acting",
+        "Appraisal",
+        "Architecture/Engineering",
+        "Botanist",
+        "Brewing",
+        "Carousing",
+        "Chemistry",
+        "Diplomacy",
+        "Drawing/Sketching",
+        "Economics",
+        "Espionage",
+        "Foraging/Forestry",
+        "Gossip Mongery",
+        "History",
+        "Librarian",
+        "Lip Reading",
+        "Locksmith",
+        "Politics",
+        "Reporting/Journalism",
+        "Scavenging",
+        "Scholar",
+        "Translating",
+        "Ventriloquism",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Jester": {
+      "required": [
+        "Clowning/Jesting",
+        "Mocking"
+      ],
+      "recommended": [
+        "Acting",
+        "Begging",
+        "Carousing",
+        "Collecting",
+        "Crying/Hawking",
+        "Diplomacy",
+        "Drudgery",
+        "Espionage",
+        "Gossip Mongery",
+        "Lady Servant",
+        "Politics",
+        "Puppetry",
+        "Story Telling",
+        "Supplier",
+        "Tumbling",
+        "Valet",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Kineticist": {
+      "required": [
+        "Metaphysics",
+        "Physics"
+      ],
+      "recommended": [
+        "Chemistry",
+        "Inventor",
+        "Librarian",
+        "Mathematics",
+        "Pyrotechnics",
+        "Scholar",
+        "Scribing",
+        "Steam Power",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Knight": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Drilling",
+        "Falconry",
+        "Page",
+        "Riding",
+        "Scribing",
+        "Smithy",
+        "Soldiering",
+        "Squire",
+        "Story Telling",
+        "Weapon Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Knight(Dark)": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Courtesan",
+        "Drilling",
+        "Harlotry",
+        "Page",
+        "Riding",
+        "Scribing",
+        "Smithy",
+        "Soldiering",
+        "Squire",
+        "Story Telling",
+        "Weapon Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Knight(Death)": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Drilling",
+        "Heraldry",
+        "Overseer/Manager",
+        "Page",
+        "Riding",
+        "Scribing",
+        "Slave Driving",
+        "Smithy",
+        "Soldiering",
+        "Squire",
+        "Story Telling",
+        "Torturing",
+        "Undertaking",
+        "Weapon Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Legendier": {
+      "required": [
+        "Anthropology",
+        "Explorer",
+        "History"
+      ],
+      "recommended": [
+        "Appraisal",
+        "Archaeology",
+        "Bartering/Haggling",
+        "Diplomacy",
+        "Drawing/Sketching",
+        "Foraging/Forestry",
+        "Geography",
+        "Gossip Mongery",
+        "Heraldry",
+        "Leadership",
+        "Metallurgy",
+        "Mining/Tunneling",
+        "Mountaineering",
+        "Oceanography",
+        "Philosophy",
+        "Rope Use",
+        "Running",
+        "Scribing",
+        "Spelunking",
+        "Story Telling",
+        "Survival",
+        "Swimming",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Luckster": {
+      "required": [
+        "Gambling"
+      ],
+      "recommended": [
+        "Accounting",
+        "Acting",
+        "Bartering/Haggling",
+        "Begging",
+        "Collecting",
+        "Courtesan",
+        "Diplomacy",
+        "Drudgery",
+        "Economics",
+        "Espionage",
+        "Fashion",
+        "Fortune Telling",
+        "Gossip Mongery",
+        "Harlotry",
+        "Lip Reading",
+        "Locksmith",
+        "Politics",
+        "Running",
+        "Supplier",
+        "Tightrope Walking"
+      ],
+      "anyList": false
+    },
+    "Mage": {
+      "required": [],
+      "recommended": [
+        "Leeching",
+        "Librarian",
+        "Metaphysics",
+        "Painting",
+        "Recite Poetry",
+        "Scribing",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Martial Artist": {
+      "required": [],
+      "recommended": [
+        "Barbering",
+        "Basket Weaving",
+        "Baking/Cooking",
+        "Candle/Oil Making",
+        "Courtesan",
+        "Drilling",
+        "Instruction",
+        "Juggling",
+        "Leeching",
+        "Painting",
+        "Physiology",
+        "Skinning/Tanning",
+        "Story Telling",
+        "Tattoo Artistry",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Medium": {
+      "required": [
+        "Theology"
+      ],
+      "recommended": [
+        "Astrology",
+        "Astronomy",
+        "Diplomacy",
+        "Etiquette",
+        "Heraldry",
+        "History",
+        "Librarian",
+        "Lip Reading",
+        "Politics",
+        "Scholar",
+        "Scribing",
+        "Story Telling",
+        "Translating"
+      ],
+      "anyList": false
+    },
+    "Mentalist": {
+      "required": [],
+      "recommended": [
+        "Leeching",
+        "Librarian",
+        "Metaphysics",
+        "Painting",
+        "Recite Poetry",
+        "Scribing",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Minstrel": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Barbering",
+        "Bartering/Haggling",
+        "Begging",
+        "Clowning/Jesting",
+        "Courtesan",
+        "Crying/Hawking",
+        "Dancing",
+        "Diplomacy",
+        "Drudgery",
+        "Etiquette",
+        "Fashion",
+        "Gambling",
+        "Gossip Mongery",
+        "Harlotry",
+        "Instrument Making",
+        "Instrument Playing",
+        "Juggling",
+        "Lip Reading",
+        "Politics",
+        "Recite Poetry",
+        "Sing Songs",
+        "Story Telling",
+        "Tightrope Walking",
+        "Ventriloquism",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Missionary": {
+      "required": [
+        "Anthropology",
+        "Story Telling",
+        "Theology"
+      ],
+      "recommended": [
+        "Archaeology",
+        "Astronomy",
+        "Ballooning",
+        "Boat Wright",
+        "Collecting",
+        "Diplomacy",
+        "Drawing/Sketching",
+        "Geography",
+        "Geology",
+        "Gossip Mongery",
+        "Heraldry",
+        "Leadership",
+        "Meteorology",
+        "Mountaineering",
+        "Oceanography",
+        "Scribing",
+        "Spelunking",
+        "Supplier",
+        "Surveyor",
+        "Survival",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Monk": {
+      "required": [],
+      "recommended": [
+        "Baking/Cooking",
+        "Barbering",
+        "Candle/Oil Making",
+        "Instruction",
+        "Juggling",
+        "Leeching",
+        "Painting",
+        "Philosophy",
+        "Riding",
+        "Scribing",
+        "Sewing",
+        "Skinning/Tanning",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Mounted Archer": {
+      "required": [
+        "Animal Training",
+        "Riding"
+      ],
+      "recommended": [
+        "Animal Husbandry",
+        "Chariot Driving",
+        "Drilling",
+        "Rope Use",
+        "Running",
+        "Signaling",
+        "Soldiering"
+      ],
+      "anyList": false
+    },
+    "Necromancer": {
+      "required": [
+        "Undertaking"
+      ],
+      "recommended": [
+        "Butcher",
+        "Cage Making",
+        "Chirugeon",
+        "Drilling",
+        "Heraldry",
+        "Hunting/Trapping",
+        "Leeching",
+        "Metaphysics",
+        "Physiology",
+        "Scribing",
+        "Sewing",
+        "Taxidermy",
+        "Theology",
+        "Torturing"
+      ],
+      "anyList": false
+    },
+    "Obscuratum": {
+      "required": [
+        "Metaphysics"
+      ],
+      "recommended": [
+        "Acting",
+        "Armoring",
+        "Baking/Cooking",
+        "Bartering/Haggling",
+        "Courtesan",
+        "Espionage",
+        "Fletching/Bow Making",
+        "Juggling",
+        "Lip Reading",
+        "Locksmith",
+        "Physiology",
+        "Politics",
+        "Riding",
+        "Rope Making",
+        "Rope Use",
+        "Running",
+        "Skinning/Tanning",
+        "Swimming",
+        "Tightrope Walking",
+        "Tumbling",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Paladin": {
+      "required": [],
+      "recommended": [
+        "Armoring",
+        "Drilling",
+        "Falconry",
+        "Page",
+        "Riding",
+        "Scribing",
+        "Smithy",
+        "Soldiering",
+        "Squire",
+        "Story Telling",
+        "Weapon Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Plunderer": {
+      "required": [],
+      "recommended": [
+        "Anthropology",
+        "Appraisal",
+        "Archaeology",
+        "Bartering/Haggling",
+        "Begging",
+        "Collecting",
+        "Crying/Hawking",
+        "Drawing/Sketching",
+        "Drudgery",
+        "Excavation",
+        "Geography",
+        "History",
+        "Mountaineering",
+        "Scribing",
+        "Spelunking",
+        "Story Telling",
+        "Supplier",
+        "Surveyor",
+        "Survival",
+        "Tumbling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Priest": {
+      "required": [],
+      "recommended": [
+        "Administration",
+        "Baking/Cooking",
+        "Candle/Oil Making",
+        "Chirugeon",
+        "Leeching",
+        "Physiology",
+        "Scribing",
+        "Story Telling",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Priest(Dark)": {
+      "required": [],
+      "recommended": [
+        "Administration",
+        "Baking/Cooking",
+        "Candle/Oil Making",
+        "Chirugeon",
+        "Courtesan",
+        "Harlotry",
+        "Leeching",
+        "Physiology",
+        "Scribing",
+        "Story Telling",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Psychokineticist": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Bartering/Haggling",
+        "Begging",
+        "Chemistry",
+        "Clowning/Jesting",
+        "Crying/Hawking",
+        "Drudgery",
+        "Fortune Telling",
+        "Inventor",
+        "Juggling",
+        "Metaphysics",
+        "Pyrotechnics",
+        "Story Telling",
+        "Tumbling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Ranger": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Armoring",
+        "Baking/Cooking",
+        "Chirugeon",
+        "Diving",
+        "Falconry",
+        "Fishing",
+        "Fletching/Bow Making",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Leeching",
+        "Riding",
+        "Rope Use",
+        "Running",
+        "Sewing",
+        "Signaling",
+        "Skinning/Tanning",
+        "Soldiering",
+        "Survival",
+        "Swimming",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Ritual Leader": {
+      "required": [
+        "Theology",
+        "History"
+      ],
+      "recommended": [
+        "Astrology",
+        "Astronomy",
+        "Chirugeon",
+        "Dancing",
+        "Diplomacy",
+        "Drilling",
+        "Drudgery",
+        "Etiquette",
+        "Genealogy",
+        "Heraldry",
+        "Instruction",
+        "Instrument Playing",
+        "Librarian",
+        "Metaphysics",
+        "Painting",
+        "Philosophy",
+        "Pyrotechnics",
+        "Scholar",
+        "Scribing",
+        "Sing Songs",
+        "Story Telling",
+        "Translating",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Rogue": {
+      "required": [],
+      "recommended": [
+        "Accounting",
+        "Acting",
+        "Bartering/Haggling",
+        "Begging",
+        "Collecting",
+        "Courtesan",
+        "Diplomacy",
+        "Drudgery",
+        "Economics",
+        "Espionage",
+        "Fashion",
+        "Fortune Telling",
+        "Gossip Mongery",
+        "Harlotry",
+        "Lip Reading",
+        "Locksmith",
+        "Politics",
+        "Running",
+        "Supplier",
+        "Tightrope Walking"
+      ],
+      "anyList": false
+    },
+    "Runesmith": {
+      "required": [
+        "Tattoo Artistry"
+      ],
+      "recommended": [
+        "Carving",
+        "Drawing/Sketching",
+        "Metal Working",
+        "Metallurgy",
+        "Painting",
+        "Scribing",
+        "Sculpting",
+        "Smithy",
+        "Wood Working"
+      ],
+      "anyList": false
+    },
+    "Sage": {
+      "required": [],
+      "recommended": [],
+      "anyList": true
+    },
+    "Seer": {
+      "required": [],
+      "recommended": [
+        "Leeching",
+        "Metaphysics",
+        "Painting",
+        "Philosophy",
+        "Recite Poetry",
+        "Scribing",
+        "Story Telling",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Shadow Stalker": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Bartering/Haggling",
+        "Begging",
+        "Collecting",
+        "Courtesan",
+        "Espionage",
+        "Fortune Telling",
+        "Gossip Mongery",
+        "Harlotry",
+        "Lip Reading",
+        "Locksmith",
+        "Mocking",
+        "Running",
+        "Skinning/Tanning",
+        "Story Telling",
+        "Swimming",
+        "Tightrope Walking",
+        "Torturing",
+        "Undertaking"
+      ],
+      "anyList": false
+    },
+    "Shadowfrost Caster": {
+      "required": [],
+      "recommended": [
+        "Bookbinder",
+        "Calligraphy",
+        "History",
+        "Librarian",
+        "Metaphysics",
+        "Painting",
+        "Recite Poetry",
+        "Scholar",
+        "Scribing",
+        "Story Telling",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Shaman": {
+      "required": [],
+      "recommended": [
+        "Animal Training",
+        "Baking/Cooking",
+        "Chirugeon",
+        "Dancing",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Leeching",
+        "Physiology",
+        "Riding",
+        "Running",
+        "Skinning/Tanning",
+        "Swimming",
+        "Taxidermy"
+      ],
+      "anyList": false
+    },
+    "Shaman(Drum)": {
+      "required": [],
+      "recommended": [
+        "Animal Training",
+        "Baking/Cooking",
+        "Brewing",
+        "Cage Making",
+        "Carving",
+        "Chirugeon",
+        "Collecting",
+        "Composer",
+        "Dancing",
+        "Doll Making",
+        "Drawing/Sketching",
+        "Fire Making",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Instrument Making",
+        "Instrument Playing",
+        "Music Theory",
+        "Painting",
+        "Recite Poetry",
+        "Riding",
+        "Running",
+        "Scribing",
+        "Skinning/Tanning",
+        "Story Telling",
+        "Taxidermy",
+        "Tobacconist"
+      ],
+      "anyList": false
+    },
+    "Shaman(Rune)": {
+      "required": [
+        "Tattoo Artistry"
+      ],
+      "recommended": [
+        "Carving",
+        "Drawing/Sketching",
+        "Metal Working",
+        "Metallurgy",
+        "Painting",
+        "Scribing",
+        "Sculpting",
+        "Smithy",
+        "Wood Working"
+      ],
+      "anyList": false
+    },
+    "Sorcerer": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Librarian",
+        "Metaphysics",
+        "Puppetry",
+        "Riding",
+        "Scribing",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Summoner": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Animal Training",
+        "Leeching",
+        "Librarian",
+        "Metaphysics",
+        "Physiology",
+        "Riding",
+        "Scribing",
+        "Theology",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Trickster": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Bartering/Haggling",
+        "Begging",
+        "Clowning/Jesting",
+        "Crying/Hawking",
+        "Drudgery",
+        "Fortune Telling",
+        "Juggling",
+        "Story Telling",
+        "Tumbling"
+      ],
+      "anyList": false
+    },
+    "Vivisectionist": {
+      "required": [
+        "Physiology"
+      ],
+      "recommended": [
+        "Butcher",
+        "Cage Making",
+        "Carving",
+        "Chemistry",
+        "Chirugeon",
+        "Collecting",
+        "Cosmetics",
+        "Leeching",
+        "Metaphysics",
+        "Pyrotechnics",
+        "Rope Making",
+        "Scribing",
+        "Sewing",
+        "Soap Making",
+        "Taxidermy",
+        "Torturing",
+        "Undertaking",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Warden": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Animal Training",
+        "Armoring",
+        "Chirugeon",
+        "Diving",
+        "Drilling",
+        "Falconry",
+        "Fishing",
+        "Fletching/Bow Making",
+        "Foraging/Forestry",
+        "Hunting/Trapping",
+        "Leeching",
+        "Riding",
+        "Rope Use",
+        "Running",
+        "Scribing",
+        "Sewing",
+        "Signaling",
+        "Skinning/Tanning",
+        "Soldiering",
+        "Squire",
+        "Story Telling",
+        "Survival",
+        "Swimming",
+        "Weapon Making",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Warrior": {
+      "required": [],
+      "recommended": [
+        "Administration",
+        "Armoring",
+        "Dancing",
+        "Drilling",
+        "Fletching/Bow Making",
+        "Heraldry",
+        "Politics",
+        "Riding",
+        "Running",
+        "Soldiering",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "Wilder": {
+      "required": [],
+      "recommended": [
+        "Chirugeon",
+        "Collecting",
+        "Drawing/Sketching",
+        "Drudgery",
+        "Fire Making",
+        "Painting",
+        "Pyrotechnics",
+        "Story Telling",
+        "Ventriloquism",
+        "Writing"
+      ],
+      "anyList": false
+    },
+    "Witch(Black)": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Baking/Cooking",
+        "Barbering",
+        "Bartering/Haggling",
+        "Brewing",
+        "Candle/Oil Making",
+        "Chirugeon",
+        "Courtesan",
+        "Dancing",
+        "Fishing",
+        "Fortune Telling",
+        "Rope Making",
+        "Skinning/Tanning",
+        "Store Keeping",
+        "Story Telling"
+      ],
+      "anyList": false
+    },
+    "Witch(Gray)": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Baking/Cooking",
+        "Barbering",
+        "Bartering/Haggling",
+        "Brewing",
+        "Candle/Oil Making",
+        "Chirugeon",
+        "Courtesan",
+        "Dancing",
+        "Fishing",
+        "Fortune Telling",
+        "Rope Making",
+        "Skinning/Tanning",
+        "Store Keeping",
+        "Story Telling"
+      ],
+      "anyList": false
+    },
+    "Witch(White)": {
+      "required": [],
+      "recommended": [
+        "Animal Husbandry",
+        "Baking/Cooking",
+        "Barbering",
+        "Bartering/Haggling",
+        "Brewing",
+        "Candle/Oil Making",
+        "Chirugeon",
+        "Courtesan",
+        "Dancing",
+        "Fishing",
+        "Fortune Telling",
+        "Instrument Playing",
+        "Recite Poetry",
+        "Rope Making",
+        "Sing Songs",
+        "Skinning/Tanning",
+        "Store Keeping",
+        "Story Telling"
+      ],
+      "anyList": false
+    },
+    "Witch Hunter": {
+      "required": [],
+      "recommended": [
+        "Acting",
+        "Armoring",
+        "Bartering/Haggling",
+        "Baking/Cooking",
+        "Cage Making",
+        "Fletching/Bow Making",
+        "Lip Reading",
+        "Locksmith",
+        "Riding",
+        "Rope Making",
+        "Rope Use",
+        "Running",
+        "Skinning/Tanning",
+        "Swimming",
+        "Torturing",
+        "Weapon Making"
+      ],
+      "anyList": false
+    },
+    "GME": {
+      "required": [],
+      "recommended": [],
+      "anyList": true
+    }
+  }
+}

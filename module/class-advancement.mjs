@@ -32,7 +32,10 @@
 //
 // WHAT IT NEVER DOES. It never removes a skill, never touches one the character already holds, and
 // never grants past a class's skill list. Slots it does not police either: the slot panel already
-// reports an overrun, and his own sheet marks the excess "REMOVED" rather than refusing the title.
+// reports an overrun. A row the player gave up at creation (removed -- his Step 6 REMOVE, the player's
+// own choice of which non-core skills to drop, not an automatic mark; corrected 2026-09-26) is never
+// granted, and a row swapped at creation (MM p.55) grants its incoming skill at that row's title --
+// getClassSkillsToGrant reads the character's own class item, where both edits live.
 //==================================================================================================================
 
 import { getClassSkillsToGrant } from "./class-rules.mjs";

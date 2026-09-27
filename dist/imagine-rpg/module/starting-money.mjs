@@ -96,18 +96,16 @@ import { getApparentSocialClass } from "./starting-kit.mjs";
 	//     who has no title (8145, 8158)
 	//   + the race's own Fortune modifier (race_for_mod)
 	//
-	// His setCoins does NOT use this. It works out a Fortune of its own from the three attributes
+	// His setCoins does NOT use that. It works out a Fortune of its own from the three attributes
 	// alone: it fetches the race modifier and never adds it, and tests "values.class_modifiers" for
-	// the +5% when the field it fetched is tmp_class_modifiers -- so the class bonus can never apply
-	// either. The user's ruling of 2026-09-23 is the whole Fortune, the one the character actually has.
+	// the +5% when the field it fetched is tmp_class_modifiers -- so the class bonus never applies.
 	// UPSTREAM-ISSUES.md item 68.
-	export function getStartingFortune(tmpAur, tmpPty, tmpWil, tmpRaceMod, tmpClassMods, tmpNonClassed) {
+	//
+	// Ruling of 2026-09-25 (Daryl, relayed by the user), replacing the user's 2026-09-23 "whole
+	// Fortune": leave the class and the race out. That is what his setCoins actually does, so this is
+	// now his three attributes and nothing else -- no race modifier, no "+5% Fortune", no first title.
+	export function getStartingFortune(tmpAur, tmpPty, tmpWil) {
 		var tmpFortune = parseInt((((parseInt(tmpAur) || 0) + (parseInt(tmpPty) || 0) + (parseInt(tmpWil) || 0)) / 3) + .99) || 0;
-		if ((tmpClassMods ?? []).includes("+5% Fortune")) {
-			tmpFortune = tmpFortune + 5;
-		}
-		tmpFortune = tmpFortune + (tmpNonClassed ? 0 : 1);  // first title
-		tmpFortune = tmpFortune + (parseInt(tmpRaceMod) || 0);
 		return tmpFortune;
 	}
 
@@ -226,16 +224,13 @@ import { getApparentSocialClass } from "./starting-kit.mjs";
 	}
 
 	// This is the function which works out the starting money inputs for a character that already
-	// exists: its final Social Class, and the Fortune it had the day it was made (getStartingFortune --
-	// first title only, whatever title it has reached since, as the roll is for the day it started).
+	// exists: its final Social Class, and the Fortune the money is rolled against (getStartingFortune --
+	// Aura, Piety and Will Force alone, by the 2026-09-25 ruling).
 	export function getCharacterMoneyInputs(tmpSystem, tmpClassSystems) {
 		var tmpAttrs = tmpSystem?.attributes ?? {};
-		var tmpClassMods = (tmpClassSystems ?? []).flatMap(tmpClass => tmpClass?.classMods ?? []);
-		var tmpNonClassed = (tmpClassSystems ?? []).some(tmpClass => tmpClass?.nonClassed);
 		return {
 			social: parseInt(tmpAttrs.soc?.value) || 0,
-			fortune: getStartingFortune(tmpAttrs.aur?.value, tmpAttrs.pty?.value, tmpAttrs.wil?.value,
-				tmpSystem?.characteristics?.fortune?.raceMod, tmpClassMods, tmpNonClassed)
+			fortune: getStartingFortune(tmpAttrs.aur?.value, tmpAttrs.pty?.value, tmpAttrs.wil?.value)
 		};
 	}
 

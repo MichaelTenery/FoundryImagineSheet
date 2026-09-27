@@ -27,7 +27,7 @@ import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed
 	readFormlessPair, combineFormless, resolvePhysiqueLock, getStartingEnduranceMod } from "../race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget, describeEvokes } from "../famorian-rules.mjs";
 import { buildClassProgression, getClassSkillsToGrant, getClassUsageRestrictions,
-         checkClassSkillTitle } from "../class-rules.mjs";
+         checkClassSkillTitle, countClassSlotsNeeded, getWholeCareerRows } from "../class-rules.mjs";
 import { checkClassQualification } from "../chargen-rules.mjs";
 import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../advancement-rules.mjs";
 import { MARTIAL_DISCIPLINE_NAMES, getStanceSkillBonus, deriveMartialArts } from "../combat/martial-arts.mjs";
@@ -1048,7 +1048,13 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				classType: tmpclass.system.classType,
 				title: tmptitle,
 				titleName: ImagineCharacterData.getClassTitleName(tmpclass, tmptitle),
-				skillSlotsNeeded: parseInt(tmpclass.system.skillSlotsNeeded) || 0,
+				// The whole career less what was given up at creation (countClassSlotsNeeded) -- counted
+				// off this character's own class item, so a removal or swap made in the generator shows.
+				// A class with no skill list (hand-made, or authored without one) keeps his figure.
+				skillSlotsNeeded: (tmpclass.system.advancement?.classSkillList ?? []).length
+					? countClassSlotsNeeded(tmpclass.system,
+						(this.identity.race?.disabilities ?? []).includes("Cannot Cast Spells"))
+					: (parseInt(tmpclass.system.skillSlotsNeeded) || 0),
 				qualified: !tmpqualifyissues.length,
 				qualificationShort: tmpqualifysummary.short,
 				qualificationFull: tmpqualifysummary.full
@@ -1595,6 +1601,8 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			socialBase:    tmpbase.social,
 			memorization:  parseInt(tmpknw.memorizationPoints) || 0,
 			classUsed:  0,
+			// Of classUsed, the class skills still to come -- the rest of the career, reserved.
+			classReserved: 0,
 			racialUsed: 0,
 			socialUsed: 0,
 			classOver:  false,
@@ -1680,6 +1688,33 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				if (tmpskill.category == "racial") { this.skillSlots.racialUsed++; }
 				if (tmpskill.category == "social") { this.skillSlots.socialUsed++; }
 			}
+		}
+
+		// @MARKER WHOLE CAREER
+		// His model reserves the whole career's class slots at creation: Step 6 compares Knowledge's
+		// class slots with every title's skills (getSlotsNeededForClass, sheet-worker.js:62881) and will
+		// not go on while they are short, and setFinalClassSkills writes titles 2-15 onto the sheet then
+		// (63288 onward). So a class skill not reached yet is already using its slot (user's ruling
+		// 2026-09-26). Each row of this character's classes that it does not hold yet counts too; a row
+		// given up at creation (removed) does not. A skill held is counted once, above, whoever put it
+		// there.
+		var tmpheldnames = [...tmpactor.items].filter(tmpitem => tmpitem.type == "skill").map(tmpitem => tmpitem.name);
+		// A skill on both of a dual-classed character's lists is one skill when granted, so the second
+		// class does not reserve it again: a name an EARLIER class reserved is skipped. Within one class
+		// every row counts, as his getSlotsNeededForClass counts them, so reserved and needed agree.
+		var tmpcannotcast = !!this.identity.cannotCast;
+		var tmpotherclassnames = [];
+		for (const tmpclass of this.classItems) {
+			if (tmpclass.system?.nonClassed) { continue; }
+			var tmpthisclassnames = [];
+			for (const tmprow of getWholeCareerRows(tmpclass.system, tmpcannotcast)) {
+				if (tmprow.removed || tmpheldnames.includes(tmprow.name)) { continue; }
+				if (tmpotherclassnames.includes(tmprow.name)) { continue; }
+				tmpthisclassnames.push(tmprow.name);
+				this.skillSlots.classUsed++;
+				this.skillSlots.classReserved++;
+			}
+			tmpotherclassnames.push(...tmpthisclassnames);
 		}
 	}
 

@@ -42,6 +42,7 @@ globalThis.CONFIG = { Dice: { randomUniform: () => 0.01 } };   // a natural 1 on
 
 const A = await import("../module/advancement.mjs");
 const R = await import("../module/advancement-rules.mjs");
+const CR = await import("../module/class-rules.mjs");
 const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
 
 const results = [];
@@ -246,11 +247,26 @@ check("nothing is left waiting", actor.system.identity.levelUpPending, false);
 check("a 5th title advance grants no invulnerability and no Sense Supernatural",
 	R.getArchMortalGains(5), null);
 
+// --- the class as edited at creation (@MARKER WHOLE CAREER, @MARKER CLASS CUSTOMIZATION) --------
+// His Warrior, as the generator would have written it onto this character's own class item: Convince
+// (title 12) given up, and Martial Lore (13) swapped for Fearless, both Disciplined (MM p.55). The
+// title 13 advance below grants through title 13, so it must skip the one and bring the other.
+warrior.system.advancement.classSkillList = CR.applyClassSkillEdits(warrior.system,
+	[{ title: 13, out: "Martial Lore", in: "Fearless" }], [{ title: 12, name: "Convince" }]);
+
 // --- and the second invulnerability replaces the first -------------------------------------------
 await actor.update({ "system.identity.title": 12, "system.identity.titlesToRaise": 1,
                      "system.identity.titleToLevel": 13 });
 actor.created = []; actor.deleted = [];
 await A.commitTitle(actor, 10);
+check("a class skill given up at creation is never granted, even at its title",
+	[actor.created.includes("Convince"), actor.items.some(i => i.name === "Convince")], [false, false]);
+check("a swapped-out skill is never granted",
+	actor.created.includes("Martial Lore"), false);
+check("the swapped-in skill is granted at the replaced row's title, as a class skill",
+	(i => i && [i.system.category, i.system.acquiredAtTitle])(actor.items.find(i => i.name === "Fearless")), ["class", 13]);
+check("...and nothing is left owed for the skill given up",
+	actor.system.identity.classSkillsOwed, 0);
 check("13th replaces the invulnerability rather than stacking it",
 	[actor.deleted.some(n => n.includes("1/2")), actor.created.some(n => n.includes("1/4")),
 	 actor.items.filter(i => i.name.includes("Invulnerability")).length],

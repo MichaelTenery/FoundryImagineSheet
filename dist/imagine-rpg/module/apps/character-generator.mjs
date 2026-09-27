@@ -18,11 +18,12 @@ import { rollAttributeSets, rollHandedness, rollStartingAge, assembleCharacter, 
 import { rollPhysique } from "../physique-rules.mjs";
 import { getFamorianBreed, rollEvokeBudget } from "../famorian-rules.mjs";
 import { STEPS, newGeneratorState, deriveGenerator, checkStep, buildGeneratorView, choicesFromState,
-	colourChoices, rollStartingMoneyIfDue, getSecondRaceNames } from "../chargen-view.mjs";
+	colourChoices, rollStartingMoneyIfDue, getSecondRaceNames, reconcileAlignment } from "../chargen-view.mjs";
 import { describeStartingMoney } from "../starting-money.mjs";
 import { addPurchase, describeCart, DEFAULT_PRICE_LEVEL } from "../shop-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { provideStartingLore } from "../starting-lore.mjs";
+import { CLASS_SKILL_SWAP_LIMIT } from "../class-rules.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
@@ -50,6 +51,8 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			rollAttributes:  ImagineCharacterGenerator.#onRollAttributes,
 			addSwap:         ImagineCharacterGenerator.#onAddSwap,
 			removeSwap:      ImagineCharacterGenerator.#onRemoveSwap,
+			addClassSwap:    ImagineCharacterGenerator.#onAddClassSwap,
+			removeClassSwap: ImagineCharacterGenerator.#onRemoveClassSwap,
 			rollHandedness:  ImagineCharacterGenerator.#onRollHandedness,
 			rollFamorianBreed: ImagineCharacterGenerator.#onRollFamorianBreed,
 			rollAge:         ImagineCharacterGenerator.#onRollAge,
@@ -65,7 +68,11 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 	static PARTS = {
 		// The shop's offers are a scroll box of their own, and every Buy redraws the window: Foundry keeps
 		// the scroll of each box named here across a redraw, and of no other.
-		body: { template: "systems/imagine-rpg/templates/apps/character-generator.hbs", scrollable: [".chargen-body", ".chargen-shop-offers"] }
+		body: { template: "systems/imagine-rpg/templates/apps/character-generator.hbs", scrollable: [".chargen-body", ".chargen-shop-offers",
+			// The Skills step's two social-skill boxes, which every tick redraws (@MARKER SOCIAL SKILLS).
+			".chargen-social-class", ".chargen-social-other",
+			// The Skills step's whole-career table, whose remove boxes redraw it too (@MARKER WHOLE CAREER).
+			".chargen-career"] }
 	};
 
 	#state = newGeneratorState();
@@ -114,7 +121,19 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		var tmplevel = DEFAULT_PRICE_LEVEL;
 		try { tmplevel = game.settings.get("imagine-rpg", "priceLevel") || DEFAULT_PRICE_LEVEL; }
 		catch (tmperr) { console.warn("Imagine RPG | the price level setting could not be read; Medium is used", tmperr); }
-		return { priceLevel: tmplevel, isGM: !!game.user?.isGM };
+		// @MARKER ALIGNMENT
+		// The Game Master's custom alignments and tendencies (the customAlignments setting, the Alignments
+		// & Tendencies window), read here and passed in for the same reason. Unreadable is none.
+		var tmpcustom = null;
+		try { tmpcustom = game.settings.get("imagine-rpg", "customAlignments") ?? null; }
+		catch (tmperr) { console.warn("Imagine RPG | the custom alignments setting could not be read; his lists alone are used", tmperr); }
+		// @MARKER CLASS CUSTOMIZATION
+		// Whether the Master's Manual's class customization (MM p.55) is offered -- the classCustomization
+		// world setting. Unreadable is its default, on.
+		var tmpcustomize = true;
+		try { tmpcustomize = game.settings.get("imagine-rpg", "classCustomization") !== false; }
+		catch (tmperr) { console.warn("Imagine RPG | the class customization setting could not be read; it is offered", tmperr); }
+		return { priceLevel: tmplevel, isGM: !!game.user?.isGM, customAlignments: tmpcustom, classCustomization: tmpcustomize };
 	}
 
 	// This is the function which works out the generator's whole picture -- deriveGenerator, with this
@@ -139,14 +158,21 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		if ("charType" in tmpdata && (tmpdata.charType ?? "") !== tmpstate.charType && tmpstate.rolled) {
 			tmpstate.rolled = null;
 		}
+		// @MARKER WHOLE CAREER
+		// The rows given up and the swaps were chosen from one class's list; a new class starts clean, as
+		// his Step 6 re-lists the whole career when the class is confirmed again.
+		if ("className" in tmpdata && (tmpdata.className ?? "") !== tmpstate.className) {
+			tmpstate.removedClassSkills = [];
+			tmpstate.classSkillSwaps = [];
+		}
 		for (const tmpkey of ["name", "gender", "charType", "race1", "race2", "className", "chosenAttackSkill",
-		                      "handedness", "frame", "hair", "eyes", "skin", "alignment"]) {
+		                      "handedness", "frame", "hair", "eyes", "skin", "alignment", "tendencies"]) {
 			if (tmpkey in tmpdata) { tmpstate[tmpkey] = tmpdata[tmpkey] ?? ""; }
 		}
 		for (const tmpkey of ["age", "heightFeet", "heightInches", "weight"]) {
 			if (tmpkey in tmpdata) { tmpstate[tmpkey] = Number(tmpdata[tmpkey]) || 0; }
 		}
-		for (const tmpkey of ["slightPhysique", "manual", "override"]) {
+		for (const tmpkey of ["slightPhysique", "manual", "override", "alignmentless", "socialOverride", "classSlotOverride"]) {
 			if (tmpkey in tmpdata) { tmpstate[tmpkey] = tmpdata[tmpkey] === true; }
 		}
 		if ("clothingStyle" in tmpdata) { tmpstate.clothingStyle = tmpdata.clothingStyle ?? "western"; }
@@ -161,6 +187,26 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		if ("manualBase" in tmpdata) { tmpstate.manualBase = tmpdata.manualBase; }
 		if ("swaps" in tmpdata) {
 			tmpstate.swaps = tmplist(tmpdata.swaps).map(tmpswap => ({ to: tmpswap.to ?? "", from: tmplist(tmpswap.from) }));
+		}
+		// @MARKER WHOLE CAREER
+		// His two CONVERT counts; deriveGenerator holds them to what Knowledge gives.
+		if ("slotMoves" in tmpdata) {
+			for (const tmpkey of ["racialToClass", "socialToClass"]) {
+				if (tmpkey in tmpdata.slotMoves) { tmpstate.slotMoves[tmpkey] = Math.max(0, parseInt(tmpdata.slotMoves[tmpkey]) || 0); }
+			}
+		}
+		// @MARKER CLASS CUSTOMIZATION
+		// Each swap's "out" is "title|name", the row it replaces. A new out clears the in, which was
+		// chosen for the old one's type.
+		if ("classSwaps" in tmpdata) {
+			tmpstate.classSkillSwaps = tmplist(tmpdata.classSwaps).map((tmpswap, tmpindex) => {
+				var tmpparts = ("" + (tmpswap.out ?? "")).split("|");
+				var tmpout = tmpparts.length > 1 ? tmpparts.slice(1).join("|") : "";
+				var tmptitle = tmpparts.length > 1 ? (parseInt(tmpparts[0]) || 0) : 0;
+				var tmpold = tmpstate.classSkillSwaps[tmpindex] ?? {};
+				var tmpin = (tmpold.out == tmpout && tmpold.title == tmptitle) ? (tmpswap.in ?? "") : "";
+				return { title: tmptitle, out: tmpout, in: tmpin };
+			});
 		}
 		if ("humanBonuses" in tmpdata) { tmpstate.humanBonuses = tmplist(tmpdata.humanBonuses); }
 		if ("humanMoves" in tmpdata) { tmpstate.humanMoves = tmplist(tmpdata.humanMoves); }
@@ -215,6 +261,13 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		if (tmpstate.step == STEPS.indexOf("Skills")) {
 			tmpstate.racialSkillNames = [...this.element.querySelectorAll("input[name='racialPick']:checked")].map(tmpbox => tmpbox.value);
 			tmpstate.socialSkillNames = [...this.element.querySelectorAll("input[name='socialPick']:checked")].map(tmpbox => tmpbox.value);
+			// @MARKER WHOLE CAREER
+			// The class rows given up, "title|name". Only the rows drawn with a box are read, so a row the
+			// table no longer offers one for (a class changed, a row swapped) simply drops out.
+			tmpstate.removedClassSkills = [...this.element.querySelectorAll("input[name='classRemovePick']:checked")].map(tmpbox => {
+				var tmpparts = tmpbox.value.split("|");
+				return { title: parseInt(tmpparts[0]) || 0, name: tmpparts.slice(1).join("|") };
+			});
 		}
 		// A new first race can leave the second one no longer a fertile partner, and carries no
 		// Famorian breed, animal type or evokes of its own -- resetting here stops anything chosen
@@ -313,6 +366,11 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			} catch (tmperr) { console.error("Imagine RPG | the starting money roll could not be posted to chat", tmperr); }
 		}
 
+		// @MARKER ALIGNMENT
+		// A new class re-checks the alignment and tendency, and puts in an Order or Immoral class's
+		// default tendency -- reconcileAlignment in module/chargen-view.mjs.
+		reconcileAlignment(this.#state, this.#derive());
+
 		Object.assign(tmpcontext, buildGeneratorView(this.#state, tmpcontent,
 			ImagineCharacterGenerator.#availability(), ImagineCharacterGenerator.#shopOptions()));
 		tmpcontext.noContent = !tmpcontent.races.length;
@@ -386,6 +444,23 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 	static #onRemoveSwap(event, target) {
 		this.#captureForm();
 		this.#state.swaps.splice(parseInt(target.dataset.index), 1);
+		this.render();
+	}
+
+	// @MARKER CLASS CUSTOMIZATION
+	// Add and take away a class swap row, the attribute swap rows' pattern. No more than MM p.55's three
+	// are added; the view hides Add at three.
+	static #onAddClassSwap(event, target) {
+		this.#captureForm();
+		if ((this.#state.classSkillSwaps ?? []).length < CLASS_SKILL_SWAP_LIMIT) {
+			this.#state.classSkillSwaps.push({ title: 0, out: "", in: "" });
+		}
+		this.render();
+	}
+
+	static #onRemoveClassSwap(event, target) {
+		this.#captureForm();
+		this.#state.classSkillSwaps.splice(parseInt(target.dataset.index), 1);
 		this.render();
 	}
 

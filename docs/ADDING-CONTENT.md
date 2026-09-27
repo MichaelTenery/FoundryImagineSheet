@@ -150,6 +150,26 @@ than to anything outside them, so encumbrance reads consistently:
 field, with a comment on each. The generated documents in `src/packs/documents/` show real values
 for every one.
 
+**A class's social skills and its class skill rows** (added 2026-09-26). A homebrew class can give
+the character generator its social list and its alignment:
+
+- **`socialSkills`** -- `{ "required": [...], "recommended": [...], "upTo": 2, "upToSource": "My
+  book p.12", "anyList": false }`. Names are social skill names. The generator shows Required first,
+  then Recommended, under "choose up to N" when `upTo` is a number (leave it `null` for no count);
+  Required skills must be taken, and going over N warns, both unless the Game Master ticks the
+  override. `"anyList": true` offers every social skill instead (his Sage). A class without
+  `socialSkills` simply shows the full list.
+- **`requirements.alignment`** must be one of the strings the developer's classes already use (for
+  example `"Any"`, `"Any Active"`, `"No Evil, Order"`) to get a filtered dropdown; any other string
+  offers the full list and the sheet says it cannot be checked. New alignments and tendencies
+  themselves are added in Foundry, through the Game Master's **Alignments & Tendencies** menu, not
+  in these files.
+- **Class skill rows** (`classSkillList`) also take **`removed`** (true/false) and **`replaces`** (a
+  skill name). Leave both at their defaults on a class you author: they are written onto a
+  *character's own copy* of the class when the player removes a non-core skill or makes a Master's
+  Manual p.55 swap in the generator. A GM fixing an existing character's class slots by hand can
+  tick `removed` on that character's class item, never on a compendium class.
+
 **Prices, and the character generator's shop** (added 2026-09-23). The generator's Equipment step
 sells what his sheet's ADD/BUY ITEMS panel sells, at his prices, which live in code
 (`module/shop-tables.mjs`, generated from his sheet) rather than on the documents. A weapon, armour

@@ -1,0 +1,218 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG generator alignment and social-list test</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<div id="render" hidden></div>
+<script type="module">
+// Tests for the character generator's Details-step alignment (his step 7) and the Skills step's class
+// social-skill list (his step 6), against the REAL classes, races and skills from src/packs/documents/,
+// and the real template rendered with Handlebars -- so the markup the window draws is checked, not only
+// the view object. Also the sheet-side helpers in module/alignment-rules.mjs the character and creature
+// sheets build their dropdowns and warning from.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/chargen-lists-test.html
+globalThis.foundry = globalThis.foundry ?? {
+	abstract: { TypeDataModel: class {} },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = globalThis.game ?? { imagine: { getAvailabilityRules: () => null } };
+
+const V = await import("../module/chargen-view.mjs");
+const C = await import("../module/chargen-rules.mjs");
+const A = await import("../module/alignment-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+const load = async (f) => (await (await fetch(`../src/packs/documents/${f}.json`, { cache: "no-store" })).json());
+const [races, classes, skills] = await Promise.all(["races", "classes", "skills"].map(load));
+const content = { races, classes, skills, equipment: [], armor: [], weapons: [] };
+const template = Handlebars.compile(await (await fetch("../templates/apps/character-generator.hbs", { cache: "no-store" })).text());
+const render = (state, options) => template(V.buildGeneratorView(state, content, () => true, options));
+
+// A Human with every attribute 15 (KNW 15 gives social slots enough for any class's Required ones).
+const human = races.find(r => r.name.startsWith("Human(Civilized")).name;
+const stateFor = (className, step, patch) => {
+	const s = V.newGeneratorState();
+	s.race1 = human; s.className = className;
+	s.manual = true; s.manualBase = Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 15]));
+	s.step = V.STEPS.indexOf(step);
+	return Object.assign(s, patch ?? {});
+};
+const derive = (s, o) => V.deriveGenerator(s, content, () => true, o);
+
+// --- Details: the alignment dropdown ----------------------------------------------------------
+const knight = stateFor("Knight(Templar)", "Details");
+V.reconcileAlignment(knight, derive(knight));
+const knightView = V.buildGeneratorView(knight, content, () => true);
+check("Knight(Templar) is offered his 'Good (Active), Fanatical Good (Active)' dropdown, blank first",
+	knightView.alignment.options.map(o => o.value),
+	["", "Fanatical Good (Active)", "Fanatical Good (Passive)", "Good (Active)", "Good (Passive)", "Insane"]);
+check("...with the full tendency list and a blank, since the class sets no default",
+	knightView.alignment.tendencyOptions.map(o => o.value), ["", ...A.TENDENCY_LIST]);
+check("a blank alignment is refused in his words", V.checkStep(knight, derive(knight)).startsWith("Not playing Alignmentless Imagine"), true);
+knight.alignment = "Good (Active)";
+check("an allowed one goes on", V.checkStep(knight, derive(knight)), "");
+knight.alignment = "Evil (Active)";
+check("a disallowed one is refused", V.checkStep(knight, derive(knight)).includes("does not allow Evil (Active)"), true);
+check("...and shown as (current) rather than lost", V.buildGeneratorView(knight, content, () => true).alignment.options[0],
+	{ value: "Evil (Active)", label: "Evil (Active) (current)", selected: true });
+knight.override = true;
+check("...unless the class override is ticked", V.checkStep(knight, derive(knight)), "");
+knight.override = false; knight.alignment = ""; knight.alignmentless = true;
+check("Alignmentless needs no alignment", V.checkStep(knight, derive(knight)), "");
+check("...and writes N/A to both, his setFinalAlignment",
+	(c => [c.alignment, c.tendencies])(V.choicesFromState(knight, derive(knight))), ["N/A", "N/A"]);
+
+// Order and Immoral classes: his default tendency, which his own code loses, is put in.
+const martial = stateFor("Martial Artist", "Details");
+V.reconcileAlignment(martial, derive(martial));
+check("a Martial Artist ('Any, Order') starts at the Order tendency", martial.tendencies, "Order");
+check("...and is offered his Order list with no blank (HTML 45785-45789)",
+	V.buildGeneratorView(martial, content, () => true).alignment.tendencyOptions.map(o => o.value), ["Order", "Moral/Order", "Immoral/Order"]);
+const viv = stateFor("Vivisectionist", "Details");
+V.reconcileAlignment(viv, derive(viv));
+check("a Vivisectionist starts at Immoral", viv.tendencies, "Immoral");
+
+// A class change re-checks the alignment once, and only once.
+const change = stateFor("Knight(Templar)", "Details", { alignment: "Good (Active)", tendencies: "Chaos" });
+V.reconcileAlignment(change, derive(change));
+check("the class's own alignment survives the first check", [change.alignment, change.tendencies], ["Good (Active)", "Chaos"]);
+change.className = "Priest(Dark)";
+V.reconcileAlignment(change, derive(change));
+check("a new class that forbids it clears it", change.alignment, "");
+change.className = "Martial Artist"; change.alignment = "Good (Active)";
+V.reconcileAlignment(change, derive(change));
+check("...a tendency the new class does not offer is cleared, and its default put in", change.tendencies, "Order");
+change.alignment = "Something Else"; change.override = true;
+check("an unchanged class leaves an overridden value alone", [V.reconcileAlignment(change, derive(change)), change.alignment], [false, "Something Else"]);
+const fresh = stateFor("", "Details");
+V.reconcileAlignment(fresh, derive(fresh));
+check("no class yet: the whole list, blank first and Insane last",
+	(o => [o.length, o[0].value, o[o.length - 1].value])(V.buildGeneratorView(fresh, content, () => true).alignment.options), [17, "", "Insane"]);
+
+// The Game Master's custom alignments reach the dropdown through the options, and the setting is
+// never read here.
+const custom = { alignments: [{ name: "Wandering Good (Active)", readsAs: "Good", activity: "Active", fanatical: false }],
+                 tendencies: [{ name: "Wanderlust", list: "any" }] };
+const customView = V.buildGeneratorView(stateFor("Knight(Templar)", "Details"), content, () => true, { customAlignments: custom });
+check("a custom Good (Active) alignment is offered to the Knight(Templar), before Insane",
+	customView.alignment.options.map(o => o.value).slice(-2), ["Wandering Good (Active)", "Insane"]);
+check("...and a custom 'any' tendency last", customView.alignment.tendencyOptions.map(o => o.value).slice(-1), ["Wanderlust"]);
+check("...but not to a Priest(Dark)",
+	V.buildGeneratorView(stateFor("Priest(Dark)", "Details"), content, () => true, { customAlignments: custom })
+		.alignment.options.some(o => o.value == "Wandering Good (Active)"), false);
+
+// assembleCharacter writes the tendency; a blank one beside an alignment is his "None".
+const made = (a, t) => C.assembleCharacter({ name: "T", raceNames: [human], className: "Mage", classSkills: [],
+	racialSkillNames: [], socialSkillNames: [], ratings: Object.fromEntries(C.ATTRIBUTE_ORDER.map(k => [k, 15])),
+	languages: [], alignment: a, tendencies: t, gender: "" }, content, () => 1).actor.system.identity;
+check("assembleCharacter writes identity.tendencies", (i => [i.alignment, i.tendencies])(made("True Neutral", "Moral/Chaos")), ["True Neutral", "Moral/Chaos"]);
+check("...None for a blank tendency, as his setFinalAlignment", made("True Neutral", "").tendencies, "None");
+check("...and N/A for Alignmentless", (i => [i.alignment, i.tendencies])(made("N/A", "N/A")), ["N/A", "N/A"]);
+
+// The real template: the two selects, his description under the chosen one, and the Alignmentless tick.
+knight.alignmentless = false; knight.alignment = "Good (Active)"; knight.tendencies = "Moral";
+const detailsHtml = render(knight);
+check("the Details step draws <select name=\"alignment\"> and <select name=\"tendencies\">",
+	[detailsHtml.includes('<select name="alignment">'), detailsHtml.includes('<select name="tendencies">')], [true, true]);
+check("...with the chosen one selected", detailsHtml.includes('<option value="Good (Active)" selected>'), true);
+check("...his description under it, and the tendency's",
+	[detailsHtml.includes("These characters are good people who have a sense of duty"), detailsHtml.includes("These beings tend to follow a rational code")], [true, true]);
+check("...the Alignmentless tick, and no free-text alignment any more",
+	[detailsHtml.includes('name="alignmentless"'), detailsHtml.includes('<input type="text" name="alignment"')], [true, false]);
+check("...and the class override only when it is needed", [detailsHtml.includes('name="override"'),
+	render({ ...knight, alignment: "Evil (Active)" }).includes('name="override"')], [false, true]);
+check("Alignmentless hides the two dropdowns", render({ ...knight, alignmentless: true }).includes('<select name="alignment">'), false);
+
+// --- Skills: the class's social-skill list first ----------------------------------------------
+const acrobat = stateFor("Acrobat", "Skills");
+const acroView = V.buildGeneratorView(acrobat, content, () => true);
+check("the Acrobat's list comes first: Tumbling (Required), then his Recommend order",
+	acroView.classSocialSkills.slice(0, 4).map(s => [s.name, s.required]),
+	[["Tumbling", true], ["Acting", false], ["Bartering/Haggling", false], ["Begging", false]]);
+check("...every other social skill after it, A-Z, each skill exactly once",
+	(() => { const all = acroView.socialSkills.map(s => s.name); const other = acroView.otherSocialSkills.map(s => s.name);
+		return [new Set(all).size == all.length, other.includes("Tumbling"), other.join("|") == [...other].sort((a, b) => a.localeCompare(b)).join("|")]; })(),
+	[true, false, true]);
+check("...and the two together are the whole social list",
+	acroView.socialSkills.length, skills.filter(s => s.system?.category == "social").length);
+check("an Acrobat without Tumbling is refused, in his words",
+	V.checkStep(acrobat, derive(acrobat)).startsWith("1 or more Required Social Skills were not selected: Tumbling"), true);
+acrobat.socialSkillNames = ["Tumbling", "Acting", "Begging"];
+check("with it, and two more, it goes on", V.checkStep(acrobat, derive(acrobat)), "");
+acrobat.socialSkillNames = ["Tumbling", "Acting", "Begging", "Writing"];
+check("a third besides the Required is over the book's 'up to two' (PG p.55)",
+	V.checkStep(acrobat, derive(acrobat)).includes("up to 2 social skills besides its Required ones (Player's Guide p.55)"), true);
+acrobat.socialOverride = true;
+check("...and the override lets it through", V.checkStep(acrobat, derive(acrobat)), "");
+acrobat.socialSkillNames = ["Acting"];
+check("...and a missing Required one too", V.checkStep(acrobat, derive(acrobat)), "");
+
+// Knowledge still caps, override or not; and a Hunter's three Required against fewer slots.
+// The class-slot override is ticked: a KNW 8 Hunter is far short of its whole career (@MARKER WHOLE CAREER),
+// which is not what these checks are about.
+const hunterSlots = (knw) => { const s = stateFor("Hunter", "Skills"); s.manualBase.knw = knw; s.classSlotOverride = true; return s; };
+const lowHunter = hunterSlots(8);
+const lowSlots = derive(lowHunter).slots.social;
+lowHunter.socialSkillNames = ["Animal Training"];
+check(`a KNW 8 Hunter (${lowSlots} slot) is asked for min(3 Required, slots) of them`,
+	[lowSlots < 3, V.checkStep(lowHunter, derive(lowHunter))], [true, ""]);
+lowHunter.socialSkillNames = ["Animal Training", "Fishing", "Riding", "Diving", "Survival"];
+lowHunter.socialOverride = true;
+check("...and Knowledge still caps with the override ticked", V.checkStep(lowHunter, derive(lowHunter)).startsWith(`Only ${lowSlots} social skills`), true);
+check("a Hunter has no book count, so none is shown", V.buildGeneratorView(hunterSlots(15), content, () => true).classSocial.hasUpTo, false);
+
+check("Knight(Templar) is offered Knight's list", V.buildGeneratorView(stateFor("Knight(Templar)", "Skills"), content, () => true)
+	.classSocialSkills.map(s => s.name).slice(0, 3), ["Armoring", "Drilling", "Falconry"]);
+for (const n of ["Sage", "GME"]) {
+	const v = V.buildGeneratorView(stateFor(n, "Skills"), content, () => true);
+	check(`${n} has no class list, only the full one`, [v.classSocialSkills.length, v.otherSocialSkills.length > 150, v.classSocial.anyList], [0, true, n == "Sage"]);
+}
+
+// The real template for the Skills step.
+const skillsHtml = render(stateFor("Acrobat", "Skills", { socialSkillNames: ["Tumbling"] }));
+check("the Skills step heads the class list 'From the Acrobat list — choose up to 2'",
+	skillsHtml.includes("From the Acrobat list &mdash; choose up to 2 besides the Required"), true);
+check("...in a scroll box of its own, then 'Other social skills' in another",
+	[skillsHtml.includes("chargen-social-class"), skillsHtml.includes("Other social skills"), skillsHtml.includes("chargen-social-other")], [true, true, true]);
+check("...Tumbling flagged Required, ticked, and a socialPick like every other",
+	skillsHtml.includes('<label class="required"><input type="checkbox" name="socialPick" value="Tumbling" checked> Tumbling <strong>(Required)</strong>'), true);
+check("...each skill once on the page",
+	(skillsHtml.match(/name="socialPick" value="Tumbling"/g) ?? []).length, 1);
+check("...no override until a rule needs one",
+	[skillsHtml.includes('name="socialOverride"'), render(stateFor("Acrobat", "Skills")).includes('name="socialOverride"')], [false, true]);
+check("a Sage's page has no class list heading", render(stateFor("Sage", "Skills")).includes("From the Sage list"), false);
+
+// --- the sheets' helpers ------------------------------------------------------------------------
+check("the sheet keeps an off-list stored value as (current)",
+	A.buildAlignmentSelectOptions(["Good (Active)", "None", "N/A"], "Lawful Good", "")[0], { value: "Lawful Good", label: "Lawful Good (current)", selected: true });
+check("...and selects one on the list without adding it",
+	A.buildAlignmentSelectOptions(["Good (Active)", "None", "N/A"], "None", "").map(o => o.selected), [false, false, true, false]);
+check("the sheet warns of an alignment the class does not allow",
+	A.checkAlignmentForClasses(["Any Good"], "Evil (Active)", "Moral", null), ["Evil (Active) is not an alignment the class allows (Any Good)."]);
+check("...not of None, N/A, blank, or a character with no class",
+	[A.checkAlignmentForClasses(["Any Good"], "N/A", "N/A", null), A.checkAlignmentForClasses(["Any Good"], "", "None", null),
+	 A.checkAlignmentForClasses([], "Evil (Active)", "", null)], [[], [], []]);
+check("...and of a dual class by what both allow",
+	A.checkAlignmentForClasses(["Any Good", "Any Active"], "Good (Passive)", "", null).length, 1);
+check("...and of a tendency off an Order class's list",
+	A.checkAlignmentForClasses(["Any, Order"], "True Neutral", "Chaos", null), ["Chaos is not a tendency the class allows (Any, Order)."]);
+check("the creature's suggestions: his fifteen, Insane, None and N/A; the eight tendencies, None and N/A",
+	(g => [g.alignments.length, g.alignments.slice(-3), g.tendencies.length])(A.getCreatureAlignmentSuggestions(null)),
+	[18, ["Insane", "None", "N/A"], 10]);
+check("...with custom ones added", A.getCreatureAlignmentSuggestions(custom).alignments.includes("Wandering Good (Active)"), true);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

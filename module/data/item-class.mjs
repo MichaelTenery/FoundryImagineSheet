@@ -59,12 +59,21 @@ export default class ImagineClassData extends foundry.abstract.TypeDataModel {
 				// skill arrives at, whether it is a CORE skill (the class's +30%), and whether it is
 				// only for a race that can cast ("caster") or cannot ("nonCaster") -- a few casting
 				// classes give a race that cannot cast a different skill in that slot.
+				//
+				// The last two are this CHARACTER'S edits, made in the character generator and carried on
+				// the actor's own copy of the class item; a class in the compendium has neither set.
+				//     removed   given up at creation, his Step 6 REMOVE (sheet-worker.js:7675-7736): never
+				//               granted, never counted, shown struck through (class-rules.mjs)
+				//     replaces  swapped in for this skill, the Master's Manual's Customizing Classes
+				//               (MM p.55): name is the incoming skill, at the replaced one's title
 				classSkillList: new fields.ArrayField(new fields.SchemaField({
 					title:    new fields.NumberField({ required: true, integer: true, initial: 1, min: 0 }),
 					name:     new fields.StringField({ required: true, initial: "" }),
 					core:     new fields.BooleanField({ required: true, initial: false }),
 					requires: new fields.StringField({ required: true, blank: true, initial: "",
-						choices: { "": "Any race", caster: "Casting races", nonCaster: "No-casting races" } })
+						choices: { "": "Any race", caster: "Casting races", nonCaster: "No-casting races" } }),
+					removed:  new fields.BooleanField({ required: true, initial: false }),
+					replaces: new fields.StringField({ required: true, blank: true, initial: "" })
 				})),
 				goalAttr1:  new fields.StringField({ required: true, initial: "" }),
 				goalAttr2:  new fields.StringField({ required: true, initial: "" })
@@ -135,6 +144,25 @@ export default class ImagineClassData extends foundry.abstract.TypeDataModel {
 			// "Transferring Skill Slots". Zero is real for GME, his Game Master Extra, which is a
 			// stand-in for a being with no class at all rather than a class of its own.
 			skillSlotsNeeded: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+
+			// @MARKER SOCIAL SKILLS
+			// The class's own social skills, which his Step 6 lists first (setSocialSkillLists,
+			// sheet-worker.js:53591, via extract_class_social_skills.py):
+			//     required     must be taken -- his "Required" rows, in his order
+			//     recommended  offered first -- his "Recommend" rows, in his order
+			//     upTo         how many of them a player may choose, where a BOOK prints "up to N";
+			//                  null where no book gives a count. His sheet has no pick count at all --
+			//                  Knowledge alone caps the total (getNumberOfSocialSkillSlots, 55408).
+			//     upToSource   the book and printed page the count came from ("Player's Guide p.48")
+			//     anyList      no class list at all, only the whole list -- his Sage and GME
+			// A path document carries its base class's list. Here so a homebrew class can carry one.
+			socialSkills: new fields.SchemaField({
+				required:    new fields.ArrayField(new fields.StringField(), { initial: [] }),
+				recommended: new fields.ArrayField(new fields.StringField(), { initial: [] }),
+				upTo:        new fields.NumberField({ required: false, nullable: true, integer: true, min: 0, initial: null }),
+				upToSource:  new fields.StringField({ required: true, blank: true, initial: "" }),
+				anyList:     new fields.BooleanField({ required: true, initial: false })
+			}),
 
 			// @MARKER PER-CHARACTER STATE
 			// Everything above describes the class itself and is the same on every copy. This is

@@ -139,6 +139,21 @@ the port knowingly building a figure he has since corrected.
   - The separate fix beside it stands, and is his sheet's own: a Wilder never takes Spell Lore's +2
     (his setMagicDivineLore sets spellLoreBonus 0 for a Wilder, 96663-96670).
 
+## Two files in the folder are NOT the 2025–26 errata (flagged 2026-09-26)
+
+`PGErrata_limited.pdf` and `MMErrata_limited.pdf` sit in `docs/reference/errata/` beside the `.txt`
+set, but they are **1998 printing errata** for the first printings, not part of the set he supplied
+on 2026-09-21 as his current word. They are superseded, and the "errata wins over the sheet" ruling
+above does **not** apply to them: where one of them disagrees with the sheet, the sheet wins as
+before, and the `.txt` files remain the only errata ranked above it. They were missing from the
+"What arrived" table above for that reason; they are listed here so nobody promotes them by mistake.
+
+## Applied so far
+
+| Date | Errata line | What changed | Where |
+|---|---|---|---|
+| 2026-09-26 | `MM.txt`, "Pg: 46 (Healer Class) Social Skills" | Healer's social skill Philosophy → **Physiology** (his sheet still says Philosophy, sheet-worker.js:54353) | `tools/extract/extract_class_social_skills.py` `ERRATA_REPAIRS`, re-checked against the local `MM.txt` on each run; printed as a repair |
+
 ## Next step
 
 Nothing has been built from any of this yet. The question above is settled, so the next pass is

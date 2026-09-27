@@ -14,6 +14,8 @@ panel on the Skills tab, the title gate on a skill roll, and path-aware availabi
 - A grant never removes a skill, never touches one already held, and skips one the campaign's
   switches disallow rather than forcing it on.
 - Slots are NOT policed by the grant. His sheet marks the excess "REMOVED"; the slot panel reports it.
+  (Corrected 2026-09-26: his sheet does not mark the excess; REMOVED is the player's own tick at his Step 6, sheet-worker.js:7675-7736. See DECISIONS.md, 2026-09-26.)
+
 - Armour and weapon usage are DISPLAY ONLY. His sheet never compares them against what is worn.
 - A base-class availability key covers its path documents; a path's own key is read first.
 - A class skill above the character's title is refused on the roll, and the row stays on the sheet.

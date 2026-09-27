@@ -1,0 +1,79 @@
+{{!--
+	Alignments & Tendencies window. One root element, as the framework requires of every PART.
+
+	Two sections: the campaign's own alignments, each with the axes the class lists test it on,
+	then its own tendencies, each with the tendency lists it joins.
+--}}
+<div class="imagine-alignment-config">
+
+	<fieldset>
+		<legend>Custom Alignments</legend>
+		<p class="hint">Each appears in every class's alignment list its axes qualify for, as his own
+		alignments do. The name must contain the words the rules read: "Good", "Neutral" or "Evil" as
+		it reads, "Active" if it is active, "Fanatical" if it is fanatical -- and none of the others.
+		An unaligned (None) name contains none of Good, Neutral or Evil.</p>
+
+		{{#if alignments.length}}
+		<table class="custom-table">
+			<thead><tr><th>Name</th><th>Reads as</th><th>Activity</th><th>Fanatical</th><th></th></tr></thead>
+			<tbody>
+				{{#each alignments as |row|}}
+				<tr>
+					<td><input type="text" name="alignments.{{row.index}}.name" value="{{row.name}}"
+					           placeholder="e.g. Wandering Good (Active)"></td>
+					<td>
+						<select name="alignments.{{row.index}}.readsAs">
+							{{#each row.readsAsOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}
+						</select>
+					</td>
+					<td>
+						<select name="alignments.{{row.index}}.activity">
+							{{#each row.activityOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}
+						</select>
+					</td>
+					<td class="centre"><input type="checkbox" name="alignments.{{row.index}}.fanatical" {{checked row.fanatical}}></td>
+					<td><button type="button" data-action="removeAlignment" data-index="{{row.index}}"
+					            aria-label="Remove alignment {{row.name}}">
+						<i class="fa-solid fa-trash"></i></button></td>
+				</tr>
+				{{/each}}
+			</tbody>
+		</table>
+		{{else}}
+		<p class="empty">No custom alignments. The standard fifteen and Insane are always offered.</p>
+		{{/if}}
+		<button type="button" data-action="addAlignment"><i class="fa-solid fa-plus"></i> Add alignment</button>
+	</fieldset>
+
+	<fieldset>
+		<legend>Custom Tendencies</legend>
+		<p class="hint">A tendency for any class is offered wherever the full tendency list is. One
+		that joins the Order or Immoral classes is offered to those classes too, whose lists are
+		otherwise limited.</p>
+
+		{{#if tendencies.length}}
+		<table class="custom-table">
+			<thead><tr><th>Name</th><th>Offered to</th><th></th></tr></thead>
+			<tbody>
+				{{#each tendencies as |row|}}
+				<tr>
+					<td><input type="text" name="tendencies.{{row.index}}.name" value="{{row.name}}"
+					           placeholder="e.g. Moral/Order/Chaos"></td>
+					<td>
+						<select name="tendencies.{{row.index}}.list">
+							{{#each row.listOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}
+						</select>
+					</td>
+					<td><button type="button" data-action="removeTendency" data-index="{{row.index}}"
+					            aria-label="Remove tendency {{row.name}}">
+						<i class="fa-solid fa-trash"></i></button></td>
+				</tr>
+				{{/each}}
+			</tbody>
+		</table>
+		{{else}}
+		<p class="empty">No custom tendencies.</p>
+		{{/if}}
+		<button type="button" data-action="addTendency"><i class="fa-solid fa-plus"></i> Add tendency</button>
+	</fieldset>
+</div>

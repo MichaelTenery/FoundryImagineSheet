@@ -17,6 +17,8 @@ import { chooseBestArmor } from "../equip-rules.mjs";
 import { GEM_TYPES, COIN_TYPES, getWealthInGold, changeCoins, changeValuables } from "../wealth-rules.mjs";
 import { canRollStartingMoney, getCharacterMoneyInputs, rollStartingMoney, describeStartingMoney } from "../starting-money.mjs";
 import { rollHandedness } from "../chargen-rules.mjs";
+import { getAlignmentChoicesForClasses, buildAlignmentSelectOptions, checkAlignmentForClasses,
+	ALIGNMENT_NONE, ALIGNMENT_NOT_APPLICABLE } from "../alignment-rules.mjs";
 import { grantNaturalWeapons, getMissingNaturalWeaponNames } from "../natural-weapons.mjs";
 import { needsStartingEnduranceRoll, getStartingEnduranceLabel } from "../race-rules.mjs";
 import { rollRaceStartingEndurance, confirmRaceStartingEnduranceRoll } from "../race-endurance.mjs";
@@ -209,6 +211,22 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			ImagineCharacterSheet.#buildHandednessChoices(this.document.system.physical.handedness);
 		tmpcontext.handednessLabel = ImagineCharacterSheet.#buildHandednessChoices(
 			this.document.system.physical.handedness).find(tmpchoice => tmpchoice.selected)?.label ?? "Right (default)";
+		// @MARKER ALIGNMENT
+		// The header's alignment dropdown and the Description tab's tendency dropdown, from the class or
+		// classes the character holds (module/alignment-rules.mjs; a dual class is offered what both allow)
+		// and the Game Master's custom entries. The sheet WARNS rather than refuses (user's ruling
+		// 2026-09-26): a stored value off the list stays, shown as "(current)", and the warning sits with
+		// the class-qualification issues in the header.
+		var tmpcustomalign = null;
+		try { tmpcustomalign = game.settings.get("imagine-rpg", "customAlignments") ?? null; }
+		catch (tmperr) { tmpcustomalign = null; }
+		var tmpalignreqs = (this.document.system.classItems ?? []).map(tmpclass => tmpclass.system?.requirements?.alignment ?? "");
+		tmpcontext.alignmentChoices = ImagineCharacterSheet.#buildAlignmentChoices(tmpalignreqs,
+			this.document.system.identity.alignment, tmpcustomalign);
+		tmpcontext.tendencyChoices = ImagineCharacterSheet.#buildTendencyChoices(tmpalignreqs,
+			this.document.system.identity.tendencies, tmpcustomalign);
+		tmpcontext.alignmentIssues = checkAlignmentForClasses(tmpalignreqs,
+			this.document.system.identity.alignment, this.document.system.identity.tendencies, tmpcustomalign);
 		// A GME picks its attack chart outright; the same selected-flag list the handedness
 		// dropdown uses, so it renders the same way everywhere.
 		tmpcontext.chosenAttackSkillChoices = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert", "Master"]
@@ -404,6 +422,22 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			tmpchoice.selected = (tmpchoice.value == ("" + (tmpcurrent ?? "")));
 		}
 		return tmpchoices;
+	}
+
+	// @MARKER ALIGNMENT
+	// This is the function which builds the header's alignment dropdown: a blank, the class's list (his
+	// step-7 dropdown for its requirement; every class's list at once for a dual class), and his None and
+	// N/A -- the two values his setFinalAlignment writes (73409-73420). A stored value not among them is
+	// kept as "(current)", the same way #buildHandednessChoices keeps its value selected.
+	static #buildAlignmentChoices(tmprequirements, tmpcurrent, tmpcustom) {
+		var tmpchoices = getAlignmentChoicesForClasses(tmprequirements, tmpcustom);
+		return buildAlignmentSelectOptions([...tmpchoices.alignments, ALIGNMENT_NONE, ALIGNMENT_NOT_APPLICABLE], tmpcurrent, "");
+	}
+
+	// This is the function which builds the Description tab's tendency dropdown, the same way.
+	static #buildTendencyChoices(tmprequirements, tmpcurrent, tmpcustom) {
+		var tmpchoices = getAlignmentChoicesForClasses(tmprequirements, tmpcustom);
+		return buildAlignmentSelectOptions([...tmpchoices.tendencies, ALIGNMENT_NONE, ALIGNMENT_NOT_APPLICABLE], tmpcurrent, "");
 	}
 
 	// This is the function which flattens the twelve attributes into rows a template can walk,

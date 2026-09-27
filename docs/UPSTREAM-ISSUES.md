@@ -1010,6 +1010,19 @@ Standard / Templar. Two things came up:
 entry hand-authored from your Word template is no longer used. Where the template and your code
 differ, your code is what the port now shows.
 
+**Amended 2026-09-26: point 1 names the wrong cause.** The doubled `"Detect Evil"` test in
+`getAlignRequirements` is real, but it is dead code for the Innominate: that function is only
+called for Elemental Dancer, Elementalist, Summoner, Inquisitor and GME (50885-50886), and the
+Innominate always takes its Good row (50952). What actually goes wrong on your sheet:
+- `innominate_choice_sheet` is only ever set to `""` (34832) or `_none` (50880), so the path select
+  is never shown, like the Knight's;
+- `clearAlignmentValues` sets `tmp_innominate_good_or_evil = "Detect Good"` (73461), which fires
+  the 6526 handler and writes a stale Evil requirement;
+- on a second run of the configurator, `setClassSkillLists` (60270-60271) gives a Good Innominate
+  the Detect Good skill.
+
+The port is unchanged: Innominate(Detect Good) is its own document with the Evil list.
+
 ## 34. Eight skills write their starting dice "dl0" instead of "d10"
 
 **Status:** open · **Severity:** data typo; the port reads the evident intent
@@ -2584,3 +2597,141 @@ So a class that starts invoking above title 1 jumps by twice its figure on the n
 **What the port does:** follows the sheet. Refill (renamed from "Reset pool" to his word, 2026-09-24) gives a full pool and costs no spell day (casting-actions.mjs resetAuraPool).
 
 **Question:** does "Refill adds" mean what the sheet does (Aura added back until the pool is full), or should Refill add an amount typed into a box, the reverse of Drain? If it should add an amount, the port asks for it the way Drain does, and the pool stops at full.
+
+## 105. Step 7: a failed confirm resets the wrong step
+
+**Status:** open · **Severity:** minor; a failed alignment confirm reopens step 6 instead of step 7
+
+**Where:** sheet-worker.js:7898 and 7906. When the step 7 (alignment) confirm fails, it resets
+`skills_select_done` rather than `align_select_done`.
+
+**What the port does:** nothing to port; the generator's Details step simply refuses to go on.
+
+**Question:** confirm it should be `align_select_done`.
+
+## 106. The Order and Immoral classes lose their default tendency
+
+**Status:** open · **Severity:** minor; the final tendency becomes "None"
+
+**Where:** the HTML preselects the tendency for the Order and Immoral lists (45786, 45810, 45829),
+but 73086 and 73262/73270/73278 clear the value to `""`, so `setFinalAlignment` writes "None".
+Inferred from reading the code; not run on your sheet.
+
+**What the port does (2026-09-26):** pre-sets Order, Order and Immoral as your HTML does, whenever
+the class changes and the tendency is blank.
+
+**Question:** is the preselected default what you meant?
+
+## 107. GM Tools "Alignment Color": one option has the wrong value
+
+**Status:** open · **Severity:** minor; a label and its value disagree
+
+**Where:** HTML:92650. The option labelled Fanatical Good (Passive) has the value
+"Fanatical Good (Active)".
+
+**What the port does:** nothing yet; the colour tool is not ported.
+
+## 108. Alignment dropdowns offer more than their requirement strings say
+
+**Status:** open · **Severity:** question; which one is the rule
+
+**Where:**
+- "Good (Active), Fanatical Good (Active)" offers both Passive variants too (HTML 45420-45427). The
+  Evil twin does the same (45717-45724), and so does its Immoral block (45817 onward).
+- "True Neutral or Neutral Good" and "True Neutral or Neutral Evil" also offer Neutral (Active) and
+  Neutral (Passive).
+- "No Active or Fanatical Good" keeps Neutral Good (Active) and (Passive).
+
+Also, the `default` block of `setAlignmentSelection` (73283-73289) has no `default:` label, so an
+unknown requirement leaves the previous list showing. And the path change handlers (6504-6547) set
+`tmp_align_requirements` but never re-run `setAlignmentSelection` (its only caller is 6950), so the
+dropdown stays stale until step 5 is confirmed again.
+
+**What the port does (2026-09-26):** offers exactly your dropdowns, not the requirement strings. An
+unknown requirement gets the full list, flagged.
+
+**Question:** are the dropdowns the rule, or should they narrow to the strings?
+
+## 109. Class alignments where the books and the sheet disagree
+
+**Status:** open · **Severity:** question; the sheet is followed
+
+- **Legendier:** Legends p.47 says "Any Active"; your row (50960) says "Any".
+- **Berserker:** the Master's Manual's "Any non-passive" would admit True Neutral; your "Any Active"
+  does not.
+- **Epitaph Death Knight and Paladin:** the book's "Active or Fanatical" differs from your list on
+  the Passive variants.
+- **Elementalist:** Legends p.59 ties the path to alignment the other way round from the sheet.
+
+**What the port does:** follows your sheet in every case.
+
+## 110. Step 6: only some Required social skills are enforced
+
+**Status:** open · **Severity:** a player can skip a Required social skill
+
+**Where:** step 6 confirm, sheet-worker.js:7789-7843.
+- The getAttrs list at 7791 asks for `'values.tmp_social_skill_2_type'` (and _4, _5, and the _name
+  equivalents) as literal names, so those values are never read.
+- The found flags are set at index j (the selected slot), not i.
+- The check at 7837-7839 reads index k, so only Required #1 and #3 are effectively enforced.
+- Only the first 5 rows' types are looked at (`tmpsocialtypes` has 5 entries while the loop runs to
+  20), so a Required skill in row 6 or later is never enforced. Current data lists Required first,
+  so this does not bite today.
+
+**What the port does (2026-09-26):** every Required skill counts, up to the social slots, with a GM
+override tick.
+
+## 111. Intercessor's social skill list is never shown
+
+**Status:** open · **Severity:** the class's step 6 is empty on your sheet
+
+**Where:** sheet-worker.js:54509-54526. `select_social_skill_sheet` is `social_skills_fourteen`
+(54524), a main-sheet attribute value rather than a `social_skill_select_` value, so step 6 shows no
+class rows. From row 6 the mods column is one row behind the names and names Heraldry, which the
+names never list, so Heraldry was probably dropped.
+
+**What the port does:** keeps your 14 names.
+
+**Question:** should Heraldry be on the list?
+
+## 112. Witch Hunter's social skill types are one row out from row 10
+
+**Status:** open · **Severity:** data slip; the port repairs one row
+
+**Where:** sheet-worker.js:55378-55397. From row 10 each `_type` line is off by one against its
+`_name` line (`tmp_social_skill_10_type` is set twice, 11_type sits beside 12_name, and so on), so
+row 16, Weapon Making, has no type. The mods column is off from row 10 too.
+
+**What the port does:** reads row 16 as Recommend.
+
+## 113. Social skill lists: smaller data questions
+
+**Status:** open · **Severity:** questions; the sheet is kept in every case
+
+- **Ranger:** the Player's Guide p.53 lists Animal Training; your list omits it.
+- **Identical Recommend lists**, possibly copy-paste: Innominate and Obscuratum (their Required
+  differ, Theology and Metaphysics), Knight and Paladin, Luckster and Rogue, Mage and Mentalist,
+  Runesmith and Shaman(Rune), Witch(Black) and Witch(Gray).
+- **Mods arguments that do not match the names:** Conqueror (54026; all 18 rows look like the
+  Legendier's), Vivisectionist (55236; Butcher's mods say Butler). Harmless to the port, which works
+  the modifier out from the name.
+- **Healer:** Philosophy should be Physiology per your Master's Manual errata p.46. Applied.
+- **Tendency typo:** `getTendencyDescription` (73380/73383/73386) says "tum a chaotic situation"
+  for "turn" (PG p.41). Fixed in the port's text.
+
+## 114. Class skills: slots needed, and the REMOVE button
+
+**Status:** open · **Severity:** minor
+
+- `getSlotsNeededForClass` (sheet-worker.js:62881) disagrees with your own `setClassSkillLists`
+  rows for Bard (46 against 47 rows) and Hero (48 against 49). Every other class matches when the
+  caster/non-caster pair is counted once. The port counts the rows.
+- The REMOVE handler lowers `tmp_class_skill_slots_needed` by the number ticked without checking
+  rows already REMOVED (7722-7727), so ticking a removed row again lowers "needed" again. The port
+  recomputes from the rows.
+- The convert-after-remove recompute (52674-52684, 56530-56536) is not ported for the same reason.
+- Master's Manual p.55's worked example says "A player wishes to play a Dark Knight" but prints the
+  plain Knight's table (Detect Evil, Protection from Evil). Your Knight(Templar) is built on the
+  plain Knight, matching the table.
+
+**Question:** which count is right for Bard and Hero?
