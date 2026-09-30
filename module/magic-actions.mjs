@@ -31,6 +31,7 @@ import { MAGIC_KINDS, getItemKind, getSkillStanding, resolveLoreUse, resolveBrew
          describePoisonOnVictim, getPoisonIntervalsDue, getPoisonDamageToApply, applyOverallDamage,
          coatWeapon, isEnvenomed, ENVENOMED_THRESHOLD } from "./lore-rules.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "./resistance-rules.mjs";
+import { askRollModifier } from "./roll-modifier.mjs";
 import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 
 	// The words each outcome is reported in, as his chat lines put them.
@@ -51,15 +52,10 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 
 	// This is the function which asks for his MOD buttons' situational modifier, when Shift is held.
 	// Returns 0 without asking otherwise, and null if the dialog is closed (nothing is rolled).
+	// Asked on every click since 2026-09-30 (bug reports 0.20.2:1 and 0.20.8:1 -- "there should be
+	// a modifier field for usage"), shift-click skipping it: module/roll-modifier.mjs.
 	async function askModifier(tmpevent, tmptitle) {
-		if (!tmpevent?.shiftKey) { return 0; }
-		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-			window: { title: tmptitle },
-			content: `<p>Situational modifier:</p><input type="number" name="modifier" value="0" autofocus>`,
-			ok: { label: "Roll", callback: (tmpe, tmpbutton) => tmpbutton.form.elements.modifier.value }
-		}).catch(() => null);
-		if (tmpanswer === null) { return null; }
-		return parseInt(tmpanswer) || 0;
+		return await askRollModifier(tmpevent, tmptitle, "Situational modifier:");
 	}
 
 	// This is the function which reads the character's standing in a skill, for a roll.

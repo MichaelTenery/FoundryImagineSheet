@@ -334,6 +334,16 @@ const mixedActor = viewActor({ levelUpPending: true, goalsToRaise: 1, goalToLeve
 	[viewClass, viewSkill("Held", 3), viewSkill("NotYet", 9)]);
 check("only class skills the character has reached are offered to spend on",
 	V.buildGoalStep(mixedActor, V.newLevelUpWorking()).skillPoints.skills.map(s => s.name), ["Held"]);
+// Bug report 0.20.1:1: at goal 3 -- the start of title 2 -- title 2's own skills are not offered
+// either; they were acquired WITH this goal, and take points from goal 4 on (his goal - 1).
+const justTitledActor = viewActor({ levelUpPending: true, goalsToRaise: 1, goalToLevel: 3, title: 2 },
+	[viewClass, viewSkill("Scroll Knowledge", 1), viewSkill("Cartography", 2)]);
+check("the skills a title step just gave are not offered at the goal that started the title",
+	V.buildGoalStep(justTitledActor, V.newLevelUpWorking()).skillPoints.skills.map(s => s.name), ["Scroll Knowledge"]);
+const nextGoalActor = viewActor({ levelUpPending: true, goalsToRaise: 1, goalToLevel: 4, title: 2 },
+	[viewClass, viewSkill("Scroll Knowledge", 1), viewSkill("Cartography", 2)]);
+check("...and are offered from the next goal",
+	V.buildGoalStep(nextGoalActor, V.newLevelUpWorking()).skillPoints.skills.map(s => s.name), ["Cartography", "Scroll Knowledge"]);
 
 // The Endurance flag is separate from the figure, because 0 is a real answer.
 const titleActor = viewActor({ levelUpPending: true, titlesToRaise: 1, titleToLevel: 6,
@@ -356,6 +366,16 @@ check("a half race's title Endurance is the combined race's pair, not the first 
 	V.buildTitleStep(halfActor, V.newLevelUpWorking()).titleStep.enduranceFormula, "1d3+1|1d4");
 check("...and an actor with no combined race reads its race item as before",
 	V.buildTitleStep(titleActor, V.newLevelUpWorking()).titleStep.enduranceFormula, "1d4+1");
+
+// --- bug report 0.20.1:1 -- no points on skills the title just gave (his goal - 1) ---------------
+check("goal 3 (the start of title 2) puts points on title 1's skills only",
+	A.getSkillPointTitle(3, 2), 1);
+check("goals 4 and 5 reach title 2's skills", [A.getSkillPointTitle(4, 2), A.getSkillPointTitle(5, 2)], [2, 2]);
+check("goal 6 (the start of title 3) is still title 2", A.getSkillPointTitle(6, 3), 2);
+check("no goal pending reads as title 1, and never above the character's own title",
+	[A.getSkillPointTitle(0, 1), A.getSkillPointTitle(9, 2)], [1, 2]);
+check("the spend check refuses a skill of the title just reached, at goal 3",
+	A.checkSkillPointSpend(1, 17, { name: "Cartography", acquiredAtTitle: 2 }, A.getSkillPointTitle(3, 2)).allowed, false);
 
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;

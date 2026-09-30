@@ -84,6 +84,25 @@ import { GOAL_EXP, TITLE_EXP, EXP_CAP_BY_TITLE, SKILL_POINTS_BY_CLASS } from "./
 		return tmpat < 0 ? 0 : Math.floor(tmpat / 3) + 1;
 	}
 
+	// This is the function which says the highest title whose class skills may take this goal's
+	// skill points -- his setSkillPointNavigation (sheet-worker.js:94773):
+	//
+	//     tempGoal=tempGoal-1; // when they title they don`t get access to skills they just acquired so always do goal -1;
+	//
+	// Player's Guide p.78 (Goal Advancement): "Skill points may only be added to class skills
+	// acquired by a character prior to the Goal advancement. (For example, at 3rd Goal which is
+	// the start of 2nd Title, skill points cannot be added to newly acquired 2nd Title skills.)"
+	// So goal 3's points go on title 1's skills, goals 4 and 5 on titles 1 and 2. Bug report
+	// 0.20.1:1 (Blocker): the goal screen offered the title just reached.
+	//
+	//   tmpgoaltolevel  the goal being taken (identity.goalToLevel)
+	//   tmptitle        the character's title, a ceiling in case the two ever disagree
+	export function getSkillPointTitle(tmpgoaltolevel, tmptitle) {
+		var tmpgoal = Math.max(0, (parseInt(tmpgoaltolevel) || 0) - 1);
+		var tmpceiling = parseInt(tmptitle) || 0;
+		return Math.min(getTitleByGoal(tmpgoal), tmpceiling > 0 ? tmpceiling : getTitleByGoal(tmpgoal));
+	}
+
 	// The first and last goal of a title, his getLowGoalByTitle and getHighGoalByTitle. Zero
 	// Title runs -3 to -1.
 	export function getLowGoalByTitle(tmptitle) {

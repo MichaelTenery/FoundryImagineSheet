@@ -1238,6 +1238,11 @@ check("a floating item adds nothing to what is carried",
 	R.resolveEncumbrance([floatItem("Log Raft [Float]", {}), floatItem("Iron Bar", {})], 5, 180, 70).carried,
 	R.resolveEncumbrance([floatItem("Iron Bar", {})], 5, 180, 70).carried);
 
+// --- the Rule of 2's flat +2 for both hands (bug report 0.20.10:1; his DamMod2Hand) --------------
+check("a melee weapon in both hands does +2 damage", ["thrust", "cut", "smash"].map(m => R.getTwoHandedDamageBonus(m, true)), [2, 2, 2]);
+check("...nothing in one hand, and nothing for a missile however held",
+	[R.getTwoHandedDamageBonus("cut", false), R.getTwoHandedDamageBonus("missile", true)], [0, 0]);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =
 	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")

@@ -27,8 +27,10 @@
 
 	{{!-- The Player's Guide's "slot tricks". A class slot is what the others trade FOR: there is
 	      no trade out of class and no class slot may be given up, which is why neither appears. --}}
+	{{!-- "Convert", his own word for these buttons, not "trade": bug report 0.20.4:1 read "Trade
+	      skill slots" as a skill TYPE beside class, racial and social. --}}
 	<details class="skill-group slot-tricks" data-sync>
-		<summary>Trade skill slots <span class="count">unused slots only</span></summary>
+		<summary>Convert skill slots <span class="count">unused slots only</span></summary>
 		<div class="slot-trades">
 			{{#each slotTransfers as |t|}}
 			{{#if t.sacrifice}}
@@ -44,7 +46,7 @@
 			{{/if}}
 			{{/each}}
 		</div>
-		<p class="muted">A trade spends slots that are still unused, and cannot be undone.</p>
+		<p class="muted">A conversion spends slots that are still unused, and cannot be undone.</p>
 	</details>
 
 	{{!-- Almost any skill can be tried without having learned it, at the base chance alone. A

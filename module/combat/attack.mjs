@@ -23,7 +23,7 @@ import {
 	applyMagicalReductions, getWeaveValue, isEndured, isRebounded, getAreaArmorSlot,
 	getLoreModifiers, getProjectileLoreDamage, getWeaponSpeed,
 	resolveMultiMissile, MULTI_MISSILE_MODES, getSecondWeaponFlags,
-	getSituationalForAttack, getSituationalNotes, getNumberOfDice
+	getSituationalForAttack, getSituationalNotes, getNumberOfDice, getTwoHandedDamageBonus
 } from "./combat-rules.mjs";
 import { ARMOR_BLOCKING } from "../combat-tables.mjs";
 import { getWeaponAttackExtras, resolveWeaponSpecials, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
@@ -365,6 +365,8 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		var tmpmartialdamage = tmpmartial.damage.flat + (tmpmartial.damage.perDie * getNumberOfDice(tmpdice));
 		var tmpmagic = parseInt(tmpw.magicBonus) || 0;
 		var tmpmisc = MELEE_MODES.includes(tmpmode) ? (parseInt(tmpsys.combat.damageMisc) || 0) : 0;
+		// The Rule of 2's flat +2 for both hands, his DamMod2Hand -- missing until bug report 0.20.10:1.
+		var tmptwohand = getTwoHandedDamageBonus(tmpmode, tmpw.hand == "both");
 
 		// Projectile Lore is worth damage PER DIE, so it needs the dice this attack actually
 		// rolls and cannot be worked out with the flat modifiers above.
@@ -385,8 +387,8 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// temporary effect's flat figure.
 		var tmpcustomdamage = tmpcustom.damage.reduce((tmpsum, tmpentry) => tmpsum + tmpentry.value, 0);
 		var tmpdmgroll = await new Roll(
-			`${tmpdice}${tmpcustom.runeDice ? " + " + tmpcustom.runeDice : ""} + @str + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial + @custom`,
-			{ str: tmpstrmod, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
+			`${tmpdice}${tmpcustom.runeDice ? " + " + tmpcustom.runeDice : ""} + @str + @twohand + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial + @custom`,
+			{ str: tmpstrmod, twohand: tmptwohand, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
 			  projlore: tmpprojlore.damage, offhand: tmpoffhand.damage,
 			  missiles: tmpmissiles.damage, situation: tmpsitdamage, martial: tmpmartialdamage, custom: tmpcustomdamage })
 			.evaluate({ maximize: tmpsitmods.maxDamage });
@@ -426,7 +428,7 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		var tmptotal = tmpmissiles.repeats ? (tmpeach * tmpmissiles.shots) : tmpeach;
 
 		tmpdamage = {
-			dice: tmpdice, str: tmpstrmod, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
+			dice: tmpdice, str: tmpstrmod, twoHanded: tmptwohand, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
 			loreSpecific: tmplore.specific,
 			projectileLore: tmpprojlore.damage, projectileLorePerDie: tmpprojlore.perDie,
 			multiMissile: tmpmissiles.damage, multiMissileTier: tmpmissiles.tier,

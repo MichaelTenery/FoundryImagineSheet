@@ -210,6 +210,17 @@ check("the creature's suggestions: his fifteen, Insane, None and N/A; the eight 
 	[18, ["Insane", "None", "N/A"], 10]);
 check("...with custom ones added", A.getCreatureAlignmentSuggestions(custom).alignments.includes("Wandering Good (Active)"), true);
 
+// --- bug report 0.20.3:1 -- a class's Required social skills start ticked ---------------------------
+{
+	const V = await import("../module/chargen-view.mjs");
+	const withRequired = classes.find(c => (c.system?.socialSkills?.required ?? []).length && !c.system.socialSkills.anyList);
+	check("a class with Required social skills gives them as the starting ticks",
+		V.getRequiredSocialSkillNames(withRequired), withRequired.system.socialSkills.required);
+	check("...a copy, not the class's own list", V.getRequiredSocialSkillNames(withRequired) !== withRequired.system.socialSkills.required, true);
+	check("an any-list class (Sage) and no class at all start with none",
+		[V.getRequiredSocialSkillNames(classes.find(c => c.name == "Sage")), V.getRequiredSocialSkillNames(null)], [[], []]);
+}
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =

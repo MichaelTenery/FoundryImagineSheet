@@ -43,6 +43,7 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
 import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
+import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
 import {
 	resolveSkillRoll, describeSkillResult, resolveAttributeSave, pickBestSkillRoll,
 	canTransferSlot, canSacrificeSlot,
@@ -653,21 +654,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpattrib = this.document.system.attributes[tmpkey];
 		if (!tmpattrib) { return; }
 
-		// Shift-click asks for a modifier, added to the chance (Daryl 2026-09-25: the changelog said
-		// shift-click worked and on the character sheet it did not).
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to this ${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} save:`);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = tmpanswer;
-		}
+		// The modifier is asked for on every click, shift-click skipping it (bug report 0.20.2:1;
+		// module/roll-modifier.mjs). Before 2026-09-30 it was the other way round.
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier",
+			`Modifier to this ${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} save:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveAttributeSave((parseInt(tmpattrib.save) || 0) + tmpmodifier, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`
+			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}%${describeModifier(tmpmodifier)} &mdash; <strong>${tmpresult.outcome}</strong>`
 		});
 	}
 
@@ -701,13 +699,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpbase = parseInt(this.document.system.characteristics[tmpkey]?.value) || 0;
 		var tmpchance = tmpdouble ? tmpbase * 2 : tmpbase;
 
-		// Shift-click asks for a modifier, added to the chance; the bad band stays 100 minus the
-		// single unmodified chance, as the creature sheet's resolveCharacteristicRoll keeps it.
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to this ${tmpkey} roll:`);
-			if (tmpanswer === null) { return; }
-			tmpchance = tmpchance + tmpanswer;
-		}
+		// The modifier is asked for on every click (shift-click skips it -- module/roll-modifier.mjs)
+		// and added to the chance; the bad band stays 100 minus the single unmodified chance, as the
+		// creature sheet's resolveCharacteristicRoll keeps it.
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier", `Modifier to this ${tmpkey} roll:`);
+		if (tmpmodifier === null) { return; }
+		tmpchance = tmpchance + tmpmodifier;
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpoutcome = tmpresults[2];
@@ -718,46 +715,29 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		if (tmpdouble) { tmplabel = "Double " + tmplabel; }
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${tmplabel} Check &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${tmplabel} Check &mdash; ${tmpchance}%${describeModifier(tmpmodifier)} &mdash; <strong>${tmpoutcome}</strong>`
 		});
 	}
 
-	// This is the function which asks for a modifier to a roll -- his "?{Modifier}" prompt, the same
-	// one the creature sheet asks. Returns the number, or null if the dialog was closed.
-	static async #askModifier(tmpprompt) {
-		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-			window: { title: "Roll Modifier" },
-			content: `<p>${tmpprompt}</p><input type="number" name="modifier" value="0" autofocus>`,
-			ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
-		}).catch(() => null);
-		if (tmpanswer === null || tmpanswer === undefined) { return null; }
-		return parseInt(tmpanswer) || 0;
-	}
+	// The modifier prompt itself -- his "?{Modifier}" -- now lives in module/roll-modifier.mjs
+	// (askRollModifier), shared with the creature sheet and every other roll, since 2026-09-30.
 
 	// @MARKER RESISTANCE ROLL
 	// Daryl's 0.11.1 Blocker: the Attributes tab showed the five resistance figures and gave no
 	// way to roll any of them. The rule itself is in module/resistance-rules.mjs, beside a note on
 	// the one thing his own handlers get wrong; this only rolls the die and says what happened.
 	//
-	// A modifier is asked for when the button is SHIFT-clicked, which is his two buttons per track
-	// (roll_resist_magic and roll_resist_magic_mod) folded into one, since a sheet with five tracks
-	// does not want ten buttons on it.
+	// A modifier is asked for on every click, which is his two buttons per track (roll_resist_magic
+	// and roll_resist_magic_mod) folded into one, since a sheet with five tracks does not want ten
+	// buttons on it; shift-click rolls without asking (module/roll-modifier.mjs).
 	static async #onRollResistance(event, target) {
 		var tmpkey = target.dataset.resistance;
 		var tmpresist = this.document.system.resistances[tmpkey];
 		if (!tmpresist) { return; }
 
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-				window: { title: "Resistance Modifier" },
-				content: `<p>Modifier to this ${tmpkey} resistance roll:</p>
-					<input type="number" name="modifier" value="0" autofocus>`,
-				ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
-			}).catch(() => null);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = parseInt(tmpanswer) || 0;
-		}
+		var tmpmodifier = await askRollModifier(event, "Resistance Modifier",
+			`Modifier to this ${tmpkey} resistance roll:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpmodifier);
@@ -799,13 +779,11 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpcopies = this.document.items.filter(i => i.type == "skill" && i.name == tmpitem.name);
 		if (!tmpcopies.length) { tmpcopies = [tmpitem]; }
 
-		// Shift-click asks for a modifier, added to every copy's chance -- his skill-rollmod button.
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to ${foundry.utils.escapeHTML(tmpitem.name)}:`);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = tmpanswer;
-		}
+		// The modifier is asked for on every click and added to every copy's chance -- his
+		// skill-rollmod button folded into ROLL; shift-click skips it (module/roll-modifier.mjs).
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier",
+			`Modifier to ${foundry.utils.escapeHTML(tmpitem.name)}:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmprolls = [];
 		var tmpresults = [];
@@ -1379,7 +1357,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		}
 
 		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
-			window: { title: "Trade Skill Slots" },
+			window: { title: "Convert Skill Slots" },
 			content: `<p>Give up ${tmptransfer.cost} ${tmptransfer.from} slot${tmptransfer.cost > 1 ? "s" : ""}
 				for ${tmptransfer.gain} ${tmptransfer.to} slot${tmptransfer.gain > 1 ? "s" : ""}?</p>
 				<p class="hint">This cannot be undone.</p>`
