@@ -69,7 +69,17 @@
 			{{#each klass.rows as |row|}}
 			<tr class="{{#if row.current}}current-title{{/if}} {{#unless row.reached}}unreached-title{{/unless}}">
 				<td class="col-title">{{row.title}}<span class="muted">{{row.titleName}}</span></td>
+				{{!-- A title not reached yet: each skill the character may already attempt as a
+				      non-acquired skill (PG p.77) gets a roll at the base chance; one whose entry
+				      forbids it is marked. Bug report 0.20.7:1. --}}
+				{{#if row.reached}}
 				<td class="col-skills">{{row.skillText}}{{#if row.removedText}}{{#if row.skillText}}, {{/if}}<s class="muted" title="Given up at character creation">{{row.removedText}}</s>{{/if}}</td>
+				{{else}}
+				<td class="col-skills">{{#each row.skills as |s|}}{{#unless @first}}, {{/unless}}{{s.name}}{{#if s.core}} (core){{/if}}{{#if s.replaces}} (replaces {{s.replaces}}){{/if}}{{#if s.nonAcquiredUsable}}
+					<button type="button" class="row-button non-acquired-roll" data-action="rollNonAcquiredSkill" data-name="{{s.name}}"
+						data-tooltip="Attempt {{s.name}} non-acquired at its base chance, {{s.nonAcquiredChance}}%"><i class="fa-solid fa-dice-d20"></i> {{s.nonAcquiredChance}}%</button>{{else}}{{#if s.nonAcquiredReason}}
+					<i class="fa-solid fa-lock muted" data-tooltip="{{s.nonAcquiredReason}}"></i>{{/if}}{{/if}}{{/each}}{{#if row.removedText}}{{#if row.skills.length}}, {{/if}}<s class="muted" title="Given up at character creation">{{row.removedText}}</s>{{/if}}</td>
+				{{/if}}
 			</tr>
 			{{/each}}
 		</tbody>

@@ -44,6 +44,8 @@ import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
 import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
+import { getNonAcquiredLookup } from "../non-acquired.mjs";
+import { describeFooting } from "../skills-rules.mjs";
 import {
 	resolveSkillRoll, describeSkillResult, resolveAttributeSave, pickBestSkillRoll,
 	canTransferSlot, canSacrificeSlot,
@@ -118,6 +120,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			rollWeaponAttack: ImagineCharacterSheet.#onRollWeaponAttack,
 			setWeaponHand: ImagineCharacterSheet.#onSetWeaponHand,
 			rollUntrainedSkill: ImagineCharacterSheet.#onRollUntrainedSkill,
+			rollNonAcquiredSkill: ImagineCharacterSheet.#onRollNonAcquiredSkill,
 			stepClassTitle: ImagineCharacterSheet.#onStepClassTitle,
 			openLevelUp: ImagineCharacterSheet.#onOpenLevelUp,
 			openSituation: ImagineCharacterSheet.#onOpenSituation,
@@ -235,7 +238,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			                    selected: tmpskill == this.document.system.combat.chosenAttackSkill }));
 		// The Magic & Lore tab, worked out in module/magic-view.mjs. The magic switches decide which
 		// of its sections exist at all.
-		tmpcontext.magic = buildMagicPanel(this.document, game.imagine?.getAvailabilityRules?.() ?? null, game.user?.isGM);
+		// What this character may attempt without holding it -- common skills, and the class skills
+		// its own tables will give later (module/non-acquired.mjs; bug reports 0.20.7:1, 0.20.8:1).
+		// Read once per render, for the Magic & Lore tab's skill lines and the Class Progression rows.
+		this._nonAcquired = await getNonAcquiredLookup(this.document);
+		tmpcontext.magic = buildMagicPanel(this.document, game.imagine?.getAvailabilityRules?.() ?? null, game.user?.isGM,
+			this._nonAcquired);
 		tmpcontext.lore = ImagineCharacterSheet.#buildLorePanel(this.document.system);
 		// The Situation Mods bar, one line, as his combat page shows it.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
@@ -252,7 +260,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				this.document.getFlag?.("imagine-rpg", "startingMoney"), game.user?.isGM),
 			startRecord: this.document.getFlag?.("imagine-rpg", "startingMoney") ?? ""
 		};
-		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
+		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system, this._nonAcquired);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
 		// The martial panel is a partial; see loadMartialTemplates.
@@ -317,9 +325,25 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// setClassSkillLists holds all 92 classes' progressions -- and classSkillList is where the
 	// extraction now puts them, so every class has something to show here rather than the handful
 	// authored from his Word templates.
-	static #buildClassProgress(tmpsystem) {
+	//
+	// tmplookup, when given, is the character's non-acquired lookup (module/non-acquired.mjs): each
+	// skill of a row not reached yet learns whether it can be tried now at the base chance -- a
+	// roll button on the row -- or not ("may not be used non-acquired"). Bug report 0.20.7:1's
+	// "perhaps there should be a roll button for the non-acquired skills that rolls at base".
+	static #buildClassProgress(tmpsystem, tmplookup) {
 		var tmpclasses = (tmpsystem.identity.classProgression ?? []).filter(tmpclass => tmpclass.rows.length);
 		if (!tmpclasses.length) { return { show: false, classes: [], owed: 0 }; }
+
+		var tmpannotate = (tmprow) => ({
+			...tmprow,
+			skills: (tmprow.skills ?? []).map(tmpskill => {
+				var tmpanswer = (!tmprow.reached && typeof tmplookup == "function") ? tmplookup(tmpskill.name) : null;
+				return { ...tmpskill,
+					nonAcquiredUsable: !!tmpanswer?.footing,
+					nonAcquiredChance: tmpanswer?.chance ?? 0,
+					nonAcquiredReason: tmpanswer?.reason ?? "" };
+			})
+		});
 
 		return {
 			show: true,
@@ -328,7 +352,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			classes: tmpclasses.map(tmpclass => ({
 				name: tmpclass.name,
 				title: tmpclass.title,
-				rows: tmpclass.rows
+				rows: tmpclass.rows.map(tmpannotate)
 			})),
 			// Ordinarily zero: the grant runs on every title change. A number here means a
 			// character who earned skills the grant could not give them -- worth saying so.
@@ -1266,43 +1290,38 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 	// This is the function which attempts a skill the character has never learned.
 	//
-	// Player's Guide, "Who Can Use a Skill": almost any skill may be tried untrained, at the base
-	// chance with no starting bonus. Two limits come from the same passage and are applied here
-	// rather than in the chance itself: a skill already held is rolled as itself instead (the book
-	// is explicit -- "any skill for which the character has rolled a starting bonus can no longer
-	// be attempted as a common skill"), and a restricted skill cannot be tried at all.
+	// Player's Guide p.77, "Who Can Use a Skill", in full (skills-rules.mjs @MARKER NON-ACQUIRED
+	// SKILLS): a common skill -- any social skill, and the class or racial skills on his Common
+	// Skills Listing -- may be tried by anyone at the base chance; a restricted skill only by a
+	// character whose own class table will give it at a later title (non-acquired), and then only
+	// if its entry does not forbid it; a skill already held is rolled as itself.
 	//
-	// THE RESTRICTED FLAG HAS NO DATA BEHIND IT YET. His skilldict carries no restricted column --
-	// the book states it per skill and he never brought it across -- so `isRestricted` is on the
-	// schema, honoured here, and false on all 674 extracted skills until something populates it.
-	// Filtering on it now rather than later means nothing has to be rewired when it lands.
+	// Bug report 0.20.7:1 (Blocker): the list lacked Candle Lore -- a Gray Witch's 2nd-title skill,
+	// restricted, so left out -- and mixed every kind of skill together. So there are now two
+	// lists, as asked: every social skill, and the class and racial skills THIS character may try.
 	static async #onRollUntrainedSkill(event, target) {
-		var tmppack = game.packs.get("world.imagine-skills");
-		if (!tmppack) {
+		if (!game.packs.get("world.imagine-skills")) {
 			ui.notifications.warn("No skill compendium in this world. Import the system content first.");
 			return;
 		}
-
-		var tmpindex = await tmppack.getIndex({ fields: ["system.attr1", "system.attr2",
-			"system.skillRating", "system.isRestricted"] });
-		var tmpheld = new Set(this.document.items.filter(i => i.type == "skill").map(i => i.name));
-		var tmpoffer = tmpindex
-			.filter(e => !tmpheld.has(e.name) && !e.system?.isRestricted)
-			.sort((a, b) => a.name.localeCompare(b.name));
-		if (!tmpoffer.length) {
+		var tmplookup = await getNonAcquiredLookup(this.document);
+		var tmpgroups = tmplookup.groups();
+		if (!tmpgroups.social.length && !tmpgroups.classRacial.length) {
 			ui.notifications.info("No skill left to attempt untrained.");
 			return;
 		}
 
-		// Each skill shows its untrained chance beside its name, so the player sees the odds before
-		// choosing (Daryl 2026-09-25). The modifier entered below is added on top when rolled.
-		var tmpsystem = this.document.system;
-		var tmpoptions = tmpoffer
-			.map(e => `<option value="${e._id}">${foundry.utils.escapeHTML(e.name)} &mdash; ${
-				tmpsystem.getCommonSkillChance(e.system?.attr1, e.system?.attr2, e.system?.skillRating)}%</option>`).join("");
+		// Each skill shows its chance beside its name, so the player sees the odds before choosing
+		// (Daryl 2026-09-25), and a non-acquired one says so. The modifier is added on top.
+		var tmpoption = (tmpentry) => `<option value="${tmpentry._id}">${foundry.utils.escapeHTML(tmpentry.name)} &mdash; ${
+			tmplookup(tmpentry.name)?.chance ?? 0}%${tmpentry.footing == "nonAcquired" ? " (non-acquired)" : ""}</option>`;
+		var tmpoptions = `<optgroup label="Class and racial skills (${tmpgroups.classRacial.length})">${
+			tmpgroups.classRacial.map(tmpoption).join("")}</optgroup>`
+			+ `<optgroup label="Social skills (${tmpgroups.social.length})">${tmpgroups.social.map(tmpoption).join("")}</optgroup>`;
 		var tmpchoice = await foundry.applications.api.DialogV2.prompt({
 			window: { title: "Attempt a Skill Untrained" },
-			content: `<p class="hint">The base chance alone, with no starting bonus.</p>
+			content: `<p class="hint">The base chance alone, with no starting bonus. Class and racial skills: the common
+				ones, and the ones this character's class will give later (non-acquired, titles up to 10th).</p>
 				<div class="form-group"><label>Skill</label><select name="skill">${tmpoptions}</select></div>
 				<div class="form-group"><label>Modifier</label>
 					<input type="number" name="modifier" value="0"></div>`,
@@ -1317,22 +1336,44 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		});
 		if (!tmpchoice) { return; }
 
-		var tmpentry = tmpoffer.find(e => e._id == tmpchoice.id);
+		var tmpentry = [...tmpgroups.social, ...tmpgroups.classRacial].find(e => e._id == tmpchoice.id);
 		if (!tmpentry) { return; }
+		await ImagineCharacterSheet.#rollUnheldSkill(this.document, tmplookup, tmpentry.name, tmpchoice.modifier);
+	}
 
-		var tmpchance = this.document.system.getCommonSkillChance(
-			tmpentry.system?.attr1, tmpentry.system?.attr2, tmpentry.system?.skillRating)
-			+ tmpchoice.modifier;
+	// This is the function which rolls one of the class skills a later title will give, from its
+	// row of the Class Progression table -- the same roll as the dialog's, without the choosing.
+	static async #onRollNonAcquiredSkill(event, target) {
+		var tmpname = target.dataset.name;
+		if (!tmpname) { return; }
+		var tmplookup = this._nonAcquired ?? await getNonAcquiredLookup(this.document);
+		var tmpanswer = tmplookup(tmpname);
+		if (!tmpanswer?.footing) {
+			ui.notifications.warn(tmpanswer?.reason || `${tmpname} cannot be attempted.`);
+			return;
+		}
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier", `Modifier to ${foundry.utils.escapeHTML(tmpname)} (non-acquired):`);
+		if (tmpmodifier === null) { return; }
+		await ImagineCharacterSheet.#rollUnheldSkill(this.document, tmplookup, tmpname, tmpmodifier);
+	}
 
-		// His common skill roll reads its die through handleSkillRollDetails like every other
-		// skill roll (handleCommonSkillRoll, sheet-worker.js:64285), so an untrained attempt can be
-		// made by half too.
+	// This is the function which makes the roll for a skill not held: the base chance plus the
+	// modifier, read as every other skill roll is (his handleCommonSkillRoll, sheet-worker.js:64285,
+	// reads its die through handleSkillRollDetails, so an untrained attempt can be made by half too).
+	static async #rollUnheldSkill(tmpactor, tmplookup, tmpname, tmpmodifier) {
+		var tmpanswer = tmplookup(tmpname);
+		if (!tmpanswer?.footing) {
+			ui.notifications.warn(tmpanswer?.reason || `${tmpname} cannot be attempted.`);
+			return;
+		}
+		var tmpchance = (parseInt(tmpanswer.chance) || 0) + (parseInt(tmpmodifier) || 0);
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveSkillRoll(tmpchance, tmproll.total);
 
 		await tmproll.toMessage({
-			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${tmpentry.name} (untrained) &mdash; ${tmpresult.chance}% &mdash; ${describeSkillResult(tmpresult)}`
+			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+			flavor: `${foundry.utils.escapeHTML(tmpname)} ${describeFooting(tmpanswer.footing)} &mdash; ${tmpresult.chance}%${
+				describeModifier(tmpmodifier)} &mdash; ${describeSkillResult(tmpresult)}`
 		});
 	}
 

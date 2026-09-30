@@ -85,8 +85,10 @@
 	<details class="skill-group magic-group" data-sync open>
 		<summary>{{g.heading}} <span class="count">{{g.rows.length}}</span>
 			<span class="magic-skill">
-				{{#if g.learn}}{{g.learn.name}} {{#if g.learn.held}}{{g.learn.chance}}%{{else}}<span class="muted">not held</span>{{/if}}{{/if}}
-				{{#if g.use}} &middot; {{g.use.name}} {{#if g.use.held}}{{g.use.chance}}%{{else}}<span class="muted">not held</span>{{/if}}{{/if}}
+				{{!-- A skill not held but usable on its common or non-acquired footing shows its base
+				      chance and the footing (bug report 0.20.8:1); one that cannot be used says so. --}}
+				{{#if g.learn}}{{g.learn.name}} {{#if g.learn.usable}}{{g.learn.chance}}%{{#unless g.learn.held}} <span class="muted">{{g.learn.footingLabel}}</span>{{/unless}}{{else}}<span class="muted">not held</span>{{/if}}{{/if}}
+				{{#if g.use}} &middot; {{g.use.name}} {{#if g.use.usable}}{{g.use.chance}}%{{#unless g.use.held}} <span class="muted">{{g.use.footingLabel}}</span>{{/unless}}{{else}}<span class="muted">not held</span>{{/if}}{{/if}}
 				{{#if g.rollSkill.held}} &middot; <span class="muted">practitioner title {{g.rollSkill.practitionerTitle}}</span>{{/if}}
 			</span></summary>
 		<div class="gear-add">

@@ -20,7 +20,8 @@
 
 import { explainAvailability } from "../availability.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
-import { MAGIC_KINDS, getItemKind, getSkillStanding, resolveLoreLearn, isLoreSuccess,
+import { getNonAcquiredLookup } from "../non-acquired.mjs";
+import { MAGIC_KINDS, getItemKind, getSkillStanding, describeStanding, resolveLoreLearn, isLoreSuccess,
          makePotionRecipe } from "../lore-rules.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
@@ -97,6 +98,9 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 	// His learn roll, for a lore he learns with a skill: on, as his add buttons always roll. Off
 	// adds the entry outright -- for a Game Master handing one out, or a sheet being caught up.
 	#learnByRoll = true;
+	// The actor's common / non-acquired lookup (module/non-acquired.mjs), read when the window is
+	// drawn and kept for the learn roll.
+	#nonAcquired = null;
 
 	constructor(tmpactor, tmptype, tmpoptions) {
 		super(tmpoptions ?? {});
@@ -154,10 +158,15 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		tmpcontext.learnByRoll = this.#learnByRoll;
 		tmpcontext.isMagic = !!PICKER_PACKS[this.#type].magic;
 		if (this.#learnSkill) {
+			// Held, or usable unheld on its common or non-acquired footing (bug report 0.20.8:1):
+			// the lookup is read once here and kept for the roll itself.
+			this.#nonAcquired = this.#actor ? await getNonAcquiredLookup(this.#actor) : null;
 			var tmpstanding = getSkillStanding(this.#actor?.items?.filter(i => i.type == "skill"),
-				this.#learnSkill, this.#actor?.system?.identity?.title);
-			tmpcontext.learnChance = tmpstanding.held ? tmpstanding.chance : 0;
+				this.#learnSkill, this.#actor?.system?.identity?.title, this.#nonAcquired);
+			tmpcontext.learnChance = tmpstanding.chance;
 			tmpcontext.learnHeld = tmpstanding.held;
+			tmpcontext.learnUsable = tmpstanding.held || !!tmpstanding.footing;
+			tmpcontext.learnFooting = describeStanding(tmpstanding).trim();
 		}
 		tmpcontext.search = this.#search;
 		tmpcontext.total = tmpall.length;
@@ -260,8 +269,9 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 
 		var tmpskill = this.#learnSkill;
 		if (tmpskill && this.#learnByRoll) {
+			if (!this.#nonAcquired) { this.#nonAcquired = await getNonAcquiredLookup(tmpactor); }
 			var tmpstanding = getSkillStanding(tmpactor.items.filter(i => i.type == "skill"), tmpskill,
-				tmpactor.system?.identity?.title);
+				tmpactor.system?.identity?.title, this.#nonAcquired);
 			var tmproll = await new Roll("1d100").evaluate();
 			var tmpresult = resolveLoreLearn({ chance: tmpstanding.chance, situational: 0, alreadyKnown: false }, tmproll.total);
 			var tmpwords = { success: "learned", grandmaster: "learned it outright, a Grandmaster of " + tmpskill,
@@ -270,7 +280,7 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 				speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
 				flavor: `Learn ${tmplabel}: ${tmpdata.name} &mdash; `
 				      + `<strong>${isLoreSuccess(tmpresult.outcome) ? "learned" : "not learned"}</strong>`,
-				content: `<div class="imagine-skill-roll">${tmpskill} ${tmpresult.total}%${tmpstanding.held ? "" : " (not held)"}: `
+				content: `<div class="imagine-skill-roll">${tmpskill} ${tmpresult.total}%${describeStanding(tmpstanding)}: `
 				       + `rolled ${tmpresult.roll} &mdash; ${tmpwords[tmpresult.outcome] ?? tmpresult.outcome}.</div>`,
 				rolls: [tmproll]
 			});

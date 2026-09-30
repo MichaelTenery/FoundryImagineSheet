@@ -26,7 +26,8 @@
 // and the entry's own description, and the effect is the Game Master's to apply.
 //==================================================================================================================
 
-import { MAGIC_KINDS, getItemKind, getSkillStanding, resolveLoreUse, resolveBrew, isLoreSuccess,
+import { getNonAcquiredLookup } from "./non-acquired.mjs";
+import { MAGIC_KINDS, getItemKind, getSkillStanding, describeStanding, resolveLoreUse, resolveBrew, isLoreSuccess,
          useConsumableDose, makePoisonSystem, POISON_FORMS, resolvePoisonOnVictim,
          describePoisonOnVictim, getPoisonIntervalsDue, getPoisonDamageToApply, applyOverallDamage,
          coatWeapon, isEnvenomed, ENVENOMED_THRESHOLD } from "./lore-rules.mjs";
@@ -58,10 +59,13 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		return await askRollModifier(tmpevent, tmptitle, "Situational modifier:");
 	}
 
-	// This is the function which reads the character's standing in a skill, for a roll.
-	function standingFor(tmpactor, tmpname) {
+	// This is the function which reads the character's standing in a skill, for a roll -- held, or
+	// usable unheld on its common or non-acquired footing (module/non-acquired.mjs; bug report
+	// 0.20.8:1: a lore the character's class will give is usable at base before it arrives).
+	async function standingFor(tmpactor, tmpname) {
+		var tmplookup = await getNonAcquiredLookup(tmpactor);
 		return getSkillStanding(tmpactor.items.filter(tmpitem => tmpitem.type == "skill"), tmpname,
-			tmpactor.system?.identity?.title);
+			tmpactor.system?.identity?.title, tmplookup);
 	}
 
 	// This is the function which adds doses to a consumable the character carries, or makes a new
@@ -363,7 +367,7 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		var tmpsituational = await askModifier(tmpevent, `Use ${tmpitem.name}`);
 		if (tmpsituational === null) { return; }
 
-		var tmpstanding = standingFor(tmpactor, tmpskill);
+		var tmpstanding = await standingFor(tmpactor, tmpskill);
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveLoreUse({ chance: tmpstanding.chance, situational: tmpsituational,
 			entryModifier: tmpitem.system.modifier, memorized: tmpitem.system.memorized,
@@ -374,7 +378,7 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		if (tmpresult.outcome == "notMemorized") {
 			tmplines.push(`${escapeText(tmpactor.name)} ${OUTCOME_WORDS.notMemorized}.`);
 		} else {
-			tmplines.push(`${escapeText(tmpskill)} ${tmpresult.total}%${tmpstanding.held ? "" : " (not held)"}`
+			tmplines.push(`${escapeText(tmpskill)} ${tmpresult.total}%${describeStanding(tmpstanding)}`
 				+ `${tmpsituational ? ` (situational ${tmpsituational > 0 ? "+" : ""}${tmpsituational})` : ""}`
 				+ `${tmpitem.system.modifier ? `, entry ${tmpitem.system.modifier > 0 ? "+" : ""}${tmpitem.system.modifier}` : ""}: `
 				+ `rolled ${tmpresult.roll} &mdash; ${OUTCOME_WORDS[tmpresult.outcome] ?? tmpresult.outcome}.`);
@@ -433,7 +437,7 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		if (!tmpanswer) { return; }
 		if (tmpanswer.doses != tmpitem.system.batchDoses) { await tmpitem.update({ "system.batchDoses": tmpanswer.doses }); }
 
-		var tmpstanding = standingFor(tmpactor, tmpskill);
+		var tmpstanding = await standingFor(tmpactor, tmpskill);
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveBrew({ chance: tmpstanding.chance, situational: tmpanswer.modifier,
 			batchDoses: tmpanswer.doses }, tmproll.total);
@@ -463,7 +467,7 @@ import { POISON_TYPES, POISON_POTENCIES } from "./lore-tables.mjs";
 		await ChatMessage.create({
 			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
 			flavor: `Brews ${escapeText(tmpitem.name)} &mdash; <strong>${isLoreSuccess(tmpresult.outcome) ? "success" : "failure"}</strong>`,
-			content: `<div class="imagine-magic-card">${escapeText(tmpskill)} ${tmpresult.total}%${tmpstanding.held ? "" : " (not held)"}`
+			content: `<div class="imagine-magic-card">${escapeText(tmpskill)} ${tmpresult.total}%${describeStanding(tmpstanding)}`
 			       + (tmpresult.roll === null ? `: ${OUTCOME_WORDS[tmpresult.outcome]}.` : `: rolled ${tmpresult.roll} &mdash; ${OUTCOME_WORDS[tmpresult.outcome] ?? tmpresult.outcome}.`)
 			       + tmpmade + `</div>`,
 			rolls: tmpresult.roll === null ? [] : [tmproll]

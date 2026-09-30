@@ -1,0 +1,17 @@
+{
+  "_source": {
+    "file": "Bug Report 0.20.7.docx (2026-09-30), its second page: \"Common (Unrestricted Class/Race skills)\"",
+    "note": "His Common Skills Listing, transcribed by hand from the image he supplied with bug report 0.20.7:1. The Player's Guide p.77 table of the class and racial skills anyone may attempt untrained, at the base chance. Every other class or racial skill is restricted: attemptable only as a non-acquired skill, by a character whose own class table will give it. Social skills are never on this list -- the book lets any of them be attempted. Read by tools/extract/build_documents.py build_skills to set isRestricted; his listing outranks the books' per-entry Restricted: headings where the two disagree (Animal Projection, Resurrection, Sense Projection and Thought Projection say No and are not listed), and settles the 74 Conquest of the Eternal skills the port has no book text for."
+  },
+  "entries": [
+    "Animal Lore", "Area Sense", "Artifact Lore", "Balance", "Berserking", "Bestiary Lore", "Blend",
+    "Body Parry", "Brace", "Break Fall", "Cartography", "Charming", "Cheat", "Climb", "Convert",
+    "Convince", "Cover Tracks", "Critical", "Decipher", "Depth Knowledge", "Detect Alignment",
+    "Detect Magic", "Detect Trap", "Direction Knowledge", "Disguise", "Dodge", "Escape", "False Attack",
+    "Feint", "Fencing", "Force", "Forgery", "Herb Lore", "Horsemanship", "Intimidation",
+    "Jewelry Knowledge", "Law", "Leap", "Legend Lore", "Lie", "Listen", "Martial Knowledge", "Meditate",
+    "Mimic", "Move Unheard", "Move Unseen", "Navigate", "Ruins Lore", "Sail", "Set Trap", "Shadowing",
+    "Shield Parry", "Sleight of Hand", "Steal", "Street Knowledge", "Street Lore", "Stun",
+    "Surprise Attack", "Track", "Trap Weapon", "Trip", "Truth Tell", "Weapon Knowledge", "Weapon Parry"
+  ]
+}

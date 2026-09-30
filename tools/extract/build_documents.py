@@ -303,6 +303,81 @@ def lookup_restricted(tmpsourcebook, tmpname):
     return True, tmpvalues[0]
 
 
+# @MARKER NON-ACQUIRED USE
+# The second flag the books state per skill, and the one bug reports 0.20.7:1 and 0.20.8:1 turn
+# on. Player's Guide p.77, "Non-Acquired Restricted Skills": a skill a character's class table will
+# give at a later title is a NON-ACQUIRED skill, and "she can attempt any of them (at the Game
+# Master's discretion) as a common skill, even those that are restricted" -- except the ones whose
+# entry says otherwise: "Notes: This skill cannot be attempted as a non-acquired skill", "Special
+# Notes: May not be used non-acquired" and the like (Weapon Lore, Spell Lore, Missile Lore ...).
+# That note sits at the END of an entry, after the description, so it is credited to the nearest
+# skill-name line above it, the same ALL-CAPS line the Restricted: parser finds. Language Lore's
+# note is conditional ("if an open language slot exists ... Otherwise, it cannot be attempted") and
+# is read as the flag, the safer of the two readings.
+_NON_ACQUIRED_NOTE = re.compile(
+    r'(may\s+not|can\s*not|cannot)\s+be\s+(used|attempted)(\s+as)?(\s+a)?\s+non-?\s*acquired', re.IGNORECASE)
+
+_non_acquired_flag_cache = {}
+
+
+def _extract_non_acquired_flags(slug):
+    """The skill names whose entry carries a "may not be used non-acquired" note, from one book."""
+    tmplines = _load_book_text(slug)
+    if tmplines is None:
+        return None
+    tmpout = set()
+    tmpcurrent = None
+    for i, tmpline in enumerate(tmplines):
+        tmpcand = tmpline.strip()
+        if not tmpcand or tmpcand.startswith("===== PAGE") or tmpcand.isdigit():
+            continue
+        tmpletters = re.sub(r'[^A-Za-z]', '', tmpcand)
+        if (tmpletters and tmpletters == tmpletters.upper() and len(tmpletters) > 1
+                and not _RESTRICTED_FIELD_LABELS.match(tmpcand)):
+            tmpcurrent = tmpcand
+            continue
+        # A note may wrap onto the next line ("May not / be used as a non-acquired skill").
+        tmpjoined = tmpcand + " " + (tmplines[i + 1].strip() if i + 1 < len(tmplines) else "")
+        if _NON_ACQUIRED_NOTE.search(tmpjoined) and tmpcurrent:
+            tmpout.add(_normalize_skill_name(tmpcurrent))
+    return tmpout
+
+
+def lookup_non_acquired_use(tmpsourcebook, tmpname):
+    """True when the skill's own sourcebook says it may not be used non-acquired; False otherwise,
+    including for a book the port has no text of (the flag is then simply not stated)."""
+    tmpslug = RESTRICTED_BOOK_FILES.get(tmpsourcebook)
+    if not tmpslug:
+        return False
+    if tmpslug not in _non_acquired_flag_cache:
+        _non_acquired_flag_cache[tmpslug] = _extract_non_acquired_flags(tmpslug)
+    tmpflags = _non_acquired_flag_cache[tmpslug]
+    if not tmpflags:
+        return False
+    return _normalize_skill_name(tmpname) in tmpflags
+
+
+# @MARKER COMMON SKILLS LISTING
+# His Common Skills Listing (src/packs/named/commonSkillsListing.json, from bug report 0.20.7:1):
+# the class and racial skills anyone may attempt untrained. For a class-category skill this
+# listing decides isRestricted -- listed is common, unlisted is restricted -- over the books'
+# per-entry Restricted: headings, because it is his newest statement and because it settles the
+# 74 Conquest of the Eternal skills the port has no book text for (which read as common before,
+# by default). A skill of another book whose entry says "Restricted: No" is left common only if
+# his listing does not cover that book at all -- it is the Player's Guide's table -- so the four
+# Player's Guide skills it omits (Animal Projection, Resurrection, Sense Projection, Thought
+# Projection) become restricted, and the Master's Manual's, Mysteries' and Epitaph's "No" stand.
+# Social skills are never restricted (PG p.77: "Any social skill can be attempted").
+def load_common_listing():
+    tmpdata = load_named("commonSkillsListing")
+    return set(tmpdata.get("entries", [])) if tmpdata else set()
+
+
+def base_skill_name(tmpname):
+    """'Set Trap(w)' and 'Set Trap(u)' are Set Trap on his listing."""
+    return re.sub(r'\((w|u)\)$', '', str(tmpname))
+
+
 # @MARKER DOCUMENT BUILDERS
 
 
@@ -338,6 +413,9 @@ def build_skills():
     tmprestrictedfound = 0
     tmprestrictedmissing = 0
     tmpsentinelsskipped = 0
+    tmpcommonlisting = load_common_listing()
+    tmplistingchanged = 0
+    tmpnonacquiredfound = 0
     for source, category in (("skilldict", "class"), ("socialskilldict", "social")):
         payload = load_named(source)
         if not payload:
@@ -363,6 +441,24 @@ def build_skills():
                 tmprestrictedmissing += 1
                 note("restricted-not-found", where,
                      "no \"Restricted:\" heading found in %s -- left false" % (tmpsourcebook or "(no sourcebook)"))
+            # His Common Skills Listing over the books, for class skills -- see load_common_listing.
+            if category == "class":
+                tmplisted = base_skill_name(tmpname) in tmpcommonlisting
+                if tmplisted:
+                    tmpwas = tmpisrestricted
+                    tmpisrestricted = False
+                elif not tmpfound or tmpsourcebook == "Player's Guide":
+                    tmpwas = tmpisrestricted
+                    tmpisrestricted = True
+                else:
+                    tmpwas = tmpisrestricted
+                if tmpwas != tmpisrestricted:
+                    tmplistingchanged += 1
+            else:
+                tmpisrestricted = False
+            tmpnonacquired = lookup_non_acquired_use(tmpsourcebook, tmpname)
+            if tmpnonacquired:
+                tmpnonacquiredfound += 1
 
             docs.append(make_doc(tmpname, "skill", {
                 "attr1": clean_text(tmprow.get("attr1", "")),
@@ -377,10 +473,13 @@ def build_skills():
                 "category": category,
                 "description": clean_text(tmprow.get("description", "")),
                 "isRestricted": tmpisrestricted,
+                "noNonAcquiredUse": tmpnonacquired,
             }))
 
     print(f"\nisRestricted: {tmprestrictedfound} of {tmprestrictedfound + tmprestrictedmissing} skills "
-          f"found a \"Restricted:\" heading in their sourcebook ({tmprestrictedmissing} left false)")
+          f"found a \"Restricted:\" heading in their sourcebook ({tmprestrictedmissing} not found); "
+          f"his Common Skills Listing ({len(tmpcommonlisting)} names) then settled {tmplistingchanged} class skill(s)")
+    print(f"noNonAcquiredUse: {tmpnonacquiredfound} skill(s) whose entry says it may not be used non-acquired")
     if tmpsentinelsskipped:
         print(f"skilldict/socialskilldict: {tmpsentinelsskipped} sentinel row(s) skipped "
               f"({', '.join(SKILL_DICT_SENTINELS)} -- dropdown markers, not skills)")

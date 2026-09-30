@@ -1,0 +1,105 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG untrained and non-acquired skills test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the common and non-acquired skill rules of module/skills-rules.mjs, the standing
+// fallback in module/lore-rules.mjs and the lookup in module/non-acquired.mjs, against the REAL
+// skills of src/packs/documents/skills.json -- Player's Guide p.77, "Who Can Use a Skill", as bug
+// reports 0.20.7:1 and 0.20.8:1 (2026-09-30) asked for it.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/untrained-test.html
+globalThis.foundry = globalThis.foundry ?? {
+	abstract: { TypeDataModel: class {} },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = globalThis.game ?? { packs: { get: () => null } };
+const S = await import("../module/skills-rules.mjs");
+const L = await import("../module/lore-rules.mjs");
+const N = await import("../module/non-acquired.mjs");
+const skills = await (await fetch("../src/packs/documents/skills.json", { cache: "no-store" })).json();
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+const byName = (n) => skills.find(s => s.name === n);
+const def = (n) => ({ name: n, ...byName(n).system });
+// The index rows the compendium gives, with the fields non-acquired.mjs asks for.
+const index = skills.map(s => ({ _id: s.name, name: s.name, system: {
+	attr1: s.system.attr1, attr2: s.system.attr2, skillRating: s.system.skillRating, category: s.system.category,
+	isRestricted: s.system.isRestricted, noNonAcquiredUse: s.system.noNonAcquiredUse } }));
+
+// --- the data the build now carries --------------------------------------------------------------
+check("Candle Lore is restricted (not on his Common Skills Listing) and may be used non-acquired",
+	[def("Candle Lore").isRestricted, def("Candle Lore").noNonAcquiredUse], [true, false]);
+check("Weapon Lore, Missile Lore and Spell Lore may not be used non-acquired",
+	["Weapon Lore", "Missile Lore", "Spell Lore"].map(n => def(n).noNonAcquiredUse), [true, true, true]);
+check("Herb Lore and Climb are common (his listing); Accounting, a social skill, is never restricted",
+	["Herb Lore", "Climb", "Accounting"].map(n => def(n).isRestricted), [false, false, false]);
+check("his listing has 64 names and every one is a class skill of the pack",
+	(await (await fetch("../src/packs/named/commonSkillsListing.json", { cache: "no-store" })).json()).entries
+		.filter(n => !byName(n) || byName(n).system.category !== "class"), []);
+
+// --- the Gray Witch of bug report 0.20.7 ---------------------------------------------------------
+// Title 1; her table gives Candle Lore at 2 and Spell Lore at 7 (so the report's screenshot).
+const progression = [{ rows: [
+	{ title: 1, skills: [{ name: "Area Sense" }, { name: "Herb Lore" }] },
+	{ title: 2, skills: [{ name: "Animal Projection" }, { name: "Candle Lore" }] },
+	{ title: 7, skills: [{ name: "Spell Lore" }] },
+	{ title: 11, skills: [{ name: "Arch Skill" }] }
+] }];
+const held = ["Area Sense", "Herb Lore"];
+check("the non-acquired skills are the later titles' up to 10th, never the held title's or an Arch Mortal's",
+	S.getNonAcquiredSkillNames(progression, 1), ["Animal Projection", "Candle Lore", "Spell Lore"]);
+const nonAcq = S.getNonAcquiredSkillNames(progression, 1);
+check("Candle Lore is usable non-acquired", S.canUseNonAcquired(def("Candle Lore"), held, nonAcq).footing, "nonAcquired");
+check("Spell Lore is on her table but its entry forbids it", S.canUseNonAcquired(def("Spell Lore"), held, nonAcq).usable, false);
+check("Weapon Lore is not hers at all", S.canUseNonAcquired(def("Weapon Lore"), held, nonAcq).usable, false);
+check("Climb is common to anyone", S.canUseNonAcquired(def("Climb"), held, nonAcq).footing, "common");
+check("a held skill is not offered -- it is rolled as itself", S.canUseNonAcquired(def("Herb Lore"), held, nonAcq).footing, "held");
+check("Accounting, social, is common whatever the flags say", S.canUseNonAcquired(def("Accounting"), held, nonAcq).footing, "common");
+
+const groups = S.getUntrainedSkillGroups(held, index, nonAcq);
+check("the untrained dialog's two lists: Candle Lore now among the class skills, no social skill there",
+	[groups.classRacial.some(e => e.name === "Candle Lore"), groups.classRacial.some(e => e.system.category === "social")], [true, false]);
+check("...every social skill in the other list, and none of the two held skills in either",
+	[groups.social.length === skills.filter(s => s.system.category === "social").length,
+	 [...groups.social, ...groups.classRacial].some(e => held.includes(e.name))], [true, false]);
+check("...the class list is the common ones plus her non-acquired ones, A-Z",
+	[groups.classRacial.filter(e => e.footing === "nonAcquired").map(e => e.name),
+	 groups.classRacial.map(e => e.name).slice().sort().join() === groups.classRacial.map(e => e.name).join()],
+	[["Animal Projection", "Candle Lore"], true]);
+
+// --- the standing a lore roll reads (bug report 0.20.8) ------------------------------------------
+// A stand-in actor: INT 14 / KNW 12, so a KNW-only rating-12 skill is (12-12)x5 = 0 and Candle Lore
+// (its own attributes) whatever the formula gives; the point is that the fallback is asked.
+const actor = {
+	items: held.map(n => ({ type: "skill", name: n, system: { category: "class", totalChance: 40, acquiredAtTitle: 1 } })),
+	system: { identity: { title: 1, classProgression: progression },
+	          getCommonSkillChance: (a1, a2, r) => 35 }
+};
+const lookup = N.buildNonAcquiredLookup(actor, index);
+check("the lookup answers a non-acquired skill with the base chance and its footing",
+	[lookup("Candle Lore").chance, lookup("Candle Lore").footing], [35, "nonAcquired"]);
+check("...and a forbidden one with no footing and the reason", [lookup("Spell Lore").footing, lookup("Spell Lore").reason.includes("non-acquired")], ["", true]);
+check("...and null for a name that is no skill", lookup("Not A Skill"), null);
+const standing = L.getSkillStanding(actor.items, "Candle Lore", 1, lookup);
+check("a lore roll on Candle Lore reads the base chance, non-acquired, practitioner title 1 (a common skill's)",
+	[standing.held, standing.chance, standing.footing, standing.practitionerTitle], [false, 35, "nonAcquired", 1]);
+check("...worded '(non-acquired)' on the card, where it used to say '(not held)'", L.describeStanding(standing), " (non-acquired)");
+check("Spell Lore still reads as not held: 0, title 0",
+	[L.getSkillStanding(actor.items, "Spell Lore", 1, lookup).chance, L.describeStanding(L.getSkillStanding(actor.items, "Spell Lore", 1, lookup))], [0, " (not held)"]);
+check("a held skill is unchanged by the fallback", [L.getSkillStanding(actor.items, "Herb Lore", 1, lookup).held, L.describeStanding(L.getSkillStanding(actor.items, "Herb Lore", 1, lookup))], [true, ""]);
+check("without a fallback the old answer stands", L.getSkillStanding(actor.items, "Candle Lore", 1).chance, 0);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

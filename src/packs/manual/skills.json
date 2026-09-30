@@ -18,5 +18,11 @@
       "description": "An override changes only the fields it gives -- here, the description."
     }
   },
-  "entries": {}
+  "entries": {
+    "Spell Lore": {
+      "_note": "Bug report 0.20.8:1 (2026-09-30): 'some lore skills Spell Lore, etc. are not usable, non-acquired'. The Player's Guide's entry (p.101) says Restricted: Yes and carries no non-acquired note, so the build cannot read this off the book; his statement is newer than the book and is laid over it here.",
+      "_override": true,
+      "noNonAcquiredUse": true
+    }
+  }
 }
