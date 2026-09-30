@@ -67,6 +67,11 @@ export default class ImagineSkillData extends foundry.abstract.TypeDataModel {
 			// chance with no starting bonus, and cannot be used at all for restricted skills.
 			isCommon:     new fields.BooleanField({ required: true, initial: false }),
 			isRestricted: new fields.BooleanField({ required: true, initial: false }),
+			// The book's "may not be used as a non-acquired skill" note (Player's Guide p.77): a
+			// restricted skill a character's own class table will give later may ordinarily be tried
+			// as a common skill before it arrives -- this is the exception (Weapon Lore, Spell Lore,
+			// Missile Lore ...). Set by the build from the books; see skills-rules.mjs canUseNonAcquired.
+			noNonAcquiredUse: new fields.BooleanField({ required: true, initial: false }),
 
 			description: new fields.HTMLField({ required: true, initial: "" })
 		};

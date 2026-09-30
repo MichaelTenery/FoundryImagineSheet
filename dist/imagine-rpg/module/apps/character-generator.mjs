@@ -18,7 +18,8 @@ import { rollAttributeSets, rollHandedness, rollStartingAge, assembleCharacter, 
 import { rollPhysique } from "../physique-rules.mjs";
 import { getFamorianBreed, rollEvokeBudget } from "../famorian-rules.mjs";
 import { STEPS, newGeneratorState, deriveGenerator, checkStep, buildGeneratorView, choicesFromState,
-	colourChoices, rollStartingMoneyIfDue, getSecondRaceNames, reconcileAlignment } from "../chargen-view.mjs";
+	colourChoices, rollStartingMoneyIfDue, getSecondRaceNames, reconcileAlignment,
+	getRequiredSocialSkillNames } from "../chargen-view.mjs";
 import { describeStartingMoney } from "../starting-money.mjs";
 import { addPurchase, describeCart, DEFAULT_PRICE_LEVEL } from "../shop-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
@@ -164,6 +165,13 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		if ("className" in tmpdata && (tmpdata.className ?? "") !== tmpstate.className) {
 			tmpstate.removedClassSkills = [];
 			tmpstate.classSkillSwaps = [];
+			// @MARKER SOCIAL SKILLS
+			// The new class's Required social skills start ticked -- "if the social skill is required,
+			// that means it should be automatically selected as they MUST take that skill" (bug report
+			// 0.20.3:1). His Step 6 only refuses at confirm; this ticks them first, and the Skills step's
+			// own check (and the Game Master's override) still stand if the player unticks one.
+			tmpstate.socialSkillNames = getRequiredSocialSkillNames(
+				(this.#content?.classes ?? []).find(tmpdoc => tmpdoc.name == (tmpdata.className ?? "")));
 		}
 		for (const tmpkey of ["name", "gender", "charType", "race1", "race2", "className", "chosenAttackSkill",
 		                      "handedness", "frame", "hair", "eyes", "skin", "alignment", "tendencies"]) {

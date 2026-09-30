@@ -24,6 +24,7 @@ import {
 import { MARTIAL_LORE_VALUES } from "../combat-tables.mjs";
 import { findActorCombatant } from "./combat-document.mjs";
 import { resolveSkillRoll, describeSkillRoll } from "../skills-rules.mjs";
+import { askRollModifier } from "../roll-modifier.mjs";
 
 const { resolveAttack, resolveCriticalFumble } = CombatRules;
 
@@ -98,18 +99,10 @@ export function loadMartialTemplates() {
 	}
 
 	// This is the function which asks for a modifier to a skill roll, the MOD button beside each
-	// ROLL on his sheet. Only asked when the button is shift-clicked, the resistance roll's
-	// convention, so an ordinary click rolls straight away. Returns null if cancelled.
+	// ROLL on his sheet. Asked on every click since 2026-09-30 (bug report 0.20.2:1), shift-click
+	// rolling straight away -- the one prompt in module/roll-modifier.mjs. Returns null if cancelled.
 	async function askModifier(tmpevent, tmptitle) {
-		if (!tmpevent?.shiftKey) { return 0; }
-		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-			window: { title: tmptitle },
-			content: `<p>Modifier to the roll:</p><input type="number" name="modifier" value="0" autofocus>`,
-			rejectClose: false,
-			ok: { label: "Roll", callback: (tmpe, tmpbutton) => tmpbutton.form.elements.modifier.value }
-		});
-		if (tmpanswer === null || tmpanswer === undefined) { return null; }
-		return parseInt(tmpanswer) || 0;
+		return await askRollModifier(tmpevent, tmptitle, "Modifier to the roll:");
 	}
 
 

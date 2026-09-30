@@ -6027,13 +6027,6 @@ export const SOCIAL_SKILL_EQUIPMENT = {
 		"Sheers",
 		"Spade/Trowel"
 	],
-	"Botanist": [
-		"Knife(Tool)",
-		"Magnifying Glass",
-		"Mortar and Pestle",
-		"Sheers",
-		"Spade/Trowel"
-	],
 	"Brewing": [
 		"Pitcher/Jug(Wooden)",
 		"3 Mug(Wooden)",

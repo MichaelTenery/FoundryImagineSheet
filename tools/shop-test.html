@@ -133,6 +133,12 @@ for (const d of [T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS]) {
 		}
 	}
 }
+// --- what stacks (bug report 0.20.9:1; the sheet's drop follows the shop's rule) ------------------
+check("general equipment and ammunition stack; a sword and a shirt are one item each",
+	[S.itemStacks("equipment", "Rope(Hemp per')", {}), S.itemStacks("weapon", "Arrow", { type: "Missile", speed: 0 }),
+	 S.itemStacks("weapon", "Sword(Long)", { type: "Melee", speed: 4 }), S.itemStacks("armor", "Full Shirt(Leather)", {})],
+	[true, true, false, false]);
+
 // 44 since 2026-09-30: Long Sleeve Shirt(Giant Scales) was one of them until his own table replaced
 // the row (extract_shop_tables.py COST_REPAIRS, bug report 0.20.6:1). Full Shirt(Giant Scales) still is.
 check("44 of his rows are out of order across the seven columns", disorder.length, 44);

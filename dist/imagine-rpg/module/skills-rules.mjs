@@ -400,4 +400,114 @@
 		if (!tmphasskill) { return { allowed: false, reason: "The bonus needs a skill to land on." }; }
 		return { allowed: true, reason: "" };
 	}
+
+// @MARKER NON-ACQUIRED SKILLS
+// Player's Guide p.77, "Who Can Use a Skill", read in full for bug reports 0.20.7:1 and 0.20.8:1
+// (both Blockers, 2026-09-30). Three kinds of skill a character does not hold:
+//
+//     common          not Restricted -- anyone may attempt it at the base chance. For a class or
+//                     racial skill that is his Common Skills Listing (commonSkillsListing.json);
+//                     every social skill is common ("Any social skill can be attempted as a
+//                     common skill, as long as the GM decides that character has been exposed to
+//                     it somewhere").
+//     non-acquired    restricted, but on the character's OWN class table at a title not reached
+//                     yet: "it is assumed that earlier in the character's class training, she was
+//                     exposed to all of the skills listed in that class table ... she can attempt
+//                     any of them (at the Game Master's discretion) as a common skill, even those
+//                     that are restricted" -- unless the skill's entry says it may not be used
+//                     non-acquired (noNonAcquiredUse: Weapon Lore, Spell Lore, Missile Lore ...).
+//     neither         restricted and not the character's -- cannot be attempted at all.
+//
+// His bug report 0.20.7 puts the last-title bound at 10th ("all the skills they will acquire
+// between 2nd and 10th title"); the Master's Manual agrees (p.?, "skills above 10th Title are not
+// able to be used as non-acquired"), so titles 11 to 15 -- the Arch Mortal's -- are not offered.
+// A row the player gave up at creation (removed) is not on the character's table at all
+// (DECISIONS 2026-09-26 §4) and is not offered either.
+
+	// The last title whose class skills may be attempted non-acquired.
+	export const NON_ACQUIRED_LAST_TITLE = 10;
+
+	// This is the function which lists, by name, the class skills a character's own class tables
+	// will give at a later title -- the non-acquired skills. Read off the actor's classProgression
+	// ([{ rows: [{ title, skills: [{ name }] }] }], actor-character.mjs), which already leaves out
+	// removed rows and the wrong half of a caster/non-caster pair. Every class of a dual class.
+	//
+	//   tmpprogression  identity.classProgression
+	//   tmptitle        the character's title
+	export function getNonAcquiredSkillNames(tmpprogression, tmptitle) {
+		var tmpat = parseInt(tmptitle) || 0;
+		var tmpout = [];
+		for (const tmpclass of tmpprogression ?? []) {
+			for (const tmprow of tmpclass.rows ?? []) {
+				var tmprowtitle = parseInt(tmprow.title) || 0;
+				if (tmprowtitle <= tmpat || tmprowtitle > NON_ACQUIRED_LAST_TITLE) { continue; }
+				for (const tmpskill of tmprow.skills ?? []) {
+					if (tmpskill?.name && !tmpout.includes(tmpskill.name)) { tmpout.push(tmpskill.name); }
+				}
+			}
+		}
+		return tmpout;
+	}
+
+	// This is the function which says whether a skill the character does not hold may be attempted
+	// as a common skill, and on what footing.
+	//
+	//   tmpdef              { name, category, isRestricted, noNonAcquiredUse } -- the compendium
+	//                       skill (a pack index row's system fields, or a document's)
+	//   tmpheldnames        names of skills already on the character
+	//   tmpnonacquirednames getNonAcquiredSkillNames' answer
+	//
+	// Returns { usable, footing, reason }: footing "held" (roll it as itself, not here), "common",
+	// "nonAcquired", or "" with the reason it cannot be tried.
+	export function canUseNonAcquired(tmpdef, tmpheldnames, tmpnonacquirednames) {
+		var tmpname = tmpdef?.name ?? "";
+		var tmpheld = new Set(Array.isArray(tmpheldnames) ? tmpheldnames : []);
+		if (tmpheld.has(tmpname)) {
+			return { usable: false, footing: "held", reason: `${tmpname} is held, and is rolled as itself.` };
+		}
+		var tmpcategory = tmpdef?.category ?? "class";
+		var tmprestricted = tmpcategory == "social" ? false : !!tmpdef?.isRestricted;
+		if (!tmprestricted) { return { usable: true, footing: "common", reason: "" }; }
+		var tmpnonacquired = Array.isArray(tmpnonacquirednames) ? tmpnonacquirednames : [];
+		if (!tmpnonacquired.includes(tmpname)) {
+			return { usable: false, footing: "", reason: `${tmpname} is restricted, and not a skill this character's class will give.` };
+		}
+		if (tmpdef?.noNonAcquiredUse) {
+			return { usable: false, footing: "", reason: `${tmpname} may not be used as a non-acquired skill (its entry says so).` };
+		}
+		return { usable: true, footing: "nonAcquired", reason: "" };
+	}
+
+	// This is the function which sorts the skills a character could attempt untrained into the two
+	// lists bug report 0.20.7:1 asks for: every social skill, and the class and racial skills that
+	// are common or non-acquired for THIS character. Each entry is the index row plus its footing.
+	//
+	//   tmpheldnames        names of skills on the character
+	//   tmpskillindex       the skill compendium's index rows, each { name, system: { category,
+	//                       isRestricted, noNonAcquiredUse, ... } }
+	//   tmpnonacquirednames getNonAcquiredSkillNames' answer
+	export function getUntrainedSkillGroups(tmpheldnames, tmpskillindex, tmpnonacquirednames) {
+		var tmpsocial = [];
+		var tmpclassracial = [];
+		for (const tmpentry of Array.isArray(tmpskillindex) ? tmpskillindex : []) {
+			var tmpdef = { name: tmpentry.name, ...(tmpentry.system ?? {}) };
+			var tmpanswer = canUseNonAcquired(tmpdef, tmpheldnames, tmpnonacquirednames);
+			if (!tmpanswer.usable) { continue; }
+			var tmprow = { ...tmpentry, footing: tmpanswer.footing };
+			if ((tmpentry.system?.category ?? "class") == "social") { tmpsocial.push(tmprow); }
+			else { tmpclassracial.push(tmprow); }
+		}
+		var tmpbyname = (a, b) => a.name.localeCompare(b.name);
+		return { social: tmpsocial.sort(tmpbyname), classRacial: tmpclassracial.sort(tmpbyname) };
+	}
+
+	// This is the function which words a footing for a card or a label: "" for a held skill,
+	// "(common)" or "(non-acquired)" otherwise.
+	export function describeFooting(tmpfooting) {
+		if (tmpfooting == "common") { return "(common)"; }
+		if (tmpfooting == "nonAcquired") { return "(non-acquired)"; }
+		return "";
+	}
+
+// @MARKER ADD NEW skill rules functions HERE
 // @END (CODE)

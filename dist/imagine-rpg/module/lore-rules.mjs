@@ -154,9 +154,16 @@ import { isClassSkillForCharacter } from "./class-rules.mjs";
 	//                  category, acquiredAtTitle, usableByTitle)
 	//   tmpName        the skill
 	//   tmpTitle       the character's title
-	export function getSkillStanding(tmpSkillItems, tmpName, tmpTitle) {
+	//   tmpFallback    optional: (name) -> { chance, footing } for a skill NOT held -- the common or
+	//                  non-acquired footing of module/non-acquired.mjs (bug report 0.20.8:1, "most
+	//                  lore skills are usable at base if you are going to acquire them"). With it, a
+	//                  skill not held but usable reads as the base chance, footing "common" or
+	//                  "nonAcquired", and the practitioner title a common skill's -- the character's
+	//                  title, never below 1 (getPractitionerTitle). Without it, or when it answers
+	//                  null, the standing is his "Not found": 0 and title 0.
+	export function getSkillStanding(tmpSkillItems, tmpName, tmpTitle, tmpFallback) {
 		var tmpStanding = { name: tmpName ?? "", held: false, chance: 0, category: "", acquiredAtTitle: 0,
-		                    practitionerTitle: 0, reached: true };
+		                    practitionerTitle: 0, reached: true, footing: "" };
 		if (!tmpName) { return tmpStanding; }
 		for (const tmpItem of tmpSkillItems ?? []) {
 			if (tmpItem.name != tmpName && tmpItem.name != tmpName + "(w)") { continue; }
@@ -168,10 +175,33 @@ import { isClassSkillForCharacter } from "./class-rules.mjs";
 				category: tmpItem.system?.category ?? "",
 				acquiredAtTitle: parseInt(tmpItem.system?.acquiredAtTitle) || 0,
 				practitionerTitle: tmpReached ? getPractitionerTitle(tmpItem.system?.category,
-					tmpItem.system?.acquiredAtTitle, tmpTitle) : 0
+					tmpItem.system?.acquiredAtTitle, tmpTitle) : 0,
+				footing: "held"
 			};
 		}
+		if (!tmpStanding.held && typeof tmpFallback == "function") {
+			var tmpAnswer = tmpFallback(tmpName);
+			if (tmpAnswer && tmpAnswer.footing) {
+				tmpStanding = {
+					name: tmpName, held: false, chance: parseInt(tmpAnswer.chance) || 0, reached: true,
+					category: "common", acquiredAtTitle: 0,
+					practitionerTitle: getPractitionerTitle("common", 0, tmpTitle),
+					footing: tmpAnswer.footing
+				};
+			}
+		}
 		return tmpStanding;
+	}
+
+	// This is the function which words a standing beside its chance on a card or the tab:
+	// nothing for a held skill, "(common)" or "(non-acquired)" for one used on that footing, and
+	// "(not held)" for one that cannot be used at all -- the wording bug report 0.20.8:1 asked to
+	// change from a bare "not held", which read as "not acquired".
+	export function describeStanding(tmpStanding) {
+		if (!tmpStanding || tmpStanding.held) { return ""; }
+		if (tmpStanding.footing == "common") { return " (common)"; }
+		if (tmpStanding.footing == "nonAcquired") { return " (non-acquired)"; }
+		return " (not held)";
 	}
 
 

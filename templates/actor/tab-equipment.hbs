@@ -109,6 +109,8 @@
 				<td class="col-row-actions">
 					{{#if (eq item.type "weapon")}}<button type="button" class="row-button" data-action="openWeaponMods"
 						data-item-id="{{item.id}}" data-tooltip="Weapon mods: bless it, or customize it"><i class="fa-solid fa-wand-magic-sparkles"></i></button>{{/if}}
+					{{#if (gt item.system.quantity 1)}}<button type="button" class="row-button" data-action="splitItem"
+						data-item-id="{{item.id}}" data-tooltip="Split this stack: so many into a row of their own">&#9986;</button>{{/if}}
 					<button type="button" class="row-button" data-action="openItem"
 						data-item-id="{{item.id}}" data-tooltip="Edit this item">&#9998;</button>
 					<button type="button" class="row-button" data-action="deleteItem"

@@ -29,7 +29,7 @@
 		      its siblings); only a success adds it. Untick to add outright. --}}
 		{{#if learnSkill}}
 		<label class="row learn-by-roll"><input type="checkbox" name="learnByRoll" {{#if learnByRoll}}checked{{/if}}>
-			Roll {{learnSkill}} to learn it ({{#if learnHeld}}{{learnChance}}%{{else}}not held &mdash; 0%{{/if}})</label>
+			Roll {{learnSkill}} to learn it ({{#if learnUsable}}{{learnChance}}%{{#unless learnHeld}} {{learnFooting}}{{/unless}}{{else}}not held &mdash; 0%{{/if}})</label>
 		{{/if}}
 	</header>
 

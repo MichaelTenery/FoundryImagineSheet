@@ -193,10 +193,10 @@ runs 23 suites, 3,094 checks, all passing.
 
 | suite | file | checks |
 |---|---|---|
-| Combat rules | `tools/combat-test.html` | 522 |
+| Combat rules | `tools/combat-test.html` | 524 |
 | Derivation (character model) | `tools/derive-test.html` | 610 |
 | Creature derivation | `tools/creature-test.html` | 249 |
-| Advancement rules | `tools/advancement-test.html` | 103 |
+| Advancement rules | `tools/advancement-test.html` | 110 |
 | Character generation | `tools/chargen-test.html` | 122 |
 | Starting money (rules, and the generator rolling it) | `tools/starting-money-test.html` | 58 |
 | Wealth panel (his money panel on the Equipment tab) | `tools/wealth-test.html` | 22 |
@@ -213,12 +213,13 @@ runs 23 suites, 3,094 checks, all passing.
 | Manual-content loader (Python) | `python tools/extract/test_manual_content.py` | 122 |
 | Weapon mods (his panel, the attack's extras and specials, temporary effects, the coating, the window, a touch's card) | `tools/weapon-mods-test.html` | 75 |
 | Natural weapons (the documents, which body, the grant, touches) | `tools/natural-weapons-test.html` | 26 |
-| Shop (his prices, his payForIt and the change-up, the catalog against the packs, the Buy order, barding, the generator's Equipment step) | `tools/shop-test.html` | 126 |
+| Shop (his prices, his payForIt and the change-up, the catalog against the packs, the Buy order, barding, the generator's Equipment step) | `tools/shop-test.html` | 127 |
 | Race and cross-skill modifiers (`social-skill-rules.mjs`, `social-skill-tables.mjs`, `getEveryClassSkill`, and the wiring in chargen-rules, chargen-view and class-advancement; `node tools/run-tests.mjs social-mods`) | `tools/social-mods-test.html` | 94 |
 | Alignments (his dropdown lists and axis rule, custom entries and their validation, the readers kept working, dual class) | `tools/alignment-test.html` | 213 |
-| Generator lists (alignment selects, class social lists, Required and up to N, rendered through the real template) | `tools/chargen-lists-test.html` | 57 |
+| Generator lists (alignment selects, class social lists, Required and up to N, rendered through the real template) | `tools/chargen-lists-test.html` | 60 |
 | Class skill edits (whole-career plan, removals, CONVERT, short slots, MM p.55 swaps, the setting) | `tools/class-edits-test.html` | 66 |
-| Module parse check | `tools/syntax-check.html` | 88 modules |
+| Untrained and non-acquired skills (PG p.77: common, non-acquired, forbidden; the two lists; the lore-roll standing) | `tools/untrained-test.html` | 22 |
+| Module parse check | `tools/syntax-check.html` | 91 modules |
 
 **A plain `python -m http.server` lets the browser cache modules**, and on 2026-09-22 several
 passes found a reloaded suite still running the previous copy of a module it imports. Serve with
@@ -252,3 +253,5 @@ than trusting the result.
 | Class slot sacrifice (PG p.78) | Backlog | **Deferred 2026-09-26.** The Player's Guide p.78 lets a character give up class slots; neither the generator nor level-up offers it, and there is no per-title skip at level-up. Done when the rule is read against his sheet (he has none, as far as is known), ruled, and offered where it applies. Dual-class removals (PG p.45) belong with it. |
 | Additional Social Skills table (PG p.75) | Backlog | **Deferred 2026-09-26.** PG p.47 says no more social skills than a class's "up to N" until the Additional Social Skills table (p.75); until it is built, going over N only warns and needs the override. Done when the table is extracted and the generator allows extra picks through it rather than by override. |
 | Social skill "up to N" for the remaining classes | Backlog | **Left 2026-09-26.** 37 base classes have no local book text giving a count (Mysteries of the Planes class pages are images; Hunter, Mounted Archer and others have no class page), so they show no "choose up to N". Done when each count is found (the user or the developer) and added to `CLASS_SOCIAL_UP_TO` in `tools/extract/extract_class_social_skills.py` with its page. |
+| Bug reports 0.20.1-10 (2026-09-30) | Done | **His ten reports and four notes, filed against 0.20.0; shipped as 0.22.0.** A modifier prompt on every roll (click asks, shift-click skips; `module/roll-modifier.mjs`); skill points never on the title just reached (his goal-1, `getSkillPointTitle`); +2 damage for both hands (his `DamMod2Hand`, the Rule of 2 -- "+2 to hit" is UPSTREAM 115); Required social skills start ticked; "Convert" not "Trade"; Botanist is Botany (`SKILL_RENAMES`, retired from the compendium, `module/data-fixes.mjs` for characters already made); his Long Sleeve Shirt table as extractor repairs; common and non-acquired skills as PG p.77 has them (`commonSkillsListing.json`, `noNonAcquiredUse`, `module/non-acquired.mjs`; two lists in the untrained dialog, roll buttons on unreached progression rows, lore rolls at base on a non-acquired skill); items stack on drop and split. 24 suites, 3,128 checks; new `tools/untrained-test.html`. See DECISIONS 2026-09-30 and `docs/sonnet/2026-09-30-bug-reports.md`. **Not verified** in a running Foundry V14: `_onDropItem`, the data fix, the optgroup dialog, the row buttons. |
+| Two hands: the book's -2 speed, and the other shirt families | Backlog | **Waiting on him (UPSTREAM 115, 116, 117).** The Player's Guide's -2 weapon speed for two hands is in neither his sheet nor the port; whether "+2 to hit" was meant; Full Shirt and Long Shirt taking the Long Sleeve Shirt corrections; the four Player's Guide skills his Common Skills Listing omits. Done when he answers and the answer is built: `COST_REPAIRS` / `ARMOR_VALUE_REPAIRS` rows, `getWeaponSpeed`'s two-hands term, or the listing. |

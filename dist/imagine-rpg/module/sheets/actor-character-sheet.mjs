@@ -43,6 +43,10 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
 import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
+import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
+import { getNonAcquiredLookup } from "../non-acquired.mjs";
+import { describeFooting } from "../skills-rules.mjs";
+import { itemStacks } from "../shop-rules.mjs";
 import {
 	resolveSkillRoll, describeSkillResult, resolveAttributeSave, pickBestSkillRoll,
 	canTransferSlot, canSacrificeSlot,
@@ -117,6 +121,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			rollWeaponAttack: ImagineCharacterSheet.#onRollWeaponAttack,
 			setWeaponHand: ImagineCharacterSheet.#onSetWeaponHand,
 			rollUntrainedSkill: ImagineCharacterSheet.#onRollUntrainedSkill,
+			rollNonAcquiredSkill: ImagineCharacterSheet.#onRollNonAcquiredSkill,
 			stepClassTitle: ImagineCharacterSheet.#onStepClassTitle,
 			openLevelUp: ImagineCharacterSheet.#onOpenLevelUp,
 			openSituation: ImagineCharacterSheet.#onOpenSituation,
@@ -128,6 +133,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			createGear: ImagineCharacterSheet.#onCreateGear,
 			openItem: ImagineCharacterSheet.#onOpenItem,
 			deleteItem: ImagineCharacterSheet.#onDeleteItem,
+			splitItem: ImagineCharacterSheet.#onSplitItem,
 				removeAllArms: ImagineCharacterSheet.#onRemoveAllArms,
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
 				changeWealth: ImagineCharacterSheet.#onChangeWealth,
@@ -234,7 +240,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			                    selected: tmpskill == this.document.system.combat.chosenAttackSkill }));
 		// The Magic & Lore tab, worked out in module/magic-view.mjs. The magic switches decide which
 		// of its sections exist at all.
-		tmpcontext.magic = buildMagicPanel(this.document, game.imagine?.getAvailabilityRules?.() ?? null, game.user?.isGM);
+		// What this character may attempt without holding it -- common skills, and the class skills
+		// its own tables will give later (module/non-acquired.mjs; bug reports 0.20.7:1, 0.20.8:1).
+		// Read once per render, for the Magic & Lore tab's skill lines and the Class Progression rows.
+		this._nonAcquired = await getNonAcquiredLookup(this.document);
+		tmpcontext.magic = buildMagicPanel(this.document, game.imagine?.getAvailabilityRules?.() ?? null, game.user?.isGM,
+			this._nonAcquired);
 		tmpcontext.lore = ImagineCharacterSheet.#buildLorePanel(this.document.system);
 		// The Situation Mods bar, one line, as his combat page shows it.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
@@ -251,7 +262,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				this.document.getFlag?.("imagine-rpg", "startingMoney"), game.user?.isGM),
 			startRecord: this.document.getFlag?.("imagine-rpg", "startingMoney") ?? ""
 		};
-		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system);
+		tmpcontext.classProgress = ImagineCharacterSheet.#buildClassProgress(this.document.system, this._nonAcquired);
 		tmpcontext.slotTransfers = ImagineCharacterSheet.#buildSlotTransfers(this.document);
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
 		// The martial panel is a partial; see loadMartialTemplates.
@@ -316,9 +327,25 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// setClassSkillLists holds all 92 classes' progressions -- and classSkillList is where the
 	// extraction now puts them, so every class has something to show here rather than the handful
 	// authored from his Word templates.
-	static #buildClassProgress(tmpsystem) {
+	//
+	// tmplookup, when given, is the character's non-acquired lookup (module/non-acquired.mjs): each
+	// skill of a row not reached yet learns whether it can be tried now at the base chance -- a
+	// roll button on the row -- or not ("may not be used non-acquired"). Bug report 0.20.7:1's
+	// "perhaps there should be a roll button for the non-acquired skills that rolls at base".
+	static #buildClassProgress(tmpsystem, tmplookup) {
 		var tmpclasses = (tmpsystem.identity.classProgression ?? []).filter(tmpclass => tmpclass.rows.length);
 		if (!tmpclasses.length) { return { show: false, classes: [], owed: 0 }; }
+
+		var tmpannotate = (tmprow) => ({
+			...tmprow,
+			skills: (tmprow.skills ?? []).map(tmpskill => {
+				var tmpanswer = (!tmprow.reached && typeof tmplookup == "function") ? tmplookup(tmpskill.name) : null;
+				return { ...tmpskill,
+					nonAcquiredUsable: !!tmpanswer?.footing,
+					nonAcquiredChance: tmpanswer?.chance ?? 0,
+					nonAcquiredReason: tmpanswer?.reason ?? "" };
+			})
+		});
 
 		return {
 			show: true,
@@ -327,7 +354,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			classes: tmpclasses.map(tmpclass => ({
 				name: tmpclass.name,
 				title: tmpclass.title,
-				rows: tmpclass.rows
+				rows: tmpclass.rows.map(tmpannotate)
 			})),
 			// Ordinarily zero: the grant runs on every title change. A number here means a
 			// character who earned skills the grant could not give them -- worth saying so.
@@ -653,21 +680,18 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpattrib = this.document.system.attributes[tmpkey];
 		if (!tmpattrib) { return; }
 
-		// Shift-click asks for a modifier, added to the chance (Daryl 2026-09-25: the changelog said
-		// shift-click worked and on the character sheet it did not).
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to this ${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} save:`);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = tmpanswer;
-		}
+		// The modifier is asked for on every click, shift-click skipping it (bug report 0.20.2:1;
+		// module/roll-modifier.mjs). Before 2026-09-30 it was the other way round.
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier",
+			`Modifier to this ${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} save:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveAttributeSave((parseInt(tmpattrib.save) || 0) + tmpmodifier, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`
+			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}%${describeModifier(tmpmodifier)} &mdash; <strong>${tmpresult.outcome}</strong>`
 		});
 	}
 
@@ -701,13 +725,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpbase = parseInt(this.document.system.characteristics[tmpkey]?.value) || 0;
 		var tmpchance = tmpdouble ? tmpbase * 2 : tmpbase;
 
-		// Shift-click asks for a modifier, added to the chance; the bad band stays 100 minus the
-		// single unmodified chance, as the creature sheet's resolveCharacteristicRoll keeps it.
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to this ${tmpkey} roll:`);
-			if (tmpanswer === null) { return; }
-			tmpchance = tmpchance + tmpanswer;
-		}
+		// The modifier is asked for on every click (shift-click skips it -- module/roll-modifier.mjs)
+		// and added to the chance; the bad band stays 100 minus the single unmodified chance, as the
+		// creature sheet's resolveCharacteristicRoll keeps it.
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier", `Modifier to this ${tmpkey} roll:`);
+		if (tmpmodifier === null) { return; }
+		tmpchance = tmpchance + tmpmodifier;
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpoutcome = tmpresults[2];
@@ -718,46 +741,29 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		if (tmpdouble) { tmplabel = "Double " + tmplabel; }
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${tmplabel} Check &mdash; ${tmpchance}% &mdash; <strong>${tmpoutcome}</strong>`
+			flavor: `${tmplabel} Check &mdash; ${tmpchance}%${describeModifier(tmpmodifier)} &mdash; <strong>${tmpoutcome}</strong>`
 		});
 	}
 
-	// This is the function which asks for a modifier to a roll -- his "?{Modifier}" prompt, the same
-	// one the creature sheet asks. Returns the number, or null if the dialog was closed.
-	static async #askModifier(tmpprompt) {
-		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-			window: { title: "Roll Modifier" },
-			content: `<p>${tmpprompt}</p><input type="number" name="modifier" value="0" autofocus>`,
-			ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
-		}).catch(() => null);
-		if (tmpanswer === null || tmpanswer === undefined) { return null; }
-		return parseInt(tmpanswer) || 0;
-	}
+	// The modifier prompt itself -- his "?{Modifier}" -- now lives in module/roll-modifier.mjs
+	// (askRollModifier), shared with the creature sheet and every other roll, since 2026-09-30.
 
 	// @MARKER RESISTANCE ROLL
 	// Daryl's 0.11.1 Blocker: the Attributes tab showed the five resistance figures and gave no
 	// way to roll any of them. The rule itself is in module/resistance-rules.mjs, beside a note on
 	// the one thing his own handlers get wrong; this only rolls the die and says what happened.
 	//
-	// A modifier is asked for when the button is SHIFT-clicked, which is his two buttons per track
-	// (roll_resist_magic and roll_resist_magic_mod) folded into one, since a sheet with five tracks
-	// does not want ten buttons on it.
+	// A modifier is asked for on every click, which is his two buttons per track (roll_resist_magic
+	// and roll_resist_magic_mod) folded into one, since a sheet with five tracks does not want ten
+	// buttons on it; shift-click rolls without asking (module/roll-modifier.mjs).
 	static async #onRollResistance(event, target) {
 		var tmpkey = target.dataset.resistance;
 		var tmpresist = this.document.system.resistances[tmpkey];
 		if (!tmpresist) { return; }
 
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-				window: { title: "Resistance Modifier" },
-				content: `<p>Modifier to this ${tmpkey} resistance roll:</p>
-					<input type="number" name="modifier" value="0" autofocus>`,
-				ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
-			}).catch(() => null);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = parseInt(tmpanswer) || 0;
-		}
+		var tmpmodifier = await askRollModifier(event, "Resistance Modifier",
+			`Modifier to this ${tmpkey} resistance roll:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpmodifier);
@@ -799,13 +805,11 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		var tmpcopies = this.document.items.filter(i => i.type == "skill" && i.name == tmpitem.name);
 		if (!tmpcopies.length) { tmpcopies = [tmpitem]; }
 
-		// Shift-click asks for a modifier, added to every copy's chance -- his skill-rollmod button.
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCharacterSheet.#askModifier(`Modifier to ${foundry.utils.escapeHTML(tmpitem.name)}:`);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = tmpanswer;
-		}
+		// The modifier is asked for on every click and added to every copy's chance -- his
+		// skill-rollmod button folded into ROLL; shift-click skips it (module/roll-modifier.mjs).
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier",
+			`Modifier to ${foundry.utils.escapeHTML(tmpitem.name)}:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmprolls = [];
 		var tmpresults = [];
@@ -863,6 +867,61 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		event.preventDefault();
 		var tmpitem = this.document.items.get(target.dataset.itemId);
 		if (tmpitem) { tmpitem.sheet.render(true); }
+	}
+
+	// @MARKER STACKING
+	// This is the function which takes an item dropped on the sheet. Bug report 0.20.9:1
+	// (Cosmetic): "Buy or add more than one item of a type. It lists them all separately ... instead
+	// of having 50 Rope (Hemp/per') you have 50 separate listings." The generator's shop has
+	// stacked since 0.20.0; a drop from the compendium or another sheet did not. Now a dropped
+	// item that stacks (general equipment and ammunition -- itemStacks, shop-rules.mjs) and is
+	// already held by that name adds its quantity to the held one instead of becoming a second
+	// row. A weapon or armour piece is still one item each, as the shop makes them. A drop from
+	// this same sheet is a re-ordering, and is Foundry's own.
+	async _onDropItem(event, item) {
+		if (!this.document.isOwner || !(item instanceof Item) || item.parent?.uuid == this.document.uuid) {
+			return super._onDropItem(event, item);
+		}
+		if (itemStacks(item.type, item.name, item.system)) {
+			var tmplike = this.document.items.find(tmpheld => tmpheld.type == item.type && tmpheld.name == item.name);
+			if (tmplike) {
+				var tmpadded = Math.max(1, parseInt(item.system?.quantity) || 1);
+				await tmplike.update({ "system.quantity": (parseInt(tmplike.system.quantity) || 0) + tmpadded });
+				ui.notifications.info(`${tmpadded} more ${item.name}: ${this.document.name} now carries ${tmplike.system.quantity}.`);
+				return tmplike;
+			}
+		}
+		return super._onDropItem(event, item);
+	}
+
+	// This is the function which splits a stack: so many of an item go into a row of their own,
+	// to be stored, handed over or dropped apart from the rest -- the report's "when moving an
+	// item that has multiples, add an input field for the number of that item, and only move that
+	// many". The new row starts where the old one is; change its location afterwards.
+	static async #onSplitItem(event, target) {
+		event.preventDefault();
+		var tmpitem = this.document.items.get(target.dataset.itemId);
+		if (!tmpitem) { return; }
+		var tmpheld = parseInt(tmpitem.system.quantity) || 0;
+		if (tmpheld < 2) {
+			ui.notifications.info(`${tmpitem.name}: only one is held, so there is nothing to split.`);
+			return;
+		}
+		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
+			window: { title: `Split ${tmpitem.name}` },
+			content: `<p>${this.document.name} carries ${tmpheld}. How many go into a row of their own?</p>
+				<input type="number" name="count" value="1" min="1" max="${tmpheld - 1}" autofocus>`,
+			rejectClose: false,
+			ok: { label: "Split", callback: (tmpe, tmpbutton) => tmpbutton.form.elements.count.value }
+		}).catch(() => null);
+		if (tmpanswer === null || tmpanswer === undefined) { return; }
+		var tmpcount = Math.min(tmpheld - 1, Math.max(1, parseInt(tmpanswer) || 0));
+
+		var tmpcopy = tmpitem.toObject();
+		delete tmpcopy._id;
+		tmpcopy.system.quantity = tmpcount;
+		await tmpitem.update({ "system.quantity": tmpheld - tmpcount });
+		await this.document.createEmbeddedDocuments("Item", [tmpcopy]);
 	}
 
 	// This is the function which removes a carried item from the character. Asked first: an item
@@ -1288,43 +1347,38 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 	// This is the function which attempts a skill the character has never learned.
 	//
-	// Player's Guide, "Who Can Use a Skill": almost any skill may be tried untrained, at the base
-	// chance with no starting bonus. Two limits come from the same passage and are applied here
-	// rather than in the chance itself: a skill already held is rolled as itself instead (the book
-	// is explicit -- "any skill for which the character has rolled a starting bonus can no longer
-	// be attempted as a common skill"), and a restricted skill cannot be tried at all.
+	// Player's Guide p.77, "Who Can Use a Skill", in full (skills-rules.mjs @MARKER NON-ACQUIRED
+	// SKILLS): a common skill -- any social skill, and the class or racial skills on his Common
+	// Skills Listing -- may be tried by anyone at the base chance; a restricted skill only by a
+	// character whose own class table will give it at a later title (non-acquired), and then only
+	// if its entry does not forbid it; a skill already held is rolled as itself.
 	//
-	// THE RESTRICTED FLAG HAS NO DATA BEHIND IT YET. His skilldict carries no restricted column --
-	// the book states it per skill and he never brought it across -- so `isRestricted` is on the
-	// schema, honoured here, and false on all 674 extracted skills until something populates it.
-	// Filtering on it now rather than later means nothing has to be rewired when it lands.
+	// Bug report 0.20.7:1 (Blocker): the list lacked Candle Lore -- a Gray Witch's 2nd-title skill,
+	// restricted, so left out -- and mixed every kind of skill together. So there are now two
+	// lists, as asked: every social skill, and the class and racial skills THIS character may try.
 	static async #onRollUntrainedSkill(event, target) {
-		var tmppack = game.packs.get("world.imagine-skills");
-		if (!tmppack) {
+		if (!game.packs.get("world.imagine-skills")) {
 			ui.notifications.warn("No skill compendium in this world. Import the system content first.");
 			return;
 		}
-
-		var tmpindex = await tmppack.getIndex({ fields: ["system.attr1", "system.attr2",
-			"system.skillRating", "system.isRestricted"] });
-		var tmpheld = new Set(this.document.items.filter(i => i.type == "skill").map(i => i.name));
-		var tmpoffer = tmpindex
-			.filter(e => !tmpheld.has(e.name) && !e.system?.isRestricted)
-			.sort((a, b) => a.name.localeCompare(b.name));
-		if (!tmpoffer.length) {
+		var tmplookup = await getNonAcquiredLookup(this.document);
+		var tmpgroups = tmplookup.groups();
+		if (!tmpgroups.social.length && !tmpgroups.classRacial.length) {
 			ui.notifications.info("No skill left to attempt untrained.");
 			return;
 		}
 
-		// Each skill shows its untrained chance beside its name, so the player sees the odds before
-		// choosing (Daryl 2026-09-25). The modifier entered below is added on top when rolled.
-		var tmpsystem = this.document.system;
-		var tmpoptions = tmpoffer
-			.map(e => `<option value="${e._id}">${foundry.utils.escapeHTML(e.name)} &mdash; ${
-				tmpsystem.getCommonSkillChance(e.system?.attr1, e.system?.attr2, e.system?.skillRating)}%</option>`).join("");
+		// Each skill shows its chance beside its name, so the player sees the odds before choosing
+		// (Daryl 2026-09-25), and a non-acquired one says so. The modifier is added on top.
+		var tmpoption = (tmpentry) => `<option value="${tmpentry._id}">${foundry.utils.escapeHTML(tmpentry.name)} &mdash; ${
+			tmplookup(tmpentry.name)?.chance ?? 0}%${tmpentry.footing == "nonAcquired" ? " (non-acquired)" : ""}</option>`;
+		var tmpoptions = `<optgroup label="Class and racial skills (${tmpgroups.classRacial.length})">${
+			tmpgroups.classRacial.map(tmpoption).join("")}</optgroup>`
+			+ `<optgroup label="Social skills (${tmpgroups.social.length})">${tmpgroups.social.map(tmpoption).join("")}</optgroup>`;
 		var tmpchoice = await foundry.applications.api.DialogV2.prompt({
 			window: { title: "Attempt a Skill Untrained" },
-			content: `<p class="hint">The base chance alone, with no starting bonus.</p>
+			content: `<p class="hint">The base chance alone, with no starting bonus. Class and racial skills: the common
+				ones, and the ones this character's class will give later (non-acquired, titles up to 10th).</p>
 				<div class="form-group"><label>Skill</label><select name="skill">${tmpoptions}</select></div>
 				<div class="form-group"><label>Modifier</label>
 					<input type="number" name="modifier" value="0"></div>`,
@@ -1339,22 +1393,44 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		});
 		if (!tmpchoice) { return; }
 
-		var tmpentry = tmpoffer.find(e => e._id == tmpchoice.id);
+		var tmpentry = [...tmpgroups.social, ...tmpgroups.classRacial].find(e => e._id == tmpchoice.id);
 		if (!tmpentry) { return; }
+		await ImagineCharacterSheet.#rollUnheldSkill(this.document, tmplookup, tmpentry.name, tmpchoice.modifier);
+	}
 
-		var tmpchance = this.document.system.getCommonSkillChance(
-			tmpentry.system?.attr1, tmpentry.system?.attr2, tmpentry.system?.skillRating)
-			+ tmpchoice.modifier;
+	// This is the function which rolls one of the class skills a later title will give, from its
+	// row of the Class Progression table -- the same roll as the dialog's, without the choosing.
+	static async #onRollNonAcquiredSkill(event, target) {
+		var tmpname = target.dataset.name;
+		if (!tmpname) { return; }
+		var tmplookup = this._nonAcquired ?? await getNonAcquiredLookup(this.document);
+		var tmpanswer = tmplookup(tmpname);
+		if (!tmpanswer?.footing) {
+			ui.notifications.warn(tmpanswer?.reason || `${tmpname} cannot be attempted.`);
+			return;
+		}
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier", `Modifier to ${foundry.utils.escapeHTML(tmpname)} (non-acquired):`);
+		if (tmpmodifier === null) { return; }
+		await ImagineCharacterSheet.#rollUnheldSkill(this.document, tmplookup, tmpname, tmpmodifier);
+	}
 
-		// His common skill roll reads its die through handleSkillRollDetails like every other
-		// skill roll (handleCommonSkillRoll, sheet-worker.js:64285), so an untrained attempt can be
-		// made by half too.
+	// This is the function which makes the roll for a skill not held: the base chance plus the
+	// modifier, read as every other skill roll is (his handleCommonSkillRoll, sheet-worker.js:64285,
+	// reads its die through handleSkillRollDetails, so an untrained attempt can be made by half too).
+	static async #rollUnheldSkill(tmpactor, tmplookup, tmpname, tmpmodifier) {
+		var tmpanswer = tmplookup(tmpname);
+		if (!tmpanswer?.footing) {
+			ui.notifications.warn(tmpanswer?.reason || `${tmpname} cannot be attempted.`);
+			return;
+		}
+		var tmpchance = (parseInt(tmpanswer.chance) || 0) + (parseInt(tmpmodifier) || 0);
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveSkillRoll(tmpchance, tmproll.total);
 
 		await tmproll.toMessage({
-			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${tmpentry.name} (untrained) &mdash; ${tmpresult.chance}% &mdash; ${describeSkillResult(tmpresult)}`
+			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
+			flavor: `${foundry.utils.escapeHTML(tmpname)} ${describeFooting(tmpanswer.footing)} &mdash; ${tmpresult.chance}%${
+				describeModifier(tmpmodifier)} &mdash; ${describeSkillResult(tmpresult)}`
 		});
 	}
 
@@ -1379,7 +1455,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		}
 
 		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
-			window: { title: "Trade Skill Slots" },
+			window: { title: "Convert Skill Slots" },
 			content: `<p>Give up ${tmptransfer.cost} ${tmptransfer.from} slot${tmptransfer.cost > 1 ? "s" : ""}
 				for ${tmptransfer.gain} ${tmptransfer.to} slot${tmptransfer.gain > 1 ? "s" : ""}?</p>
 				<p class="hint">This cannot be undone.</p>`

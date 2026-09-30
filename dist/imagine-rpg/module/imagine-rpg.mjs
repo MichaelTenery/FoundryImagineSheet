@@ -64,6 +64,7 @@ import {
 import { refreshOpenWindows } from "./sheet-theme.mjs";
 import { populateItemDirectory, clearItemDirectory } from "./item-directory.mjs";
 import { registerChangelog, showChangelog, showChangelogIfNew } from "./changelog.mjs";
+import { registerDataFixSetting, applyDataFixes } from "./data-fixes.mjs";
 
 // @MARKER SYSTEM CONSTANTS
 export const IMAGINE = {
@@ -296,6 +297,9 @@ Hooks.once("init", function () {
 
 	game.imagine = {
 		importContent: importAllContent,
+		// The one-time world repairs, for a Game Master who wants to run them by hand (they skip
+		// whatever has already run).
+		applyDataFixes: applyDataFixes,
 		// @MARKER ITEM DIRECTORY
 		// Fills Foundry's Items sidebar from the same content, in folders -- his own groupings
 		// where his tables have them. The compendia stay the system's copy; this is a working set
@@ -350,6 +354,10 @@ Hooks.once("init", function () {
 		type: Boolean,
 		default: false
 	});
+
+	// @MARKER DATA FIXES
+	// Which one-time repairs to this world's own documents have run -- module/data-fixes.mjs.
+	registerDataFixSetting();
 
 	// @MARKER SHEET THEME
 	// Which palette the Imagine windows paint themselves in. The system's own look is cream paper
@@ -551,6 +559,16 @@ Hooks.once("ready", async function () {
 Hooks.once("ready", async function () {
 	try { await showChangelogIfNew(); }
 	catch (tmperror) { console.warn("Imagine RPG | the What's New window could not be shown", tmperror); }
+});
+
+// @MARKER DATA FIXES
+// One-time repairs to the world's own characters after an update -- a skill held under a name the
+// system has since retired, and the like (module/data-fixes.mjs). The Game Master's client only,
+// once per world per fix; a fix that fails is retried on the next load rather than recorded.
+Hooks.once("ready", async function () {
+	if (!game.user.isGM) { return; }
+	try { await applyDataFixes(); }
+	catch (tmperror) { console.warn("Imagine RPG | the data fixes could not be run", tmperror); }
 });
 
 // @MARKER ADD NEW sheet specific functions HERE

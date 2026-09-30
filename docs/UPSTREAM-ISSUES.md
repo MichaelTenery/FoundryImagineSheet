@@ -2735,3 +2735,54 @@ row 16, Weapon Making, has no type. The mods column is off from row 10 too.
   plain Knight, matching the table.
 
 **Question:** which count is right for Bard and Hero?
+
+## 115. Two hands: "+2 to hit" in bug report 0.20.10, +2 damage in your code and the book
+
+**Status:** open · **Severity:** minor
+
+Bug report 0.20.10:1 (2026-09-30) says a quarterstaff marked 2H should get "+2 to hit", and that
+the port does not apply it. Neither your sheet nor the Player's Guide has a to-hit bonus for two
+hands. What both have is the **Rule of 2** (PG p.182, "Using a Weapon with Two Hands": "x2
+Strength damage modifier, +2 damage, -2 weapon speed"): your `handlePhysicalAttacks` doubles the
+Strength damage and sets `DamMod2Hand=2` (sheet-worker.js:64784-64793), printed as "2Handed(+2)"
+(65045). The port doubled the Strength bonus already and was missing the flat +2 damage; that is
+now built, from your code.
+
+Two questions:
+
+- Is "+2 to hit" what you meant, or the +2 damage? If a to-hit bonus is intended it is in neither
+  source and would be new.
+- The book's **-2 weapon speed** for two hands is not in your sheet (nothing in the 2H branch
+  touches speed, and the weapon speed set by `setEquippedWeaponInCombatSheet` does not read the
+  flag). The port follows the sheet and does not apply it. Should it?
+
+## 116. Full Shirt and Long Shirt: Leather and Padding rows look swapped
+
+**Status:** open · **Severity:** minor
+
+Your Long Sleeve Shirt table (supplied with bug report 0.20.6:1) gives Leather 8/13/18 gp and
+Padding 2/3/4 gp. Your sheet's `getArmorCost` rows read the other way about for the same two
+materials in **three** shirt families: Padding carries 8/13/18 (78336, and the Full Shirt and Long
+Shirt rows alike) and Leather carries 50/60/70 (Full Shirt, Long Sleeve Shirt) or 60/70/80 (Long
+Shirt). The port has taken your new table for Long Sleeve Shirt only, since that is what the table
+names; Full Shirt(Leather) still sells at 60 gp medium and Full Shirt(Padding) at 13.
+
+**Question:** do Full Shirt and Long Shirt take the same correction (and Long Sleeve Shirt's
+weights -- Leather 5 lb, Padding 2 lb, Ring Mail 14 lb -- likewise apply to them)? Also
+Full Shirt(Giant Scales)'s last two columns read "36 gp, 48 gp" where every other row doubles and
+triples the high price (they would be 180 and 270).
+
+## 117. Common Skills Listing against the books' "Restricted: No"
+
+**Status:** open · **Severity:** minor
+
+Your Common Skills Listing (with bug report 0.20.7:1) has 64 class and racial skills. The Player's
+Guide's own per-skill headings say "Restricted: No" for four more -- Animal Projection,
+Resurrection, Sense Projection and Thought Projection -- which the listing omits. The port follows
+the listing (they are restricted, so only a character whose class table gives them may attempt
+them, as non-acquired skills). The Master's Manual, Mysteries of the Planes and Epitaph of the
+Fallen each say "Restricted: No" for a few of their own skills (18, 3 and 2); those are kept
+common, since the listing is the Player's Guide's table.
+
+**Question:** are the four Player's Guide skills common or restricted? And is the Master's Manual's
+"Restricted: No" to be trusted for its 18, or is your listing the whole of the common skills?

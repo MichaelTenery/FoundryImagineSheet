@@ -19,7 +19,7 @@
 // The window shows whichever of the three is next, so there is no wrong order to get into.
 //==================================================================================================================
 
-import { resolveGoalAdvance, checkSkillPointSpend, getTitleEndurance } from "../advancement-rules.mjs";
+import { resolveGoalAdvance, checkSkillPointSpend, getTitleEndurance, getSkillPointTitle } from "../advancement-rules.mjs";
 import { buildLevelUpView, buildGoalStep, buildTitleStep, newLevelUpWorking,
          ATTRIBUTE_LABELS } from "../levelup-view.mjs";
 import { addExperience, commitGoal, commitTitle } from "../advancement.mjs";
@@ -159,9 +159,11 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 		var tmppoints = parseInt(this.#field("spendPoints")) || 0;
 		var tmpitem = this.#actor.items.get(tmpid);
 
+		// Against the title of goal - 1, not the character's title: a skill just acquired with this
+		// goal's title takes no points until the next goal (bug report 0.20.1:1; getSkillPointTitle).
 		var tmpcheck = checkSkillPointSpend(tmppoints, tmpstep.skillPoints.remaining,
 			tmpitem ? { name: tmpitem.name, acquiredAtTitle: tmpitem.system.acquiredAtTitle } : null,
-			this.#actor.system.identity.title);
+			getSkillPointTitle(this.#actor.system.identity.goalToLevel, this.#actor.system.identity.title));
 		if (!tmpcheck.allowed) { ui.notifications.warn(tmpcheck.reason); return; }
 
 		this.#working.spends.push({ itemId: tmpid, name: tmpitem.name, points: tmppoints });

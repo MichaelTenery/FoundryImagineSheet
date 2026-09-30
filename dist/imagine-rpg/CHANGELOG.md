@@ -18,6 +18,69 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.22.0 — 2026-09-30
+
+Ten bug reports of 2026-09-30 (0.20.1 to 0.20.10), and four notes on class skills. They were written
+against **0.20.0**; if you are still on it, 0.21.0's changes below apply to you as well.
+
+**Every roll button asks for a modifier** (0.20.2, Blocker). A plain click on any ROLL — attribute
+saves, resistances, Perception/Affinity/Fortune, skills, creature rolls, martial rolls, using or
+learning a lore, praying, rememorizing — opens a small prompt for a modifier before the die is
+thrown, the way the attack button already did. **Shift-click rolls at once** with no prompt. (Until
+now it was the other way round: the prompt was only on shift-click, and few found it.) The card
+shows the modifier beside the chance.
+
+**Skill points cannot go on the skills a title just gave** (0.20.1, Blocker). At the goal that
+starts a new title — goal 3 for 2nd Title — the skill-point screen offers the earlier titles' class
+skills only; the new title's skills take points from the next goal on. His "always do goal −1";
+Player's Guide p.78.
+
+**A weapon in both hands does +2 damage** (0.20.10, Blocker). The Rule of 2's flat +2, his
+"2Handed(+2)", was missing; the doubled Strength bonus was already there. The report asked for "+2
+to hit", which neither his sheet nor the book has — asked. The card lists it as "+2 two hands".
+
+**Attempt a skill untrained: two lists, and the skills your class will give** (0.20.7, Blocker).
+The Player's Guide p.77 in full: a **common** skill (any social skill; the class and racial skills on
+his Common Skills Listing, now in the data) may be tried by anyone at the base chance, and a
+restricted skill on your own class table at a later title — a **non-acquired** skill — may be tried
+too, unless its entry says it may not (Weapon Lore, Missile Lore, Spell Lore and 22 more). The dialog
+now offers class-and-racial and social lists separately, each skill with its chance, and the
+Class Progression table gives every non-acquired skill of an unreached title its own roll button
+(and a lock on the ones that may not be tried). Candle Lore is back for the Gray Witch.
+
+**Lore rolls on a skill you do not hold yet** (0.20.8, Blocker). Learning a candle ritual no longer
+says "Not Held — 0%": a lore skill your class will give reads its base chance, marked
+"(non-acquired)"; a common one "(common)"; only a skill you cannot use at all says "(not held)". The
+Magic & Lore tab and the picker say the same. The situational modifier is asked on every use.
+
+**Required social skills start ticked** (0.20.3, Major). Choosing a class ticks its Required social
+skills on the Skills step; untick one and the step still refuses unless the Game Master's override
+is set. (The Required/Recommended lists themselves arrived in 0.21.0.)
+
+**Botanist is Botany** (0.20.5). One skill under two names in his data; only Botany remains. A
+character already holding Botanist is renamed on the Game Master's next load (a one-time world
+fix, `game.imagine.applyDataFixes()` by hand), and the compendium copy is retired on the next
+content import.
+
+**The Long Sleeve Shirt table** (0.20.6). All sixteen materials take his new table's prices and
+weights — Leather 8/13/18 gp and 5 lb, not 60 gp and 28 lb. Full Shirt and Long Shirt, which look
+wrong the same way, are left as his sheet has them and asked about.
+
+**Items stack** (0.20.9). Dropping a piece of general equipment or ammunition the character already
+holds adds to its quantity instead of making a second row (the generator's shop stacked already); a
+✂ button on a row with more than one splits so many into a row of their own, to store or hand over.
+
+**"Convert skill slots"**, not "Trade" (0.20.4), his own word — it was read as a skill type.
+
+Already in 0.21.0, not repeated here: the whole-career class skill plan his four notes describe,
+the Required/Recommended social lists, the untrained picker's odds and the Source, Page column.
+
+**Not verified in a running Foundry V14** (nothing on this machine runs one): the drop-to-stack
+override (`_onDropItem`), the world data fix, the new optgroup dialog and the progression-row
+buttons. The rules behind them are tested (24 suites, 3,128 checks).
+
+---
+
 ## 0.21.0 — 2026-09-26
 
 **Alignment and tendency are chosen from lists your class allows.** On the character generator's

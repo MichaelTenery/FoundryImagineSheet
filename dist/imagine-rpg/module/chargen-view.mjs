@@ -357,6 +357,18 @@ import {
 		};
 	}
 
+	// @MARKER SOCIAL SKILLS
+	// This is the function which gives the social skills a class starts with ticked: its Required
+	// ones, off the class document (system.socialSkills.required, his setSocialSkillLists). None for
+	// a class that chooses from "any" list (Sage, GME) or no class at all. The generator sets the
+	// state to this when the class changes -- bug report 0.20.3:1, "if the social skill is required,
+	// that means it should be automatically selected as they MUST take that skill".
+	export function getRequiredSocialSkillNames(tmpClassDoc) {
+		var tmpSocial = tmpClassDoc?.system?.socialSkills;
+		if (!tmpSocial || tmpSocial.anyList) { return []; }
+		return [...(tmpSocial.required ?? [])];
+	}
+
 	// This is the function which says whether the current step is finished well enough to go on,
 	// and if not, why. Rules the player may knowingly break (an unqualified class with the
 	// override ticked) do not block; missing essentials do.

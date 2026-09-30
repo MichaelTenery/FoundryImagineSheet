@@ -38,6 +38,7 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
 import { parseMartialList, getStanceSkillBonus } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
+import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -453,12 +454,18 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		var tmpattrib = this.document.system.attributes[tmpkey];
 		if (!tmpattrib) { return; }
 
+		// A modifier on every click, as the character sheet's save asks (bug report 0.20.2:1);
+		// shift-click rolls at once. This save had no modifier at all before 2026-09-30.
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier",
+			`Modifier to this ${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} save:`);
+		if (tmpmodifier === null) { return; }
+
 		var tmproll = await new Roll("1d100").evaluate();
-		var tmpresult = resolveAttributeSave(tmpattrib.save, tmproll.total);
+		var tmpresult = resolveAttributeSave((parseInt(tmpattrib.save) || 0) + tmpmodifier, tmproll.total);
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}% &mdash; <strong>${tmpresult.outcome}</strong>`
+			flavor: `${game.i18n.localize(`IMAGINE.Attribute.${tmpkey}`)} Save &mdash; ${tmpresult.chance}%${describeModifier(tmpmodifier)} &mdash; <strong>${tmpresult.outcome}</strong>`
 		});
 	}
 
@@ -472,17 +479,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		var tmpresist = this.document.system.resistances[tmpkey];
 		if (!tmpresist) { return; }
 
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-				window: { title: "Resistance Modifier" },
-				content: `<p>Modifier to this ${tmpkey} resistance roll:</p>
-					<input type="number" name="modifier" value="0" autofocus>`,
-				ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
-			}).catch(() => null);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = parseInt(tmpanswer) || 0;
-		}
+		var tmpmodifier = await askRollModifier(event, "Resistance Modifier",
+			`Modifier to this ${tmpkey} resistance roll:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveResistanceRoll(tmpresist.value, tmproll.total, tmpresist.immune, tmpmodifier);
@@ -499,19 +498,15 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// MOD buttons (roll_creature_per and its siblings, sheet-worker.js:24510-24648; HTML 57780-57791).
 	// The header showed the three figures and gave no way to roll them. The same three-way reading the
 	// character sheet's buttons give (bug report 0.18.1:1), worked out by resolveCharacteristicRoll in
-	// creature-sheet-rules.mjs. His separate MOD buttons are a shift-click here, as the resistance
-	// rolls' are.
+	// creature-sheet-rules.mjs. His separate MOD buttons are folded into ROLL, which asks on every
+	// click; shift-click skips the asking (module/roll-modifier.mjs).
 	static async #onRollCharacteristic(event, target) {
 		var tmpkey = target.dataset.characteristic;
 		var tmpbase = parseInt(this.document.system.characteristics[tmpkey]?.value) || 0;
 		var tmpdouble = target.dataset.double === "true";
 
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCreatureSheet.#askModifier(`Modifier to this ${tmpkey} roll:`);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = tmpanswer;
-		}
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier", `Modifier to this ${tmpkey} roll:`);
+		if (tmpmodifier === null) { return; }
 
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveCharacteristicRoll(tmpkey, tmpbase, tmproll.total, tmpdouble, tmpmodifier);
@@ -523,17 +518,8 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		});
 	}
 
-	// This is the function which asks for a modifier to a roll -- his "?{Modifier}" prompt. Returns
-	// the number, or null if the dialog was closed.
-	static async #askModifier(tmpprompt) {
-		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
-			window: { title: "Roll Modifier" },
-			content: `<p>${tmpprompt}</p><input type="number" name="modifier" value="0" autofocus>`,
-			ok: { label: "Roll", callback: (tmpevent, tmpbutton) => tmpbutton.form.elements.modifier.value }
-		}).catch(() => null);
-		if (tmpanswer === null || tmpanswer === undefined) { return null; }
-		return parseInt(tmpanswer) || 0;
-	}
+	// The modifier prompt itself -- his "?{Modifier}" -- is module/roll-modifier.mjs's
+	// askRollModifier since 2026-09-30, shared with the character sheet.
 
 	// This is the function which rolls one of the creature's skills.
 	//
@@ -542,19 +528,16 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// his handleCreatureSkillRoll reads it (sheet-worker.js:175374), through the same
 	// handleSkillRollDetails every character skill roll uses -- resolveSkillRoll, his eight results.
 	//
-	// Shift-click asks for a modifier first -- his skill-rollmod button (sheet-worker.js:24660,
-	// handleCreatureSkillRollMod at 175399), which adds it to the chance.
+	// A modifier is asked for first on every click -- his skill-rollmod button (sheet-worker.js:24660,
+	// handleCreatureSkillRollMod at 175399) folded into ROLL; shift-click rolls at once.
 	static async #onRollCreatureSkill(event, target) {
 		var tmpindex = parseInt(target.dataset.skillIndex);
 		var tmpskill = this.document.system.skills?.[tmpindex];
 		if (!tmpskill) { return; }
 
-		var tmpmodifier = 0;
-		if (event.shiftKey) {
-			var tmpanswer = await ImagineCreatureSheet.#askModifier(`Modifier to ${foundry.utils.escapeHTML(String(tmpskill.name ?? ""))}:`);
-			if (tmpanswer === null) { return; }
-			tmpmodifier = tmpanswer;
-		}
+		var tmpmodifier = await askRollModifier(event, "Roll Modifier",
+			`Modifier to ${foundry.utils.escapeHTML(String(tmpskill.name ?? ""))}:`);
+		if (tmpmodifier === null) { return; }
 
 		// A held martial stance's bonus to this skill (the user's ruling of 2026-09-22). A creature's
 		// chance is its entered figure, so the bonus is added here rather than derived onto it.

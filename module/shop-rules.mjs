@@ -660,17 +660,33 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 		return { offers: tmpOffers, byKey: tmpByKey, left: tmpLeft };
 	}
 
+	// @MARKER STACKING
+	// This is the function which says whether an item is ammunition: his own projectile name chain
+	// (isProjectileWeapon, combat-rules.mjs -- arrows, bolts, bullets, pebbles, and his throwing stick
+	// and wooden javelin), or a Missile weapon with no speed of its own, the test
+	// module/item-directory.mjs files ammunition by. Either alone misses some: 34 of his fairy
+	// arrows and bolts carry a speed of 1, and his chain does not name ballista shot.
+	export function isAmmunitionItem(tmpDocType, tmpName, tmpSystem) {
+		if (tmpDocType != "weapon") { return false; }
+		return isProjectileWeapon(tmpName) || (tmpSystem?.type == "Missile" && !tmpSystem?.speed);
+	}
+
+	// This is the function which says whether copies of an item are ONE item with a quantity --
+	// general equipment and ammunition -- or one item each. Armour and other weapons are one each,
+	// because in the port each weapon is held in a hand of its own and each armour piece worn on a
+	// layer of its own, and two daggers for two hands must be two items. His sheet stacks
+	// everything ("N Name", addEquipmentItems 76233), but it has no per-item hand. The rule the
+	// generator's shop has followed since 2026-09-23; the character sheet's own drop follows it
+	// since 2026-09-30 (bug report 0.20.9:1: fifty feet of rope was fifty rows).
+	export function itemStacks(tmpDocType, tmpName, tmpSystem) {
+		return tmpDocType == "equipment" || isAmmunitionItem(tmpDocType, tmpName, tmpSystem);
+	}
+
 	// This is the function which builds one offer -- see buildShopCatalog for its fields.
 	function makeOffer(tmpType, tmpName, tmpSubtype, tmpDoc, tmpBundle, tmpPrices, tmpHomebrew) {
 		var tmpDef = SHOP_TYPES[tmpType];
 		var tmpSystem = tmpDoc?.system ?? {};
-		// Ammunition, which stacks: his own projectile name chain (isProjectileWeapon, combat-rules.mjs --
-		// arrows, bolts, bullets, pebbles, and his throwing stick and wooden javelin), or a Missile weapon
-		// with no speed of its own, the test module/item-directory.mjs files ammunition by. Either alone
-		// misses some: 34 of his fairy arrows and bolts carry a speed of 1, and his chain does not name
-		// ballista shot.
-		var tmpAmmunition = tmpDef.docType == "weapon"
-			&& (isProjectileWeapon(tmpDoc.name) || (tmpSystem.type == "Missile" && !tmpSystem.speed));
+		var tmpAmmunition = isAmmunitionItem(tmpDef.docType, tmpDoc.name, tmpSystem);
 		var tmpUnitWeight = parseFloat(tmpSystem.weight) || 0;
 		return {
 			key: tmpType + "|" + tmpName, type: tmpType, subtypes: [tmpSubtype],
@@ -679,7 +695,7 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 			bundle: tmpBundle, prices: [...tmpPrices],
 			unitWeight: tmpUnitWeight, weight: Math.round(tmpUnitWeight * tmpBundle * 100) / 100,
 			isAmmunition: tmpAmmunition,
-			stacks: tmpDef.docType == "equipment" || tmpAmmunition,
+			stacks: itemStacks(tmpDef.docType, tmpDoc.name, tmpSystem),
 			homebrew: !!tmpHomebrew
 		};
 	}

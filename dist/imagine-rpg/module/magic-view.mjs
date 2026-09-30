@@ -18,7 +18,7 @@
 // applies": anybody can carry a potion.
 //==================================================================================================================
 
-import { MAGIC_KINDS, CONSUMABLE_KINDS, LORE_KINDS, getItemKind, getSkillStanding,
+import { MAGIC_KINDS, CONSUMABLE_KINDS, LORE_KINDS, getItemKind, getSkillStanding, describeStanding,
          getMemorizationTotals } from "./lore-rules.mjs";
 import { CASTING_SKILLS } from "./lore-tables.mjs";
 import { normalizeMagicSubsystems } from "./availability.mjs";
@@ -45,15 +45,24 @@ import { getSpellDaysLeft } from "./casting-rules.mjs";
 	// @MARKER THE PANEL
 	// This is the function which builds everything the tab renders.
 	//
-	//   tmpactor   an actor, or anything shaped like one ({ items, system })
-	//   tmprules   the campaign's availability rules ({ magicEnabled, magicSubsystems }), or null
-	//   tmpisgm    whether the viewer is the Game Master -- the starting-lore button is theirs
-	export function buildMagicPanel(tmpactor, tmprules, tmpisgm) {
+	//   tmpactor     an actor, or anything shaped like one ({ items, system })
+	//   tmprules     the campaign's availability rules ({ magicEnabled, magicSubsystems }), or null
+	//   tmpisgm      whether the viewer is the Game Master -- the starting-lore button is theirs
+	//   tmpfallback  optional: the character's non-acquired lookup (module/non-acquired.mjs), so a
+	//                lore skill the class will give later shows its base chance "(non-acquired)"
+	//                rather than "not held" (bug report 0.20.8:1)
+	export function buildMagicPanel(tmpactor, tmprules, tmpisgm, tmpfallback) {
 		var tmpsystem = tmpactor?.system ?? {};
 		var tmpitems = [...(tmpactor?.items ?? [])];
 		var tmpskills = tmpitems.filter(tmpitem => tmpitem.type == "skill");
 		var tmptitle = parseInt(tmpsystem.identity?.title) || 0;
-		var tmpstanding = (tmpname) => getSkillStanding(tmpskills, tmpname, tmptitle);
+		var tmpstanding = (tmpname) => {
+			var tmpanswer = getSkillStanding(tmpskills, tmpname, tmptitle, tmpfallback);
+			// Worded for the tab: "" held, "(common)", "(non-acquired)", "(not held)".
+			tmpanswer.footingLabel = describeStanding(tmpanswer).trim();
+			tmpanswer.usable = tmpanswer.held || !!tmpanswer.footing;
+			return tmpanswer;
+		};
 		var tmpbykind = (tmpkind) => tmpitems.filter(tmpitem => getItemKind(tmpitem) == tmpkind)
 			.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -107,7 +116,9 @@ import { getSpellDaysLeft } from "./casting-rules.mjs";
 			var tmpuse = tmpdef.use ? tmpstanding(tmpdef.use) : null;
 			var tmprows = tmpbykind(tmpkind);
 			var tmpaddwhat = tmpkind == "poisonrecipe" ? "" : tmpkind;
-			if (!tmprows.length && !tmplearn?.held && !tmpuse?.held) {
+			// A group with nothing in it and no usable skill -- held, or usable non-acquired -- is
+			// listed under "other lore" rather than drawn empty.
+			if (!tmprows.length && !tmplearn?.usable && !tmpuse?.usable) {
 				tmppanel.otherLore.push({ what: tmpkind, label: tmpdef.heading, poison: tmpkind == "poisonrecipe" });
 				continue;
 			}

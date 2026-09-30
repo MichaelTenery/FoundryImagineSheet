@@ -844,6 +844,21 @@ export const MODE_DAMAGE_TYPES = {
 		return tmpmod;
 	}
 
+	// This is the function which gives the flat +2 damage a melee weapon held in two hands does --
+	// his DamMod2Hand=2 in the same block of handlePhysicalAttacks (sheet-worker.js:64784-64793),
+	// printed on his card as "2Handed(+2)" (65045). The Player's Guide's Rule of 2 (p.182, "Using a
+	// Weapon with Two Hands"): "x2 Strength damage modifier, +2 damage, -2 weapon speed". The x2 is
+	// getStrengthDamageMod above; this is the +2. Melee only, as his test is (thrust, cut or smash).
+	//
+	// Bug report 0.20.10:1 (Blocker) asked for "+2 to hit" -- neither his code nor the book has a
+	// to-hit bonus for two hands, and what both have is this +2 damage, which the port had not
+	// applied. Put to him as UPSTREAM-ISSUES item 115. The book's -2 speed is not in his sheet
+	// either, and is in the same item rather than built here (the sheet outranks the book).
+	export function getTwoHandedDamageBonus(tmpmode, tmptwohanded) {
+		if (!tmptwohanded || !MELEE_MODES.includes(tmpmode)) { return 0; }
+		return 2;
+	}
+
 	// @MARKER BODY WEIGHT DAMAGE
 	// His getWeightDamageAdj (sheet-worker.js:83259-83301), the Player's Guide's "Body Weight Damage
 	// Modifiers" table (p.179, PDF page 197): what a being's own weight adds to, or takes off, the

@@ -38,6 +38,7 @@ import { ARMOR_BLOCKING } from "./combat-tables.mjs";
 import { applyBlowToActor } from "./combat/attack.mjs";
 import { findActorCombatant } from "./combat/combat-document.mjs";
 import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
+import { askRollModifier } from "./roll-modifier.mjs";
 
 	// The generated worker, loaded the first time something is cast: it is about 1.5 MB.
 	var castingWorker = null;
@@ -296,17 +297,9 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 	async function prayForInvocationNow(tmpactor, tmpitem, tmpevent) {
 		var tmpsys = tmpactor.system;
 		var tmppiety = tmpsys.magic?.piety ?? {};
-		var tmpmodifier = 0;
-		if (tmpevent?.shiftKey) {
-			var tmpasked = await foundry.applications.api.DialogV2.prompt({
-				window: { title: `Pray for ${tmpitem.name}` },
-				content: `<p>Situational modifier:</p><input type="number" name="modifier" value="0" autofocus>`,
-				rejectClose: false,
-				ok: { label: "Pray", callback: (tmpe, tmpb) => tmpb.form.elements.modifier.value }
-			});
-			if (tmpasked === null || tmpasked === undefined) { return null; }
-			tmpmodifier = parseInt(tmpasked) || 0;
-		}
+		// Asked on every click, shift-click skipping it (module/roll-modifier.mjs, 2026-09-30).
+		var tmpmodifier = await askRollModifier(tmpevent, `Pray for ${tmpitem.name}`, "Situational modifier:", "Pray");
+		if (tmpmodifier === null) { return null; }
 		var tmprepray = !!tmpitem.system.memorized;
 		var tmplevel = parseInt(tmpitem.system.level) || 0;
 
@@ -371,17 +364,9 @@ import { getItemKind, getMemorizationTotals } from "./lore-rules.mjs";
 	async function rememorizeSpellNow(tmpactor, tmpitem, tmpevent) {
 		var tmpsys = tmpactor.system;
 		var tmpskill = tmpsys.magic?.aura?.casting ?? null;
-		var tmpmodifier = 0;
-		if (tmpevent?.shiftKey) {
-			var tmpasked = await foundry.applications.api.DialogV2.prompt({
-				window: { title: `Rememorize ${tmpitem.name}` },
-				content: `<p>Situational modifier:</p><input type="number" name="modifier" value="0" autofocus>`,
-				rejectClose: false,
-				ok: { label: "Roll", callback: (tmpe, tmpb) => tmpb.form.elements.modifier.value }
-			});
-			if (tmpasked === null || tmpasked === undefined) { return null; }
-			tmpmodifier = parseInt(tmpasked) || 0;
-		}
+		// Asked on every click, shift-click skipping it (module/roll-modifier.mjs, 2026-09-30).
+		var tmpmodifier = await askRollModifier(tmpevent, `Rememorize ${tmpitem.name}`, "Situational modifier:");
+		if (tmpmodifier === null) { return null; }
 		var tmproll = await new Roll("1d100").evaluate();
 		var tmpresult = resolveRememorize({ suppressed: tmpsys.magic?.magicSuppressed, castingSkill: tmpskill ?? { name: "", chance: 0 },
 			modifier: tmpmodifier, level: tmpitem.system.level }, tmproll.total);

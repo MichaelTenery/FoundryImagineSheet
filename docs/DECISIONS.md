@@ -6346,3 +6346,115 @@ implementation included; no longer stop to ask Opus-or-Fable.
 **Verified:** `node tools/run-tests.mjs` — see the test table in `docs/PROGRESS.md`. New suites
 `alignment-test`, `chargen-lists-test`, `class-edits-test`. **Not verified:** anything in a running
 Foundry V14 (listed in `docs/sonnet/2026-09-26-chargen-notes.md`).
+
+## His ten bug reports of 2026-09-30, and the model behind untrained skills (2026-09-30)
+
+Ten reports (`Bug Report 0.20.1` to `0.20.10.docx`) and four notes on class skills, all filed
+against **0.20.0** -- every screenshot's title bar says so. 0.21.0 (2026-09-26) had never been
+merged to `main`, so the update path (`system.json` → `main`) was still serving 0.20.0; this pass
+merges and publishes 0.22.0. Three of the fourteen items were already answered by 0.21.0 (the
+whole-career class skill plan his notes describe, the class social lists, the picker's odds and
+the Source/Page column); the rest are built here. The full text of each report, and the source
+reading that settled it, is in the commit messages (`a9da1e9`, `80ce9ba`, `f3a8606` and this
+pass's release commit).
+
+### 1. A modifier on every roll -- click asks, shift-click skips (0.20.2)
+
+His two-button pairs (roll_x and roll_x_mod) had been folded into one button with the prompt on
+shift-click (Daryl 2026-09-25). He asked for "a modifier field to every roll that occurs before
+the actual roll goes out ... the same way that attack rolls in combat currently do". **Inverted:**
+a plain click prompts, shift-click rolls at once -- which is also Foundry's own convention (a
+"fast-forward" click). One prompt, `module/roll-modifier.mjs`, replaces the four copies that had
+grown (character sheet, creature sheet, martial panel, magic and casting actions); the creature's
+attribute save, which had no modifier at all, gets one. The cards print "(modifier +N)".
+
+### 2. Skill points and the title just reached (0.20.1)
+
+The goal screen offered the skills the title step had granted a moment before. His own rule is a
+comment: `tempGoal=tempGoal-1; // when they title they don't get access to skills they just
+acquired so always do goal -1` (sheet-worker.js:94775); the Player's Guide p.78 says the same with
+an example. `getSkillPointTitle(goalToLevel, title)` = the title of goal − 1, capped by the
+character's title; both the screen and `checkSkillPointSpend`'s caller read it.
+
+### 3. Two hands: +2 damage, not "+2 to hit" (0.20.10)
+
+The report asked for "+2 to hit when 2H is selected". Neither his sheet nor the book has one; both
+have the Rule of 2 (PG p.182: x2 Strength damage, +2 damage, −2 speed), and his code sets
+`DamMod2Hand=2` (64784-64793). The port doubled the Strength bonus and had dropped the flat +2.
+**Built as his code has it** (+2 damage, melee only) and the wording put to him as UPSTREAM 115,
+with the second question that fell out: the book's −2 speed is in neither his sheet nor the port.
+The sheet outranks the book, so it is asked rather than built.
+
+### 4. Common and non-acquired skills (0.20.7, 0.20.8) -- the ruling that matters
+
+The Player's Guide p.77 ("Who Can Use a Skill") read in full, for the first time. Three kinds of
+unheld skill:
+
+- **common** -- not Restricted; anyone, at the base chance. Any social skill. For class and
+  racial skills, **his Common Skills Listing** (the image he sent: 64 names, PG p.77's table),
+  now `src/packs/named/commonSkillsListing.json`.
+- **non-acquired** -- restricted, but on the character's own class table at a later title:
+  "earlier in the character's class training, she was exposed to all of the skills listed in
+  that class table ... she can attempt any of them (at the Game Master's discretion) as a common
+  skill, even those that are restricted", **except** where the entry says "may not be used as a
+  non-acquired skill". Bound at 10th title -- his report says "between 2nd and 10th", the Master's
+  Manual agrees ("skills above 10th Title are not able to be used as non-acquired").
+- **neither** -- cannot be attempted.
+
+**Data.** `isRestricted` had been parsed from the books' "Restricted:" headings (366 of 669
+found) and defaulted false for the rest -- so 74 Conquest of the Eternal skills, with no book text,
+read as common. His listing now settles every class skill: listed is common, unlisted is
+restricted, except that a Master's Manual / Mysteries / Epitaph entry that says "No" stands
+(the listing is the PG's table). Four PG skills that say "No" and are not listed become restricted
+-- UPSTREAM 117. Net: 474 class skills, 68 common, 406 restricted (101 changed). A second flag,
+`noNonAcquiredUse`, is read from the books' notes ("Notes: May not be used non-acquired" and its
+variants, wrapped lines joined), credited to the nearest ALL-CAPS skill-name line above: 25
+skills, Weapon Lore, Missile Lore, Second Weapon Lore, Projectile Lore and the Masteries among
+them. Language Lore's conditional note is read as the flag, the safer reading. **Spell Lore**,
+which he named and whose PG entry carries no such note, is an `_override` in
+`src/packs/manual/skills.json` -- his statement is newer than the book.
+
+**Code.** Pure rules in `skills-rules.mjs` (`getNonAcquiredSkillNames` off the actor's
+`classProgression`, which already omits removed rows and the wrong caster half;
+`canUseNonAcquired`; `getUntrainedSkillGroups`); the Foundry side in a new
+`module/non-acquired.mjs` that reads the pack index once per character and answers by name.
+`getSkillStanding` takes that lookup as an optional fallback, so a lore roll, the Magic & Lore
+tab and the item picker read the base chance for a usable unheld skill, practitioner title the
+character's (his common-skill rule), and say "(common)" / "(non-acquired)" / "(not held)". The
+untrained dialog offers two `<optgroup>`s; the Class Progression rows not reached carry a roll
+button per usable skill (his "perhaps") and a lock on the forbidden ones.
+
+### 5. Botanist is Botany (0.20.5) -- and a general rename pass
+
+His data carried the one skill under two names, identical, in four dictionaries; the port had
+already paired them ("Botany|Botanist") in the social tables. Now: `SKILL_RENAMES` in
+`build_documents.py` drops the old row and rewrites the fields that name it; the social-skill and
+kit extractors read the old name as the new; the importer retires it; and **`module/data-fixes.mjs`**
+is new -- one-time repairs to a world's own actors, recorded per fix in a world setting, run by
+the Game Master's client on ready, retried if one fails. The first blanket rewrite was caught by
+the numstat (classes.json −325 lines): the Alchemist's 3rd and 4th **titles** are "Botany" and
+"Botanist", and his `titles` lists repeat names on purpose (Master Acrobat at 8 and 9). The pass
+is now limited to skill-bearing fields and deduplicates only a list the rename touched.
+
+### 6. His Long Sleeve Shirt table (0.20.6)
+
+Reported as one row (Leather 60 gp / 28 lb); he sent the whole table from the upcoming Conquest
+of the Eternal. Applied as data repairs in the extractors -- `ARMOR_VALUE_REPAIRS` (15 weights
+differed) and `COST_REPAIRS` (16 rows; the four derived columns follow his own rows' rule, low/4,
+low/2, high x2, high x3, a fraction of a gold piece in silver) -- printed on every run, so a
+regeneration keeps them. Long Sleeve Shirt only: Full Shirt and Long Shirt look transposed the
+same way (Padding carries Leather's numbers) but the table does not name them: UPSTREAM 116.
+
+### 7. The smaller three
+
+**0.20.3:** Required social skills start ticked when the class is chosen
+(`getRequiredSocialSkillNames`); his Step 6 only refuses at confirm, and that refusal still
+stands. **0.20.4:** "Trade skill slots" read as a skill type; it is "Convert", his word.
+**0.20.9:** the sheet's drop merges general equipment and ammunition into a held row's quantity
+(the shop's `itemStacks` rule, now named and shared); a ✂ Split action makes "move only that
+many" possible. Weapons and armour stay one item each, for the hand and the layer.
+
+**Verified:** `node tools/run-tests.mjs` -- 24 suites, 3,128 checks; new `untrained-test` (22).
+Documents regenerated with only the intended diffs (checked by numstat after each extractor
+run). **Not verified** in a running Foundry V14: `_onDropItem`'s signature (V13+'s
+`(event, item)` is assumed), the data fix, the optgroup dialog, the progression-row buttons.

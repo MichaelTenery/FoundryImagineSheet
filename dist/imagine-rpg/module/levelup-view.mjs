@@ -12,7 +12,8 @@
 //==================================================================================================================
 
 import {
-	planGoalAdvance, getSkillPointsForGoal, getArchMortalGains, getTitleByGoal, ARCH_MORTAL_GOAL
+	planGoalAdvance, getSkillPointsForGoal, getArchMortalGains, getTitleByGoal, getSkillPointTitle,
+	ARCH_MORTAL_GOAL
 } from "./advancement-rules.mjs";
 import { getClassSkillsAtTitle } from "./class-rules.mjs";
 
@@ -120,11 +121,14 @@ import { getClassSkillsAtTitle } from "./class-rules.mjs";
 		var tmppoints = getSkillPointsForGoal(tmpclass?.system, tmpclass?.name);
 		var tmpspent = (tmpwork.spends ?? []).reduce((tmptotal, tmpspend) => tmptotal + tmpspend.points, 0);
 
-		// What the points may go on: class skills the character has actually acquired. His
-		// skill-point screens only ever walk titles already reached.
+		// What the points may go on: class skills acquired BEFORE this goal's title. His skill-point
+		// screens walk up to the title of goal - 1 (getSkillPointTitle), so the skills a title step
+		// gave a moment ago are not offered -- they take points from the next goal on (bug report
+		// 0.20.1:1; Player's Guide p.78).
+		var tmppointtitle = getSkillPointTitle(tmpidentity.goalToLevel, tmpidentity.title);
 		var tmpskills = tmpitems
 			.filter(tmpitem => tmpitem.type == "skill" && tmpitem.system.category == "class"
-				&& (parseInt(tmpitem.system.acquiredAtTitle) || 0) <= (parseInt(tmpidentity.title) || 0))
+				&& (parseInt(tmpitem.system.acquiredAtTitle) || 0) <= tmppointtitle)
 			.map(tmpitem => ({
 				id: tmpitem.id, name: tmpitem.name, chance: tmpitem.system.totalChance,
 				added: (tmpwork.spends ?? []).filter(tmpspend => tmpspend.itemId == tmpitem.id)

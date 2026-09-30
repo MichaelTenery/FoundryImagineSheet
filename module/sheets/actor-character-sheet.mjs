@@ -46,6 +46,7 @@ import { getActorSheetClock } from "../apps/round-clock.mjs";
 import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
 import { getNonAcquiredLookup } from "../non-acquired.mjs";
 import { describeFooting } from "../skills-rules.mjs";
+import { itemStacks } from "../shop-rules.mjs";
 import {
 	resolveSkillRoll, describeSkillResult, resolveAttributeSave, pickBestSkillRoll,
 	canTransferSlot, canSacrificeSlot,
@@ -132,6 +133,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			createGear: ImagineCharacterSheet.#onCreateGear,
 			openItem: ImagineCharacterSheet.#onOpenItem,
 			deleteItem: ImagineCharacterSheet.#onDeleteItem,
+			splitItem: ImagineCharacterSheet.#onSplitItem,
 				removeAllArms: ImagineCharacterSheet.#onRemoveAllArms,
 				equipBestArmor: ImagineCharacterSheet.#onEquipBestArmor,
 				changeWealth: ImagineCharacterSheet.#onChangeWealth,
@@ -865,6 +867,61 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		event.preventDefault();
 		var tmpitem = this.document.items.get(target.dataset.itemId);
 		if (tmpitem) { tmpitem.sheet.render(true); }
+	}
+
+	// @MARKER STACKING
+	// This is the function which takes an item dropped on the sheet. Bug report 0.20.9:1
+	// (Cosmetic): "Buy or add more than one item of a type. It lists them all separately ... instead
+	// of having 50 Rope (Hemp/per') you have 50 separate listings." The generator's shop has
+	// stacked since 0.20.0; a drop from the compendium or another sheet did not. Now a dropped
+	// item that stacks (general equipment and ammunition -- itemStacks, shop-rules.mjs) and is
+	// already held by that name adds its quantity to the held one instead of becoming a second
+	// row. A weapon or armour piece is still one item each, as the shop makes them. A drop from
+	// this same sheet is a re-ordering, and is Foundry's own.
+	async _onDropItem(event, item) {
+		if (!this.document.isOwner || !(item instanceof Item) || item.parent?.uuid == this.document.uuid) {
+			return super._onDropItem(event, item);
+		}
+		if (itemStacks(item.type, item.name, item.system)) {
+			var tmplike = this.document.items.find(tmpheld => tmpheld.type == item.type && tmpheld.name == item.name);
+			if (tmplike) {
+				var tmpadded = Math.max(1, parseInt(item.system?.quantity) || 1);
+				await tmplike.update({ "system.quantity": (parseInt(tmplike.system.quantity) || 0) + tmpadded });
+				ui.notifications.info(`${tmpadded} more ${item.name}: ${this.document.name} now carries ${tmplike.system.quantity}.`);
+				return tmplike;
+			}
+		}
+		return super._onDropItem(event, item);
+	}
+
+	// This is the function which splits a stack: so many of an item go into a row of their own,
+	// to be stored, handed over or dropped apart from the rest -- the report's "when moving an
+	// item that has multiples, add an input field for the number of that item, and only move that
+	// many". The new row starts where the old one is; change its location afterwards.
+	static async #onSplitItem(event, target) {
+		event.preventDefault();
+		var tmpitem = this.document.items.get(target.dataset.itemId);
+		if (!tmpitem) { return; }
+		var tmpheld = parseInt(tmpitem.system.quantity) || 0;
+		if (tmpheld < 2) {
+			ui.notifications.info(`${tmpitem.name}: only one is held, so there is nothing to split.`);
+			return;
+		}
+		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
+			window: { title: `Split ${tmpitem.name}` },
+			content: `<p>${this.document.name} carries ${tmpheld}. How many go into a row of their own?</p>
+				<input type="number" name="count" value="1" min="1" max="${tmpheld - 1}" autofocus>`,
+			rejectClose: false,
+			ok: { label: "Split", callback: (tmpe, tmpbutton) => tmpbutton.form.elements.count.value }
+		}).catch(() => null);
+		if (tmpanswer === null || tmpanswer === undefined) { return; }
+		var tmpcount = Math.min(tmpheld - 1, Math.max(1, parseInt(tmpanswer) || 0));
+
+		var tmpcopy = tmpitem.toObject();
+		delete tmpcopy._id;
+		tmpcopy.system.quantity = tmpcount;
+		await tmpitem.update({ "system.quantity": tmpheld - tmpcount });
+		await this.document.createEmbeddedDocuments("Item", [tmpcopy]);
 	}
 
 	// This is the function which removes a carried item from the character. Asked first: an item

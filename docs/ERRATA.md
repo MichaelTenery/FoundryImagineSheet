@@ -167,3 +167,22 @@ Start with the ten class/race restrictions and the Maginos hide table: they are 
 parts of the errata and they land on content already built. Expect most of the file to be prose that
 no reader can apply mechanically; that part stays a report for a human to work through, and the
 honest measure of the tool is how much of the 2,384 lines it can classify, not how much it changes.
+
+## 2026-09-30 — rulings that arrived with his bug reports
+
+Ten bug reports (`Bug Report 0.20.1` to `0.20.10`, filed 2026-09-30 against 0.20.0) and four notes
+on class skills. Three of them are rulings on his own data rather than defects, and rank as his
+newest statement, above the sheet and the books:
+
+| Ruling | Where it now lives |
+|---|---|
+| **Botanist is Botany** (0.20.5). His skilldict, socialskilldict, race-modifier table and Herb Lore link all carried both, identical (Mysteries p.165). Only Botany exists now; his Aspects errata's "Dryad: Botanist +20%" is read as Botany. | `build_documents.py` SKILL_RENAMES; the social-skill and kit extractors; `content-importer.mjs` RETIRED_DOCUMENTS; `module/data-fixes.mjs` for characters already made |
+| **The Long Sleeve Shirt table** (0.20.6), from the upcoming Conquest of the Eternal: sixteen materials, low/medium/high and a weight for a 6' human. Applied to Long Sleeve Shirt alone; Full Shirt and Long Shirt, which look transposed the same way, are UPSTREAM 116. The other four price columns follow his own rows' rule (low/4, low/2, high x2, high x3). | `column_maps.py` ARMOR_VALUE_REPAIRS (weights), `extract_shop_tables.py` COST_REPAIRS (prices); both reported on every run |
+| **The Common Skills Listing** (0.20.7): the Player's Guide p.77 table of the 64 class and racial skills anyone may attempt untrained. Every other class skill is restricted -- attemptable only as a non-acquired skill. It settles the 74 Conquest of the Eternal skills the port has no book for, and overrides the Player's Guide's own "Restricted: No" on four (UPSTREAM 117). | `src/packs/named/commonSkillsListing.json`, read by `build_documents.py` build_skills |
+| **Spell Lore may not be used non-acquired** (0.20.8): stated by him; the Player's Guide entry says only Restricted: Yes. | `src/packs/manual/skills.json`, an `_override` |
+
+His four notes on class skills (a character is exposed to the whole class table in training,
+chooses at creation what she keeps within Knowledge's class slots, and a skill not kept is not a
+class skill for her at all) are the rule the 2026-09-26 whole-career plan already built
+(DECISIONS "Character generation: alignments, social skill lists, and the whole-career class skill
+plan", §4); they were written against 0.20.0, before that shipped.
