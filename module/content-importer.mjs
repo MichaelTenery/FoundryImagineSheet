@@ -68,7 +68,8 @@ export const RETIRED_DOCUMENTS = {
 	],
 	skills: [
 		"Open Slot",             //  (nothing -- a slot marker, not a skill)    dropped 2026-09-22
-		"Unavailable"            //  (nothing -- a slot marker, not a skill)    dropped 2026-09-22
+		"Unavailable",           //  (nothing -- a slot marker, not a skill)    dropped 2026-09-22
+		"Botanist"               //  Botany -- his ruling, bug report 0.20.5:1  dropped 2026-09-30
 	]
 };
 

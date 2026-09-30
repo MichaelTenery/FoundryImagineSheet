@@ -133,7 +133,9 @@ for (const d of [T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS]) {
 		}
 	}
 }
-check("45 of his rows are out of order across the seven columns", disorder.length, 45);
+// 44 since 2026-09-30: Long Sleeve Shirt(Giant Scales) was one of them until his own table replaced
+// the row (extract_shop_tables.py COST_REPAIRS, bug report 0.20.6:1). Full Shirt(Giant Scales) still is.
+check("44 of his rows are out of order across the seven columns", disorder.length, 44);
 check("...and only four at Medium, the default level",
 	disorder.filter(r => r.atMedium).map(r => r.name),
 	["Coffer(5“x 8“x 3“/Holds 12)", "Kite(Box)", "Fishing Pole(Deep Sea)", "Fishing Pole(Metal)"]);

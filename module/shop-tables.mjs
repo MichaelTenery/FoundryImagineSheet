@@ -2410,22 +2410,22 @@
 		"Long Shirt(Heavy Scale)":                     [ "13 gp",    "25 gp",    "50 gp",    "60 gp",    "70 gp",    "140 gp",   "210 gp" ],
 		"Long Shirt(Soft Leather)":                    [ "2 gp",     "4 gp",     "8 gp",     "13 gp",    "18 gp",    "36 gp",    "48 gp" ],
 		"Long Shirt(Studded Leather)":                 [ "7 gp",     "13 gp",    "25 gp",    "30 gp",    "40 gp",    "80 gp",    "120 gp" ],
-		"Long Sleeve Shirt(Banded Chain)":             [ "9 gp",     "18 gp",    "35 gp",    "45 gp",    "55 gp",    "110 gp",   "165 gp" ],
-		"Long Sleeve Shirt(Chain)":                    [ "7 gp",     "14 gp",    "28 gp",    "36 gp",    "45 gp",    "90 gp",    "135 gp" ],
-		"Long Sleeve Shirt(Gambeson)":                 [ "1 gp",     "2 gp",     "4 gp",     "6 gp",     "8 gp",     "16 gp",    "24 gp" ],
-		"Long Sleeve Shirt(Gambeson/Heavy)":           [ "2 gp",     "4 gp",     "8 gp",     "12 gp",    "16 gp",    "32 gp",    "48 gp" ],
-		"Long Sleeve Shirt(Gambeson/Thick)":           [ "15 sp",    "3 gp",     "6 gp",     "9 gp",     "12 gp",    "24 gp",    "36 gp" ],
-		"Long Sleeve Shirt(Giant Leather)":            [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],
-		"Long Sleeve Shirt(Giant Scales)":             [ "14 gp",    "28 gp",    "55 gp",    "60 gp",    "90 gp",    "36 gp",    "48 gp" ],
-		"Long Sleeve Shirt(Hard Leather)":             [ "3 gp",     "5 gp",     "10 gp",    "15 gp",    "20 gp",    "40 gp",    "60 gp" ],
-		"Long Sleeve Shirt(Heavy Chain)":              [ "8 gp",     "16 gp",    "32 gp",    "40 gp",    "48 gp",    "96 gp",    "144 gp" ],
-		"Long Sleeve Shirt(Leather)":                  [ "13 gp",    "25 gp",    "50 gp",    "60 gp",    "70 gp",    "140 gp",   "210 gp" ],
-		"Long Sleeve Shirt(Padding)":                  [ "2 gp",     "4 gp",     "8 gp",     "13 gp",    "18 gp",    "36 gp",    "48 gp" ],
-		"Long Sleeve Shirt(Ring Mail)":                [ "5 sp",     "1 gp",     "2 gp",     "3 gp",     "4 gp",     "8 gp",     "12 gp" ],
-		"Long Sleeve Shirt(Scale)":                    [ "7 gp",     "13 gp",    "25 gp",    "30 gp",    "40 gp",    "80 gp",    "120 gp" ],
-		"Long Sleeve Shirt(Heavy Scale)":              [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],
-		"Long Sleeve Shirt(Soft Leather)":             [ "2 gp",     "3 gp",     "5 gp",     "10 gp",    "15 gp",    "30 gp",    "45 gp" ],
-		"Long Sleeve Shirt(Studded Leather)":          [ "3 gp",     "6 gp",     "12 gp",    "18 gp",    "25 gp",    "50 gp",    "75 gp" ],
+		"Long Sleeve Shirt(Banded Chain)":             [ "875 cp",   "175 sp",   "35 gp",    "45 gp",    "55 gp",    "110 gp",   "165 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Chain)":                    [ "7 gp",     "14 gp",    "28 gp",    "36 gp",    "45 gp",    "90 gp",    "135 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Gambeson)":                 [ "1 gp",     "2 gp",     "4 gp",     "6 gp",     "8 gp",     "16 gp",    "24 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Gambeson/Heavy)":           [ "2 gp",     "4 gp",     "8 gp",     "12 gp",    "16 gp",    "32 gp",    "48 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Gambeson/Thick)":           [ "15 sp",    "3 gp",     "6 gp",     "9 gp",     "12 gp",    "24 gp",    "36 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Giant Leather)":            [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Giant Scales)":             [ "1375 cp",  "275 sp",   "55 gp",    "60 gp",    "90 gp",    "180 gp",   "270 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Hard Leather)":             [ "25 sp",    "5 gp",     "10 gp",    "15 gp",    "20 gp",    "40 gp",    "60 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Heavy Chain)":              [ "8 gp",     "16 gp",    "32 gp",    "40 gp",    "48 gp",    "96 gp",    "144 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Leather)":                  [ "2 gp",     "4 gp",     "8 gp",     "13 gp",    "18 gp",    "36 gp",    "54 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Padding)":                  [ "5 sp",     "1 gp",     "2 gp",     "3 gp",     "4 gp",     "8 gp",     "12 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Ring Mail)":                [ "625 cp",   "125 sp",   "25 gp",    "30 gp",    "40 gp",    "80 gp",    "120 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Scale)":                    [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Heavy Scale)":              [ "125 sp",   "25 gp",    "50 gp",    "60 gp",    "70 gp",    "140 gp",   "210 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Soft Leather)":             [ "125 cp",   "25 sp",    "5 gp",     "10 gp",    "15 gp",    "30 gp",    "45 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Studded Leather)":          [ "3 gp",     "6 gp",     "12 gp",    "18 gp",    "25 gp",    "50 gp",    "75 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
 		"Armored Skirt(Bloodracite)":                  [ "13 gp",    "25 gp",    "50 gp",    "60 gp",    "80 gp",    "160 gp",   "240 gp" ],
 		"Armored Skirt(Bolted Leather)":               [ "1 gp",     "2 gp",     "4 gp",     "8 gp",     "12 gp",    "24 gp",    "36 gp" ],
 		"Armored Skirt(Bone)":                         [ "1 gp",     "2 gp",     "4 gp",     "8 gp",     "12 gp",    "24 gp",    "36 gp" ],

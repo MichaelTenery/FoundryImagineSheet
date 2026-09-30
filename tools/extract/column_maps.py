@@ -375,6 +375,36 @@ RACE_VALUE_REPAIRS = {
     ],
 }
 
+# The armour cells his newest table settles. Bug report 0.20.6:1 (2026-09-30): "Leather Long Shirt
+# has incorrect pricing, and weight" -- and with it his whole Long Sleeve Shirt table from the
+# upcoming Conquest of the Eternal ("Covers the upper, and middle torsos, shoulders, arms and
+# forearms"), sixteen materials with low/medium/high prices and a weight "for a 6' human". His
+# newest statement of a rule outranks his sheet (docs/ERRATA.md), so every weight the table gives
+# is laid over his armorvalueslist row, and the prices over his getArmorCost row
+# (tools/extract/extract_shop_tables.py COST_REPAIRS). Only Long Sleeve Shirt: the table names no
+# other shirt, and his Full Shirt and Long Shirt rows, which look transposed the same way, are put
+# to him as UPSTREAM-ISSUES item 116 rather than guessed at.
+#
+#     his row                                   field     his   table   why
+ARMOR_VALUE_REPAIRS = {
+    "Long Sleeve Shirt(Banded Chain)":    [("weight", None, 35, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Chain)":           [("weight", None, 22, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Gambeson)":        [("weight", None, 4,  "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Gambeson/Heavy)":  [("weight", None, 8,  "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Gambeson/Thick)":  [("weight", None, 6,  "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Giant Leather)":   [("weight", None, 22, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Giant Scales)":    [("weight", None, 28, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Hard Leather)":    [("weight", None, 7,  "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Heavy Chain)":     [("weight", None, 30, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Heavy Scale)":     [("weight", None, 32, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Leather)":         [("weight", None, 5,  "his Long Sleeve Shirt table, 2026-09-30 -- the reported row: his sheet had 28")],
+    "Long Sleeve Shirt(Padding)":         [("weight", None, 2,  "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Ring Mail)":       [("weight", None, 14, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Scale)":           [("weight", None, 30, "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Soft Leather)":    [("weight", None, 3,  "his Long Sleeve Shirt table, 2026-09-30")],
+    "Long Sleeve Shirt(Studded Leather)": [("weight", None, 12, "his Long Sleeve Shirt table, 2026-09-30")],
+}
+
 # A second special movement, for a race the books give two of. His row has room for one; the one
 # race that needs another has it in his OWN data, in the Formless copy of its row.
 #

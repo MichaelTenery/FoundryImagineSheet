@@ -9819,24 +9819,6 @@
     }
   },
   {
-    "name": "Botanist",
-    "type": "skill",
-    "system": {
-      "attr1": "INT",
-      "attr2": "KNW",
-      "skillRating": 18,
-      "startingDice": "6d6%",
-      "time": "",
-      "learn": "72",
-      "types": [],
-      "sourcebook": "Mysteries of the Planes",
-      "page": "165",
-      "category": "social",
-      "description": "The ability to understand the complete system of living flora within any environment or environ.",
-      "isRestricted": false
-    }
-  },
-  {
     "name": "Botany",
     "type": "skill",
     "system": {

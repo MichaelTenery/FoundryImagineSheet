@@ -293,6 +293,9 @@ def kit_table(tmpname):
 # last rung is the else: everything below the lowest threshold.
 SOCIAL_BANDS = [14, 11, 9, 6, 0]
 
+# The same list as build_documents.py SKILL_RENAMES, which is where the ruling is explained.
+RENAMED_SKILLS = {"Botanist": "Botany"}
+
 
 def clothing_table():
     """
@@ -406,6 +409,12 @@ def main():
     if os.path.exists(tmppath):
         tmpentries = json.load(open(tmppath, encoding="utf-8")).get("entries", {})
         for tmpskill, tmprow in tmpentries.items():
+            # A skill his data carries under two names and his ruling settled to one -- Botanist,
+            # which is Botany (bug report 0.20.5:1; build_documents.py SKILL_RENAMES). The kit under
+            # the old name is the same kit, and a skill by that name no longer exists to bring it.
+            if tmpskill in RENAMED_SKILLS:
+                print("by skills: %s dropped -- one skill under two names, kept as %s" % (tmpskill, RENAMED_SKILLS[tmpskill]))
+                continue
             tmpitems = item_list(",".join(str(x) for x in tmprow))
             if tmpitems:
                 tmpskillkit[tmpskill] = tmpitems

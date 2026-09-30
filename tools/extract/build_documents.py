@@ -34,6 +34,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from column_maps import CLASSREQUIREMENTSANDDETAILS  # noqa: E402 -- names the inline class rows too
 from column_maps import RACESTATSANDMOVEDETAILS      # noqa: E402 -- and the inline race rows
 from column_maps import RACE_VALUE_REPAIRS           # noqa: E402 -- the race cells the books settle
+from column_maps import ARMOR_VALUE_REPAIRS          # noqa: E402 -- and the armour cells his newest table settles
 from column_maps import RACE_SECOND_SPECIAL_MOVEMENT # noqa: E402 -- and Nixie's swim beside its flight
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -315,6 +316,22 @@ def lookup_restricted(tmpsourcebook, tmpname):
 # docs/sonnet/2026-09-21-source-attribution.md item 2 ("the four XXX skills").
 SKILL_DICT_SENTINELS = ("Open Slot", "Unavailable")
 
+# @MARKER SKILL RENAMES
+# A skill his data carries under two names, settled to one by his ruling. Bug report 0.20.5:1
+# (2026-09-30): "There should only be Botany (not Botanist) ... Botanist is an error in the
+# materials, and should not be in the sheet." His skilldict, socialskilldict, race modifier table
+# and Herb Lore link all carry BOTH rows, identical (Mysteries of the Planes p.165, INT/KNW, rating
+# 18, 6d6%). The old name's row is dropped from the skills pack, and every other document that
+# names it -- a class's social list, a lore's prose -- is rewritten to the new name
+# (apply_skill_renames). A world that already holds the old name is put right on load by
+# module/data-fixes.mjs, and the importer retires it from the compendium (content-importer.mjs
+# RETIRED_DOCUMENTS).
+#
+#     old name       new name
+SKILL_RENAMES = {
+    "Botanist":    "Botany",
+}
+
 
 def build_skills():
     docs = []
@@ -330,6 +347,10 @@ def build_skills():
                 tmpsentinelsskipped += 1
                 continue
             where = "%s/%s" % (source, tmpname)
+            if tmpname in SKILL_RENAMES:
+                repair(where, "dropped: one skill under two names, settled as %s (his ruling, bug report 0.20.5:1)"
+                       % SKILL_RENAMES[tmpname])
+                continue
             tmptypes = []
             if tmprow.get("types"):
                 tmptypes = [t.strip() for t in str(tmprow["types"]).split(",") if t.strip()]
@@ -664,6 +685,7 @@ def build_armor():
     docs = []
     for tmpname, tmprow in payload["entries"].items():
         where = "armorvalueslist/%s" % tmpname
+        tmprow = apply_armor_value_repairs(tmpname, tmprow)
         tmpflex = clean_text(tmprow.get("flexibility", ""))
         if tmpflex not in VALID_FLEX:
             note("unknown-flexibility", where, tmpflex)
@@ -1129,6 +1151,81 @@ def apply_race_value_repairs(tmpname, tmpkey, tmprow):
             repair(tmpname, "%s: NO LONGER NEEDED -- his row now reads %s, not %s, and his value is used"
                    % (tmpfield, tmphave, tmpfrom))
     return tmpout
+
+
+def apply_armor_value_repairs(tmpname, tmprow):
+    """His armour row with column_maps.ARMOR_VALUE_REPAIRS laid over it -- the same shape as the
+    race repairs, except that a repair whose 'from' is None applies whatever his row reads (his
+    newest table replaces the row's value outright rather than correcting one known slip). The
+    row is copied, never changed in place."""
+    tmpout = dict(tmprow)
+    for tmpfield, tmpfrom, tmpto, tmpwhy in ARMOR_VALUE_REPAIRS.get(tmpname, []):
+        tmphave = to_number(tmpout.get(tmpfield), "armorvalueslist/%s" % tmpname, tmpfield)
+        if tmpfrom is None or tmphave == tmpfrom:
+            if tmphave == tmpto:
+                continue
+            tmpout[tmpfield] = tmpto
+            repair(tmpname, "%s %s -> %s. %s" % (tmpfield, tmphave, tmpto, tmpwhy))
+        else:
+            repair(tmpname, "%s: NO LONGER NEEDED -- his row now reads %s, not %s, and his value is used"
+                   % (tmpfield, tmphave, tmpfrom))
+    return tmpout
+
+
+# @MARKER SKILL RENAMES
+def apply_skill_renames(tmpbuilt):
+    """Every document, with each SKILL_RENAMES old name written as its new one: a bare string equal
+    to the old name becomes the new, a list of names loses any duplicate that makes, and prose that
+    mentions the old name as a word is rewritten. Counted per document and reported as a repair."""
+    tmppatterns = [(re.compile(r'\b%s\b' % re.escape(tmpold)), tmpold, tmpnew)
+                   for tmpold, tmpnew in SKILL_RENAMES.items()]
+
+    # Only where a SKILL is named. A class's titles are names too, and the Alchemist's 3rd and 4th
+    # titles are "Botany" and "Botanist" -- his title names, not this skill -- which a blanket
+    # rewrite was found (2026-09-30) renaming and then deduplicating away.
+    SKILL_BEARING_KEYS = ("socialSkills", "classSkillList", "racialSkills", "skills", "description")
+
+    def rewrite(tmpvalue, tmpcount, tmpinskills=False):
+        if isinstance(tmpvalue, str):
+            if not tmpinskills:
+                return tmpvalue
+            for tmppattern, tmpold, tmpnew in tmppatterns:
+                if tmpvalue == tmpold:
+                    tmpcount[0] += 1
+                    return tmpnew
+                if tmppattern.search(tmpvalue):
+                    tmpcount[0] += 1
+                    tmpvalue = tmppattern.sub(tmpnew, tmpvalue)
+            return tmpvalue
+        if isinstance(tmpvalue, list):
+            tmpbefore = tmpcount[0]
+            tmpnewlist = [rewrite(tmpitem, tmpcount, tmpinskills) for tmpitem in tmpvalue]
+            # Only a list the rename actually touched loses the duplicate the rename made. His
+            # lists repeat on purpose elsewhere -- a class's titles carry "Master Acrobat" at 8
+            # and again at 9, a race's traits list Night Vision(Enhanced) twice -- and a general
+            # dedupe was found (2026-09-30) quietly shortening 325 lines of classes.json.
+            if tmpcount[0] != tmpbefore and tmpnewlist and all(isinstance(tmpitem, str) for tmpitem in tmpnewlist):
+                tmpseen, tmpdeduped = set(), []
+                for tmpitem in tmpnewlist:
+                    if tmpitem in tmpseen:
+                        continue
+                    tmpseen.add(tmpitem)
+                    tmpdeduped.append(tmpitem)
+                return tmpdeduped
+            return tmpnewlist
+        if isinstance(tmpvalue, dict):
+            return {tmpkey: rewrite(tmpitem, tmpcount, tmpinskills or tmpkey in SKILL_BEARING_KEYS)
+                    for tmpkey, tmpitem in tmpvalue.items()}
+        return tmpvalue
+
+    for tmppack, tmpdocs in tmpbuilt.items():
+        for tmpdoc in tmpdocs:
+            tmpcount = [0]
+            tmpdoc["system"] = rewrite(tmpdoc.get("system", {}), tmpcount)
+            if tmpcount[0]:
+                repair("%s/%s" % (tmppack, tmpdoc.get("name")),
+                       "%d mention(s) of a renamed skill rewritten (%s)" % (
+                           tmpcount[0], ", ".join("%s -> %s" % kv for kv in SKILL_RENAMES.items())))
 
 
 # His one live expression in the race rows: Gaunt's starting-Endurance modifier is
@@ -2520,6 +2617,7 @@ def main():
     # Races are built after weapons, so the link between them is made once both exist, and the
     # packs are written only after that.
     attach_natural_weapons(tmpbuilt)
+    apply_skill_renames(tmpbuilt)
     if args.write:
         for tmpname, docs in tmpbuilt.items():
             with open(os.path.join(OUT, tmpname + ".json"), "w", encoding="utf-8") as fh:

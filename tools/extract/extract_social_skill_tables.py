@@ -147,9 +147,26 @@ def function_body(name):
     raise SystemExit("unterminated function: " + name)
 
 
+# A skill his data carries under two names, settled to one by his ruling -- the same list as
+# build_documents.py SKILL_RENAMES, which is where the ruling is explained (bug report 0.20.5:1,
+# 2026-09-30). Applied as each of his dictionaries is read: a row keyed by the old name is dropped
+# when the new name has a row of its own (his two rows are identical), and every name inside a
+# row is read as the new one -- so his out-of-pairs "Botany","Botanist","+10%" now reads as one
+# name, Botany, and the older "Botany|Botanist" alternative is gone from the tables.
+RENAMED_SKILLS = {"Botanist": "Botany"}
+
+
 def load_raw(tmpname):
     tmpdata = json.load(open(os.path.join(RAW, tmpname + ".json"), encoding="utf-8"))
-    return tmpdata["entries"], tmpdata.get("_source", {})
+    tmpentries = {}
+    for tmpkey, tmprow in tmpdata["entries"].items():
+        tmpnewkey = RENAMED_SKILLS.get(tmpkey, tmpkey)
+        if tmpnewkey != tmpkey and tmpnewkey in tmpdata["entries"]:
+            print("  REPAIRED %s: row %s dropped -- one skill under two names, kept as %s" % (tmpname, tmpkey, tmpnewkey))
+            continue
+        tmpentries[tmpnewkey] = [RENAMED_SKILLS.get(v, v) if isinstance(v, str) else v for v in tmprow] \
+            if isinstance(tmprow, list) else tmprow
+    return tmpentries, tmpdata.get("_source", {})
 
 
 def percent(tmptext):
@@ -281,6 +298,8 @@ def recheck_errata(tmptable, tmperratadir):
         for tmprace, tmpmods in tmprows.items():
             for tmpskill, tmpvalue in tmpmods.items():
                 tmpchecked += 1
+                # His errata still writes the old name of a renamed skill (Aspects: "Botanist +20%").
+                tmpskill = RENAMED_SKILLS.get(tmpskill, tmpskill)
                 if tmpskill not in tmptable:
                     tmpdiffer += 1
                     tmpsaid.append("  ERRATA NAMES AN UNKNOWN SKILL: %s %s (%s)" % (tmprace, tmpskill, tmpfile))
@@ -342,6 +361,9 @@ def paired_rows(tmpentries, tmpreal, tmpwhat):
                 if not tmppending:
                     tmpsaid.append("  %s %s: a figure %s with no name before it, dropped" % (tmpwhat, tmpkey, tmpvalue))
                     continue
+                # A run that is one name twice -- "Botany","Botany" once Botanist is read as
+                # Botany (RENAMED_SKILLS) -- is that one name, not an alternative of itself.
+                tmppending = list(dict.fromkeys(tmppending))
                 if len(tmppending) > 1:
                     tmpsaid.append("  REPAIRED %s %s: %s read as ONE entry, %s"
                                    % (tmpwhat, tmpkey, " / ".join(tmppending), tmpvalue))
@@ -563,7 +585,7 @@ def write_module(tmpracetable, tmpfromsocial, tmptoraceclass, tmpraceclasstosoci
         fh.write("// skill that RECEIVES. \"Accounting\": [[\"Mathematics\", 10]] -- a character holding Mathematics\n"
                  "// gets +10% on Accounting (Player's Guide p.156 says it the same way round). A giver written\n"
                  "// \"A|B\" answers to either name. Repaired from his rows, and printed on every extraction:\n"
-                 "//     Farming/Planting, Foraging/Forestry   \"Botany\",\"Botanist\",\"+10%\" out of pairs -> Botany|Botanist 10\n"
+                 "//     Farming/Planting, Foraging/Forestry   \"Botany\",\"Botanist\",\"+10%\" out of pairs -> Botany 10 (Botanist IS Botany since 2026-09-30)\n"
                  "//     Calligraphy                           Artisan listed twice -> counted once\n")
         write_dict(fh, "SOCIAL_FROM_SOCIAL_BONUS", tmpfromsocial, "receiving social skill", "[ [giving social skill, percent], ... ]")
 

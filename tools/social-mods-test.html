@@ -66,8 +66,9 @@ check("every race his social table names is a race of the port's (by name or sou
 const socialNames = new Set(skills.filter(s => s.system.category === "social").map(s => s.name));
 check("every skill the race table lists is one of the 202 social skills",
 	Object.keys(T.SOCIAL_SKILL_RACE_MODS).filter(k => !socialNames.has(k)), []);
-check("140 social skills carry a race modifier",
-	Object.keys(T.SOCIAL_SKILL_RACE_MODS).length, 140);
+// 139 since 2026-09-30: his Botanist row was Botany's twice over (bug report 0.20.5:1).
+check("139 social skills carry a race modifier",
+	Object.keys(T.SOCIAL_SKILL_RACE_MODS).length, 139);
 check("every giver in the social-to-social table is a social skill (each of its names)",
 	Object.values(T.SOCIAL_FROM_SOCIAL_BONUS).flat().flatMap(([g]) => g.split("|")).filter(g => !socialNames.has(g)), []);
 const allNames = new Set(skills.map(s => s.name));
@@ -124,9 +125,11 @@ check("...the direction is the receiver's: Mathematics gains nothing from holdin
 	 S.getExtraSocialMods("Mathematics", ctx({ socialSkillNames: ["Accounting"] })).total], [10, 0]);
 check("4. Farming/Planting with Scholar: +10 -- his row is out of pairs and gave nothing (repaired)",
 	S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Scholar"] })).total, 10);
-check("...with Botanist, or with Botany, +10: one giver under two names",
-	[S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botanist"] })).total,
-	 S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botany"] })).total], [10, 10]);
+// Until 2026-09-30 the giver was "Botany|Botanist"; his ruling (bug report 0.20.5:1) made it Botany
+// alone, and Botanist is no longer a skill anyone can hold.
+check("...with Botany, +10; Botanist is no longer a name that gives anything",
+	[S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botany"] })).total,
+	 S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botanist"] })).total], [10, 0]);
 check("...holding both counts it once; all three with Meteorology is +30",
 	[S.getExtraSocialMods("Foraging/Forestry", ctx({ socialSkillNames: ["Botany", "Botanist"] })).total,
 	 S.getExtraSocialMods("Farming/Planting", ctx({ socialSkillNames: ["Botany", "Meteorology", "Scholar"] })).total], [10, 30]);

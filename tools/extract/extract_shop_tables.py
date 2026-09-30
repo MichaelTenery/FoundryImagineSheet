@@ -63,6 +63,74 @@ COST_TABLES = [
     ("getArmorCost",       "ARMOR_COSTS",        "Armor"),
 ]
 
+# @MARKER COST REPAIRS
+# Prices his newest table settles over his dictionary. Bug report 0.20.6:1 (2026-09-30): the
+# Leather long sleeve shirt "shows 60 gold. ... 8 gp should be the low value, 13 gp the medium, and
+# 18 gp the high, with the other values calculated from these" -- and with it his whole Long
+# Sleeve Shirt table from the upcoming Conquest of the Eternal, sixteen materials. His newest
+# statement outranks his sheet (docs/ERRATA.md). The weights of the same table are in
+# column_maps.ARMOR_VALUE_REPAIRS.
+#
+# "The other values calculated from these": his own rows show the rule. Full Shirt(Chain) is
+# [7, 14, 28, 36, 45, 90, 135] for low 28 / medium 36 / high 45 -- so the seven columns are
+# low/4, low/2, low, medium, high, high x2, high x3, a fraction of a gold piece written in silver
+# (his "15 sp" for 1.5 gp). derived_prices below does exactly that.
+#
+#     his row                                   low   med   high   (gp)
+COST_REPAIRS = {
+    "Long Sleeve Shirt(Banded Chain)":    (35, 45, 55),
+    "Long Sleeve Shirt(Chain)":           (28, 36, 45),
+    "Long Sleeve Shirt(Gambeson)":        (4,  6,  8),
+    "Long Sleeve Shirt(Gambeson/Heavy)":  (8,  12, 16),
+    "Long Sleeve Shirt(Gambeson/Thick)":  (6,  9,  12),
+    "Long Sleeve Shirt(Giant Leather)":   (40, 50, 60),
+    "Long Sleeve Shirt(Giant Scales)":    (55, 60, 90),
+    "Long Sleeve Shirt(Hard Leather)":    (10, 15, 20),
+    "Long Sleeve Shirt(Heavy Chain)":     (32, 40, 48),
+    "Long Sleeve Shirt(Heavy Scale)":     (50, 60, 70),
+    "Long Sleeve Shirt(Leather)":         (8,  13, 18),
+    "Long Sleeve Shirt(Padding)":         (2,  3,  4),
+    "Long Sleeve Shirt(Ring Mail)":       (25, 30, 40),
+    "Long Sleeve Shirt(Scale)":           (40, 50, 60),
+    "Long Sleeve Shirt(Soft Leather)":    (5,  10, 15),
+    "Long Sleeve Shirt(Studded Leather)": (12, 18, 25),
+}
+COST_REPAIR_NOTE = "REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)"
+
+
+def gp_text(tmpgp):
+    """A price in gold as his dictionary writes one: whole gold as 'N gp', a fraction of a gold
+    piece in silver ('15 sp'), and less than a silver in copper."""
+    tmpcopper = int(round(tmpgp * 100))
+    if tmpcopper % 100 == 0:
+        return "%d gp" % (tmpcopper // 100)
+    if tmpcopper % 10 == 0:
+        return "%d sp" % (tmpcopper // 10)
+    return "%d cp" % tmpcopper
+
+
+def derived_prices(tmplow, tmpmed, tmphigh):
+    """His seven columns from low / medium / high -- see COST_REPAIRS."""
+    return [gp_text(tmplow / 4.0), gp_text(tmplow / 2.0), gp_text(tmplow), gp_text(tmpmed),
+            gp_text(tmphigh), gp_text(tmphigh * 2), gp_text(tmphigh * 3)]
+
+
+def apply_cost_repairs(tmprows):
+    """His rows with COST_REPAIRS laid over them, and the names repaired, so the writer can mark
+    each. A repair naming a row his dictionary no longer has is reported, not invented."""
+    tmpfound = set()
+    tmpout = []
+    for (tmpname, tmpprices, tmpline) in tmprows:
+        if tmpname in COST_REPAIRS:
+            tmpfound.add(tmpname)
+            tmpout.append((tmpname, derived_prices(*COST_REPAIRS[tmpname]), tmpline))
+        else:
+            tmpout.append((tmpname, tmpprices, tmpline))
+    for tmpname in COST_REPAIRS:
+        if tmpname not in tmpfound:
+            print("COST_REPAIRS names a row his dictionary does not have: %s" % tmpname)
+    return tmpout, tmpfound
+
 
 # @MARKER THE PANEL
 
@@ -204,7 +272,7 @@ def wrap_names(tmpnames, tmpindent, tmpwidth=112):
     return tmplines
 
 
-def write_costs(tmpout, tmpconst, tmpfunction, tmprows, tmpfirst, tmplast):
+def write_costs(tmpout, tmpconst, tmpfunction, tmprows, tmpfirst, tmplast, tmprepaired=()):
     # JavaScript keeps the LAST of two rows with one name; that is the one kept here.
     tmplastline = {}
     for (tmpname, _, tmpline) in tmprows:
@@ -229,6 +297,9 @@ def write_costs(tmpout, tmpconst, tmpfunction, tmprows, tmpfirst, tmplast):
             tmpout.append("\t\t// " + tmprow + "   // line %d: DUPLICATE -- his later row at line %d is the one"
                           " JavaScript keeps" % (tmpline, tmplastline[tmpname]))
             continue
+        if tmpname in tmprepaired:
+            tmpout.append("\t\t" + tmprow + ",   // " + COST_REPAIR_NOTE)
+            continue
         tmpout.append("\t\t" + tmprow + ",")
     # the last real row loses its comma
     for tmpi in range(len(tmpout) - 1, -1, -1):
@@ -242,10 +313,15 @@ def main():
     tmppanel, tmppanelfirst, tmppanellast = read_panel()
     tmptables = []
     tmpspans = {}
+    tmprepairedrows = {}
     for (tmpfunction, tmpconst, _) in COST_TABLES:
         tmprows, tmpfirst, tmplast = read_costs(tmpfunction)
+        tmprows, tmprepairedrows[tmpconst] = apply_cost_repairs(tmprows)
         tmptables.append((tmpconst, tmprows))
         tmpspans[tmpconst] = (tmpfunction, tmpfirst, tmplast)
+    tmprepairedcount = sum(len(v) for v in tmprepairedrows.values())
+    if tmprepairedcount:
+        print("%d price row(s) repaired from his newest tables (COST_REPAIRS)" % tmprepairedcount)
 
     tmpout = []
     tmpout.append("// @START (CODE)")
@@ -279,7 +355,7 @@ def main():
 
     for (tmpconst, tmprows) in tmptables:
         tmpfunction, tmpfirst, tmplast = tmpspans[tmpconst]
-        write_costs(tmpout, tmpconst, tmpfunction, tmprows, tmpfirst, tmplast)
+        write_costs(tmpout, tmpconst, tmpfunction, tmprows, tmpfirst, tmplast, tmprepairedrows[tmpconst])
 
     tmpout.append("")
     tmpout.append("// @END (CODE)")

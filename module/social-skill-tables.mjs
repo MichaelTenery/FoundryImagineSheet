@@ -49,7 +49,6 @@ export const SOCIAL_SKILL_RACE_MODS = {
 	"Begging":                     {"Ratahl": 5},
 	"Boat Wright":                 {"Dwarf(Civilized)": "BLOCKED", "Dwarf(Dark)": "BLOCKED", "Dwarf(Fire)": "BLOCKED", "Dwarf(Iron)": "BLOCKED", "Dwarf(Stone)": "BLOCKED", "Dwarf(Mountain)": "BLOCKED", "Marid": 20, "Elf(Sea)": 10, "Sha’Cora": 10, "Midfolk(River)": 5, "Giant(Civilized)": 5, "Giant(Civilized:Seafaring)": 5, "Giant(True)": 5},
 	"Botany":                      {"Dryad": 20, "Elf(Dark)": 10, "Elf(Desert)": 10, "Elf(Dread)": 10, "Elf(Gray)": 10, "Elf(High)": 10, "Elf(Ice)": 10, "Elf(Sea)": 10, "Elf(Shadow)": 10, "Elf(Silver)": 10, "Elf(Wild)": 10, "Elf(Wood)": 10, "Brownie": 10, "Fairy": 10, "Gnome": 10},
-	"Botanist":                    {"Dryad": 20, "Elf(Dark)": 10, "Elf(Desert)": 10, "Elf(Dread)": 10, "Elf(Gray)": 10, "Elf(High)": 10, "Elf(Ice)": 10, "Elf(Sea)": 10, "Elf(Shadow)": 10, "Elf(Silver)": 10, "Elf(Wild)": 10, "Elf(Wood)": 10, "Brownie": 10, "Fairy": 10, "Gnome": 10},
 	"Brewing":                     {"Dwarf(Civilized)": 5, "Dwarf(Dark)": 5, "Dwarf(Fire)": 5, "Dwarf(Iron)": 5, "Dwarf(Stone)": 5, "Dwarf(Mountain)": 5},
 	"Butcher":                     {"Ba’Cora": 5, "Geebra": 10},
 	"Cage Making":                 {"Beastman": 5},
@@ -176,7 +175,7 @@ export const SOCIAL_SKILL_RACE_MODS = {
 // skill that RECEIVES. "Accounting": [["Mathematics", 10]] -- a character holding Mathematics
 // gets +10% on Accounting (Player's Guide p.156 says it the same way round). A giver written
 // "A|B" answers to either name. Repaired from his rows, and printed on every extraction:
-//     Farming/Planting, Foraging/Forestry   "Botany","Botanist","+10%" out of pairs -> Botany|Botanist 10
+//     Farming/Planting, Foraging/Forestry   "Botany","Botanist","+10%" out of pairs -> Botany 10 (Botanist IS Botany since 2026-09-30)
 //     Calligraphy                           Artisan listed twice -> counted once
 export const SOCIAL_FROM_SOCIAL_BONUS = {
 	// receiving social skill      [ [giving social skill, percent], ... ]
@@ -204,7 +203,6 @@ export const SOCIAL_FROM_SOCIAL_BONUS = {
 	"Boat Wright":                 [["Artisan", 10], ["Architecture/Engineering", 10], ["Craftsman", 10], ["Drawing/Sketching", 10], ["Laborer", 10], ["Scholar", 10], ["Wood Curing", 10], ["Wood Working", 10]],
 	"Bookbinder":                  [["Artisan", 10], ["Craftsman", 10], ["Scholar", 10]],
 	"Botany":                      [["Science", 10], ["Scholar", 10]],
-	"Botanist":                    [["Science", 10], ["Scholar", 10]],
 	"Brewing":                     [["Artisan", 10], ["Scholar", 10]],
 	"Butcher":                     [["Physiology", 10], ["Scholar", 10]],
 	"Butler":                      [["Administration", 10]],
@@ -233,13 +231,13 @@ export const SOCIAL_FROM_SOCIAL_BONUS = {
 	"Etiquette":                   [["Espionage", 10], ["Scholar", 10], ["Page", 10]],
 	"Excavation":                  [["Scholar", 10]],
 	"Exploser":                    [["Artisan", 10], ["Mathematics", 5], ["Scholar", 10]],
-	"Farming/Planting":            [["Botany|Botanist", 10], ["Meteorology", 10], ["Scholar", 10]],
+	"Farming/Planting":            [["Botany", 10], ["Meteorology", 10], ["Scholar", 10]],
 	"Fashion":                     [["Artisan", 10]],
 	"Ferrier":                     [["Scholar", 10]],
 	"Fishing":                     [["Scholar", 10]],
 	"Fletching/Bow Making":        [["Artisan", 10], ["Carving", 10], ["Craftsman", 10], ["Wood Curing", 10]],
 	"Florist/Horticulturist":      [["Artisan", 10], ["Scholar", 10]],
-	"Foraging/Forestry":           [["Botany|Botanist", 10], ["Scholar", 10]],
+	"Foraging/Forestry":           [["Botany", 10], ["Scholar", 10]],
 	"Forensics":                   [["Chemistry", 20], ["Physiology", 20], ["Undertaking", 20], ["Scholar", 10], ["Science", 10]],
 	"Furniture Making":            [["Artisan", 10], ["Craftsman", 10], ["Wood Working", 10]],
 	"Gemology":                    [["Science", 10], ["Scholar", 10]],
@@ -353,7 +351,6 @@ export const SOCIAL_TO_RACE_CLASS_BONUS = {
 	"Astrology":            [["Omen", 10], ["Divination", 10]],
 	"Boat Wright":          [["Sail", 10]],
 	"Botany":               [["Herb Lore", 10]],
-	"Botanist":             [["Herb Lore", 10]],
 	"Calligraphy":          [["Forgery", 10]],
 	"Cosmetics":            [["Disguise", 10]],
 	"Explorer":             [["Cartography", 25], ["Navigate", 20]],
