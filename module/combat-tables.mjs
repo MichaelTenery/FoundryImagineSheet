@@ -259,6 +259,7 @@ export const ARMOR_COVERAGE_BY_BODY_TYPE = {
 		"Right Shin":              "shinRight",
 		"Left Foot":               "footLeft",
 		"Right Foot":              "footRight",
+		"Tail":                    "tail",
 	},
 	"Insectoid": {
 		"Head":                    "head",

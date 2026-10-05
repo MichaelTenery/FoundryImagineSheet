@@ -76,7 +76,7 @@ export default class ImagineArmorData extends foundry.abstract.TypeDataModel {
 
 			// @MARKER COVERAGE
 			// Armour value at each body location. Zero means this piece does not cover it.
-			// These nineteen locations are the humanoid mapping; a non-humanoid body has its
+			// These nineteen locations (and the tail) are the humanoid mapping; a non-humanoid body has its
 			// own chart and its own armour.
 			coverage: new fields.SchemaField({
 				head:          coverageField(),
@@ -97,7 +97,12 @@ export default class ImagineArmorData extends foundry.abstract.TypeDataModel {
 				shinLeft:      coverageField(),
 				shinRight:     coverageField(),
 				footLeft:      coverageField(),
-				footRight:     coverageField()
+				footRight:     coverageField(),
+				// A Saurian type's tail (bug report 0.22:3, 2026-10-04): the "Tail Covering" pieces. Not
+				// one of his nineteen columns -- it was "a planned addition to the Roll20 sheet" -- so
+				// it is the port's twentieth, worn only by a body whose chart has a Tail the Saurian
+				// family maps (combat-tables.mjs), and by no other (equip-rules canBodyWearArmor).
+				tail:          coverageField()
 			}),
 
 			// Locations whose armour value is not fixed on the piece but derived from the

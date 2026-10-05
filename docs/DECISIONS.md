@@ -6458,3 +6458,38 @@ many" possible. Weapons and armour stay one item each, for the hand and the laye
 Documents regenerated with only the intended diffs (checked by numstat after each extractor
 run). **Not verified** in a running Foundry V14: `_onDropItem`'s signature (V13+'s
 `(event, item)` is assumed), the data fix, the optgroup dialog, the progression-row buttons.
+
+## His reports of 2026-10-04 and 2026-10-05 (2026-10-05)
+
+Six files: one blocker on alignment (0.22:1), the two-hands to-hit asked again (0.22.5:2), a "rolls
+vanish" work-around (0.22.6), and three nice-to-haves (gloves and gauntlets, tail coverings, a
+crowbar). Shipped as 0.22.1.
+
+**0.22:1, "Any" means any.** Not a rules question: the 0.21.0 dropdown lists hold his fifteen
+alignments, each Active or Passive, and a character made before then holds the plain word. The
+check compared the stored word to the list and objected. `isAlignmentWithinChoices` (alignment-rules)
+now allows a plain word whose Active or Passive form is in the list, and allows anything where the
+class allows all fifteen (likewise tendencies, all eight). The (current) option stays for off-list
+values; only the complaint changes. Tested against `Any`, `Any Neutral` and `Any Good`.
+
+**0.22.5:2, +2 to hit for two hands.** UPSTREAM 115 had said the port would not invent it. He has now
+asked twice, and his statement is the newest source, so it is built: `getToHitModifiers` takes
+`twoHanded` (a weapon's `hand == "both"`) and lists `Two Hands +2`, melee modes only, beside the +2
+damage that was already shipped. The question stays open with him.
+
+**Gloves, gauntlets, tail coverings, crowbar.** Silk/Cloth/Wool gloves were already in, with his
+numbers. Four gauntlets were missing and Gauntlets(Padding) had a nonsense price row. The data goes in
+`src/packs/manual/armor.json` (values, weights, flexibility, the sourcebook `Imagine Master Index` as
+the existing gauntlets carry) and the prices in `extract_shop_tables.py` (`ARMOR_ADDITIONS`,
+`EQUIPMENT_ADDITIONS`, `COST_REPAIRS`, with `PANEL_ADDITIONS` for the panel), so a regeneration keeps
+them. Fractional columns round to the nearest silver (his own quarter prices are 35 sp, not 3.5 gp).
+**Tail coverings add a twentieth coverage location, `tail`** (item schema, item sheet, equip rules),
+mapped to the Saurian body chart's Tail area by `extract_combat_tables.py` -- one line of generated
+output -- and `canBodyWearArmor` refuses a Tail Covering to any other body. Silk/Cloth/Wool are
+`Clothing` and so take no layer (`consumesLayer`, the 3-or-less rule). The Humanoid(Tail) races were
+not given the slot: the report says Saurian types, and each added body needs its own look.
+
+**0.22.6, not built.** The pop-up is Foundry's chat notification; its fade time is core, and this
+machine runs no Foundry to learn how V14 exposes it. See `docs/sonnet/2026-10-05-bug-reports.md`.
+
+Tests: 24 suites, 3,137 checks.

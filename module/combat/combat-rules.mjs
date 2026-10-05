@@ -428,6 +428,13 @@ export const MODE_DAMAGE_TYPES = {
 		var tmpoffhand = parseInt(tmpinput.offhand) || 0;
 		if (tmpoffhand) { tmplist.push({ label: "Off Hand", value: tmpoffhand }); }
 
+		// Two hands on a melee weapon: +2 to hit. Bug report 0.22.5:2 (Blocker, 2026-10-05), his
+		// second asking after 0.20.10:1 -- "Make sure the +2 to hit roll when 2H is selected is
+		// applied." Neither his sheet nor the Player's Guide's Rule of 2 has it (they give +2
+		// DAMAGE, getTwoHandedDamageBonus), but it is his newest statement, so it is built as he
+		// states it; melee modes only, as the damage bonus is.
+		if (tmpinput.twoHanded && MELEE_MODES.includes(tmpmode)) { tmplist.push({ label: "Two Hands", value: 2 }); }
+
 		// Firing more than one missile at a time, already bought down by whichever of the two
 		// multi-missile skills applies. Passed in for the same reason lore and the off hand are.
 		var tmpmulti = parseInt(tmpinput.multiMissile) || 0;

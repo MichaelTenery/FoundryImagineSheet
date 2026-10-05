@@ -21,7 +21,7 @@
 // The body locations an armour piece may cover, as item-armor.mjs names them.
 export const ARMOR_LOCATIONS = ["head", "neck", "shoulderLeft", "shoulderRight", "torsoUpper", "torsoMid",
 	"torsoLower", "armLeft", "armRight", "forearmLeft", "forearmRight", "handLeft", "handRight",
-	"thighLeft", "thighRight", "shinLeft", "shinRight", "footLeft", "footRight"];
+	"thighLeft", "thighRight", "shinLeft", "shinRight", "footLeft", "footRight", "tail"];
 
 // How stiff each flexibility class is. A layer may only sit over a layer of equal or lower stiffness,
 // so the innermost layer of any stack is always the lowest number in it.
@@ -127,6 +127,10 @@ export function isLegalSet(tmppieces, tmpcheckfirst = true) {
 export function canBodyWearArmor(tmpname, tmpbodytype) {
 	var tmpitemname = "" + (tmpname ?? "");
 	var tmpbody = "" + (tmpbodytype ?? "");
+	// A Tail Covering is a Saurian type's alone (bug report 0.22:3): his Saurian chart is the one body
+	// the coverage table gives a Tail slot, and a covering for a tail no other body has would only
+	// be put on by Equip Best Armour to no purpose.
+	if (tmpitemname.includes("Tail Covering")) { return tmpbody.includes("Saurian"); }
 	if (!tmpitemname.includes("Barding")) { return true; }
 	if (tmpbody.includes("Centaur")) { return tmpitemname.includes("Centaur Barding"); }
 	if (tmpbody.includes("Arachen") || tmpbody.includes("Scethen") || tmpbody.includes("Brachara")) {

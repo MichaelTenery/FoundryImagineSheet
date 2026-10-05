@@ -2756,6 +2756,12 @@ Two questions:
   touches speed, and the weapon speed set by `setEquippedWeaponInCombatSheet` does not read the
   flag). The port follows the sheet and does not apply it. Should it?
 
+> **Update 2026-10-05:** he filed it again as bug report 0.22.5:2 ("still occurring"), still asking
+> for **+2 to hit** and noting the card shows no modifier. The +2 damage was already showing
+> ("+2 two hands" in his own screenshot). Built as he states it: +2 to hit for a melee weapon in two
+> hands (`getToHitModifiers`, label "Two Hands"). Left open: is it in ADDITION to the +2 damage and
+> doubled Strength (as built), and is the book's -2 speed wanted?
+
 ## 116. Full Shirt and Long Shirt: Leather and Padding rows look swapped
 
 **Status:** open · **Severity:** minor

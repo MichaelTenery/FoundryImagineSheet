@@ -1243,6 +1243,17 @@ check("a melee weapon in both hands does +2 damage", ["thrust", "cut", "smash"].
 check("...nothing in one hand, and nothing for a missile however held",
 	[R.getTwoHandedDamageBonus("cut", false), R.getTwoHandedDamageBonus("missile", true)], [0, 0]);
 
+// --- two hands: +2 to hit as well (bug report 0.22.5:2) ---------------------------------------------
+{
+	const base = { mode: "smash", weapon: { smash: { mod: 3 }, magicBonus: 0 }, attacker: { meleeAttack: 1 }, target: null, situational: 0 };
+	check("a melee weapon in both hands gets +2 to hit, listed as Two Hands",
+		[R.getToHitModifiers({ ...base, twoHanded: true }).total - R.getToHitModifiers(base).total,
+		 R.getToHitModifiers({ ...base, twoHanded: true }).list.some(m => m.label === "Two Hands" && m.value === 2)], [2, true]);
+	check("...not a missile weapon, and not one in a single hand",
+		[R.getToHitModifiers({ ...base, mode: "missile", weapon: { missile: { mod: 0 }, magicBonus: 0 }, attacker: { missileAttack: 0 }, twoHanded: true }).list.some(m => m.label === "Two Hands"),
+		 R.getToHitModifiers({ ...base, twoHanded: false }).list.some(m => m.label === "Two Hands")], [false, false]);
+}
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =
 	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")

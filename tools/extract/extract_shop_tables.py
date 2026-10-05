@@ -94,8 +94,11 @@ COST_REPAIRS = {
     "Long Sleeve Shirt(Scale)":           (40, 50, 60),
     "Long Sleeve Shirt(Soft Leather)":    (5,  10, 15),
     "Long Sleeve Shirt(Studded Leather)": (12, 18, 25),
+    # The Additional Gloves/Gauntlets table (bug report 0.22:2, 2026-10-04): Gauntlets(Padding)'s row in
+    # his dictionary reads 5 sp / 3 gp / 5 cp -- out of order and wrong -- where his table says 3/4/5 gp.
+    "Gauntlets(Padding)":                 (3,  4,  5),
 }
-COST_REPAIR_NOTE = "REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)"
+COST_REPAIR_NOTE = "REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)"
 
 
 def gp_text(tmpgp):
@@ -104,9 +107,11 @@ def gp_text(tmpgp):
     tmpcopper = int(round(tmpgp * 100))
     if tmpcopper % 100 == 0:
         return "%d gp" % (tmpcopper // 100)
-    if tmpcopper % 10 == 0:
-        return "%d sp" % (tmpcopper // 10)
-    return "%d cp" % tmpcopper
+    if tmpcopper < 10:
+        return "%d cp" % tmpcopper
+    # Rounded to the nearest silver piece when it is not a whole one -- his own quarter prices are
+    # ("14 gp" low gives his "35 sp"), and a price in copper that is not a multiple of ten is not.
+    return "%d sp" % int(round(tmpcopper / 10.0))
 
 
 def derived_prices(tmplow, tmpmed, tmphigh):
@@ -131,6 +136,52 @@ def apply_cost_repairs(tmprows):
             print("COST_REPAIRS names a row his dictionary does not have: %s" % tmpname)
     return tmpout, tmpfound
 
+
+
+# @MARKER SHOP ADDITIONS
+# Things he has asked for that his sheet's panel and dictionaries do not hold, added AFTER his rows
+# are read (so a regeneration keeps them). Bug reports of 2026-10-04: 0.22:2 (the Additional
+# Gloves/Gauntlets table), 0.22:3 (Tail Coverings, "a planned addition to the Roll20 sheet") and
+# 0.22:4 (the crowbar, "from Ari's campaign site"). Each row is low / medium / high in gold; the
+# seven columns follow the rule his own rows show (derived_prices). The armour VALUES and weights
+# are in src/packs/manual/armor.json; only the prices and the panel entries live here.
+#
+#     name                         low    med    high   (gp)
+ARMOR_ADDITIONS = {
+    "Gauntlets(Gambeson)":         (4,    8,     12),
+    "Gauntlets(Gambeson/Thick)":   (5,    10,    15),
+    "Gauntlets(Gambeson/Heavy)":   (6,    12,    18),
+    "Gauntlets(Ring Mail)":        (9,    13,    17),
+    "Tail Covering(Silk)":         (2,    4,     6),
+    "Tail Covering(Cloth)":        (0.8,  1,     2),
+    "Tail Covering(Wool)":         (2,    3,     4),
+    "Tail Covering(Padding)":      (3,    4,     5),
+    "Tail Covering(Soft Leather)": (4,    8,     12),
+    "Tail Covering(Leather/Fur)":  (5,    10,    15),
+    "Tail Covering(Hard Leather)": (8,    12,    18),
+    "Tail Covering(Gambeson)":     (8,    12,    18),
+    "Tail Covering(Studded Leather)": (12, 18,    24),
+    "Tail Covering(Gambeson/Thick)": (8,  12,    18),
+    "Tail Covering(Ring Mail)":    (18,   24,    36),
+    "Tail Covering(Gambeson/Heavy)": (14, 18,    24),
+    "Tail Covering(Chain)":        (20,   30,    40),
+    "Tail Covering(Heavy Chain)":  (30,   40,    50),
+    "Tail Covering(Banded Chain)": (40,   50,    60),
+    "Tail Covering(Scale)":        (50,   60,    70),
+    "Tail Covering(Heavy Scale)":  (60,   70,    80),
+    "Tail Covering(Giant Leather)": (70,  80,     90),
+    "Tail Covering(Giant Scales)": (80,   90,     100),
+}
+EQUIPMENT_ADDITIONS = {
+    "Crowbar":                     (3,    4,     5),
+}
+# The panel: which radio each added name joins (an existing radio, by its value), or a new one.
+PANEL_ADDITIONS = {
+    # type     radio value         existing?  names
+    "Armor":     [("Gauntlets",         True,  [n for n in ARMOR_ADDITIONS if n.startswith("Gauntlets(")]),
+                  ("Tail Covering",     False, [n for n in ARMOR_ADDITIONS if n.startswith("Tail Covering(")])],
+    "Equipment": [("General Equipment", True,  list(EQUIPMENT_ADDITIONS))],
+}
 
 # @MARKER THE PANEL
 
@@ -301,11 +352,13 @@ def write_costs(tmpout, tmpconst, tmpfunction, tmprows, tmpfirst, tmplast, tmpre
             tmpout.append("\t\t" + tmprow + ",   // " + COST_REPAIR_NOTE)
             continue
         tmpout.append("\t\t" + tmprow + ",")
-    # the last real row loses its comma
+    # the last real row loses its comma -- the one before its trailing note, if it has one
     for tmpi in range(len(tmpout) - 1, -1, -1):
-        if tmpout[tmpi].startswith("\t\t\"") and tmpout[tmpi].endswith(","):
-            tmpout[tmpi] = tmpout[tmpi][:-1]
-            break
+        if tmpout[tmpi].startswith("		\""):
+            tmpmatch = re.match(r"^(.*\]),(\s*//.*)?$", tmpout[tmpi])
+            if tmpmatch:
+                tmpout[tmpi] = tmpmatch.group(1) + (tmpmatch.group(2) or "")
+                break
     tmpout.append("\t};")
 
 
@@ -314,9 +367,22 @@ def main():
     tmptables = []
     tmpspans = {}
     tmprepairedrows = {}
+    tmpadditions = {"ARMOR_COSTS": ARMOR_ADDITIONS, "EQUIPMENT_COSTS": EQUIPMENT_ADDITIONS}
+    for (tmptype, tmpgroups) in PANEL_ADDITIONS.items():
+        for (tmpradio, tmpexisting, tmpnames) in tmpgroups:
+            tmpmatch = [g for g in tmppanel[tmptype] if g[0] == tmpradio]
+            if tmpexisting and tmpmatch:
+                tmpmatch[0][2].extend(n for n in tmpnames if n not in tmpmatch[0][2])
+            elif not tmpexisting:
+                tmppanel[tmptype].append((tmpradio, tmpradio, list(tmpnames)))
+            else:
+                print("PANEL_ADDITIONS names a radio his panel does not have: %s/%s" % (tmptype, tmpradio))
     for (tmpfunction, tmpconst, _) in COST_TABLES:
         tmprows, tmpfirst, tmplast = read_costs(tmpfunction)
         tmprows, tmprepairedrows[tmpconst] = apply_cost_repairs(tmprows)
+        for (tmpname, tmplmh) in tmpadditions.get(tmpconst, {}).items():
+            tmprows.append((tmpname, derived_prices(*tmplmh), 0))
+            tmprepairedrows[tmpconst].add(tmpname)
         tmptables.append((tmpconst, tmprows))
         tmpspans[tmpconst] = (tmpfunction, tmpfirst, tmplast)
     tmprepairedcount = sum(len(v) for v in tmprepairedrows.values())

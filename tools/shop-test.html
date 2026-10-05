@@ -102,11 +102,13 @@ check("what was spent is counted in gold, as his Wealth(in Gold) is", S.describe
 
 // --- the tables, as his sheet has them ----------------------------------------------------------------
 const kinds = Object.fromEntries(Object.entries(T.SHOP_CATEGORIES).map(([t, k]) => [t, k.length]));
-check("his panel: 34 kinds of armour, 31 of weapon, 14 of equipment", kinds, { Armor: 34, Weapon: 31, Equipment: 14 });
+// Armor 35 since 2026-10-04: the Tail Covering radio (bug report 0.22:3) is the port's addition to his panel.
+check("his panel: 35 kinds of armour (his 34 and the tail coverings), 31 of weapon, 14 of equipment", kinds, { Armor: 35, Weapon: 31, Equipment: 14 });
 const offered = new Set(Object.entries(T.SHOP_CATEGORIES).flatMap(([t, k]) => k.flatMap(([, , names]) => names.map(n => t + "|" + n))));
-check("1,873 distinct things on offer across the three", offered.size, 1873);
-check("his three price dictionaries: 595 weapons, 606 equipment, 706 armour",
-	[T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS].map(d => Object.keys(d).length), [595, 606, 706]);
+// 1,897 since 2026-10-04: his 1,873, four gauntlets, nineteen tail coverings and the crowbar (0.22:2-4).
+check("1,897 distinct things on offer across the three", offered.size, 1897);
+check("his three price dictionaries, with the additions: 595 weapons, 607 equipment, 729 armour",
+	[T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS].map(d => Object.keys(d).length), [595, 607, 729]);
 check("every price row has his seven columns",
 	[T.WEAPON_COSTS, T.EQUIPMENT_COSTS, T.ARMOR_COSTS].flatMap(d => Object.values(d)).filter(r => r.length != 7).length, 0);
 check("none of his own price strings is doubtful: the check only ever catches what a Game Master types",
@@ -139,9 +141,10 @@ check("general equipment and ammunition stack; a sword and a shirt are one item 
 	 S.itemStacks("weapon", "Sword(Long)", { type: "Melee", speed: 4 }), S.itemStacks("armor", "Full Shirt(Leather)", {})],
 	[true, true, false, false]);
 
-// 44 since 2026-09-30: Long Sleeve Shirt(Giant Scales) was one of them until his own table replaced
-// the row (extract_shop_tables.py COST_REPAIRS, bug report 0.20.6:1). Full Shirt(Giant Scales) still is.
-check("44 of his rows are out of order across the seven columns", disorder.length, 44);
+// 43 since 2026-10-04: Long Sleeve Shirt(Giant Scales) (2026-09-30, bug report 0.20.6:1) and
+// Gauntlets(Padding) (his table's 3/4/5 gp, 0.22:2) were two of them until his own tables replaced
+// the rows (extract_shop_tables.py COST_REPAIRS). Full Shirt(Giant Scales) still is.
+check("43 of his rows are out of order across the seven columns", disorder.length, 43);
 check("...and only four at Medium, the default level",
 	disorder.filter(r => r.atMedium).map(r => r.name),
 	["Coffer(5“x 8“x 3“/Holds 12)", "Kite(Box)", "Fishing Pole(Deep Sea)", "Fishing Pole(Metal)"]);
@@ -153,9 +156,10 @@ const [equipment, armor, weapons, races, classes, skills] =
 const content = { equipment, armor, weapons, races, classes, skills };
 const cat = S.buildShopCatalog(content, () => true);
 
-check("1,810 of his 1,873 are sold; 63 are left out, each with its reason", [cat.offers.length, cat.left.length], [1810, 63]);
-check("sixty of those are creature hide, which his sheet will not sell without a creature and a value",
-	cat.left.filter(l => l.reason.startsWith("creature hide")).length, 60);
+// 1,832 of 1,897 since 2026-10-04: the two Giant tail coverings are creature hide like the rest.
+check("1,832 of the 1,897 are sold; 65 are left out, each with its reason", [cat.offers.length, cat.left.length], [1832, 65]);
+check("sixty-two of those are creature hide, which his sheet will not sell without a creature and a value",
+	cat.left.filter(l => l.reason.startsWith("creature hide")).length, 62);
 check("...and the other three are the ones with nothing true to sell",
 	cat.left.filter(l => !l.reason.startsWith("creature hide")).map(l => l.name).sort(),
 	["Arrow(Fairy Crossbow/True Flight)", "Arrow(Fairy Long Bow/True Flight)", "Arrow(Horn Bow/True Flight/Far Flight)"]);

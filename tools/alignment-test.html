@@ -271,6 +271,17 @@ for (const e of custom.alignments) {
 	check(`a valid custom alignment reads as its axes: ${e.name}`, readers(e.name), expectFromAxes(R.getAlignmentAxes(e.name, custom)));
 }
 
+// --- bug report 0.22:1 -- "Any" means any ----------------------------------------------------------
+check("a Mage's (Any) objects to nothing: his plain Neutral Good, a custom alignment, free text",
+	["Neutral Good", "Good", "Evil", "Fanatical Evil", "Neutral", "Something Typed Long Ago"].map(a => R.checkAlignmentForClasses(["Any"], a, "")), [[], [], [], [], [], []]);
+check("...and any tendency, even free text, against a class that allows all eight",
+	R.checkAlignmentForClasses(["Any"], "Neutral (Active)", "Typed Long Ago"), []);
+check("Any Neutral allows the plain Neutral Good (it holds Neutral Good (Active)), not plain Evil",
+	[R.checkAlignmentForClasses(["Any Neutral"], "Neutral Good", "").length, R.checkAlignmentForClasses(["Any Neutral"], "Evil", "").length], [0, 1]);
+check("Any Good takes the plain Good and Neutral Good, and refuses plain Neutral",
+	[R.checkAlignmentForClasses(["Any Good"], "Good", "").length, R.checkAlignmentForClasses(["Any Good"], "Neutral Good", "").length,
+	 R.checkAlignmentForClasses(["Any Good"], "Neutral", "").length], [0, 0, 1]);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =
 	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")

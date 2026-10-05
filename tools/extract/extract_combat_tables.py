@@ -1894,6 +1894,12 @@ def main():
     out.append("// Keyed by area NAME rather than by position. His version switches on the area's position in\n")
     out.append("// the body chart, and two of his branches have drifted out of step with the charts they serve,\n")
     out.append("// so a position-keyed port would put armour on the wrong limb. See docs/UPSTREAM-ISSUES.md.\n")
+    # The Saurian's tail (bug report 0.22:3, 2026-10-04): his getArmorValuesByBodyTypeAndArmor has no
+    # slot for it -- the Tail Covering was "a planned addition to the Roll20 sheet" -- so the port adds
+    # one, "tail", to the Saurian family only (his tail covering "protects the upper and lower saurian
+    # tail"). The Humanoid(Tail) races stay as his sheet has them.
+    if "Saurian" in armor_maps:
+        armor_maps["Saurian"]["Tail"] = "tail"
     out.append("export const ARMOR_COVERAGE_BY_BODY_TYPE = {\n")
     for family, mapping in armor_maps.items():
         out.append("\t%s: {\n" % js(family))

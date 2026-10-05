@@ -18,6 +18,49 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.22.1 — 2026-10-05
+
+Three reports from 10/4 and 10/5, three features, and one report held back.
+
+**"Any" means any** (0.22:1, Blocker). A Mage ("Any") and a Gray Witch ("Any Neutral") no longer
+say "Neutral Good is not an alignment the class allows". Characters made before 0.21.0 hold the
+plain word ("Neutral Good", "Evil"), which is not one of his fifteen — each of those carries
+Active or Passive. A plain word is now allowed when any of its forms is; and a class that allows
+all fifteen objects to nothing, a custom alignment or free text included, nor does one that allows
+all eight tendencies.
+
+**Two hands: +2 to hit** (0.22.5:2, Blocker, "still occurring"). Built as he states it: a melee
+weapon in both hands adds +2 to the attack roll, shown on the card as "Two Hands +2", beside the +2
+damage and doubled Strength already there. Neither his sheet nor the book has a to-hit bonus for
+two hands — both give +2 damage — so this is new on his word, and it is on the table in
+UPSTREAM 115 for him to confirm.
+
+**Gauntlets and gloves** (0.22:2). Gauntlets in Gambeson (6), Gambeson/Thick (9), Gambeson/Heavy
+(12) and Ring Mail (12), with his weights and prices; Padding gauntlets take his 3/4/5 gp and .2 lb
+(the sheet's own row read 5 sp / 3 gp / 5 cp). The Silk, Cloth and Wool gloves were already in and
+already match his table.
+
+**Tail coverings** (0.22:3). Nineteen pieces, Silk to Giant Scales, with his armour values,
+weights and prices, for the Saurian types. They cover a new **Tail** location on the armour item
+(shown on its sheet), protect a Saurian body's Tail area, and can be worn by a Saurian body only —
+Equip Best Armour will not put one on anyone else. Silk, Cloth and Wool are clothing and take no
+layer. The two Giant coverings are creature hide and, like every other, are not sold in the shop
+until the creature's hide is ported. Humanoid(Tail) races (Lagara, Ursara …) are left as his sheet
+has them: the report names Saurian types.
+
+**The crowbar** (0.22:4). For sale under General Equipment at 3 / 4 / 5 gp, 5 lb.
+
+**Held back: rolls vanish too quickly** (0.22.6, Work Around). The pop-up that shows a roll is
+Foundry's own chat notification, and its time on screen is Foundry's; nothing in this system
+controls it, and a guess at it that cannot be tried here would be worse than the wait. It is
+written up for a session with a running Foundry. Meanwhile the card is always in the chat log, and
+clicking the pop-up keeps it.
+
+**Not verified in a running Foundry V14:** the Tail slot on the item sheet and in a Saurian's body
+chart (the rules and data are tested), and the new shop rows in the in-game shop.
+
+---
+
 ## 0.22.0 — 2026-09-30
 
 Ten bug reports of 2026-09-30 (0.20.1 to 0.20.10), and four notes on class skills. They were written

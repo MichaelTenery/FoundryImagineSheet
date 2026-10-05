@@ -478,6 +478,40 @@ export function buildAlignmentSelectOptions(tmpList, tmpCurrent, tmpBlankLabel) 
 	return tmpOptions;
 }
 
+// @MARKER ANY MEANS ANY
+// Bug report 0.22:1 (Blocker, 2026-10-04): a Mage -- "(Any)" -- showed "Neutral Good is not an
+// alignment the class allows (Any)", and a Gray Witch "(Any Neutral)" the same. Two causes, both
+// from characters made before the alignment lists (0.21.0) stored a plain word:
+//   - the plain word ("Neutral Good", "Good", "Evil") is not one of his fifteen, which each carry
+//     Active or Passive; a plain word is allowed when ANY of its Active/Passive forms is.
+//   - a class that allows every one of his fifteen ("Any") has nothing to object to whatever is
+//     stored, a custom alignment or free text included; likewise a class whose tendency list is all
+//     eight.
+const ALIGNMENT_PLAIN_FORMS = {
+	// plain word            the forms of his that it stands for
+	"Fanatical Good":        ["Fanatical Good (Active)", "Fanatical Good (Passive)"],
+	"Good":                  ["Good (Active)", "Good (Passive)"],
+	"Neutral Good":          ["Neutral Good (Active)", "Neutral Good (Passive)"],
+	"Neutral":               ["Neutral (Active)", "True Neutral", "Neutral (Passive)"],
+	"Neutral Evil":          ["Neutral Evil (Active)", "Neutral Evil (Passive)"],
+	"Evil":                  ["Evil (Active)", "Evil (Passive)"],
+	"Fanatical Evil":        ["Fanatical Evil (Active)", "Fanatical Evil (Passive)"]
+};
+
+// This is the function which says whether a stored alignment passes a class's choices.
+export function isAlignmentWithinChoices(tmpChoices, tmpAlignment) {
+	var tmpName = ("" + (tmpAlignment ?? "")).trim();
+	if (tmpChoices.alignments.includes(tmpName)) { return true; }
+	if (ALIGNMENT_LIST.filter(tmpOne => tmpOne != ALIGNMENT_INSANE).every(tmpOne => tmpChoices.alignments.includes(tmpOne))) { return true; }
+	return (ALIGNMENT_PLAIN_FORMS[tmpName] ?? []).some(tmpForm => tmpChoices.alignments.includes(tmpForm));
+}
+
+// This is the function which says whether a stored tendency passes a class's choices.
+export function isTendencyWithinChoices(tmpChoices, tmpTendency) {
+	if (tmpChoices.tendencies.includes(("" + (tmpTendency ?? "")).trim())) { return true; }
+	return TENDENCY_LIST.every(tmpOne => tmpChoices.tendencies.includes(tmpOne));
+}
+
 // This is the function which says what is wrong with a character's alignment and tendency against
 // its class or classes -- the sheet's warning, the generator's refusal. Nothing is wrong with:
 //     N/A in both      Alignmentless Imagine (his setFinalAlignment, 73409-73412; MM pp.170-171)
@@ -503,10 +537,10 @@ export function checkAlignmentForClasses(tmpRequirements, tmpAlignment, tmpTende
 	if (tmpList.length > 1 && tmpChoices.empty) {
 		tmpIssues.push(`The classes have no alignment and tendency in common (${tmpWords}).`);
 	}
-	if (!tmpSkip(tmpAlign) && !tmpChoices.alignments.includes(tmpAlign)) {
+	if (!tmpSkip(tmpAlign) && !isAlignmentWithinChoices(tmpChoices, tmpAlign)) {
 		tmpIssues.push(`${tmpAlign} is not an alignment the class allows (${tmpWords}).`);
 	}
-	if (!tmpSkip(tmpTend) && !tmpChoices.tendencies.includes(tmpTend)) {
+	if (!tmpSkip(tmpTend) && !isTendencyWithinChoices(tmpChoices, tmpTend)) {
 		tmpIssues.push(`${tmpTend} is not a tendency the class allows (${tmpWords}).`);
 	}
 	return tmpIssues;

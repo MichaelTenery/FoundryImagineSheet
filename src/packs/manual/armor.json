@@ -19,5 +19,251 @@
       }
     }
   },
-  "entries": {}
+  "entries": {
+    "Gauntlets(Gambeson)": {
+      "material": "Gambeson",
+      "flexibility": "Flexible",
+      "weight": 0.25,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 6,
+        "handRight": 6
+      },
+      "_note": "His Additional Gloves/Gauntlets table, bug report 0.22:2 (2026-10-04)"
+    },
+    "Gauntlets(Gambeson/Thick)": {
+      "material": "Gambeson/Thick",
+      "flexibility": "Semi-Flexible",
+      "weight": 0.35,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 9,
+        "handRight": 9
+      },
+      "_note": "His Additional Gloves/Gauntlets table, bug report 0.22:2 (2026-10-04)"
+    },
+    "Gauntlets(Gambeson/Heavy)": {
+      "material": "Gambeson/Heavy",
+      "flexibility": "Semi-Flexible",
+      "weight": 0.45,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 12,
+        "handRight": 12
+      },
+      "_note": "His Additional Gloves/Gauntlets table, bug report 0.22:2 (2026-10-04)"
+    },
+    "Gauntlets(Ring Mail)": {
+      "material": "Ring Mail",
+      "flexibility": "Semi-Flexible",
+      "weight": 1,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 12,
+        "handRight": 12
+      },
+      "_note": "His Additional Gloves/Gauntlets table, bug report 0.22:2 (2026-10-04)"
+    },
+    "Gauntlets(Padding)": {
+      "_override": true,
+      "weight": 0.2,
+      "_note": "His table: Padding gauntlets weigh .2 lb (his sheet had .25), bug report 0.22:2"
+    },
+    "Tail Covering(Silk)": {
+      "material": "Silk",
+      "flexibility": "Clothing",
+      "weight": 1,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 1
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Cloth)": {
+      "material": "Cloth",
+      "flexibility": "Clothing",
+      "weight": 2,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 2
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Wool)": {
+      "material": "Wool",
+      "flexibility": "Clothing",
+      "weight": 3,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 3
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Padding)": {
+      "material": "Padding",
+      "flexibility": "Flexible",
+      "weight": 4,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 3
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Soft Leather)": {
+      "material": "Soft Leather",
+      "flexibility": "Flexible",
+      "weight": 5,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 4
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Leather/Fur)": {
+      "material": "Leather/Fur",
+      "flexibility": "Flexible",
+      "weight": 6,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 6
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Hard Leather)": {
+      "material": "Hard Leather",
+      "flexibility": "Flexible",
+      "weight": 7,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 6
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Gambeson)": {
+      "material": "Gambeson",
+      "flexibility": "Flexible",
+      "weight": 8,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 6
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Studded Leather)": {
+      "material": "Studded Leather",
+      "flexibility": "Semi-Flexible",
+      "weight": 9,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 8
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Gambeson/Thick)": {
+      "material": "Gambeson/Thick",
+      "flexibility": "Semi-Flexible",
+      "weight": 8,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 9
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Ring Mail)": {
+      "material": "Ring Mail",
+      "flexibility": "Semi-Flexible",
+      "weight": 10,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 12
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Gambeson/Heavy)": {
+      "material": "Gambeson/Heavy",
+      "flexibility": "Semi-Flexible",
+      "weight": 9,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 12
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Chain)": {
+      "material": "Chain",
+      "flexibility": "Semi-Flexible",
+      "weight": 12,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 15
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Heavy Chain)": {
+      "material": "Heavy Chain",
+      "flexibility": "Semi-Flexible",
+      "weight": 15,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 16
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Banded Chain)": {
+      "material": "Banded Chain",
+      "flexibility": "Semi-Flexible",
+      "weight": 18,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 17
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Scale)": {
+      "material": "Scale",
+      "flexibility": "Semi-Flexible",
+      "weight": 20,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 18
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Heavy Scale)": {
+      "material": "Heavy Scale",
+      "flexibility": "Semi-Flexible",
+      "weight": 22,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 19
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour"
+    },
+    "Tail Covering(Giant Leather)": {
+      "material": "Giant Leather",
+      "flexibility": "Flexible",
+      "weight": 10,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 0
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour",
+      "coverageFromMaterial": [
+        "tail"
+      ]
+    },
+    "Tail Covering(Giant Scales)": {
+      "material": "Giant Scales",
+      "flexibility": "Semi-Flexible",
+      "weight": 15,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 0
+      },
+      "_note": "His Tail Covering table, bug report 0.22:3 (2026-10-04): a Saurian type's tail, worn from a belt, saurian breeches or saurian lower torso armour",
+      "coverageFromMaterial": [
+        "tail"
+      ]
+    }
+  }
 }

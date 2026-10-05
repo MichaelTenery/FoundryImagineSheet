@@ -7898,7 +7898,7 @@
         "initiative": 0,
         "speed": 0
       },
-      "weight": 0.25,
+      "weight": 0.2,
       "sourcebook": "Imagine Master Index",
       "page": "337"
     }
@@ -28888,6 +28888,315 @@
       },
       "weight": 22.5,
       "sourcebook": "XXX"
+    }
+  },
+  {
+    "name": "Gauntlets(Gambeson)",
+    "type": "armor",
+    "system": {
+      "material": "Gambeson",
+      "flexibility": "Flexible",
+      "weight": 0.25,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 6,
+        "handRight": 6
+      }
+    }
+  },
+  {
+    "name": "Gauntlets(Gambeson/Thick)",
+    "type": "armor",
+    "system": {
+      "material": "Gambeson/Thick",
+      "flexibility": "Semi-Flexible",
+      "weight": 0.35,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 9,
+        "handRight": 9
+      }
+    }
+  },
+  {
+    "name": "Gauntlets(Gambeson/Heavy)",
+    "type": "armor",
+    "system": {
+      "material": "Gambeson/Heavy",
+      "flexibility": "Semi-Flexible",
+      "weight": 0.45,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 12,
+        "handRight": 12
+      }
+    }
+  },
+  {
+    "name": "Gauntlets(Ring Mail)",
+    "type": "armor",
+    "system": {
+      "material": "Ring Mail",
+      "flexibility": "Semi-Flexible",
+      "weight": 1,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "handLeft": 12,
+        "handRight": 12
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Silk)",
+    "type": "armor",
+    "system": {
+      "material": "Silk",
+      "flexibility": "Clothing",
+      "weight": 1,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 1
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Cloth)",
+    "type": "armor",
+    "system": {
+      "material": "Cloth",
+      "flexibility": "Clothing",
+      "weight": 2,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 2
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Wool)",
+    "type": "armor",
+    "system": {
+      "material": "Wool",
+      "flexibility": "Clothing",
+      "weight": 3,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 3
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Padding)",
+    "type": "armor",
+    "system": {
+      "material": "Padding",
+      "flexibility": "Flexible",
+      "weight": 4,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 3
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Soft Leather)",
+    "type": "armor",
+    "system": {
+      "material": "Soft Leather",
+      "flexibility": "Flexible",
+      "weight": 5,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 4
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Leather/Fur)",
+    "type": "armor",
+    "system": {
+      "material": "Leather/Fur",
+      "flexibility": "Flexible",
+      "weight": 6,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 6
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Hard Leather)",
+    "type": "armor",
+    "system": {
+      "material": "Hard Leather",
+      "flexibility": "Flexible",
+      "weight": 7,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 6
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Gambeson)",
+    "type": "armor",
+    "system": {
+      "material": "Gambeson",
+      "flexibility": "Flexible",
+      "weight": 8,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 6
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Studded Leather)",
+    "type": "armor",
+    "system": {
+      "material": "Studded Leather",
+      "flexibility": "Semi-Flexible",
+      "weight": 9,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 8
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Gambeson/Thick)",
+    "type": "armor",
+    "system": {
+      "material": "Gambeson/Thick",
+      "flexibility": "Semi-Flexible",
+      "weight": 8,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 9
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Ring Mail)",
+    "type": "armor",
+    "system": {
+      "material": "Ring Mail",
+      "flexibility": "Semi-Flexible",
+      "weight": 10,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 12
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Gambeson/Heavy)",
+    "type": "armor",
+    "system": {
+      "material": "Gambeson/Heavy",
+      "flexibility": "Semi-Flexible",
+      "weight": 9,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 12
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Chain)",
+    "type": "armor",
+    "system": {
+      "material": "Chain",
+      "flexibility": "Semi-Flexible",
+      "weight": 12,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 15
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Heavy Chain)",
+    "type": "armor",
+    "system": {
+      "material": "Heavy Chain",
+      "flexibility": "Semi-Flexible",
+      "weight": 15,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 16
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Banded Chain)",
+    "type": "armor",
+    "system": {
+      "material": "Banded Chain",
+      "flexibility": "Semi-Flexible",
+      "weight": 18,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 17
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Scale)",
+    "type": "armor",
+    "system": {
+      "material": "Scale",
+      "flexibility": "Semi-Flexible",
+      "weight": 20,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 18
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Heavy Scale)",
+    "type": "armor",
+    "system": {
+      "material": "Heavy Scale",
+      "flexibility": "Semi-Flexible",
+      "weight": 22,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 19
+      }
+    }
+  },
+  {
+    "name": "Tail Covering(Giant Leather)",
+    "type": "armor",
+    "system": {
+      "material": "Giant Leather",
+      "flexibility": "Flexible",
+      "weight": 10,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 0
+      },
+      "coverageFromMaterial": [
+        "tail"
+      ]
+    }
+  },
+  {
+    "name": "Tail Covering(Giant Scales)",
+    "type": "armor",
+    "system": {
+      "material": "Giant Scales",
+      "flexibility": "Semi-Flexible",
+      "weight": 15,
+      "sourcebook": "Imagine Master Index",
+      "coverage": {
+        "tail": 0
+      },
+      "coverageFromMaterial": [
+        "tail"
+      ]
     }
   }
 ]

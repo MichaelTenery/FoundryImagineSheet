@@ -2,91 +2,500 @@
   "_about": "What each task on docs/PROGRESS.md depends on, for tools/progress.html. Keys are the START of a task's name on the board (case and backticks ignored); dependsOn lists other tasks the same way. The board itself carries no dependency data, so this file is where it lives. It was written 2026-09-19 from the architecture layers in CLAUDE.md and from what each board row says it builds on -- edit it freely. The tool warns on screen about a board task with no entry here, an entry that matches no task, or a prefix that matches two.",
   "_waitingOn": "waitingOn names something outside the code that a task cannot proceed without ('the developer', 'a running Foundry V14'). A task that has not started and is waiting on something is shown as Blocked.",
   "tasks": {
-    "Extract & map Roll20":               { "dependsOn": [] },
-    "Extract & map Player":               { "dependsOn": [] },
-    "Extract & map Master":               { "dependsOn": [] },
-    "Set up continuity":                  { "dependsOn": [] },
-    "Obtain Bestiary":                    { "dependsOn": [] },
-    "Obtain magic subsystem":             { "dependsOn": [] },
-    "Discover + extract":                 { "dependsOn": ["Extract & map Roll20"] },
-    "Confirm sheet-worker":               { "dependsOn": ["Discover + extract"], "waitingOn": "the developer", "note": "A yes/no from him: is sheet-worker.js his current ruleset? Everything is built on it." },
-
-    "Generic dictionary parser":          { "dependsOn": ["Discover + extract"] },
-    "Per-dictionary column maps":         { "dependsOn": ["Generic dictionary parser"] },
-    "Report the Monk":                    { "dependsOn": ["Per-dictionary column maps"] },
-    "Resolve the one non-literal":        { "dependsOn": ["Per-dictionary column maps"], "note": "Done 2026-09-23: Gaunt's -1d4 is random by design (Epitaph of the Fallen p.7), rolled once into the character's copy of the race." },
-    "Generate src/packs":                 { "dependsOn": ["Per-dictionary column maps"] },
-    "Compile JSON":                       { "dependsOn": ["Generate src/packs"], "waitingOn": "a running Foundry V14", "note": "The runtime importer has never run in a real V14 install." },
-    "Adding content to every pack":       { "dependsOn": ["Generate src/packs", "Compile JSON", "Design content/compendium layer"] },
-    "Extend extraction":                  { "dependsOn": ["Per-dictionary column maps"], "note": "Data for the deferred magic phase; nothing needs it yet." },
-
-    "Define Foundry system manifest":     { "dependsOn": [], "waitingOn": "", "note": "Not yet runtime-verified in a V14 install." },
-    "Design Actor data model":            { "dependsOn": ["Define Foundry system manifest"] },
-    "Implement attribute-save":           { "dependsOn": ["Design Actor data model"] },
-    "Implement skill-check":              { "dependsOn": ["Design Actor data model", "Implement attribute-save"] },
-    "Design content/compendium layer":    { "dependsOn": ["Design Actor data model", "Generate src/packs"] },
-
-    "Attributes module":                  { "dependsOn": ["Implement attribute-save", "Design Actor data model"] },
-    "Reconcile Character attribute":      { "dependsOn": ["Attributes module"] },
-    "Races & Classes":                    { "dependsOn": ["Design Actor data model", "Generate src/packs", "Design content/compendium layer", "Attributes module"] },
-    "Skills module":                      { "dependsOn": ["Attributes module", "Implement skill-check", "Generate src/packs"] },
-    "Dual Class":                         { "dependsOn": ["Races & Classes", "Skills module"] },
-
-    "Character Generation":               { "dependsOn": ["Attributes module", "Races & Classes", "Skills module", "Equipment module"] },
-    "Experience & Levelling":             { "dependsOn": ["Attributes module", "Races & Classes", "Skills module"], "note": "Added 2026-09-19 by the levelling pass; its magic side waits on Layer 4." },
-    "Combat module — phase 1":            { "dependsOn": ["Design Actor data model", "Attributes module"] },
-    "Combat module — phase 2":            { "dependsOn": ["Combat module — phase 1", "Equipment module"] },
-    "Situation Mods":                     { "dependsOn": ["Combat module — phase 1", "Creature actor type", "Skills module"], "note": "Martial blind fighting and stance feed it through combat.martialBlind." },
-    "Second Weapon Knowledge/Lore held":  { "dependsOn": ["Combat module — phase 2", "Skills module"] },
-    "Martial arts":                       { "dependsOn": ["Combat module — phase 2", "Skills module", "Situation Mods"], "note": "Hands blind fighting to the Situation Mods; the weapon attack reads getMartialAttackModifiers." },
-    "Round clock (Mr. Initiative)":       { "dependsOn": ["Combat module — phase 1", "Second Weapon Knowledge/Lore held", "Creature actor type"], "note": "The off-hand pool reads getOffhandSecondsCap; Speed effects that would set speedSeconds are Layer 4's." },
-    "Round clock: the Surprise row, and the live clock on the Combat tab": { "dependsOn": ["Round clock (Mr. Initiative)"], "note": "Surprise seconds before round 1 (1d4+1) and the Off-Hand Seconds box showing the live clock. Both approved by the user 2026-09-23." },
-    "Weapon mods window":                 { "dependsOn": ["Combat module — phase 2", "Equipment module"], "note": "Temporary effects run on the world clock; the rune, Blessed and specials feed rollWeaponAttack." },
-    "Visual attack-chart":                { "dependsOn": ["Combat module — phase 1", "Creature actor type"], "note": "Needs a design pass first: an adjacency model for each body chart." },
-    "GM temporary Extra Damage":          { "dependsOn": ["Combat module — phase 2", "Creature actor type"], "note": "Added 2026-09-23 by the creature pass. Not mechanical: two slips in his code (UPSTREAM 97)." },
-    "Equipment module":                   { "dependsOn": ["Attributes module", "Generate src/packs", "Design content/compendium layer"] },
-
-    "Creature actor type":                { "dependsOn": ["Design Actor data model", "Combat module — phase 1", "Attributes module", "Obtain Bestiary"] },
-    "Creature sheet: authoring":          { "dependsOn": ["Creature actor type", "Martial arts"], "note": "Built 2026-09-23 (audit gaps G1, G2, G4, G7+size, G10, G11, G13); every ruling provisional." },
-    "Creature stat-block paste importer": { "dependsOn": ["Creature sheet: authoring"], "note": "G3; the audit's D5, D11 and D12 come first." },
-    "Creature compendium":                { "dependsOn": ["Creature actor type"], "waitingOn": "the user", "note": "G6; waits on the publication decision (D1)." },
-    "Creature Powers":                    { "dependsOn": ["Creature actor type", "Base Magic", "Base Divine Magic"], "note": "G5, D8: period, refill and lookup." },
-    "Creatures using weapons":            { "dependsOn": ["Creature sheet: authoring", "Combat module — phase 2"], "note": "G8, D10. The equip toggle on carried gear is the mechanical first part." },
-    "Creature common skills":             { "dependsOn": ["Creature actor type", "Skills module"], "note": "G9." },
-
-    "Base Magic":                         { "dependsOn": ["Combat module — phase 2", "Skills module", "Magic & Lore tab"], "note": "Casting built 2026-09-24 at the user's request, ahead of the Layer 4 deferral: Aura Control, the pool, his doSpellAction carried across, targets and the attack card." },
-    "Base Divine Magic":                  { "dependsOn": ["Combat module — phase 2", "Skills module", "Magic & Lore tab"], "note": "Invoking built 2026-09-24 with casting: Piety Control, prayer, his doInvocationAction." },
-    "Casting: the caster changes":        { "dependsOn": ["Base Magic", "Base Divine Magic"] },
-    "Casting: tuning":                    { "dependsOn": ["Base Magic"] },
-    "Casting: Hermetic":                  { "dependsOn": ["Base Magic"] },
-    "Casting and invoking for creatures": { "dependsOn": ["Base Magic", "Base Divine Magic", "Creature actor type"] },
-    "Per-subsystem magic":                { "dependsOn": ["Base Magic", "Base Divine Magic", "Extend extraction"] },
-    "Magic & Lore tab":                   { "dependsOn": ["Extend extraction", "Skills module", "Design content/compendium layer"], "note": "The lore side of Layer 4, built ahead of the deferral at the user's request; casting is still Base Magic's." },
-    "Starting lore":                      { "dependsOn": ["Magic & Lore tab", "Character Generation"] },
-    "Poison used on a victim":            { "dependsOn": ["Magic & Lore tab", "Implement attribute-save"], "note": "Rolls the victim's Poison Resistance with resolveResistanceRoll." },
-    "Poison damage and poisoned weapons": { "dependsOn": ["Poison used on a victim", "Weapon mods window", "Combat module — phase 2"], "note": "Overall-Endurance wounds on both actors; the coating is delivered from applyAttackDamage." },
-    "Lore use effects":                   { "dependsOn": ["Magic & Lore tab"] },
-    "Magic content attribution":          { "dependsOn": ["Magic & Lore tab"] },
-
-    "ApplicationV2 character sheet":      { "dependsOn": ["Design Actor data model", "Attributes module", "Skills module", "Equipment module"], "waitingOn": "a running Foundry V14" },
-    "Attribute save and skill roll":      { "dependsOn": ["Implement attribute-save", "Implement skill-check", "ApplicationV2 character sheet"], "waitingOn": "a running Foundry V14" },
-    "Remaining tabs":                     { "dependsOn": ["ApplicationV2 character sheet"] },
-    "Item sheets":                        { "dependsOn": ["Design Actor data model", "Races & Classes"] },
-    "Character sheet: Modifiers panel":   { "dependsOn": ["ApplicationV2 character sheet", "Creature sheet: authoring"], "note": "The character side of the creature pass (G13/G2); docs/sonnet/2026-09-23-creatures.md items 1-2." },
-    "Character sheet: Updater button":    { "dependsOn": ["ApplicationV2 character sheet", "Experience & Levelling"], "note": "Asked 2026-09-25. Hub for his update_what dropdown; ~16 of ~40 options still missing." },
-    "Equipment tab: grouped list":        { "dependsOn": ["ApplicationV2 character sheet", "Equipment module"] },
-    "Armour weight by wearer size":       { "dependsOn": ["Equipment module"], "waitingOn": "a ruling on the formula", "note": "Book says adjust from a 6' human; no formula given." },
-    "Class skills chosen at creation":    { "dependsOn": ["Character Generation module"], "note": "Ruled and built 2026-09-26: his whole-career Step 6 plan." },
-    "Class skill prerequisites":          { "dependsOn": ["Class skills chosen at creation", "Skills module"], "note": "MM swap rule 4; data from MM pp.238-242, MM errata, supplement Requirements lines." },
-    "Class slot sacrifice":               { "dependsOn": ["Class skills chosen at creation", "Experience & Levelling"], "waitingOn": "a ruling", "note": "PG p.78; deferred 2026-09-26." },
-    "Additional Social Skills table":     { "dependsOn": ["Character Generation module"], "note": "PG p.75; over up-to-N warns until built." },
-    "Social skill \"up to N\"":           { "dependsOn": ["Character Generation module"], "waitingOn": "the book pages (37 classes)" },
-
-    "Races assigned inline rather than from the dictionary": { "dependsOn": ["Races & Classes", "Generate src/packs"], "note": "Done 2026-09-21: every race in his specieslist, including the split faerie/Maginos forms, Formless and Famorian, is now a document." },
-    "Formless: inhabit and switch bodies": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Pinned by the user 2026-09-22, revisited once the rest of the core is done. A free-text identity.formlessBodies field stands in until body-switching is built." },
-    "Race descriptions: clean for release": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Pinned by the user 2026-09-22; must be done before public release, not before. Eleven generated race descriptions still explain port reasoning that belongs in DECISIONS.md, not on a player-facing sheet." },
-    "Famorian: limit evokes to the chosen animal's package": { "dependsOn": ["Races assigned inline rather than from the dictionary"], "note": "Backlog; optional per the user's 2026-09-22 call that the Game Master polices it, as his own sheet does. The bestiaries' Evoke Package data makes it buildable later." },
-    "Bug reports 0.20.1-10 (2026-09-30)": { "dependsOn": ["Attribute save and skill roll handlers", "Class skills chosen at creation", "Remaining tabs"], "note": "Done 2026-09-30, shipped as 0.22.0. See DECISIONS 2026-09-30." },
-    "Two hands: the book's -2 speed, and the other shirt families": { "dependsOn": ["Bug reports 0.20.1-10 (2026-09-30)"], "waitingOn": "the developer (UPSTREAM 115, 116, 117)" }
+    "Extract & map Roll20": {
+      "dependsOn": []
+    },
+    "Extract & map Player": {
+      "dependsOn": []
+    },
+    "Extract & map Master": {
+      "dependsOn": []
+    },
+    "Set up continuity": {
+      "dependsOn": []
+    },
+    "Obtain Bestiary": {
+      "dependsOn": []
+    },
+    "Obtain magic subsystem": {
+      "dependsOn": []
+    },
+    "Discover + extract": {
+      "dependsOn": [
+        "Extract & map Roll20"
+      ]
+    },
+    "Confirm sheet-worker": {
+      "dependsOn": [
+        "Discover + extract"
+      ],
+      "waitingOn": "the developer",
+      "note": "A yes/no from him: is sheet-worker.js his current ruleset? Everything is built on it."
+    },
+    "Generic dictionary parser": {
+      "dependsOn": [
+        "Discover + extract"
+      ]
+    },
+    "Per-dictionary column maps": {
+      "dependsOn": [
+        "Generic dictionary parser"
+      ]
+    },
+    "Report the Monk": {
+      "dependsOn": [
+        "Per-dictionary column maps"
+      ]
+    },
+    "Resolve the one non-literal": {
+      "dependsOn": [
+        "Per-dictionary column maps"
+      ],
+      "note": "Done 2026-09-23: Gaunt's -1d4 is random by design (Epitaph of the Fallen p.7), rolled once into the character's copy of the race."
+    },
+    "Generate src/packs": {
+      "dependsOn": [
+        "Per-dictionary column maps"
+      ]
+    },
+    "Compile JSON": {
+      "dependsOn": [
+        "Generate src/packs"
+      ],
+      "waitingOn": "a running Foundry V14",
+      "note": "The runtime importer has never run in a real V14 install."
+    },
+    "Adding content to every pack": {
+      "dependsOn": [
+        "Generate src/packs",
+        "Compile JSON",
+        "Design content/compendium layer"
+      ]
+    },
+    "Extend extraction": {
+      "dependsOn": [
+        "Per-dictionary column maps"
+      ],
+      "note": "Data for the deferred magic phase; nothing needs it yet."
+    },
+    "Define Foundry system manifest": {
+      "dependsOn": [],
+      "waitingOn": "",
+      "note": "Not yet runtime-verified in a V14 install."
+    },
+    "Design Actor data model": {
+      "dependsOn": [
+        "Define Foundry system manifest"
+      ]
+    },
+    "Implement attribute-save": {
+      "dependsOn": [
+        "Design Actor data model"
+      ]
+    },
+    "Implement skill-check": {
+      "dependsOn": [
+        "Design Actor data model",
+        "Implement attribute-save"
+      ]
+    },
+    "Design content/compendium layer": {
+      "dependsOn": [
+        "Design Actor data model",
+        "Generate src/packs"
+      ]
+    },
+    "Attributes module": {
+      "dependsOn": [
+        "Implement attribute-save",
+        "Design Actor data model"
+      ]
+    },
+    "Reconcile Character attribute": {
+      "dependsOn": [
+        "Attributes module"
+      ]
+    },
+    "Races & Classes": {
+      "dependsOn": [
+        "Design Actor data model",
+        "Generate src/packs",
+        "Design content/compendium layer",
+        "Attributes module"
+      ]
+    },
+    "Skills module": {
+      "dependsOn": [
+        "Attributes module",
+        "Implement skill-check",
+        "Generate src/packs"
+      ]
+    },
+    "Dual Class": {
+      "dependsOn": [
+        "Races & Classes",
+        "Skills module"
+      ]
+    },
+    "Character Generation": {
+      "dependsOn": [
+        "Attributes module",
+        "Races & Classes",
+        "Skills module",
+        "Equipment module"
+      ]
+    },
+    "Experience & Levelling": {
+      "dependsOn": [
+        "Attributes module",
+        "Races & Classes",
+        "Skills module"
+      ],
+      "note": "Added 2026-09-19 by the levelling pass; its magic side waits on Layer 4."
+    },
+    "Combat module — phase 1": {
+      "dependsOn": [
+        "Design Actor data model",
+        "Attributes module"
+      ]
+    },
+    "Combat module — phase 2": {
+      "dependsOn": [
+        "Combat module — phase 1",
+        "Equipment module"
+      ]
+    },
+    "Situation Mods": {
+      "dependsOn": [
+        "Combat module — phase 1",
+        "Creature actor type",
+        "Skills module"
+      ],
+      "note": "Martial blind fighting and stance feed it through combat.martialBlind."
+    },
+    "Second Weapon Knowledge/Lore held": {
+      "dependsOn": [
+        "Combat module — phase 2",
+        "Skills module"
+      ]
+    },
+    "Martial arts": {
+      "dependsOn": [
+        "Combat module — phase 2",
+        "Skills module",
+        "Situation Mods"
+      ],
+      "note": "Hands blind fighting to the Situation Mods; the weapon attack reads getMartialAttackModifiers."
+    },
+    "Round clock (Mr. Initiative)": {
+      "dependsOn": [
+        "Combat module — phase 1",
+        "Second Weapon Knowledge/Lore held",
+        "Creature actor type"
+      ],
+      "note": "The off-hand pool reads getOffhandSecondsCap; Speed effects that would set speedSeconds are Layer 4's."
+    },
+    "Round clock: the Surprise row, and the live clock on the Combat tab": {
+      "dependsOn": [
+        "Round clock (Mr. Initiative)"
+      ],
+      "note": "Surprise seconds before round 1 (1d4+1) and the Off-Hand Seconds box showing the live clock. Both approved by the user 2026-09-23."
+    },
+    "Weapon mods window": {
+      "dependsOn": [
+        "Combat module — phase 2",
+        "Equipment module"
+      ],
+      "note": "Temporary effects run on the world clock; the rune, Blessed and specials feed rollWeaponAttack."
+    },
+    "Visual attack-chart": {
+      "dependsOn": [
+        "Combat module — phase 1",
+        "Creature actor type"
+      ],
+      "note": "Needs a design pass first: an adjacency model for each body chart."
+    },
+    "GM temporary Extra Damage": {
+      "dependsOn": [
+        "Combat module — phase 2",
+        "Creature actor type"
+      ],
+      "note": "Added 2026-09-23 by the creature pass. Not mechanical: two slips in his code (UPSTREAM 97)."
+    },
+    "Equipment module": {
+      "dependsOn": [
+        "Attributes module",
+        "Generate src/packs",
+        "Design content/compendium layer"
+      ]
+    },
+    "Creature actor type": {
+      "dependsOn": [
+        "Design Actor data model",
+        "Combat module — phase 1",
+        "Attributes module",
+        "Obtain Bestiary"
+      ]
+    },
+    "Creature sheet: authoring": {
+      "dependsOn": [
+        "Creature actor type",
+        "Martial arts"
+      ],
+      "note": "Built 2026-09-23 (audit gaps G1, G2, G4, G7+size, G10, G11, G13); every ruling provisional."
+    },
+    "Creature stat-block paste importer": {
+      "dependsOn": [
+        "Creature sheet: authoring"
+      ],
+      "note": "G3; the audit's D5, D11 and D12 come first."
+    },
+    "Creature compendium": {
+      "dependsOn": [
+        "Creature actor type"
+      ],
+      "waitingOn": "the user",
+      "note": "G6; waits on the publication decision (D1)."
+    },
+    "Creature Powers": {
+      "dependsOn": [
+        "Creature actor type",
+        "Base Magic",
+        "Base Divine Magic"
+      ],
+      "note": "G5, D8: period, refill and lookup."
+    },
+    "Creatures using weapons": {
+      "dependsOn": [
+        "Creature sheet: authoring",
+        "Combat module — phase 2"
+      ],
+      "note": "G8, D10. The equip toggle on carried gear is the mechanical first part."
+    },
+    "Creature common skills": {
+      "dependsOn": [
+        "Creature actor type",
+        "Skills module"
+      ],
+      "note": "G9."
+    },
+    "Base Magic": {
+      "dependsOn": [
+        "Combat module — phase 2",
+        "Skills module",
+        "Magic & Lore tab"
+      ],
+      "note": "Casting built 2026-09-24 at the user's request, ahead of the Layer 4 deferral: Aura Control, the pool, his doSpellAction carried across, targets and the attack card."
+    },
+    "Base Divine Magic": {
+      "dependsOn": [
+        "Combat module — phase 2",
+        "Skills module",
+        "Magic & Lore tab"
+      ],
+      "note": "Invoking built 2026-09-24 with casting: Piety Control, prayer, his doInvocationAction."
+    },
+    "Casting: the caster changes": {
+      "dependsOn": [
+        "Base Magic",
+        "Base Divine Magic"
+      ]
+    },
+    "Casting: tuning": {
+      "dependsOn": [
+        "Base Magic"
+      ]
+    },
+    "Casting: Hermetic": {
+      "dependsOn": [
+        "Base Magic"
+      ]
+    },
+    "Casting and invoking for creatures": {
+      "dependsOn": [
+        "Base Magic",
+        "Base Divine Magic",
+        "Creature actor type"
+      ]
+    },
+    "Per-subsystem magic": {
+      "dependsOn": [
+        "Base Magic",
+        "Base Divine Magic",
+        "Extend extraction"
+      ]
+    },
+    "Magic & Lore tab": {
+      "dependsOn": [
+        "Extend extraction",
+        "Skills module",
+        "Design content/compendium layer"
+      ],
+      "note": "The lore side of Layer 4, built ahead of the deferral at the user's request; casting is still Base Magic's."
+    },
+    "Starting lore": {
+      "dependsOn": [
+        "Magic & Lore tab",
+        "Character Generation"
+      ]
+    },
+    "Poison used on a victim": {
+      "dependsOn": [
+        "Magic & Lore tab",
+        "Implement attribute-save"
+      ],
+      "note": "Rolls the victim's Poison Resistance with resolveResistanceRoll."
+    },
+    "Poison damage and poisoned weapons": {
+      "dependsOn": [
+        "Poison used on a victim",
+        "Weapon mods window",
+        "Combat module — phase 2"
+      ],
+      "note": "Overall-Endurance wounds on both actors; the coating is delivered from applyAttackDamage."
+    },
+    "Lore use effects": {
+      "dependsOn": [
+        "Magic & Lore tab"
+      ]
+    },
+    "Magic content attribution": {
+      "dependsOn": [
+        "Magic & Lore tab"
+      ]
+    },
+    "ApplicationV2 character sheet": {
+      "dependsOn": [
+        "Design Actor data model",
+        "Attributes module",
+        "Skills module",
+        "Equipment module"
+      ],
+      "waitingOn": "a running Foundry V14"
+    },
+    "Attribute save and skill roll": {
+      "dependsOn": [
+        "Implement attribute-save",
+        "Implement skill-check",
+        "ApplicationV2 character sheet"
+      ],
+      "waitingOn": "a running Foundry V14"
+    },
+    "Remaining tabs": {
+      "dependsOn": [
+        "ApplicationV2 character sheet"
+      ]
+    },
+    "Item sheets": {
+      "dependsOn": [
+        "Design Actor data model",
+        "Races & Classes"
+      ]
+    },
+    "Character sheet: Modifiers panel": {
+      "dependsOn": [
+        "ApplicationV2 character sheet",
+        "Creature sheet: authoring"
+      ],
+      "note": "The character side of the creature pass (G13/G2); docs/sonnet/2026-09-23-creatures.md items 1-2."
+    },
+    "Character sheet: Updater button": {
+      "dependsOn": [
+        "ApplicationV2 character sheet",
+        "Experience & Levelling"
+      ],
+      "note": "Asked 2026-09-25. Hub for his update_what dropdown; ~16 of ~40 options still missing."
+    },
+    "Equipment tab: grouped list": {
+      "dependsOn": [
+        "ApplicationV2 character sheet",
+        "Equipment module"
+      ]
+    },
+    "Armour weight by wearer size": {
+      "dependsOn": [
+        "Equipment module"
+      ],
+      "waitingOn": "a ruling on the formula",
+      "note": "Book says adjust from a 6' human; no formula given."
+    },
+    "Class skills chosen at creation": {
+      "dependsOn": [
+        "Character Generation module"
+      ],
+      "note": "Ruled and built 2026-09-26: his whole-career Step 6 plan."
+    },
+    "Class skill prerequisites": {
+      "dependsOn": [
+        "Class skills chosen at creation",
+        "Skills module"
+      ],
+      "note": "MM swap rule 4; data from MM pp.238-242, MM errata, supplement Requirements lines."
+    },
+    "Class slot sacrifice": {
+      "dependsOn": [
+        "Class skills chosen at creation",
+        "Experience & Levelling"
+      ],
+      "waitingOn": "a ruling",
+      "note": "PG p.78; deferred 2026-09-26."
+    },
+    "Additional Social Skills table": {
+      "dependsOn": [
+        "Character Generation module"
+      ],
+      "note": "PG p.75; over up-to-N warns until built."
+    },
+    "Social skill \"up to N\"": {
+      "dependsOn": [
+        "Character Generation module"
+      ],
+      "waitingOn": "the book pages (37 classes)"
+    },
+    "Races assigned inline rather than from the dictionary": {
+      "dependsOn": [
+        "Races & Classes",
+        "Generate src/packs"
+      ],
+      "note": "Done 2026-09-21: every race in his specieslist, including the split faerie/Maginos forms, Formless and Famorian, is now a document."
+    },
+    "Formless: inhabit and switch bodies": {
+      "dependsOn": [
+        "Races assigned inline rather than from the dictionary"
+      ],
+      "note": "Pinned by the user 2026-09-22, revisited once the rest of the core is done. A free-text identity.formlessBodies field stands in until body-switching is built."
+    },
+    "Race descriptions: clean for release": {
+      "dependsOn": [
+        "Races assigned inline rather than from the dictionary"
+      ],
+      "note": "Pinned by the user 2026-09-22; must be done before public release, not before. Eleven generated race descriptions still explain port reasoning that belongs in DECISIONS.md, not on a player-facing sheet."
+    },
+    "Famorian: limit evokes to the chosen animal's package": {
+      "dependsOn": [
+        "Races assigned inline rather than from the dictionary"
+      ],
+      "note": "Backlog; optional per the user's 2026-09-22 call that the Game Master polices it, as his own sheet does. The bestiaries' Evoke Package data makes it buildable later."
+    },
+    "Bug reports 0.20.1-10 (2026-09-30)": {
+      "dependsOn": [
+        "Attribute save and skill roll handlers",
+        "Class skills chosen at creation",
+        "Remaining tabs"
+      ],
+      "note": "Done 2026-09-30, shipped as 0.22.0. See DECISIONS 2026-09-30."
+    },
+    "Two hands: the book's -2 speed, and the other shirt families": {
+      "dependsOn": [
+        "Bug reports 0.20.1-10 (2026-09-30)"
+      ],
+      "waitingOn": "the developer (UPSTREAM 115, 116, 117)"
+    },
+    "His reports of 2026-10-04 and 10-05": {
+      "dependsOn": [
+        "Bug reports 0.20.1-10 (2026-09-30)"
+      ],
+      "note": "Done 2026-10-05, shipped as 0.22.1. See DECISIONS 2026-10-05."
+    }
   }
 }

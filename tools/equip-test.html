@@ -108,6 +108,14 @@ check("...with something in it", worn.length > 0, true);
 check("...and no location ever has more than three layers",
 	E.ARMOR_LOCATIONS.every(l => E.getLocationStack(worn, l).stack.length <= 3), true);
 
+// --- a Saurian type's Tail Covering (bug report 0.22:3) --------------------------------------------
+check("a Tail Covering is worn by a Saurian body and by no other",
+	["Saurian", "Humanoid", "Humanoid(Tail)", "Centaur", ""].map(b => E.canBodyWearArmor("Tail Covering(Chain)", b)), [true, false, false, false, false]);
+check("tail is one of the locations armour is totalled and layered over",
+	[E.ARMOR_LOCATIONS.includes("tail"), E.getArmorTotal({ system: { coverage: { tail: 15 } } })], [true, 15]);
+check("a Silk, Cloth or Wool Tail Covering is clothing of 3 or less and takes no layer; a Chain one does",
+	[{ flexibility: "Clothing", coverage: { tail: 3 } }, { flexibility: "Semi-Flexible", coverage: { tail: 15 } }].map(s => E.consumesLayer({ system: s })), [false, true]);
+
 document.getElementById("out").textContent =
 	`${results.filter(s => s.startsWith("PASS")).length}/${results.length} passed\n\n` + results.join("\n");
 </script>

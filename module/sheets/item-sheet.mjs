@@ -59,7 +59,8 @@ const ARMOR_COVERAGE_ROWS = [
 	{ leftLabel: "Hand L", leftKey: "handLeft", rightLabel: "Hand R", rightKey: "handRight" },
 	{ leftLabel: "Thigh L", leftKey: "thighLeft", rightLabel: "Thigh R", rightKey: "thighRight" },
 	{ leftLabel: "Shin L", leftKey: "shinLeft", rightLabel: "Shin R", rightKey: "shinRight" },
-	{ leftLabel: "Foot L", leftKey: "footLeft", rightLabel: "Foot R", rightKey: "footRight" }
+	{ leftLabel: "Foot L", leftKey: "footLeft", rightLabel: "Foot R", rightKey: "footRight" },
+	{ label: "Tail (Saurian)", key: "tail" }
 ];
 
 // A flat key -> label lookup, derived from the rows above rather than typed a second time, so

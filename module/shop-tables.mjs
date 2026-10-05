@@ -66,7 +66,8 @@
 				"Gauntlets(Studded Leather)", "Gauntlets(Wood)", "Gauntlets(Bloodracite/Hinged)",
 				"Gauntlets(Laminar/Hinged)", "Gauntlets(Pearlacite/Hinged)",
 				"Gauntlets(Stainless Steel/Hinged)", "Gauntlets(Tempered Plate/Hinged)",
-				"Gauntlets(Titanium/Hinged)"
+				"Gauntlets(Titanium/Hinged)", "Gauntlets(Gambeson)", "Gauntlets(Gambeson/Thick)",
+				"Gauntlets(Gambeson/Heavy)", "Gauntlets(Ring Mail)"
 			]],
 			["Great Helm", "Great Helm", [
 				"Great Helm(Bloodracite)", "Great Helm(Bolted Leather)", "Great Helm(Bone)",
@@ -306,6 +307,14 @@
 				"Centaur Barding(Padding)", "Centaur Barding(Leather)", "Centaur Barding(Plate)",
 				"Insectaur Barding(Wool)", "Insectaur Barding(Cloth)", "Insectaur Barding(Chain)",
 				"Insectaur Barding(Padding)", "Insectaur Barding(Leather)"
+			]],
+			["Tail Covering", "Tail Covering", [
+				"Tail Covering(Silk)", "Tail Covering(Cloth)", "Tail Covering(Wool)", "Tail Covering(Padding)",
+				"Tail Covering(Soft Leather)", "Tail Covering(Leather/Fur)", "Tail Covering(Hard Leather)",
+				"Tail Covering(Gambeson)", "Tail Covering(Studded Leather)", "Tail Covering(Gambeson/Thick)",
+				"Tail Covering(Ring Mail)", "Tail Covering(Gambeson/Heavy)", "Tail Covering(Chain)",
+				"Tail Covering(Heavy Chain)", "Tail Covering(Banded Chain)", "Tail Covering(Scale)",
+				"Tail Covering(Heavy Scale)", "Tail Covering(Giant Leather)", "Tail Covering(Giant Scales)"
 			]]
 		],
 		"Weapon": [
@@ -684,7 +693,8 @@
 				"50 Twine(per ’)", "50 Twine(Heavy/per ’)", "50 Twine(Light/per ’)", "Urn",
 				"Utensils(Gold/set)", "Utensils(Silver/set)", "Utensils(Tin/set)", "10 Vellum Sheet",
 				"Vial(1/2 cup)", "Waterskin(3-days)", "Waterskin(1-week)", "Weather Charts", "Whetstone",
-				"Windlass", "Windlass(Large)", "Windlass(Small)", "Wire(Steel per ’)", "Wood Working Tools"
+				"Windlass", "Windlass(Large)", "Windlass(Small)", "Wire(Steel per ’)", "Wood Working Tools",
+				"Crowbar"
 			]],
 			["Beauty and Hygiene", "Beauty and Hygiene", [
 				"Bath Salts(Common)", "Bath Salts(Exotic/Perfumed)", "Cologne(Animal)", "Cologne(Herbal)",
@@ -1997,7 +2007,8 @@
 		"Harness(Flying)":                               [ "13 cp",   "25 cp",   "5 sp",    "1 gp",    "3 gp",    "6 gp",    "9 gp" ],
 		"Knife(Hook)":                                   [ "2 cp",    "3 cp",    "5 cp",    "1 sp",    "3 sp",    "6 sp",    "9 sp" ],
 		"Plugs(Nose)":                                   [ "5 cp",    "1 sp",    "2 sp",    "4 sp",    "6 sp",    "12 sp",   "18 sp" ],
-		"Plugs(Ear)":                                    [ "8 cp",    "15 cp",   "3 sp",    "5 sp",    "8 sp",    "16 sp",   "24 sp" ]
+		"Plugs(Ear)":                                    [ "8 cp",    "15 cp",   "3 sp",    "5 sp",    "8 sp",    "16 sp",   "24 sp" ],
+		"Crowbar":                                       [ "8 sp",    "15 sp",   "3 gp",    "4 gp",    "5 gp",    "10 gp",   "15 gp" ]   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
 	};
 
 	// @MARKER ARMOR COSTS
@@ -2192,7 +2203,7 @@
 		"Gauntlets(Lacquered Wood)":                   [ "3 gp",     "5 gp",     "10 gp",    "12 gp",    "14 gp",    "28 gp",    "42 gp" ],
 		"Gauntlets(Laminar)":                          [ "3 gp",     "7 gp",     "14 gp",    "18 gp",    "24 gp",    "48 gp",    "72 gp" ],
 		"Gauntlets(Leather)":                          [ "1 gp",     "2 gp",     "4 gp",     "6 gp",     "8 gp",     "16 gp",    "24 gp" ],
-		"Gauntlets(Padding)":                          [ "5 sp",     "3 gp",     "5 cp",     "1 sp",     "1 gp",     "2 gp",     "3 gp" ],
+		"Gauntlets(Padding)":                          [ "8 sp",     "15 sp",    "3 gp",     "4 gp",     "5 gp",     "10 gp",    "15 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
 		"Gauntlets(Plate)":                            [ "4 gp",     "8 gp",     "15 gp",    "20 gp",    "30 gp",    "60 gp",    "90 gp" ],
 		"Gauntlets(Soft Leather)":                     [ "5 sp",     "1 gp",     "2 gp",     "4 gp",     "6 gp",     "12 gp",    "18 gp" ],
 		"Gauntlets(Stainless Steel":                   [ "4 gp",     "8 gp",     "16 gp",    "20 gp",    "26 gp",    "52 gp",    "78 gp" ],
@@ -2410,22 +2421,22 @@
 		"Long Shirt(Heavy Scale)":                     [ "13 gp",    "25 gp",    "50 gp",    "60 gp",    "70 gp",    "140 gp",   "210 gp" ],
 		"Long Shirt(Soft Leather)":                    [ "2 gp",     "4 gp",     "8 gp",     "13 gp",    "18 gp",    "36 gp",    "48 gp" ],
 		"Long Shirt(Studded Leather)":                 [ "7 gp",     "13 gp",    "25 gp",    "30 gp",    "40 gp",    "80 gp",    "120 gp" ],
-		"Long Sleeve Shirt(Banded Chain)":             [ "875 cp",   "175 sp",   "35 gp",    "45 gp",    "55 gp",    "110 gp",   "165 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Chain)":                    [ "7 gp",     "14 gp",    "28 gp",    "36 gp",    "45 gp",    "90 gp",    "135 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Gambeson)":                 [ "1 gp",     "2 gp",     "4 gp",     "6 gp",     "8 gp",     "16 gp",    "24 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Gambeson/Heavy)":           [ "2 gp",     "4 gp",     "8 gp",     "12 gp",    "16 gp",    "32 gp",    "48 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Gambeson/Thick)":           [ "15 sp",    "3 gp",     "6 gp",     "9 gp",     "12 gp",    "24 gp",    "36 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Giant Leather)":            [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Giant Scales)":             [ "1375 cp",  "275 sp",   "55 gp",    "60 gp",    "90 gp",    "180 gp",   "270 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Hard Leather)":             [ "25 sp",    "5 gp",     "10 gp",    "15 gp",    "20 gp",    "40 gp",    "60 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Heavy Chain)":              [ "8 gp",     "16 gp",    "32 gp",    "40 gp",    "48 gp",    "96 gp",    "144 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Leather)":                  [ "2 gp",     "4 gp",     "8 gp",     "13 gp",    "18 gp",    "36 gp",    "54 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Padding)":                  [ "5 sp",     "1 gp",     "2 gp",     "3 gp",     "4 gp",     "8 gp",     "12 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Ring Mail)":                [ "625 cp",   "125 sp",   "25 gp",    "30 gp",    "40 gp",    "80 gp",    "120 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Scale)":                    [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Heavy Scale)":              [ "125 sp",   "25 gp",    "50 gp",    "60 gp",    "70 gp",    "140 gp",   "210 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Soft Leather)":             [ "125 cp",   "25 sp",    "5 gp",     "10 gp",    "15 gp",    "30 gp",    "45 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
-		"Long Sleeve Shirt(Studded Leather)":          [ "3 gp",     "6 gp",     "12 gp",    "18 gp",    "25 gp",    "50 gp",    "75 gp" ],   // REPAIRED: his Long Sleeve Shirt table of 2026-09-30 (bug report 0.20.6:1)
+		"Long Sleeve Shirt(Banded Chain)":             [ "88 sp",    "175 sp",   "35 gp",    "45 gp",    "55 gp",    "110 gp",   "165 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Chain)":                    [ "7 gp",     "14 gp",    "28 gp",    "36 gp",    "45 gp",    "90 gp",    "135 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Gambeson)":                 [ "1 gp",     "2 gp",     "4 gp",     "6 gp",     "8 gp",     "16 gp",    "24 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Gambeson/Heavy)":           [ "2 gp",     "4 gp",     "8 gp",     "12 gp",    "16 gp",    "32 gp",    "48 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Gambeson/Thick)":           [ "15 sp",    "3 gp",     "6 gp",     "9 gp",     "12 gp",    "24 gp",    "36 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Giant Leather)":            [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Giant Scales)":             [ "138 sp",   "275 sp",   "55 gp",    "60 gp",    "90 gp",    "180 gp",   "270 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Hard Leather)":             [ "25 sp",    "5 gp",     "10 gp",    "15 gp",    "20 gp",    "40 gp",    "60 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Heavy Chain)":              [ "8 gp",     "16 gp",    "32 gp",    "40 gp",    "48 gp",    "96 gp",    "144 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Leather)":                  [ "2 gp",     "4 gp",     "8 gp",     "13 gp",    "18 gp",    "36 gp",    "54 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Padding)":                  [ "5 sp",     "1 gp",     "2 gp",     "3 gp",     "4 gp",     "8 gp",     "12 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Ring Mail)":                [ "62 sp",    "125 sp",   "25 gp",    "30 gp",    "40 gp",    "80 gp",    "120 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Scale)":                    [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Heavy Scale)":              [ "125 sp",   "25 gp",    "50 gp",    "60 gp",    "70 gp",    "140 gp",   "210 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Soft Leather)":             [ "12 sp",    "25 sp",    "5 gp",     "10 gp",    "15 gp",    "30 gp",    "45 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Long Sleeve Shirt(Studded Leather)":          [ "3 gp",     "6 gp",     "12 gp",    "18 gp",    "25 gp",    "50 gp",    "75 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
 		"Armored Skirt(Bloodracite)":                  [ "13 gp",    "25 gp",    "50 gp",    "60 gp",    "80 gp",    "160 gp",   "240 gp" ],
 		"Armored Skirt(Bolted Leather)":               [ "1 gp",     "2 gp",     "4 gp",     "8 gp",     "12 gp",    "24 gp",    "36 gp" ],
 		"Armored Skirt(Bone)":                         [ "1 gp",     "2 gp",     "4 gp",     "8 gp",     "12 gp",    "24 gp",    "36 gp" ],
@@ -2711,7 +2722,30 @@
 		"Insectaur Barding(Cloth)":                    [ "5 sp",     "1 gp",     "2 gp",     "4 gp",     "6 gp",     "12 gp",    "18 gp" ],
 		"Insectaur Barding(Chain)":                    [ "11 gp",    "29 gp",    "56 gp",    "75 gp",    "113 gp",   "226 gp",   "339 gp" ],
 		"Insectaur Barding(Padding)":                  [ "7 sp",     "1 gp",     "2 gp",     "4 gp",     "6 gp",     "12 gp",    "18 gp" ],
-		"Insectaur Barding(Leather)":                  [ "5 gp",     "9 gp",     "19 gp",    "30 gp",    "45 gp",    "90 gp",    "135 gp" ]
+		"Insectaur Barding(Leather)":                  [ "5 gp",     "9 gp",     "19 gp",    "30 gp",    "45 gp",    "90 gp",    "135 gp" ],
+		"Gauntlets(Gambeson)":                         [ "1 gp",     "2 gp",     "4 gp",     "8 gp",     "12 gp",    "24 gp",    "36 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Gauntlets(Gambeson/Thick)":                   [ "12 sp",    "25 sp",    "5 gp",     "10 gp",    "15 gp",    "30 gp",    "45 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Gauntlets(Gambeson/Heavy)":                   [ "15 sp",    "3 gp",     "6 gp",     "12 gp",    "18 gp",    "36 gp",    "54 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Gauntlets(Ring Mail)":                        [ "22 sp",    "45 sp",    "9 gp",     "13 gp",    "17 gp",    "34 gp",    "51 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Silk)":                         [ "5 sp",     "1 gp",     "2 gp",     "4 gp",     "6 gp",     "12 gp",    "18 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Cloth)":                        [ "2 sp",     "4 sp",     "8 sp",     "1 gp",     "2 gp",     "4 gp",     "6 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Wool)":                         [ "5 sp",     "1 gp",     "2 gp",     "3 gp",     "4 gp",     "8 gp",     "12 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Padding)":                      [ "8 sp",     "15 sp",    "3 gp",     "4 gp",     "5 gp",     "10 gp",    "15 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Soft Leather)":                 [ "1 gp",     "2 gp",     "4 gp",     "8 gp",     "12 gp",    "24 gp",    "36 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Leather/Fur)":                  [ "12 sp",    "25 sp",    "5 gp",     "10 gp",    "15 gp",    "30 gp",    "45 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Hard Leather)":                 [ "2 gp",     "4 gp",     "8 gp",     "12 gp",    "18 gp",    "36 gp",    "54 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Gambeson)":                     [ "2 gp",     "4 gp",     "8 gp",     "12 gp",    "18 gp",    "36 gp",    "54 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Studded Leather)":              [ "3 gp",     "6 gp",     "12 gp",    "18 gp",    "24 gp",    "48 gp",    "72 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Gambeson/Thick)":               [ "2 gp",     "4 gp",     "8 gp",     "12 gp",    "18 gp",    "36 gp",    "54 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Ring Mail)":                    [ "45 sp",    "9 gp",     "18 gp",    "24 gp",    "36 gp",    "72 gp",    "108 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Gambeson/Heavy)":               [ "35 sp",    "7 gp",     "14 gp",    "18 gp",    "24 gp",    "48 gp",    "72 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Chain)":                        [ "5 gp",     "10 gp",    "20 gp",    "30 gp",    "40 gp",    "80 gp",    "120 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Heavy Chain)":                  [ "75 sp",    "15 gp",    "30 gp",    "40 gp",    "50 gp",    "100 gp",   "150 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Banded Chain)":                 [ "10 gp",    "20 gp",    "40 gp",    "50 gp",    "60 gp",    "120 gp",   "180 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Scale)":                        [ "125 sp",   "25 gp",    "50 gp",    "60 gp",    "70 gp",    "140 gp",   "210 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Heavy Scale)":                  [ "15 gp",    "30 gp",    "60 gp",    "70 gp",    "80 gp",    "160 gp",   "240 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Giant Leather)":                [ "175 sp",   "35 gp",    "70 gp",    "80 gp",    "90 gp",    "180 gp",   "270 gp" ],   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
+		"Tail Covering(Giant Scales)":                 [ "20 gp",    "40 gp",    "80 gp",    "90 gp",    "100 gp",   "200 gp",   "300 gp" ]   // REPAIRED or ADDED from his tables: Long Sleeve Shirt 2026-09-30 (0.20.6:1); gloves, gauntlets, tail coverings and the crowbar 2026-10-04 (0.22:2-4)
 	};
 
 // @END (CODE)
