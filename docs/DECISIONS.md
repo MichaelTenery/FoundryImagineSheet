@@ -6693,3 +6693,45 @@ the sheet and item previews render. **Not verified** in a running Foundry V14: D
 `render` callback for the picker, `getDefaultArtwork` on a custom Item class, `MeasuredTemplate`
 and `Drawing` creation data, `<prose-mirror toggled>`, and whether the chat sanitiser keeps the
 mini figure's inline styles -- each follows the V12+ API as documented.
+
+
+## UPSTREAM-ISSUES.md reconciled with the code (2026-10-07)
+
+Asked for: "resolve the upstream issues md to reflect current reality and note solved problems."
+The file had grown to 118 issues written over four weeks, 104 of them still marked `open` by
+default, and the port had moved under it: classes, Formless, martial arts, casting and the shop
+were built after many of the entries were written.
+
+**What was done.** Five read-only audits each took a block of issues and checked, for every one, the
+code the issue says the port runs, the decision log, the errata and git history for any recorded
+answer, and the cited `sheet-worker.js` lines. I read their reports and confirmed the one that
+changed an issue's meaning (item 37) against the sheet myself. Each section's status line now
+carries a **Port** value beside the **Status**, a dated **Update** paragraph says what had gone
+stale (48 sections), and the file opens with the vocabulary, a count and a ledger of all 118.
+
+**The vocabulary is two axes, not one.** The old `open / raised / answered / fixed upstream` mixed
+where the question stands with him and what the port does about it, and a port that had solved
+something still read `open`. Status is now his side only; Port is ours (solved, worked around,
+follows his code, not handled, nothing to do). Result: 99 open with him, 15 answered, 2 withdrawn,
+2 duplicates; the port solves 53, works around 28 and follows his code on purpose in 28.
+
+**Rules kept.** Only a repository document counts as his answer or a fix: nothing records him fixing
+any issue in his sheet, so `fixed upstream` has no entries. Daryl's answers are recorded as Daryl's,
+as the file already did for item 38. The original wording is left in place and the correction
+written beneath it, because the file is also the record of what was found and when.
+
+**What it found.**
+- **Item 75 is a live defect.** His answer to item 13 says the maximum must apply, the creature code
+  applies it, and the generated spell code is a verbatim copy of his function that does not (Diffuse
+  Soma's cap of 10 is ignored). Not fixed here; it is a one-line extractor correction.
+- **Item 37 withdrawn.** His code lists Giant(Civilized) and the City, Port and Town Humans as
+  fall-through cases; our extractor read only single-line cases. The committed
+  `module/physique-tables.mjs` is also older than its extractor's output.
+- **Items 40 and 68** had been recorded as the user's ruling of 2026-09-23; Daryl's of 2026-09-25
+  replaced it, and the port follows that.
+- **Items 24 and 25** were out of order, and the end of 24 held another class's material; sorted and
+  marked.
+- **Six code comments** contradict the code (listed in `docs/sonnet/2026-10-07-upstream-reconcile.md`).
+
+**Not verified:** the audits are model readings of the code. The line references and the one
+reversal were spot-checked; the rest of the verdicts were not independently re-derived.
