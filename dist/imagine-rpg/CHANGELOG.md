@@ -18,6 +18,15 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.24.1 — 2026-10-07
+
+**A spell's cap now applies.** His `divideWithMinAndMax` was written with an arrow where an assignment
+belongs, so the maximum never took effect; the creature attacks already capped it, but the spell code
+carried across from his sheet did not, and Diffuse Soma was uncapped. He confirmed the bug on
+2026-09-16 and the extractor now writes the assignment. Everything else in this release is
+documentation: `docs/UPSTREAM-ISSUES.md` is reconciled with the code and its 81 closed issues moved
+to a Resolved section, and seven code comments that contradicted the code were corrected.
+
 ## 0.24.0 — 2026-10-07
 
 Eleven things that make the table more fun, all from what the code already knew.

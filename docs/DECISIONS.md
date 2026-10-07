@@ -6735,3 +6735,32 @@ written beneath it, because the file is also the record of what was found and wh
 
 **Not verified:** the audits are model readings of the code. The line references and the one
 reversal were spot-checked; the rest of the verdicts were not independently re-derived.
+
+
+## Upstream issues closed out, and the spell cap fixed (2026-10-07, last)
+
+Asked for: "resolve all withdrawn, solved, Port: follows his code on purpose, and duplicate entries."
+
+**Read as "close", not "delete".** The 81 entries that were withdrawn (2), duplicate (2), solved in the
+port (48) or followed on purpose (29) now sit under *Resolved issues* at the foot of
+`docs/UPSTREAM-ISSUES.md`, each marked, with its full text and its number unchanged, so every
+cross-reference in the repository still lands. 37 remain active: 28 worked around and awaiting him,
+nine with the feature not built or nothing to do yet. The file's header says what closing means: the
+port will not act on an answer to a resolved question unless it is reopened. Many of the 29 followed-
+on-purpose entries are still open questions to him (his code does something strange and the port
+reproduces it); closing them removes them from the working list, not from the record, and the user
+chose that knowing it.
+
+**Two port labels corrected on the way.** The audit had item 10 as follows-his-code and item 44 as a
+duplicate of a follows-his-code item; the first table had both as solved. Fixed before closing.
+
+**A duplicate that was not safe to close, fixed first.** Item 75 duplicates item 13, but the port had
+not solved it: the generated spell code kept his `tempValue=>tmpMaxValue` (an arrow function, not an
+assignment), so Diffuse Soma was uncapped against his own answer to item 13. Closing it as a duplicate
+would have hidden a live defect, so it was fixed instead: a second `CORRECTIONS` entry in
+`tools/extract/extract_casting.py`, the policy comment widened to "or one he has confirmed as a bug",
+`module/casting-worker.mjs` regenerated (the diff is that one line and a report comment), and
+`tools/casting-test.html` reads the generated source. Released as 0.24.1.
+
+**Verified:** 27 suites, all passing; the regenerated worker parses and its 106 casting checks pass.
+Not verified: the spell itself in a running Foundry, where Diffuse Soma's cap would show.

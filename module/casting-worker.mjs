@@ -15,6 +15,7 @@
 // READ HERE, SET ELSEWHERE IN HIS SHEET. These names are read by the code below and assigned
 // nowhere in it. In his sheet another part of it set them first; here they start undefined:
 //     tempAlignment, tmpEND
+// NOTE: divideWithMinAndMax: corrected -- his 'tempValue=>tmpMaxValue' is an arrow function, not an assignment, so the maximum never applied; he confirmed the bug on 2026-09-16 (item 13) and the creature copy already caps (creature-rules.mjs)
 // NOTE: doSpellAction: corrected -- Sand Form ends in 'breakAcid' where 'break;' belongs; reading an undeclared name throws, so in his sheet the spell never casts, and declared it would fall through into Aura of Acid
 // NOTE: doSpellAction: parameter tmpINTSave is named twice; the second is renamed tmpINTSaveAgain
 //==================================================================================================================
@@ -204,7 +205,7 @@ export function setHisGlobals(tmpvalues) {
 	function divideWithMinAndMax(tmpDividend, tmpDivisor, tmpMaxValue) {
 		tempValue=parseInt(tmpDividend/tmpDivisor);
 		if (tempValue<1) { tempValue=1; }
-		if (tempValue>tmpMaxValue) { tempValue=>tmpMaxValue; }
+		if (tempValue>tmpMaxValue) { tempValue=tmpMaxValue; /* '=>' in his sheet (UPSTREAM-ISSUES.md items 13, 75) */ }
 		return tempValue;
 	}
 

@@ -112,14 +112,18 @@ STUBS = {
 }
 
 # @MARKER HIS SLIPS, CORRECTED
-# Only a slip that makes a case unable to run at all is corrected -- never one that merely gives a
-# number he may not have meant, which is reported instead (docs/UPSTREAM-ISSUES.md). Each must match
+# Only a slip that makes a case unable to run at all is corrected, or one he has CONFIRMED as a bug --
+# never one that merely gives a number he may not have meant, which is reported instead
+# (docs/UPSTREAM-ISSUES.md). Each must match
 # exactly once, or the extraction stops, so a corrected sheet cannot be silently "fixed" twice.
 #   his function      what he wrote                what it becomes                                 why
 CORRECTIONS = [
     ("doSpellAction", "\t\t\t\tbreakAcid\n",       "\t\t\t\tbreak; // breakAcid in his sheet (UPSTREAM-ISSUES.md item 74)\n",
      "Sand Form ends in 'breakAcid' where 'break;' belongs; reading an undeclared name throws, so in his "
      "sheet the spell never casts, and declared it would fall through into Aura of Acid"),
+    ("divideWithMinAndMax", "tempValue=>tmpMaxValue;", "tempValue=tmpMaxValue; /* '=>' in his sheet (UPSTREAM-ISSUES.md items 13, 75) */",
+     "his 'tempValue=>tmpMaxValue' is an arrow function, not an assignment, so the maximum never applied; "
+     "he confirmed the bug on 2026-09-16 (item 13) and the creature copy already caps (creature-rules.mjs)"),
 ]
 
 # JavaScript's own names, which are never his globals.

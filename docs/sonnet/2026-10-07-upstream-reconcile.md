@@ -4,7 +4,7 @@ Already decided; see DECISIONS 2026-10-07 (the reconcile entry) and don't re-ope
 its original wording with a dated Update beneath; Status is his side only and Port is ours; only a
 repository document counts as his answer; Daryl's answers are Daryl's.
 
-1. **Item 75: cap `divideWithMinAndMax` in the generated spell code.** `module/casting-worker.mjs:204-208`
+1. **DONE 2026-10-07 (0.24.1): item 75, cap `divideWithMinAndMax` in the generated spell code.** `module/casting-worker.mjs:204-208`
    still has `tempValue=>tmpMaxValue`; Diffuse Soma calls it at line 4653 with a cap of 10. Add a
    second entry to `CORRECTIONS` in `tools/extract/extract_casting.py` (the `breakAcid` one is the
    pattern, around lines 119-122), regenerate `casting-worker.mjs`, run `node tools/run-tests.mjs

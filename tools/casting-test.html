@@ -420,6 +420,15 @@ H.setCastingRandom(null);
 check(`every spell (${tmpspells.length}) and invocation (${tmpinvocations.length}) runs through his code at four and three levels, on self and not, cleanly`,
 	[tmpruns, tmpproblems.slice(0, 5)], [tmpspells.length * 8 + tmpinvocations.length * 6, []]);
 
+// --- his divideWithMinAndMax cap (UPSTREAM-ISSUES items 13 and 75, corrected 2026-10-07) ---------------
+// His line reads "tempValue=>tmpMaxValue", an arrow function and not an assignment, so the maximum never
+// applied; he confirmed it a bug on 2026-09-16. The function is not exported, so the generated source is read.
+{
+	const tmpsource = await (await fetch("../module/casting-worker.mjs")).text();
+	check("the extractor corrected his arrow into an assignment, so the maximum applies",
+		[tmpsource.includes("{ tempValue=tmpMaxValue;"), tmpsource.includes("{ tempValue=>tmpMaxValue")], [true, false]);
+}
+
 const failed = results.filter(r => r.startsWith("FAIL")).length;
 document.getElementById("out").textContent =
 	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
