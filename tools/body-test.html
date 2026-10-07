@@ -144,6 +144,51 @@ check("...writing 0", updates.at(-1), { "system.body.wounds.Head": 0 });
 check("an area not on the body is refused", await B.adjustBodyWound(stub, "Tentacle", 1), null);
 check("...with no update sent", updates.length, 4);
 
+// --- the dartboard's aim: which area a zone lands on (getStruckArea) --------------------------------
+const h = areasOf("Humanoid");
+check("a centre hit lands on the aim", B.getStruckArea(h, "Upper Torso", "Hit(Center)"), { area: "Upper Torso", how: "aim", text: "It lands where it was aimed: the Upper Torso." });
+check("aim at the neck, roll High: the head", B.getStruckArea(h, "Neck", "Hit(High)").area, "Head");
+check("aim at the chest, roll High: the neck (same wedge, different area)", B.getStruckArea(h, "Upper Torso", "Hit(High)").area, "Neck");
+check("aim at the chest, roll Low: the mid torso", B.getStruckArea(h, "Upper Torso", "Hit(Low)").area, "Mid Torso");
+check("aim at the chest, roll Left: the being's left shoulder (its left, the viewer's right)", B.getStruckArea(h, "Upper Torso", "Hit(Left)").area, "Left Shoulder");
+check("aim at the mid torso, roll Right: the right arm", B.getStruckArea(h, "Mid Torso", "Hit(Right)").area, "Right Arm");
+check("aim at the right shin, roll Low: the right foot", B.getStruckArea(h, "Right Shin", "Hit(Low)").area, "Right Foot");
+check("High of the head there is nothing: the table decides", B.getStruckArea(h, "Head", "Hit(High)").how, "none");
+check("Left of the left hand there is nothing", B.getStruckArea(h, "Left Hand", "Hit(Left)").how, "none");
+check("no aim declared reads as nothing", B.getStruckArea(h, "", "Hit(High)").how, "noAim");
+check("an aim that is not on the body reads as nothing", B.getStruckArea(h, "Tentacle", "Hit(High)").how, "noAim");
+check("a zone with no direction (a touch) lands on the aim", B.getStruckArea(h, "Neck", "Touched").how, "aim");
+check("the text says what was read", B.getStruckArea(h, "Neck", "Hit(High)").text, "High of the Neck, where it was aimed, lies the Head.");
+const cent = areasOf("Centaur");
+check("a map body: High of the left foreleg is the previous left tile", B.getStruckArea(cent, "Left Foreleg", "Hit(High)").area, "Left Hand");
+check("a map body: Low of the head is the neck", B.getStruckArea(cent, "Head", "Hit(Low)").area, "Neck");
+check("a map body: Left of a centre area steps into the left column", B.getStruckArea(cent, "Head", "Hit(Left)").how, "adjacent");
+check("a map body: Left of a left area is nothing", B.getStruckArea(cent, "Left Hand", "Hit(Left)").how, "none");
+check("a map body: High of the head is nothing", B.getStruckArea(cent, "Head", "Hit(High)").how, "none");
+check("ZONE_DIRECTIONS names the five hit zones", Object.keys(B.ZONE_DIRECTIONS).length, 5);
+
+// --- the just-hit flash --------------------------------------------------------------------------
+const now = 1000000;
+const flashed = B.buildBodyFigure(h, { lastHit: { area: "Neck", at: now - 3000 }, now });
+check("an area struck 3 seconds ago flashes", flashed.shapes.find(s => s.name == "Neck").justHit, true);
+check("...and only it", flashed.shapes.filter(s => s.justHit).length, 1);
+check("one struck long ago does not", B.buildBodyFigure(h, { lastHit: { area: "Neck", at: now - 60000 }, now }).shapes.find(s => s.name == "Neck").justHit, false);
+check("no last hit flashes nothing", B.buildBodyFigure(h, { now }).shapes.some(s => s.justHit), false);
+check("a map body's tile flashes too", B.buildBodyFigure(cent, { lastHit: { area: "Head", at: now }, now }).columns.centre[0].justHit, true);
+
+// --- picker mode -----------------------------------------------------------------------------------
+const pick = B.buildBodyFigure(h, { picker: true, selected: "Head" });
+check("a picker carries no panel even with a selection", [pick.picker, pick.selected], [true, null]);
+check("...but the selection is still marked on the shape", pick.shapes.find(s => s.name == "Head").selected, true);
+
+// --- the mini figure for a card ------------------------------------------------------------------
+const mini = B.renderBodyMini(h, "Neck");
+check("the mini figure is positioned boxes, one per area", (mini.match(/class="mini-area/g) || []).length, 19);
+check("...with the struck area marked", (mini.match(/struck/g) || []).length, 1);
+check("...at 0.3 scale (the box is 60 x 132)", mini.includes('style="width:60px;height:132px"'), true);
+check("...and names escaped", B.renderBodyMini([area({ name: "<b>", type: "Vital", multiplier: 1 })].concat(h.slice(1)), "<b>").includes("&lt;b&gt;"), true);
+check("a map body gives no mini figure", B.renderBodyMini(cent, "Head"), "");
+
 // --- report ---------------------------------------------------------------------------------------
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;

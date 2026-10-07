@@ -829,6 +829,8 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		// as the bar attribute "body.shockBar" in imagine-rpg.mjs (CONFIG.Actor.trackableAttributes),
 		// the same path on a character.
 		this.body.shockBar = getShockBar(this.body.shock, this.body.totalWounds);
+		// The same figure the other way up, for a second token bar: wounds taken, filling towards Shock.
+		this.body.woundBar = { value: this.body.shockBar.wounds, max: this.body.shockBar.max };
 
 		// @MARKER HIDE CAP
 		// His errata's cap, 5 x level (level 0 as 1), with plants and the Titanic exempt: see HIDE_CAP

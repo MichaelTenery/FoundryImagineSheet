@@ -113,9 +113,26 @@ export class ImagineItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		// provides has no equality helper to rely on -- the same reason the creature sheet
 		// counts its effect rows in code rather than in the template.
 		tmpcontext.sourceUnknown = (tmpcontext.system?.sourcebook == "XXX");
+		// @MARKER RICH DESCRIPTION
+		// The description as Foundry's editor shows it: links to other documents (@UUID[...]) and
+		// Game Master-only secret blocks work, because the field is an HTMLField already. His
+		// extracted text is plain, with line breaks; plainToParagraphs wraps it so it is not one
+		// run-on line in the editor (2026-10-07).
+		tmpcontext.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+			plainToParagraphs(this.document.system?.description), { relativeTo: this.document, secrets: this.document.isOwner });
 		return tmpcontext;
 	}
 }
+
+	// This is the function which turns text with no markup into paragraphs, one per blank-line
+	// separated block, single line breaks kept; text that already carries a tag is left alone.
+	export function plainToParagraphs(tmptext) {
+		var tmps = String(tmptext ?? "");
+		if (!tmps.trim()) { return ""; }
+		if (/<[a-z][\s\S]*>/i.test(tmps)) { return tmps; }
+		var tmpescaped = tmps.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		return tmpescaped.split(/\n\s*\n/).map(tmpblock => `<p>${tmpblock.trim().replace(/\n/g, "<br>")}</p>`).join("");
+	}
 
 
 // @MARKER CREATURE ATTACK SHEET

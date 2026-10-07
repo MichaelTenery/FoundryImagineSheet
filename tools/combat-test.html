@@ -1285,6 +1285,16 @@ check("Enduring Life/Death endures a Death blow", R.isEndured("Death", ["Cloak [
 	check("...and an unknown body type is the Humanoid chart", R.getBodyChart("Nonesuch").length, 19);
 }
 
+// A thrown weapon's direction and distance as fields, for the marker on the map.
+{
+	const lost = R.resolveCriticalFumble(false, { criticalRoll: 99, standRoll: 2, throwRoll: 12, directionRoll: 3, variantRoll: 50, stunRoll: 1 });
+	check("a critical that throws the weapon says where (East, d8 = 3) and how far", [lost.weaponLost, lost.direction, lost.thrownFeet], [true, "East", 12]);
+	const kept = R.resolveCriticalFumble(false, { criticalRoll: 50, standRoll: 2, throwRoll: 12, directionRoll: 3, variantRoll: 50, stunRoll: 1 });
+	check("a critical that keeps the weapon carries no direction", [kept.weaponLost, kept.direction], [false, undefined]);
+	const full = R.resolveFumble(1, false, { saveRoll: 100, recoveryRoll: 1, severityRoll: 100, effectRoll: 1, criticalRoll: 100, variantRoll: 50, standRoll: 1, throwRoll: 7, directionRoll: 8, stunRoll: 2 });
+	check("resolveFumble passes the direction through", [full.critical, full.weaponLost, full.direction, full.thrownFeet], [true, true, "Northwest", 7]);
+}
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =
 	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")

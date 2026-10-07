@@ -890,6 +890,19 @@ check("removed", S.removeListEntry(modes, 1), ["Walk", "Fly"]);
 check("a bad index removes nothing", S.removeListEntry(modes, 7), modes);
 check("the list given is never changed", modes, ["Walk", "Run", "Fly"]);
 
+// --- which roll a rider waits on (getRiderSave, 2026-10-07) ------------------------------------------
+check("'If VIT save fails' is the Vitality save", C.getRiderSave("If VIT save fails"), { kind: "attribute", key: "vit", half: false, label: "VIT save" });
+check("'If half STR save fails' is half the Strength save", C.getRiderSave("If half STR save fails"), { kind: "attribute", key: "str", half: true, label: "half STR save" });
+check("'If MR fails' is the magic resistance", C.getRiderSave("If MR fails"), { kind: "resistance", key: "magic", half: false, label: "magic resistance" });
+check("'If half DR fails' is half the disease resistance", C.getRiderSave("If half DR fails"), { kind: "resistance", key: "disease", half: true, label: "half disease resistance" });
+check("CR, IR and PR are control, illusion and poison", ["If CR fails", "If IR fails", "If PR fails"].map(t => C.getRiderSave(t).key), ["control", "illusion", "poison"]);
+check("'Auto' names no roll", C.getRiderSave("Auto"), null);
+check("'If hit' names no roll", C.getRiderSave("If hit"), null);
+check("every trigger in his list either names a roll or is one of the four plain ones",
+	(await import("../module/creature-tables.mjs")).EFFECT_TRIGGERS.every(t => C.getRiderSave(t) || ["Auto", "If hit", "If natural critical", "If 10 damage"].includes(t)), true);
+check("a pending rider on the card carries its save", C.getTriggeredEffects([{ name: "Venom", trigger: "If VIT save fails" }], { isHit: true })[0].save.key, "vit");
+check("a fired rider carries none", C.getTriggeredEffects([{ name: "Venom", trigger: "If hit" }], { isHit: true })[0].save, null);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =
 	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")

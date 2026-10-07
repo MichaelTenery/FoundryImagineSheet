@@ -1097,8 +1097,43 @@ input.source-unknown {
 .imagine .body-hint { margin: 0; }
 .imagine .body-worst { width: auto; height: 20px; line-height: 1; padding: 0 8px; font-size: 11px; }
 
+/* An area struck in the last few seconds flashes (buildBodyFigure's lastHit). */
+@keyframes imagine-just-hit {
+	0%   { fill: var(--imagine-alarm); background: var(--imagine-alarm); }
+	100% { fill: inherit; background: inherit; }
+}
+.imagine .body-svg .body-area.just-hit { animation: imagine-just-hit 1.2s ease-out 3; stroke: var(--imagine-alarm); stroke-width: 3; }
+.imagine .body-tile.just-hit { animation: imagine-just-hit 1.2s ease-out 3; border-color: var(--imagine-alarm); }
+
+/* The aim picker inside the attack dialog: the figure alone, a little smaller, the chosen area outlined. */
+.imagine-aim-picker { margin: 4px 0 8px; }
+.imagine-aim-picker .body-figure { margin: 0; }
+.imagine-aim-picker .body-svg { width: 120px; }
+.imagine-aim-picker .body-caption { max-width: 320px; }
+.imagine-aim-picker .body-column { min-width: 70px; }
+.imagine-aim-picker .body-tile { font-size: 10px; padding: 2px 4px; }
+
+/* The item sheets' rich description. */
+.imagine.sheet prose-mirror { min-height: 90px; }
+.imagine.sheet prose-mirror .editor-content { min-height: 60px; }
+
 /* A trait's description is typed as text; its line breaks are kept. */
 .imagine .trait-text { white-space: pre-line; }
+
+/* @MARKER CHAT BODY MINI
+   The small body on a damage card (renderBodyMini, module/body-view.mjs): positioned boxes, the
+   struck area in the alarm colour. Floated beside the words. Literal colours, as the chat cards
+   below explain. */
+.imagine-chat .body-mini { position: relative; float: right; margin: 0 0 4px 8px; }
+.imagine-chat .mini-area { position: absolute; background: #e9e2d2; border: 1px solid #9a8f7a; box-sizing: border-box; }
+.imagine-chat .mini-area.area-wounded { background: #f7e3cf; }
+.imagine-chat .mini-area.area-vitalitySave { background: #f0d2c8; }
+.imagine-chat .mini-area.area-effect { background: #e8b4a8; }
+.imagine-chat .mini-area.struck { background: #a2462e; border-color: #5c2416; box-shadow: 0 0 0 2px rgba(162, 70, 46, 0.35); }
+.imagine-chat .damage-result::after { content: ""; display: block; clear: both; }
+.imagine-chat button.inline { width: auto; display: inline-block; height: 20px; line-height: 1; padding: 0 6px; font-size: 11px; margin-left: 4px; }
+.imagine-chat.title-reached h3 { margin: 0 0 4px; }
+.imagine-chat.title-reached h3 i { color: #b8860b; }
 
 /* @MARKER CHAT CARDS
    Left as literal hexes on purpose, 2026-09-22 sweep. Everywhere else in this file a colour that

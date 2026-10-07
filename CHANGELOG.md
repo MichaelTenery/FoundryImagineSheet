@@ -18,6 +18,39 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.24.0 — 2026-10-07
+
+Eleven things that make the table more fun, all from what the code already knew.
+
+**Aim on the target's body.** The attack dialog shows the target's own body; click where you are
+aiming and the "Aimed at" box follows. When the chart says High, Low, Left or Right, the damage
+dialog now starts on the area that sits that way from your aim on that body, and says so: aim at
+the neck and roll High, it offers the head. Where nothing lies that way it says so and leaves the
+choice to the table. This is a reading of his directional zones, offered as a default you can
+change; it is on the table with him as UPSTREAM 118.
+
+**Hits that show.** The area just struck flashes on the body figure for a few seconds. The damage
+card carries a small figure with the struck area marked, and now prints when a blow pierces the
+armour (more than 9 through).
+
+**Also:**
+- Every item type has its own icon (sword, shield, book, poison and so on) instead of the one bag.
+  Existing packs pick theirs up on the next import; an image you chose yourself is kept.
+- A weapon thrown by a critical fumble drops a marker on the map, that many feet in the direction
+  the die gave, from the attacker's token.
+- A creature's breath, bolt, cloud or glob can be placed on the map as a template from its card.
+- A rider effect waiting on the target's save ("If VIT save fails", "If half MR fails") has a Roll
+  button on the card for the target's owner or the Game Master; the result says whether it takes
+  hold.
+- The attack dialog offers a called-shot bonus and a wider fumble range, the two dials his code has
+  always carried.
+- Tokens have a second bar to choose, wounds taken against Shock.
+- Level Up has "All N" to place every remaining skill point on one skill, and posts a card when a
+  title is reached.
+- Item descriptions use Foundry's editor: links to other items and Game Master-only secrets work.
+- "Grant them" on the Skills tab gives the class skills a title has earned, in place of a console
+  command.
+
 ## 0.23.0 — 2026-10-07
 
 Two things asked for, and a quality pass over the whole system.

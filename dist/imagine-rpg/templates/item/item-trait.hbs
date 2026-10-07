@@ -52,5 +52,7 @@
 	</div>
 
 	<h3 class="section-head">Description</h3>
-	<textarea name="system.description" rows="6">{{system.description}}</textarea>
+	{{!-- Foundry\'s editor (toggled: a view with an edit button), links and secrets included;
+	      see @MARKER RICH DESCRIPTION in module/sheets/item-sheet.mjs. --}}
+	<prose-mirror name="system.description" toggled value="{{system.description}}">{{{enrichedDescription}}}</prose-mirror>
 </section>

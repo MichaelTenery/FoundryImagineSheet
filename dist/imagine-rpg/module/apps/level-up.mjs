@@ -51,6 +51,7 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 			addExp:        ImagineLevelUp.#onAddExp,
 			rollAttribute: ImagineLevelUp.#onRollAttribute,
 			spendPoints:   ImagineLevelUp.#onSpendPoints,
+			spendAllPoints: ImagineLevelUp.#onSpendAllPoints,
 			undoSpend:     ImagineLevelUp.#onUndoSpend,
 			commitGoal:    ImagineLevelUp.#onCommitGoal,
 			rollEndurance: ImagineLevelUp.#onRollEndurance,
@@ -154,9 +155,20 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 
 	static async #onSpendPoints(event, target) {
 		event.preventDefault();
+		await ImagineLevelUp.#spendPointsNow.call(this, parseInt(this.#field("spendPoints")) || 0);
+	}
+
+	// "All N": every point still to place goes on the chosen skill, through the same check.
+	static async #onSpendAllPoints(event, target) {
+		event.preventDefault();
+		var tmpremaining = buildGoalStep(this.#actor, this.#working).skillPoints.remaining;
+		if (tmpremaining < 1) { ui.notifications.info("Every skill point is placed."); return; }
+		await ImagineLevelUp.#spendPointsNow.call(this, tmpremaining);
+	}
+
+	static async #spendPointsNow(tmppoints) {
 		var tmpstep = buildGoalStep(this.#actor, this.#working);
 		var tmpid = this.#field("spendSkill");
-		var tmppoints = parseInt(this.#field("spendPoints")) || 0;
 		var tmpitem = this.#actor.items.get(tmpid);
 
 		// Against the title of goal - 1, not the character's title: a skill just acquired with this
@@ -233,7 +245,18 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 			ui.notifications.warn("Roll the title's Endurance first.");
 			return;
 		}
+		var tmpstep = buildTitleStep(this.#actor, this.#working).titleStep;
 		await commitTitle(this.#actor, this.#working.endurance);
+		// The moment itself, on a card the whole table sees: the new title by name.
+		await ChatMessage.create({
+			speaker: ChatMessage.getSpeaker({ actor: this.#actor }),
+			content: `<div class="imagine-chat title-reached">
+				<h3><i class="fa-solid fa-star"></i> ${foundry.utils.escapeHTML(this.#actor.name)} is now a
+				${foundry.utils.escapeHTML(tmpstep?.titleName || `title ${tmpstep?.title ?? ""}`)}</h3>
+				<p>Title ${tmpstep?.title ?? ""}${tmpstep?.className ? ` as a ${foundry.utils.escapeHTML(tmpstep.className)}` : ""},
+				Endurance +${parseInt(this.#working.endurance) || 0}.</p>
+			</div>`
+		});
 		this.#reset();
 		this.render();
 	}

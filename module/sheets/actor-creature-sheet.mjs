@@ -250,6 +250,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			bodyType: this.document.system.body?.type || this.document.system.body?.bodyType,
 			selected: this._bodyArea,
 			vitality: this.document.system.attributes?.vit?.value,
+			lastHit: this.document.getFlag?.("imagine-rpg", "lastHit") ?? null,
 			effects: []
 		});
 		await loadBodyTemplates();

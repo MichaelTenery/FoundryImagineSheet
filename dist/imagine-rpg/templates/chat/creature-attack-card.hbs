@@ -39,7 +39,10 @@
 
 	{{#if fumble}}<p class="fumble">{{fumble.text}}</p>{{/if}}
 
-	{{#if shape}}<p class="shape">It {{shape.text}}.</p>{{/if}}
+	{{#if shape}}<p class="shape">It {{shape.text}}.
+		{{#if (eq shape.shape "gaze")}}{{else if (eq shape.shape "voice")}}{{else}}
+		<button type="button" class="inline" data-imagine-action="placeTemplate" data-tooltip="Place it on the map at the attacker, pointing right; turn it from there"><i class="fa-solid fa-ruler-combined"></i> Place</button>
+		{{/if}}</p>{{/if}}
 
 	{{#if martialNotes.length}}<div class="situation-notes">{{#each martialNotes as |n|}}{{n}}{{#unless @last}} &middot; {{/unless}}{{/each}}</div>{{/if}}
 
@@ -66,6 +69,8 @@
 			{{#if e.description}} &mdash; {{e.description}}{{/if}}
 			{{#if e.damage}} {{e.damage}} {{e.damageType}}{{/if}}
 			{{#if e.duration}} for {{e.duration}} {{e.durationType}}{{/if}}
+			{{#if e.save}}<button type="button" class="inline" data-imagine-action="rollRider" data-index="{{@index}}"
+				data-tooltip="The target's {{e.save.label}}; the rider takes hold if it fails"><i class="fa-solid fa-dice"></i> Roll {{e.save.label}}</button>{{/if}}
 		</p>
 		{{/each}}
 	</div>

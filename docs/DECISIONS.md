@@ -6621,3 +6621,75 @@ panel, the creature's map and the green scheme checked off rendered previews. **
 running Foundry V14: `_onFirstRender`, `isActiveGM`, `htmlFields`, the `updateCompendium` hook's
 argument, `getDocuments({ _id__in })`, and the SVG rects taking `data-action` clicks and
 `data-tooltip` hovers -- each follows the V12+ API as documented.
+
+
+## The fun pass: aim on the body, hits that show, and nine smaller things (2026-10-07, later)
+
+Asked for: "perform all suggested upgrades" -- the eleven features the quality pass's audits had
+noticed the code almost supported. Shipped as 0.24.0. All but the first are mechanical; the first
+is a design call, and it is recorded as one.
+
+### Aim on the body: the dartboard's second half (`getStruckArea`, `module/body-view.mjs`)
+
+**What was decided.** The 2026-09-16 walkthrough settled that a directional zone (Hit(High), Hit(Left)...)
+is RELATIVE TO THE AIM, not a fixed per-body table, and that only the aim is the player's choice.
+What was never designed was how "that way" is read. It is now read off the same pictures the body
+figure draws: for a figure, the nearest shape above, below, or to the being's left or right that
+overlaps the aim's box (a shoulder counts as above an arm even where they do not line up; off the
+edge of the body there is nothing); for a map, the previous or next tile in the aim's own column for
+High and Low, and the tile at the same relative height one column over for Left and Right. The
+figure faces the viewer, so the being's left is the larger x. Checked against the walkthrough's
+own two examples: aim at the neck and roll High lands on the head; aim at the chest and roll High
+lands on the neck. Twenty cases in `tools/body-test.html`.
+
+**This is a reading of his zones, not a rule he wrote down**, so it is offered, not imposed: the
+damage dialog's area starts on the struck area and SAYS where it came from ("High of the Neck,
+where it was aimed, lies the Head"), and the select is still free. Where nothing lies that way the
+dialog says so and the table decides, as it did before. Put to him as UPSTREAM 118.
+
+**The aim is picked on the target's own body.** The attack dialog renders the target's figure (or
+map) in picker mode -- no panel, no sheet action -- and a click sets the "Aimed at" select. The
+partial, the layout and the states are the sheet's; only the click is wired differently
+(`wireAimPicker`). The slash as a set of areas is still not designed.
+
+### Hits that show
+
+A blow writes `flags.imagine-rpg.lastHit` ({ area, at }) on the target; the figure flashes that
+area for twelve seconds (`JUST_HIT_SECONDS`), the sheet re-rendering on the wound anyway. The
+damage card carries a small copy of the figure with the struck area marked, drawn as positioned
+boxes rather than an SVG because chat HTML is cleaned on its way to other clients and inline boxes
+survive that; a map body gets words. The card also prints his `armorPierced` flag ("more than 9
+through: the armour is pierced"), worked out since the port began and never shown.
+
+### The nine smaller things
+
+- **Item icons.** `ITEM_ICONS` (`module/item-icons.mjs`), one row per type and kind, all from
+  Foundry's own svg set so every install has them. `ImagineItem.getDefaultArtwork` gives them to
+  anything made in Foundry; the importer gives them to the packs, and on a re-import to any
+  document still wearing the bag -- an image somebody chose is kept.
+- **Fumble markers.** `resolveCriticalFumble` now returns the d8's direction and the feet thrown
+  as fields beside its words; a card whose weapon was lost drops a text drawing that far from the
+  attacker's token, if the user may draw. Nothing off the map.
+- **Breath and cone templates.** A Place button on a creature card with a shape; cone, ray
+  (bolt), circle (cloud, glob) at the attacker's token, pointing right, for the Game Master to
+  turn. Gaze and voice have no shape to place.
+- **Riders as save buttons.** `getRiderSave` reads the roll a trigger names ("If half MR fails" is
+  half the magic resistance); a pending rider on the card carries a Roll button that the target's
+  owner or the Game Master presses, and the result card says whether it takes hold.
+- **Called-shot bonus and fumble range** as fields in the attack dialog, passed to `resolveAttack`,
+  which has taken both since the port began.
+- **Second token bar**, `body.woundBar`: wounds taken against Shock, filling as the being is hurt.
+- **Level Up:** "All N" places every remaining point on the chosen skill through the same check,
+  and reaching a title posts a card naming the new title.
+- **Rich descriptions.** The thirteen item sheets show the description in Foundry's editor
+  (`<prose-mirror>`, toggled), so links to other documents and Game Master secrets work -- the
+  field was an HTMLField already. His extracted text is plain, so `plainToParagraphs` wraps it in
+  paragraphs for the editor rather than one run-on line; text that already carries a tag is left
+  alone.
+- **Grant them.** The Skills tab's "run this console command" line is a button.
+
+**Verified:** 27 suites, 3,294 checks (`icons-test` new; body, creature and combat extended);
+the sheet and item previews render. **Not verified** in a running Foundry V14: DialogV2's
+`render` callback for the picker, `getDefaultArtwork` on a custom Item class, `MeasuredTemplate`
+and `Drawing` creation data, `<prose-mirror toggled>`, and whether the chat sanitiser keeps the
+mini figure's inline styles -- each follows the V12+ API as documented.

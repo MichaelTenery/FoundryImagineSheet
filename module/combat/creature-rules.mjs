@@ -369,6 +369,24 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 	// are reported as pending rather than decided here, because the target's own sheet owns
 	// those rolls. "If 10 damage" is decided by the damage actually done, as his code does when
 	// it annotates the trigger with the total.
+	// This is the function which reads the roll a rider's trigger waits on (EFFECT_TRIGGERS,
+	// creature-tables.mjs): "If VIT save fails" is the target's Vitality save, "If half MR fails"
+	// half their magic resistance. Returns { kind: "attribute" | "resistance", key, half, label },
+	// or null for a trigger that names no roll (Auto, If hit, If natural critical, If 10 damage).
+	// The card's "Roll the save" button reads this; the rider fires when the roll FAILS.
+	export function getRiderSave(tmptrigger) {
+		var tmpmatch = String(tmptrigger ?? "").match(/^If (half )?(STR|AGL|VIT|WIL|MR|CR|IR|PR|DR)( save)? fails$/);
+		if (!tmpmatch) { return null; }
+		var tmphalf = !!tmpmatch[1];
+		var tmpcode = tmpmatch[2];
+		var tmpattribute = { STR: "str", AGL: "agl", VIT: "vit", WIL: "wil" }[tmpcode];
+		if (tmpattribute) {
+			return { kind: "attribute", key: tmpattribute, half: tmphalf, label: `${tmphalf ? "half " : ""}${tmpcode} save` };
+		}
+		var tmpresistance = { MR: "magic", CR: "control", IR: "illusion", PR: "poison", DR: "disease" }[tmpcode];
+		return { kind: "resistance", key: tmpresistance, half: tmphalf, label: `${tmphalf ? "half " : ""}${tmpresistance} resistance` };
+	}
+
 	export function getTriggeredEffects(tmpeffects, tmpresult) {
 		var tmpout = [];
 		for (const tmpeffect of tmpeffects ?? []) {
@@ -385,7 +403,8 @@ import { getMartialAttackModifiers } from "./martial-arts.mjs";
 			}
 			else if (!tmpresult.isHit) { tmpstate = "no"; }   // a save only matters once it lands
 
-			tmpout.push({ ...tmpeffect, state: tmpstate });
+			// Which roll a pending rider waits on, for the card's button; null when it waits on none.
+			tmpout.push({ ...tmpeffect, state: tmpstate, save: tmpstate == "pending" ? getRiderSave(tmptrigger) : null });
 		}
 		return tmpout;
 	}

@@ -31,7 +31,10 @@ import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } f
 import { getActionHand } from "./round-rules.mjs";
 import { findActorCombatant } from "./combat-document.mjs";
 import { resolveCoatingDelivery, isEnvenomed } from "../lore-rules.mjs";
-import { resolveTouchAttack } from "./creature-rules.mjs";
+import { resolveTouchAttack, getRiderSave } from "./creature-rules.mjs";
+import { buildBodyFigure, getStruckArea, renderBodyMini } from "../body-view.mjs";
+import { resolveAttributeSave } from "../skills-rules.mjs";
+import { resolveResistanceRoll } from "../resistance-rules.mjs";
 import { postPoisonOnVictims, registerPoisonCardListeners } from "../magic-actions.mjs";
 
 const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Missile" };
@@ -93,6 +96,16 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 		var tmpaim = tmpareas.length
 			? tmpareas.map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join("")
 			: `<option value="">(no target selected)</option>`;
+		// The target's own body as the aim picker (module/body-view.mjs): click an area and the
+		// select follows. The dartboard's aim point, picked ON the target (DECISIONS 2026-10-07).
+		var tmppicker = "";
+		if (tmpareas.length) {
+			var tmpfigure = buildBodyFigure(tmpareas, { bodyType: tmptarget.actor.system.body?.type, picker: true,
+				selected: tmpareas[0].name });
+			tmppicker = `<div class="imagine imagine-aim-picker" data-tooltip="Click where to aim">`
+				+ await foundry.applications.handlebars.renderTemplate("systems/imagine-rpg/templates/actor/body-figure.hbs", { bodyFigure: tmpfigure })
+				+ `</div>`;
+		}
 
 		var tmpcalled = (tmpsituation?.special ?? []).includes("Called Shot");
 		var tmpfiring = tmpsituation?.multiMissile ?? "";
@@ -107,6 +120,7 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 						`<option value="${m}">${MODE_LABELS[m]} (${tmpweapon.system[m].mod >= 0 ? "+" : ""}${tmpweapon.system[m].mod})</option>`).join("")}
 					</select></div>
 				<div class="form-group"><label>Aimed at</label><select name="aim">${tmpaim}</select></div>
+				${tmppicker}
 				${describeSituation(tmpsituation)}
 				${tmpweapon.system.missile?.available ? `<div class="form-group"><label>Firing</label>
 					<select name="multiMissile">
@@ -124,6 +138,12 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 					<input type="checkbox" name="calledShot" ${tmpcalled ? "checked" : ""}>
 					<p class="hint">Needs an unmodified roll of 21 minus your attack skill level, takes one more
 					second and does half damage whether it lands or not.</p></div>
+				<div class="form-group"><label>Called shot bonus</label>
+					<input type="number" name="calledShotMod" value="0">
+					<p class="hint">Lowers the natural roll a called shot needs (his tmpCalledShotMod).</p></div>
+				<div class="form-group"><label>Fumble range</label>
+					<input type="number" name="fumbleMod" value="0" min="0">
+					<p class="hint">Widens the fumble: 1 makes a natural 1 or 2 a fumble (his tmpFumbleMod).</p></div>
 				${tmptarget ? `<div class="form-group"><label>Target is avoiding the blow</label>
 					<input type="checkbox" name="useDefense" ${tmptargetnodef ? "" : "checked"}>
 					<p class="hint">${tmptargetnodef
@@ -136,6 +156,8 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 			window: { title: `${tmpweapon.name} — Attack` },
 			content: tmpcontent,
 			rejectClose: false,
+			// The aim picker: a click on an area sets the select and marks the area.
+			render: (tmpevent, tmpdialog) => wireAimPicker(tmpdialog.element),
 			ok: {
 				label: "Attack",
 				callback: (event, button) => {
@@ -145,6 +167,8 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 						aim: tmpform.aim.value,
 						situational: parseInt(tmpform.situational.value) || 0,
 						calledShot: tmpform.calledShot.checked,
+						calledShotMod: parseInt(tmpform.calledShotMod?.value) || 0,
+						fumbleMod: Math.max(0, parseInt(tmpform.fumbleMod?.value) || 0),
 						useDefense: tmpform.useDefense ? tmpform.useDefense.checked : false,
 						multiMissile: tmpform.multiMissile ? tmpform.multiMissile.value : ""
 					};
@@ -153,6 +177,28 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 		});
 	}
 
+
+	// This is the function which wires the aim picker inside the attack dialog: a click on an area
+	// of the target's figure (or map) sets the "Aimed at" select to it and marks it selected.
+	function wireAimPicker(tmproot) {
+		var tmppicker = tmproot?.querySelector?.(".imagine-aim-picker");
+		var tmpselect = tmproot?.querySelector?.("select[name='aim']");
+		if (!tmppicker || !tmpselect) { return; }
+		var tmpmark = function (tmpname) {
+			for (const tmpel of tmppicker.querySelectorAll("[data-area]")) {
+				tmpel.classList.toggle("selected", tmpel.dataset.area == tmpname);
+			}
+		};
+		tmppicker.addEventListener("click", function (tmpevent) {
+			var tmphit = tmpevent.target.closest("[data-area]");
+			if (!tmphit) { return; }
+			tmpevent.preventDefault();
+			tmpselect.value = tmphit.dataset.area;
+			tmpmark(tmphit.dataset.area);
+		});
+		tmpselect.addEventListener("change", () => tmpmark(tmpselect.value));
+		tmpmark(tmpselect.value);
+	}
 
 // @MARKER ATTACK ROLL
 
@@ -281,7 +327,10 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		mods: tmpmods.total,
 		skill: (tmpislore && tmpsys.combat.loreAttackSkill) || tmpsys.combat.attackSkill,
 		isLore: tmpislore,
-		calledShot: tmpoptions.calledShot
+		calledShot: tmpoptions.calledShot,
+		// The two dials his code carries that no dialog offered until 2026-10-07.
+		calledShotMod: tmpoptions.calledShotMod,
+		fumbleMod: tmpoptions.fumbleMod
 	});
 
 	// @MARKER TOUCH ATTACK
@@ -492,12 +541,17 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		"systems/imagine-rpg/templates/chat/attack-card.hbs",
 		{ ...tmpattack, modeLabel: MODE_LABELS[tmpmode], actorName: tmpactor.name, inCombat: !!findCombatant(tmpactor) });
 
-	return await ChatMessage.create({
+	var tmpmessage = await ChatMessage.create({
 		speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
 		content: tmphtml,
 		rolls: tmprolls,
 		flags: { "imagine-rpg": { attack: tmpattack } }
 	});
+	// A weapon thrown by a critical fumble lands on the map, where the card says it went.
+	if (tmpfumble?.weaponLost && tmpfumble.direction) {
+		await dropWeaponMarker(tmpactor, getWeaponDisplayName(tmpweapon.name, tmpw), tmpfumble.direction, tmpfumble.thrownFeet);
+	}
+	return tmpmessage;
 }
 
 
@@ -516,12 +570,16 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		var tmpzone = "" + (tmpattack.result.zone ?? "");
 		var tmpcentre = tmpzone == "Hit(Center)";
 		var tmpoffcentre = tmpzone.startsWith("Hit(") && !tmpcentre;
-		var tmpdefault = tmpoffcentre ? "" : tmpattack.aim;
+		// Where it lands, read off the target's own body from the aim and the zone (getStruckArea,
+		// module/body-view.mjs): the area that sits that way, offered as the default and explained,
+		// with the select still free for the table to see it otherwise.
+		var tmpstruck = tmpoffcentre ? getStruckArea(tmpareas, tmpattack.aim, tmpzone) : null;
+		var tmpdefault = tmpoffcentre ? (tmpstruck?.area ?? "") : tmpattack.aim;
 		var tmpareahint = tmpcentre
 			? `A centre hit: it lands where it was aimed (${esc(tmpattack.aim)}).`
 			: tmpoffcentre
 			? `An off-centre hit, <strong>${esc(tmpzone.replace("Hit(", "").replace(")", ""))}</strong> of
-			   where it was aimed (${esc(tmpattack.aim) || "no aim declared"}). Pick the area that sits that way on the target.`
+			   where it was aimed. ${esc(tmpstruck.text)}${tmpstruck.area ? "" : " Pick the area."}`
 			: `${esc(tmpzone)}: not read down the attack chart, so it lands where it was aimed
 			   (${esc(tmpattack.aim) || "no aim declared"}).`;
 
@@ -774,9 +832,14 @@ export async function applyBlowToActor(tmptargetactor, tmpblow) {
 	if (tmpabsorbed.pool != tmpsys.combat.damageAbsorb) {
 		tmpupdate["system.combat.damageAbsorb"] = tmpabsorbed.pool;
 	}
+	// The blow most recently taken, so the body figure on the sheet flashes the area for a few
+	// seconds (buildBodyFigure's lastHit, module/body-view.mjs).
+	tmpupdate["flags.imagine-rpg.lastHit"] = { area: tmparea.name, at: Date.now() };
 	await tmptargetactor.update(tmpupdate);
 
 	var tmpnotes = [];
+	// More than 9 through the armour: his armorPierced flag, worked out all along and never printed.
+	if (tmpafter.armorPierced && !tmpoptions.bypass && tmparea.armor > 0) { tmpnotes.push(`More than 9 through: the armour there is <strong>pierced</strong>.`); }
 	if (tmpafter.effectTriggered) { tmpnotes.push(`<strong>${esc(tmparea.name)} is past Endurance plus Vitality: its effect is triggered.</strong>`); }
 	else if (tmpafter.vitalitySaveNeeded) { tmpnotes.push(`${esc(tmparea.name)} is past its Endurance: a Vitality save is needed.`); }
 	if (tmpafter.inShock) { tmpnotes.push(`<strong>${esc(tmptargetactor.name)} is in shock.</strong>`); }
@@ -803,6 +866,7 @@ export async function applyBlowToActor(tmptargetactor, tmpblow) {
 	await ChatMessage.create({
 		speaker: ChatMessage.getSpeaker({ actor: tmptargetactor }),
 		content: `<div class="imagine-chat damage-result">
+			${renderBodyMini(tmpsys.body.areas, tmparea.name)}
 			<p><strong>${esc(tmptargetactor.name)}</strong> takes ${tmpraw} ${esc(tmpoptions.type)}
 			damage to the ${esc(tmparea.name)}${tmpoptions.bypass ? " (bypassing armour)" : ` (armour ${tmparea.armor})`}.</p>
 			<p>${tmpblocked.blocked} stopped, <strong>${tmpabsorbed.damage}</strong> through.
@@ -865,6 +929,113 @@ export function registerAttackCardListeners() {
 			tmpspend.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${parseInt(tmpattack.speed) || 0}s spent`;
 		}
 		tmpspend?.addEventListener("click", () => spendAttackTime(tmpmessage));
+		// A creature card's riders waiting on a save, and its breath or bolt as a template on the map.
+		for (const tmpbutton of tmphtml.querySelectorAll("[data-imagine-action='rollRider']")) {
+			tmpbutton.addEventListener("click", () => rollRiderSave(tmpmessage, tmpbutton.dataset.index));
+		}
+		tmphtml.querySelector("[data-imagine-action='placeTemplate']")
+			?.addEventListener("click", () => placeAttackTemplate(tmpmessage));
 	});
+}
+
+// @MARKER RIDER SAVES
+// A rider effect that waits on the target's save ("If VIT save fails", "If half MR fails") gets a
+// button on the creature's card. The roll is the target's own, so it is the target's owner or the
+// Game Master who presses it; the result card says whether the rider takes hold. getRiderSave
+// (creature-rules.mjs) reads which roll the trigger names.
+export async function rollRiderSave(tmpmessage, tmpindex) {
+	var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
+	var tmpeffect = tmpattack?.effects?.[parseInt(tmpindex)];
+	var tmpsave = tmpeffect ? getRiderSave(tmpeffect.trigger) : null;
+	if (!tmpsave) { return; }
+	var tmptarget = tmpattack.targetUuid ? await fromUuid(tmpattack.targetUuid) : null;
+	var tmptargetactor = tmptarget?.actor ?? tmptarget;
+	if (!tmptargetactor?.system) { ui.notifications.warn("The target of that attack is no longer here."); return; }
+	if (!tmptargetactor.isOwner && !game.user.isGM) { ui.notifications.warn(`Only ${tmptargetactor.name}'s owner or the Game Master rolls that save.`); return; }
+
+	var tmproll = await new Roll("1d100").evaluate();
+	var tmpmade, tmpline;
+	if (tmpsave.kind == "attribute") {
+		var tmpchance = parseInt(tmptargetactor.system.attributes?.[tmpsave.key]?.save) || 0;
+		if (tmpsave.half) { tmpchance = Math.floor(tmpchance / 2); }
+		var tmpresult = resolveAttributeSave(tmpchance, tmproll.total);
+		tmpmade = tmpresult.made;
+		tmpline = `${esc(tmpsave.label)} at ${tmpchance}%: rolled ${tmproll.total}, ${esc(tmpresult.outcome)}`;
+	} else {
+		var tmpresist = tmptargetactor.system.resistances?.[tmpsave.key] ?? {};
+		var tmpvalue = parseInt(tmpresist.value) || 0;
+		if (tmpsave.half) { tmpvalue = Math.floor(tmpvalue / 2); }
+		var tmpresisted = resolveResistanceRoll(tmpvalue, tmproll.total, tmpresist.immune, 0);
+		tmpmade = !!tmpresisted.resisted;
+		tmpline = `${esc(tmpsave.label)} at ${tmpvalue}%: rolled ${tmproll.total}, ${esc(tmpresisted.outcome)}`;
+	}
+	await tmproll.toMessage({
+		speaker: ChatMessage.getSpeaker({ actor: tmptargetactor }),
+		flavor: `<strong>${esc(tmpeffect.name)}</strong> &mdash; ${tmpline} &mdash; `
+			+ (tmpmade ? `<span class="muted">does not take hold</span>` : `<strong>takes hold</strong>`
+			+ (tmpeffect.description ? ` &mdash; ${esc(tmpeffect.description)}` : ""))
+	});
+}
+
+// @MARKER TEMPLATES AND MARKERS
+// A creature's breath, bolt, cloud or glob (getAreaAttackSize, creature-rules.mjs) placed on the
+// map as a measured template at the attacker's token, pointing right; the Game Master turns it.
+// Distances are in the scene's own units, which the rules give in feet.
+export async function placeAttackTemplate(tmpmessage) {
+	var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
+	var tmpshape = tmpattack?.shape;
+	if (!tmpshape?.shape || !canvas?.scene) { return; }
+	if (!game.user.can("TEMPLATE_CREATE")) { ui.notifications.warn("You may not place templates on this scene."); return; }
+	var tmptoken = await findActorToken(tmpattack.attackerUuid);
+	var tmpx = tmptoken ? tmptoken.center.x : canvas.stage.pivot.x;
+	var tmpy = tmptoken ? tmptoken.center.y : canvas.stage.pivot.y;
+	var tmpdata = { x: tmpx, y: tmpy, direction: 0, author: game.user.id };
+	if (tmpshape.shape == "cone")       { Object.assign(tmpdata, { t: "cone", distance: tmpshape.range, angle: CONFIG.MeasuredTemplate?.defaults?.angle ?? 53.13 }); }
+	else if (tmpshape.shape == "bolt")  { Object.assign(tmpdata, { t: "ray", distance: tmpshape.range, width: 5 }); }
+	else if (tmpshape.shape == "cloud") { Object.assign(tmpdata, { t: "circle", distance: Math.max(1, (parseInt(tmpshape.length) || 0) / 2) }); }
+	else if (tmpshape.shape == "glob")  { Object.assign(tmpdata, { t: "circle", distance: 2.5 }); }
+	else { return; }
+	try {
+		await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", [tmpdata]);
+	} catch (tmperror) {
+		console.warn("Imagine RPG | the template could not be placed", tmperror);
+		ui.notifications.warn("The template could not be placed; see the console.");
+	}
+}
+
+// This is the function which drops a marker where a fumbled weapon landed: thrownFeet in the
+// direction the d8 gave (FUMBLE_DIRECTIONS), from the attacker's token, as a text drawing the Game
+// Master can move or delete. Nothing is dropped off the map, and nothing when the user may not draw.
+export async function dropWeaponMarker(tmpactor, tmpweaponname, tmpdirection, tmpfeet) {
+	if (!canvas?.scene || !game.user.can("DRAWING_CREATE")) { return; }
+	var tmptoken = tmpactor?.getActiveTokens?.()[0] ?? null;
+	if (!tmptoken) { return; }
+	var tmpunit = { North: [0, -1], Northeast: [1, -1], East: [1, 0], Southeast: [1, 1],
+	                South: [0, 1], Southwest: [-1, 1], West: [-1, 0], Northwest: [-1, -1] }[tmpdirection];
+	if (!tmpunit) { return; }
+	var tmpgrid = canvas.scene.grid;
+	var tmpsquares = Math.max(1, (parseInt(tmpfeet) || 0) / (parseFloat(tmpgrid.distance) || 5));
+	var tmpwidth = 140;
+	var tmpheight = 30;
+	var tmpx = tmptoken.center.x + tmpunit[0] * tmpsquares * tmpgrid.size - tmpwidth / 2;
+	var tmpy = tmptoken.center.y + tmpunit[1] * tmpsquares * tmpgrid.size - tmpheight / 2;
+	try {
+		await canvas.scene.createEmbeddedDocuments("Drawing", [{
+			x: Math.round(tmpx), y: Math.round(tmpy), author: game.user.id,
+			shape: { type: "r", width: tmpwidth, height: tmpheight },
+			text: `\u2694 ${tmpweaponname} (${parseInt(tmpfeet) || 0}' ${tmpdirection})`,
+			fontSize: 16, textColor: "#ffffff", fillType: 1, fillColor: "#000000", fillAlpha: 0.6, strokeWidth: 0
+		}]);
+	} catch (tmperror) {
+		console.warn("Imagine RPG | the weapon marker could not be dropped", tmperror);
+	}
+}
+
+// This is the function which finds an actor's token on the current scene from its uuid.
+async function findActorToken(tmpuuid) {
+	if (!tmpuuid) { return null; }
+	var tmpdoc = await fromUuid(tmpuuid);
+	var tmpactor = tmpdoc?.actor ?? tmpdoc;
+	return tmpactor?.getActiveTokens?.()[0] ?? null;
 }
 // @END (CODE)

@@ -328,6 +328,10 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 		result: tmpresult,
 		mods: tmpmods,
 		speed: tmpspeed,
+		// The riders and the area shape ride on the flag too, for the card's buttons (rollRiderSave,
+		// placeAttackTemplate in attack.mjs).
+		effects: tmpeffects,
+		shape: tmpshape,
 		// Which clock the attack runs on. Blank hand -- a bite, a breath -- is never the off hand.
 		hand: getActionHand(tmpa.hand, tmpsys.combat.offhandHandedness),
 		fumble: tmpfumble,

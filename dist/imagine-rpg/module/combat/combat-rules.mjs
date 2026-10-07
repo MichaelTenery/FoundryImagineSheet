@@ -320,6 +320,7 @@ export const MODE_DAMAGE_TYPES = {
 		if (tmproll <= 99) {
 			return { target: "self", damageMultiplier: 1.0, bypassesArmor: tmpbypass,
 			         secondsLost: tmpstand, weaponLost: true, weaponBroken: false,
+			         direction: tmpdirection, thrownFeet: tmpthrown,
 			         text: `Trips on the weapon, damaging self and losing it: full damage${tmpthrough} to a `
 			             + `random area, falls losing ${tmpstand} seconds to stand, and the weapon is thrown `
 			             + `${tmpthrown} feet ${tmpdirection}` };
@@ -328,6 +329,7 @@ export const MODE_DAMAGE_TYPES = {
 		var tmpstun = parseInt(tmpdice.stunRoll) || 0;
 		return { target: "self", damageMultiplier: 2.0, bypassesArmor: tmpbypass,
 		         secondsLost: tmpstun + tmpstand, weaponLost: true, weaponBroken: false,
+		         direction: tmpdirection, thrownFeet: tmpthrown,
 		         text: `Trips on the weapon, damaging self and losing it: double damage${tmpthrough} to a `
 		             + `random area, falls stunned for ${tmpstun} seconds then loses ${tmpstand} more to `
 		             + `stand, and the weapon is thrown ${tmpthrown} feet ${tmpdirection}` };
@@ -377,6 +379,10 @@ export const MODE_DAMAGE_TYPES = {
 			bypassesArmor: tmpcritical.bypassesArmor,
 			weaponLost: tmpcritical.weaponLost,
 			weaponBroken: tmpcritical.weaponBroken,
+			// Where a lost weapon went, as fields, so a marker can be dropped on the map
+			// (dropWeaponMarker, attack.mjs) -- the words above already said it.
+			direction: tmpcritical.direction ?? "",
+			thrownFeet: tmpcritical.thrownFeet ?? 0,
 			text: `Agility save failed: CRITICAL fumble -- ${tmpcritical.text}.`
 		};
 	}
@@ -1705,7 +1711,7 @@ export const MODE_DAMAGE_TYPES = {
 			vitalitySaveNeeded: tmpvitsave,
 			effectTriggered: tmpeffect,
 			inShock: tmpinshock,
-			armorPierced: tmpdamage > 9
+			armorPierced: tmpdamage > 9   // more than 9 through: the armour is pierced (printed on the damage card)
 		};
 	}
 

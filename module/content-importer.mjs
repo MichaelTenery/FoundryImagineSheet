@@ -14,6 +14,7 @@
 //==================================================================================================================
 
 import { clearSkillIndex } from "./non-acquired.mjs";
+import { getDefaultItemImage, isDefaultItemImage } from "./item-icons.mjs";
 
 // How many documents go to the server in one call. Matches the Items directory's BATCH.
 const IMPORT_BATCH = 250;
@@ -143,17 +144,24 @@ export const RETIRED_DOCUMENTS = {
 			var tmpindex = await tmppack.getIndex({ fields: ["system.kind"] });
 			var tmpexisting = new Map();
 			var tmpexistingkeys = new Map();
+			var tmpexistingimages = new Map();
 			for (const tmpentry of tmpindex) {
 				tmpexisting.set(tmpentry.name, tmpentry._id);
 				tmpexistingkeys.set(getImportKey(tmpdefinition, tmpentry.name, tmpentry.system?.kind), tmpentry._id);
+				tmpexistingimages.set(tmpentry._id, tmpentry.img);
 			}
 
 			for (const tmpdoc of tmpdocs) {
 				var tmpid = tmpexistingkeys.get(getImportKey(tmpdefinition, tmpdoc.name, tmpdoc.system?.kind));
+				// The type's own image (module/item-icons.mjs): on a new document always, and on an
+				// existing one only while it still wears Foundry's bag -- an image somebody chose stays.
+				var tmpimage = tmpdoc.img || getDefaultItemImage(tmpdoc.type, tmpdoc.system);
 				if (tmpid) {
-					tmptoupdate.push({ _id: tmpid, type: tmpdoc.type, system: tmpdoc.system });
+					var tmpupdate = { _id: tmpid, type: tmpdoc.type, system: tmpdoc.system };
+					if (isDefaultItemImage(tmpexistingimages.get(tmpid))) { tmpupdate.img = tmpimage; }
+					tmptoupdate.push(tmpupdate);
 				} else {
-					tmptocreate.push(tmpdoc);
+					tmptocreate.push({ ...tmpdoc, img: tmpimage });
 				}
 			}
 

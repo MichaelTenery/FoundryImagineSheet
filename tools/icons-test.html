@@ -1,0 +1,41 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG item icons test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/item-icons.mjs: the default image per item type and kind, and which images are
+// worth replacing. Also checks every image named is one Foundry ships, by reading the local install
+// where there is one (tools/run-tests.mjs runs under Node; a browser skips that check).
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/icons-test.html
+const I = await import("../module/item-icons.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+check("a weapon is the sword", I.getDefaultItemImage("weapon"), "icons/svg/sword.svg");
+check("armour is the shield", I.getDefaultItemImage("armor"), "icons/svg/shield.svg");
+check("a skill is the book", I.getDefaultItemImage("skill", {}), "icons/svg/book.svg");
+check("a poison is the poison, by its kind", I.getDefaultItemImage("consumable", { kind: "poison" }), "icons/svg/poison.svg");
+check("a consumable of no known kind is the type's own", I.getDefaultItemImage("consumable", { kind: "snack" }), "icons/svg/pill.svg");
+check("a disability is the downgrade, by its category", I.getDefaultItemImage("trait", { category: "disability" }), "icons/svg/downgrade.svg");
+check("an unknown type is Foundry's own bag", I.getDefaultItemImage("widget"), I.FOUNDRY_DEFAULT_ICON);
+check("a prototype name is not a type", I.getDefaultItemImage("constructor"), I.FOUNDRY_DEFAULT_ICON);
+check("every item type in system.json has a row", ["skill", "race", "class", "weapon", "armor", "equipment", "creatureAttack", "power", "trait", "consumable", "lore", "spell", "invocation"].every(t => I.ITEM_ICONS[t]), true);
+check("the bag is worth replacing", I.isDefaultItemImage("icons/svg/item-bag.svg"), true);
+check("a blank is worth replacing", I.isDefaultItemImage(""), true);
+check("an image somebody chose is kept", I.isDefaultItemImage("worlds/mine/sword.png"), false);
+check("every image is one of Foundry's svg icons by path", Object.values(I.ITEM_ICONS).flatMap(r => Object.values(r)).every(p => /^icons\/svg\/[a-z-]+\.svg$/.test(p)), true);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r.replace(/</g, "&lt;")}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

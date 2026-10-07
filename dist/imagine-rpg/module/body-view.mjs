@@ -28,9 +28,12 @@
 // THE FIGURE FACES THE VIEWER. Its left arm is on the viewer's right, as on any anatomical chart,
 // and the template says so under the picture. The map keeps the same convention so the two agree.
 //
-// This is the first piece of the attack-chart "dartboard" on the board (PROGRESS, Epic 4): the
-// design there needs an aim point picked ON the target's own body, and a clickable area is that
-// picker. The adjacency model (which area is High, Low, Left, Right of the aim) is not here yet.
+// This is also the attack-chart "dartboard"'s body half (PROGRESS, Epic 3): the aim point is
+// picked ON the target's own body (the attack dialog shows this same figure as its picker), and
+// @MARKER AIM AND ADJACENCY below turns a chart zone -- Hit(High), Hit(Left) -- into the area that
+// sits that way from the aim, read off the drawing's geometry for a figure and off the columns
+// for a map. Built 2026-10-07 on the user's 2026-09-16 reading: a zone is relative to wherever the
+// attack was aimed, not a fixed per-body table.
 //
 // Pure: no Foundry. Everything is a function of body.areas and a few options, so
 // tools/body-test.html runs it headless.
@@ -123,6 +126,7 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 			endurance: parseInt(tmparea.endurance) || 0,
 			wounds: parseInt(tmparea.wounds) || 0,
 			selected: !!tmpselected && tmpselected == tmpname,
+			justHit: false,
 			tooltip: `${tmpname} · ${tmparea.type ?? "Limb"} · ${parseInt(tmparea.wounds) || 0} / ${parseInt(tmparea.endurance) || 0} · ${tmparmor} · ${AREA_STATES[tmpstate].label}`
 		};
 	}
@@ -142,13 +146,21 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 	//       count:     how many areas there are
 	//     }
 	//     tmpareas    body.areas as either actor derives it
-	//     tmpoptions  { bodyType, selected, effects } -- effects is the actor-wide list of what is
-	//                 running on the being (buildMagicPanel's `effects`), shown in the panel
+	//     tmpoptions  { bodyType, selected, effects, lastHit, now, picker }
+	//                 effects  the actor-wide list of what is running on the being
+	//                          (buildMagicPanel's `effects`), shown in the panel
+	//                 lastHit  { area, at } -- the blow most recently applied (the actor's
+	//                          flags.imagine-rpg.lastHit); that area flashes (justHit) for
+	//                          JUST_HIT_SECONDS after `at`, so a wound just taken is seen landing
+	//                 now      the clock to read `at` against (Date.now() unless a test says)
+	//                 picker   true when the figure is an aim picker in the attack dialog: the
+	//                          panel is left out and the shapes carry no sheet action
 	export function buildBodyFigure(tmpareas, tmpoptions) {
 		var tmpopts = tmpoptions ?? {};
 		var tmplist = Array.isArray(tmpareas) ? tmpareas : [];
 		var tmpselectedname = String(tmpopts.selected ?? "");
 		var tmpselectedarea = tmplist.find(tmpa => tmpa.name == tmpselectedname) ?? null;
+		var tmpjusthit = getJustHitName(tmpopts.lastHit, tmpopts.now);
 
 		// The most-hurt area, so the heading can point at it before anything is clicked.
 		var tmpworst = "";
@@ -172,7 +184,8 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 			bodyType: String(tmpopts.bodyType ?? ""),
 			count: tmplist.length,
 			worst: tmpworst,
-			selected: tmpselectedarea ? describeArea(tmpselectedarea, tmpopts) : null
+			picker: !!tmpopts.picker,
+			selected: (tmpselectedarea && !tmpopts.picker) ? describeArea(tmpselectedarea, tmpopts) : null
 		};
 
 		// The figure, when enough of the chart is the human one.
@@ -185,6 +198,7 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 			for (const tmparea of tmplist) {
 				var tmpplace = HUMANOID_FIGURE[tmparea.name];
 				var tmpshape = describeShape(tmparea, tmpselectedname);
+				tmpshape.justHit = tmpshape.name == tmpjusthit;
 				if (tmpplace) { tmpresult.shapes.push({ ...tmpshape, ...tmpplace }); }
 				else { tmpresult.unplaced.push(tmpshape); }
 			}
@@ -194,9 +208,165 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 		// The map, for every other body.
 		tmpresult.columns = { left: [], centre: [], right: [] };
 		for (const tmparea of tmplist) {
-			tmpresult.columns[getAreaSide(tmparea.name)].push(describeShape(tmparea, tmpselectedname));
+			var tmptile = describeShape(tmparea, tmpselectedname);
+			tmptile.justHit = tmptile.name == tmpjusthit;
+			tmpresult.columns[getAreaSide(tmparea.name)].push(tmptile);
 		}
 		return tmpresult;
+	}
+
+	// How long a struck area keeps its flash on the figure.
+	export const JUST_HIT_SECONDS = 12;
+
+	// This is the function which says which area, if any, was struck recently enough to flash.
+	function getJustHitName(tmplasthit, tmpnow) {
+		if (!tmplasthit?.area) { return ""; }
+		var tmpat = parseInt(tmplasthit.at) || 0;
+		var tmpclock = (tmpnow === undefined) ? Date.now() : (parseInt(tmpnow) || 0);
+		return (tmpclock - tmpat) <= JUST_HIT_SECONDS * 1000 ? String(tmplasthit.area) : "";
+	}
+
+// @MARKER AIM AND ADJACENCY
+// The dartboard's second half. An attack is aimed at one area of the target (the attack dialog's
+// "Aimed at", picked on this figure); the chart then says Hit(Center), Hit(High), Hit(Low),
+// Hit(Left) or Hit(Right). Centre is the aim itself. The other four are whatever sits that way
+// from the aim ON THIS BODY -- so aiming at the neck and rolling High lands on the head, aiming at
+// the chest and rolling High lands on the neck (the user's walkthrough, 2026-09-16).
+//
+// HOW "THAT WAY" IS READ. For a figure, off the drawing: the nearest shape above (High) or below
+// (Low) that overlaps the aim horizontally, the nearest shape to the being's left (the viewer's
+// right, larger x) or right that overlaps it vertically. For a map, off the columns: High and Low
+// are the previous and next tile in the aim's own column (his charts run head to tail); Left and
+// Right step one column over -- centre to a side, a side to the centre -- to the tile at the same
+// relative height. Off the edge of the body (High of the head, Left of the left hand) there is
+// nothing, and the table decides, as it did before this existed.
+//
+// This is a READING of his directional zones, not a rule he wrote down; the damage dialog shows
+// the answer as a default and says where it came from, and the player may still pick otherwise.
+	// The chart zones that carry a direction, and the direction each carries.
+	export const ZONE_DIRECTIONS = {
+		"Hit(Center)": "centre",
+		"Hit(High)":   "high",
+		"Hit(Low)":    "low",
+		"Hit(Left)":   "left",
+		"Hit(Right)":  "right"
+	};
+
+	// This is the function which names the area a hit lands on:
+	//     { area, how, text }
+	//       area  the struck area's name, or "" when nothing lies that way
+	//       how   "aim"      a centre hit, or a zone with no direction: the aim itself
+	//             "adjacent" the area that sits that way from the aim on this body
+	//             "none"     nothing lies that way; the table decides
+	//             "noAim"    no aim was declared, so nothing can be read
+	//       text  one line for the damage dialog saying what was read
+	//     tmpareas   body.areas of the target
+	//     tmpaim     the area the attack was aimed at, by name
+	//     tmpzone    the chart result's zone, "Hit(High)" and the like
+	export function getStruckArea(tmpareas, tmpaim, tmpzone) {
+		var tmplist = Array.isArray(tmpareas) ? tmpareas : [];
+		var tmpaimname = String(tmpaim ?? "");
+		var tmpdirection = ZONE_DIRECTIONS[String(tmpzone ?? "")] ?? "centre";
+		if (!tmpaimname || !tmplist.some(tmpa => tmpa.name == tmpaimname)) {
+			return { area: "", how: "noAim", text: "No aim was declared, so where it lands is the table's call." };
+		}
+		if (tmpdirection == "centre") {
+			return { area: tmpaimname, how: "aim", text: `It lands where it was aimed: the ${tmpaimname}.` };
+		}
+		var tmpfound = (buildBodyFigure(tmplist, {}).kind == "figure")
+			? getAdjacentOnFigure(tmplist, tmpaimname, tmpdirection)
+			: getAdjacentOnMap(tmplist, tmpaimname, tmpdirection);
+		if (!tmpfound) {
+			return { area: "", how: "none",
+				text: `${describeDirection(tmpdirection)} of the ${tmpaimname} there is nothing on this body: the table decides where it lands.` };
+		}
+		return { area: tmpfound, how: "adjacent",
+			text: `${describeDirection(tmpdirection)} of the ${tmpaimname}, where it was aimed, lies the ${tmpfound}.` };
+	}
+
+	function describeDirection(tmpdirection) {
+		return { high: "High", low: "Low", left: "To the being's left", right: "To the being's right" }[tmpdirection] ?? tmpdirection;
+	}
+
+	// This is the function which reads adjacency off the drawing. Shapes are compared by their
+	// boxes; "overlaps" is the loose test (any shared width or height) so a shoulder counts as
+	// above an arm even where they do not line up exactly.
+	function getAdjacentOnFigure(tmpareas, tmpaimname, tmpdirection) {
+		var tmpaim = HUMANOID_FIGURE[tmpaimname];
+		if (!tmpaim) { return null; }
+		var tmpbest = null;
+		var tmpbestgap = Infinity;
+		for (const tmparea of tmpareas) {
+			if (tmparea.name == tmpaimname) { continue; }
+			var tmpbox = HUMANOID_FIGURE[tmparea.name];
+			if (!tmpbox) { continue; }
+			var tmpgap;
+			if (tmpdirection == "high" || tmpdirection == "low") {
+				var tmpacross = (tmpbox.x < tmpaim.x + tmpaim.w) && (tmpbox.x + tmpbox.w > tmpaim.x);
+				if (!tmpacross) { continue; }
+				tmpgap = (tmpdirection == "high") ? tmpaim.y - (tmpbox.y + tmpbox.h) : tmpbox.y - (tmpaim.y + tmpaim.h);
+			} else {
+				var tmpalong = (tmpbox.y < tmpaim.y + tmpaim.h) && (tmpbox.y + tmpbox.h > tmpaim.y);
+				if (!tmpalong) { continue; }
+				// The being's left is the viewer's right: larger x.
+				tmpgap = (tmpdirection == "left") ? tmpbox.x - (tmpaim.x + tmpaim.w) : tmpaim.x - (tmpbox.x + tmpbox.w);
+			}
+			// A shape has to lie that way (a small overlap is allowed, the drawing's shapes touch),
+			// and the nearest one wins.
+			if (tmpgap < -12) { continue; }
+			if (tmpgap < tmpbestgap) { tmpbestgap = tmpgap; tmpbest = tmparea.name; }
+		}
+		return tmpbest;
+	}
+
+	// This is the function which reads adjacency off the map's columns.
+	function getAdjacentOnMap(tmpareas, tmpaimname, tmpdirection) {
+		var tmpcolumns = { left: [], centre: [], right: [] };
+		for (const tmparea of tmpareas) { tmpcolumns[getAreaSide(tmparea.name)].push(tmparea.name); }
+		var tmpside = getAreaSide(tmpaimname);
+		var tmpcolumn = tmpcolumns[tmpside];
+		var tmpindex = tmpcolumn.indexOf(tmpaimname);
+		if (tmpindex < 0) { return null; }
+		if (tmpdirection == "high") { return tmpindex > 0 ? tmpcolumn[tmpindex - 1] : null; }
+		if (tmpdirection == "low")  { return tmpindex < tmpcolumn.length - 1 ? tmpcolumn[tmpindex + 1] : null; }
+		// One column over, towards that side; off the edge is nothing.
+		var tmptoward = (tmpdirection == "left")
+			? { right: "centre", centre: "left", left: null }[tmpside]
+			: { left: "centre", centre: "right", right: null }[tmpside];
+		if (!tmptoward || !tmpcolumns[tmptoward].length) { return null; }
+		var tmpother = tmpcolumns[tmptoward];
+		var tmpat = tmpcolumn.length > 1 ? Math.round(tmpindex * (tmpother.length - 1) / (tmpcolumn.length - 1)) : 0;
+		return tmpother[Math.max(0, Math.min(tmpother.length - 1, tmpat))];
+	}
+
+// @MARKER MINI FIGURE
+// The body on a chat card, small, with the struck area marked -- so the damage card shows where
+// the blow landed without opening the sheet. Drawn as positioned <div>s rather than an <svg>,
+// because a chat message's HTML is cleaned on its way to the other clients and inline boxes
+// survive that where an SVG may not. Figures only; a map body gets words instead ("").
+	export const MINI_SCALE = 0.3;
+
+	// This is the function which gives the mini figure's HTML, or "" when the body is not drawn.
+	//     tmpareas   body.areas of the being
+	//     tmpstruck  the area to mark, by name
+	export function renderBodyMini(tmpareas, tmpstruck) {
+		var tmpfigure = buildBodyFigure(tmpareas, {});
+		if (tmpfigure.kind != "figure") { return ""; }
+		var tmpw = Math.round(tmpfigure.box.width * MINI_SCALE);
+		var tmph = Math.round(tmpfigure.box.height * MINI_SCALE);
+		var tmpboxes = tmpfigure.shapes.map(tmps => {
+			var tmpclass = `mini-area area-${tmps.state}${tmps.name == tmpstruck ? " struck" : ""}`;
+			var tmpstyle = `left:${Math.round(tmps.x * MINI_SCALE)}px;top:${Math.round(tmps.y * MINI_SCALE)}px;`
+				+ `width:${Math.round(tmps.w * MINI_SCALE)}px;height:${Math.round(tmps.h * MINI_SCALE)}px;`
+				+ `border-radius:${Math.round(tmps.rx * MINI_SCALE)}px`;
+			return `<div class="${tmpclass}" style="${tmpstyle}" title="${escapeText(tmps.name)}"></div>`;
+		});
+		return `<div class="body-mini" style="width:${tmpw}px;height:${tmph}px" title="${escapeText(tmpstruck ?? "")}">${tmpboxes.join("")}</div>`;
+	}
+
+	// This is the function which escapes text for an attribute; names are user-editable.
+	function escapeText(tmptext) {
+		return String(tmptext ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 	}
 
 // @MARKER THE CLICKED AREA

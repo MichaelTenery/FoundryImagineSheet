@@ -957,6 +957,8 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// creature carries (getShockBar in combat-rules.mjs; CONFIG.Actor.trackableAttributes in
 		// imagine-rpg.mjs). Added 2026-09-23 with the creature's, so both actor types have a bar.
 		this.body.shockBar = getShockBar(this.body.shock, this.body.totalWounds);
+		// The same figure the other way up, for a second token bar: wounds taken, filling towards Shock.
+		this.body.woundBar = { value: this.body.shockBar.wounds, max: this.body.shockBar.max };
 	}
 
 	// This is the function which totals carried weight and works out how encumbered the

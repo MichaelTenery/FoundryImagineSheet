@@ -43,6 +43,7 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
 import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import { buildBodyFigure, loadBodyTemplates, adjustBodyWound, healBodyArea } from "../body-view.mjs";
+import { grantClassSkills } from "../class-advancement.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
 import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
 import { getNonAcquiredLookup } from "../non-acquired.mjs";
@@ -147,6 +148,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
 			// The body figure (module/body-view.mjs): click an area, change its wounds by button.
 			selectBodyArea: ImagineCharacterSheet.#onSelectBodyArea,
+			// Give the class skills a title has earned and the character does not hold (class-advancement.mjs).
+			grantOwedSkills: ImagineCharacterSheet.#onGrantOwedSkills,
 			adjustBodyWound: ImagineCharacterSheet.#onAdjustBodyWound,
 			healBodyArea: ImagineCharacterSheet.#onHealBodyArea,
 			rollMartialAttack: ImagineCharacterSheet.#onRollMartialAttack,
@@ -280,6 +283,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			bodyType: this.document.system.body?.type || this.document.system.body?.bodyType,
 			selected: this._bodyArea,
 			vitality: this.document.system.attributes?.vit?.value,
+			lastHit: this.document.getFlag?.("imagine-rpg", "lastHit") ?? null,
 			effects: tmpcontext.magic?.effects ?? []
 		});
 		await loadBodyTemplates();
@@ -1542,6 +1546,13 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// This is the function which opens or closes the panel. Held on the sheet itself rather than
 	// the actor -- it is how this window is laid out, not a fact about the character -- so it
 	// survives the re-render every roll and every choice causes.
+	// This is the function behind the Skills tab's "Grant them": the console command
+	// game.imagine.grantClassSkills(actor) as a button, for the owed skills the tab counts.
+	static async #onGrantOwedSkills(event, target) {
+		event.preventDefault();
+		await grantClassSkills(this.document);
+	}
+
 	// @MARKER BODY FIGURE
 	// This is the function which selects one area of the body figure, and redraws the Combat tab.
 	// Clicking the selected area again clears the selection.

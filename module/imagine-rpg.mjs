@@ -29,6 +29,7 @@ import ImagineConsumableData from "./data/item-consumable.mjs";
 import ImagineLoreData from "./data/item-lore.mjs";
 import ImagineSpellData from "./data/item-spell.mjs";
 import ImagineInvocationData from "./data/item-invocation.mjs";
+import ImagineItem from "./item-document.mjs";
 import ImagineCharacterSheet from "./sheets/actor-character-sheet.mjs";
 import ImagineCreatureSheet from "./sheets/actor-creature-sheet.mjs";
 import {
@@ -120,6 +121,11 @@ Hooks.once("init", function () {
 	CONFIG.IMAGINE.sourcebooks = SOURCEBOOKS;
 	CONFIG.IMAGINE.magicSubsystems = MAGIC_SUBSYSTEMS;
 
+	// @MARKER ITEM DOCUMENT
+	// Foundry's Item with one change: a new item's default image comes from its type
+	// (module/item-icons.mjs) instead of the one bag for everything.
+	CONFIG.Item.documentClass = ImagineItem;
+
 	// Register the data models against the document subtypes declared in system.json.
 	CONFIG.Actor.dataModels.character = ImagineCharacterData;
 	CONFIG.Actor.dataModels.creature = ImagineCreatureData;
@@ -144,10 +150,12 @@ Hooks.once("init", function () {
 	// derived, so the token HUD shows it and does not offer to edit it -- wounds are healed on the sheet.
 	// Naming the types here replaces Foundry's guess at every number in the schema, so the few plain
 	// values worth watching are listed beside it.
-	//                    bars                 plain values
+	// A second bar, body.woundBar, reads the other way -- wounds taken against Shock, filling as
+	// the being is hurt -- for a table that would rather watch the damage mount (2026-10-07).
+	//                    bars                                  plain values
 	CONFIG.Actor.trackableAttributes = {
-		character: { bar: ["body.shockBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] },
-		creature:  { bar: ["body.shockBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] }
+		character: { bar: ["body.shockBar", "body.woundBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] },
+		creature:  { bar: ["body.shockBar", "body.woundBar"], value: ["body.totalWounds", "body.overallWounds", "combat.damageAbsorb"] }
 	};
 
 	// @MARKER MAGIC AND LORE ITEMS

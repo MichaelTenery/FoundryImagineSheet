@@ -514,6 +514,13 @@
         "His reports of 2026-10-04 and 10-05"
       ],
       "note": "Done 2026-10-07. Leftovers in docs/sonnet/2026-10-07-quality-pass.md."
+    },
+    "The fun pass": {
+      "dependsOn": [
+        "Body figure: the body drawn",
+        "Quality pass 2026-10-07"
+      ],
+      "note": "Done 2026-10-07, shipped as 0.24.0. The adjacency reading is UPSTREAM 118."
     }
   }
 }

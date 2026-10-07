@@ -87,7 +87,7 @@
 	{{/each}}
 	{{#if classProgress.owed}}
 	<p class="alarm">{{classProgress.owed}} class skill(s) earned but not on this character.
-		Run <code>game.imagine.grantClassSkills(actor)</code> to give them.</p>
+		<button type="button" class="inline" data-action="grantOwedSkills" data-tooltip="Add every class skill the titles reached have earned"><i class="fa-solid fa-gift"></i> Grant them</button></p>
 	{{/if}}
 	{{#each classProgress.usage as |usage|}}
 	<p class="muted class-usage">{{usage.name}} may use armour: {{usage.armorUsage}}. Weapons: {{usage.weaponUsage}}.</p>
