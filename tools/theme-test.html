@@ -1,0 +1,100 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG sheet theme test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/sheet-theme.mjs: the theme classes, the version badge, and his panel colour
+// schemes -- what each writes onto a window, and that a scheme comes off again when the theme is
+// not paper. No Foundry: `game` is stubbed with just the two settings these read.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/theme-test.html
+const settings = { sheetTheme: "paper", panelScheme: "none", showVersion: false };
+globalThis.game = { settings: { get: (ns, key) => settings[key] }, system: { version: "0.23.0" } };
+const M = await import("../module/sheet-theme.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// A window root with just enough of an element: a class list and an inline style.
+function stubElement() {
+	const classes = new Set();
+	const style = {};
+	return {
+		classList: {
+			toggle: (c, on) => { if (on) classes.add(c); else classes.delete(c); },
+			contains: (c) => classes.has(c), list: () => [...classes].sort()
+		},
+		style: {
+			setProperty: (k, v) => { style[k] = v; }, removeProperty: (k) => { delete style[k]; }, all: () => ({ ...style })
+		},
+		querySelector: () => null
+	};
+}
+
+// --- his schemes ----------------------------------------------------------------------------------
+check("his seven schemes and None, in his order", Object.keys(M.PANEL_SCHEMES),
+	["none", "gray", "blue", "green", "red", "brown", "pink", "purple"]);
+check("green is his palegreen / darkseagreen / honeydew (CSS 3491, 3541, 3517)",
+	[M.PANEL_SCHEMES.green.primary, M.PANEL_SCHEMES.green.secondary, M.PANEL_SCHEMES.green.tertiary],
+	["palegreen", "darkseagreen", "honeydew"]);
+check("pink is his hotpink / lightpink / lavenderblush",
+	[M.PANEL_SCHEMES.pink.primary, M.PANEL_SCHEMES.pink.secondary, M.PANEL_SCHEMES.pink.tertiary],
+	["hotpink", "lightpink", "lavenderblush"]);
+check("the setting's choices are his labels", M.getPanelSchemeChoices().gray, "Alternating gray panels");
+check("every scheme has a label", Object.values(M.getPanelSchemeChoices()).every(l => l), true);
+
+check("a scheme paints the page pale, panels middle, headings strong", M.getPanelSchemeVariables("blue"), {
+	"--imagine-paper": "mintcream", "--imagine-panel": "powderblue", "--imagine-row-alt": "powderblue",
+	"--imagine-rule-soft": "powderblue", "--imagine-head": "lightskyblue", "--imagine-row-hover": "lightskyblue" });
+check("fields are never tinted (entered values stay told from derived ones)",
+	"--imagine-field" in (M.getPanelSchemeVariables("blue") ?? {}), false);
+check("'none' paints nothing", M.getPanelSchemeVariables("none"), null);
+check("an unknown name paints nothing", M.getPanelSchemeVariables("plaid"), null);
+check("a prototype name paints nothing", M.getPanelSchemeVariables("constructor"), null);
+check("undefined paints nothing", M.getPanelSchemeVariables(undefined), null);
+
+// --- painting a window --------------------------------------------------------------------------
+let el = stubElement();
+M.applyPanelScheme(el, "green");
+check("applyPanelScheme writes the six variables inline", Object.keys(el.style.all()).length, 6);
+check("...with the scheme's colours", el.style.all()["--imagine-paper"], "honeydew");
+M.applyPanelScheme(el, "none");
+check("'none' takes every variable off again", el.style.all(), {});
+M.applyPanelScheme(el, "red");
+M.applyPanelScheme(el, "nonsense");
+check("an unknown name also clears a scheme already on the window", el.style.all(), {});
+check("an element without a style is tolerated", (M.applyPanelScheme({}, "green"), true), true);
+check("no element at all is tolerated", (M.applyPanelScheme(null, "green"), true), true);
+
+// --- the theme switch carries the scheme -------------------------------------------------------
+settings.sheetTheme = "paper"; settings.panelScheme = "purple";
+el = stubElement();
+M.applySheetTheme(el);
+check("paper puts on themed/theme-light", el.classList.list(), ["theme-light", "themed"]);
+check("...and the chosen scheme", el.style.all()["--imagine-paper"], "thistle");
+
+settings.sheetTheme = "foundry";
+M.applySheetTheme(el);
+check("Foundry standard swaps the classes", el.classList.list(), ["imagine-foundry"]);
+check("...and takes the scheme off, light tints having no place on a dark theme", el.style.all(), {});
+
+settings.sheetTheme = "paper"; settings.panelScheme = "none";
+M.applySheetTheme(el);
+check("back to paper with no scheme is plain paper", [el.classList.list(), el.style.all()], [["theme-light", "themed"], {}]);
+
+check("the theme reads paper by default when the setting is missing", (settings.sheetTheme = undefined, M.getSheetTheme()), "paper");
+check("the scheme reads none by default when the setting is missing", (settings.panelScheme = undefined, M.getPanelScheme()), "none");
+
+// --- report ---------------------------------------------------------------------------------------
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r.replace(/</g, "&lt;")}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

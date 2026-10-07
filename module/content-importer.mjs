@@ -13,6 +13,11 @@
 // you want when the developer sends a corrected sheet and the content needs refreshing.
 //==================================================================================================================
 
+import { clearSkillIndex } from "./non-acquired.mjs";
+
+// How many documents go to the server in one call. Matches the Items directory's BATCH.
+const IMPORT_BATCH = 250;
+
 // Which JSON file feeds which pack, and what each pack holds.
 const CONTENT_PACKS = [
 	{ file: "skills",    pack: "skills",    label: "Imagine Skills",    type: "Item" },
@@ -152,11 +157,14 @@ export const RETIRED_DOCUMENTS = {
 				}
 			}
 
-			if (tmptocreate.length) {
-				await Item.createDocuments(tmptocreate, { pack: tmppack.collection, keepId: false });
+			// In slices: one call with a thousand documents holds Foundry for the whole of it with
+			// nothing on screen (the directory's BATCH note, item-directory.mjs), and a socket payload
+			// that size has been seen to fail outright.
+			for (var tmpat = 0; tmpat < tmptocreate.length; tmpat += IMPORT_BATCH) {
+				await Item.createDocuments(tmptocreate.slice(tmpat, tmpat + IMPORT_BATCH), { pack: tmppack.collection, keepId: false });
 			}
-			if (tmptoupdate.length) {
-				await Item.updateDocuments(tmptoupdate, { pack: tmppack.collection });
+			for (var tmpat = 0; tmpat < tmptoupdate.length; tmpat += IMPORT_BATCH) {
+				await Item.updateDocuments(tmptoupdate.slice(tmpat, tmpat + IMPORT_BATCH), { pack: tmppack.collection });
 			}
 
 			// Retired names go, but only if the shipped file has not brought the name back.
@@ -214,6 +222,8 @@ export async function importAllContent({ notify = true } = {}) {
 		}
 	}
 
+	// The skill index kept for the non-acquired lookup is stale now; the next sheet render re-reads it.
+	clearSkillIndex();
 	return { packs: tmpresults, failed: tmpfailed, total: tmptotal };
 }
 

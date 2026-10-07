@@ -443,7 +443,11 @@ function byEquipmentType(tmpdoc) {
 				}
 				tmpours = tmpitems;
 			}
-			if (tmpours.length) { await Item.deleteDocuments(tmpours.map(tmpitem => tmpitem.id)); }
+			// In slices of BATCH, as everything else here is: emptying the tree is up to seven
+			// thousand items, and one call with all of them is the hang the BATCH note describes.
+			for (var tmpat = 0; tmpat < tmpours.length; tmpat += BATCH) {
+				await Item.deleteDocuments(tmpours.slice(tmpat, tmpat + BATCH).map(tmpitem => tmpitem.id));
+			}
 			tmpremoved += tmpours.length;
 			// Whatever is still in the tree is someone else's; the folders go without their contents,
 			// which Foundry moves up rather than away.

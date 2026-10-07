@@ -35,7 +35,9 @@
 		var tmpSpace = tmpText.indexOf(" ");
 		var tmpCount = tmpSpace > 0 ? (parseInt(tmpText.slice(0, tmpSpace)) || 0) : 0;
 		if (tmpCount < 1) { tmpCount = 1; }
-		var tmpSlash = tmpText.indexOf("/");
+		// The LAST slash: the value follows "w/", and a name may carry a slash of its own
+		// ("Opal/Fire"), which read as the value's slash and priced the entry at nothing.
+		var tmpSlash = tmpText.lastIndexOf("/");
 		var tmpValue = tmpSlash >= 0 ? (parseInt(tmpText.slice(tmpSlash + 1)) || 0) : 0;
 		return tmpValue * tmpCount;
 	}

@@ -15,7 +15,7 @@
 
 import { getGravityRune } from "../weapon-custom-rules.mjs";
 import {
-	ATTACK_CHARTS, ATTACK_SKILL_ORDER, BODY_CHARTS,
+	ATTACK_CHARTS, ATTACK_SKILL_ORDER, BODY_CHARTS, BLOCKING_TYPE_OF,
 	ARMOR_BLOCKING, ARMOR_DAMAGE_DIVIDERS, ARMOR_MATERIAL_RANK,
 	ARMOR_COVERAGE_BY_BODY_TYPE, ARMOR_REQUIRES_ITEM,
 	SHIELD_COVERAGE, SHIELD_SIZES,
@@ -165,12 +165,19 @@ export const MODE_DAMAGE_TYPES = {
 //==================================================================================================================
 
 	// This is the function which resolves an attack roll: whether it hits, and where.
-	// Ported from handlePhysicalAttacks (sheet-worker.js:64802-64893), non-Weapon-Lore branch.
+	// Ported from handlePhysicalAttacks (sheet-worker.js:64802-64893), both branches: the ordinary
+	// chart, and the Weapon Lore chart his code reads whenever the weapon is lored (modWL/modML != 0,
+	// 64872-64895). The caller picks the chart -- the character's loreAttackSkill, one step better,
+	// when the lore applies -- and says so with isLore, because the Lore branch has one rule of its
+	// own: a Grandmaster's natural 1 is a MISS, not a fumble ("A one is always a miss (but not a
+	// fumble if Grandmaster)", 64890). Until the quality pass of 2026-10-07 no caller ever passed
+	// the Lore chart, so a lored weapon fought one chart too low.
 	//
 	//   tmproll = {
 	//       natural:       the d20 as rolled
 	//       mods:          the total of every modifier
-	//       skill:         attack skill, e.g. "Novice"
+	//       skill:         attack skill, e.g. "Novice" -- the Lore chart's name when isLore
+	//       isLore:        true when the weapon is lored and this is the Lore chart
 	//       calledShot:    true if the attacker declared a called shot
 	//       calledShotMod: anything that makes a called shot easier (default 0)
 	//       fumbleMod:     anything that widens the fumble range (default 0)
@@ -179,7 +186,8 @@ export const MODE_DAMAGE_TYPES = {
 	// Three details that are easy to get wrong, all as his code does them:
 	//   - The zone is read from the MODIFIED result, floored at 1.
 	//   - A called shot is judged on the NATURAL roll, never the modified one.
-	//   - A natural 1 (or up to 1 + fumbleMod) is a fumble whatever the modifiers.
+	//   - A natural 1 (or up to 1 + fumbleMod) is a fumble whatever the modifiers -- except a
+	//     Grandmaster on the Lore chart, for whom a natural 1 is a plain miss.
 	export function resolveAttack(tmproll) {
 		var tmpchart = getAttackChart(tmproll.skill);
 		var tmpnatural = parseInt(tmproll.natural) || 0;
@@ -204,7 +212,14 @@ export const MODE_DAMAGE_TYPES = {
 		}
 
 		var tmpfumble = false;
-		if (tmpnatural <= (1 + (parseInt(tmproll.fumbleMod) || 0))) {
+		if (tmproll.isLore && tmpchart.skill == "Grandmaster") {
+			// His Lore branch for a Grandmaster: a natural 1 misses and nothing more.
+			if (tmpnatural == 1) {
+				tmpfinal = 1;
+				tmpzone = "Miss(Natural 1)";
+				tmpcalled = false;
+			}
+		} else if (tmpnatural <= (1 + (parseInt(tmproll.fumbleMod) || 0))) {
 			tmpfumble = true;
 			tmpfinal = 1;
 			tmpzone = "Fumble";
@@ -215,6 +230,7 @@ export const MODE_DAMAGE_TYPES = {
 			natural: tmpnatural,
 			final: tmpfinal,
 			skill: tmpchart.skill,
+			isLore: !!tmproll.isLore,
 			zone: tmpzone,
 			isHit: tmpzone.startsWith("Hit"),
 			isFumble: tmpfumble,
@@ -947,7 +963,16 @@ export const MODE_DAMAGE_TYPES = {
 	//     zero      ->  no damage at all
 	// The band edges are strict (">"), so damage exactly equal to the armour falls in the
 	// half-to-full band.
+	// This is the function which reads a damage type as the armour tables spell it: "Death" is
+	// "Life/Death", "Holy" is "Aura/Divine" (BLOCKING_TYPE_OF, combat-tables.mjs); a spelling the map
+	// does not know is returned as it came, and the tables' own "Other" row catches what they lack.
+	export function getBlockingDamageType(tmptype) {
+		var tmpname = String(tmptype ?? "").trim();
+		return Object.hasOwn(BLOCKING_TYPE_OF, tmpname) ? BLOCKING_TYPE_OF[tmpname] : tmpname;
+	}
+
 	export function blockDamage(tmpdamage, tmptype, tmptotalarmor, tmpbypass) {
+		tmptype = getBlockingDamageType(tmptype);
 		var tmpdmg = parseInt(tmpdamage) || 0;
 		if (tmpbypass) { return tmpdmg; }
 
@@ -996,6 +1021,7 @@ export const MODE_DAMAGE_TYPES = {
 	// indexes the character's full equipped list, and its magic check compares array elements to
 	// "+" so it is never true. The intent is implemented here. See docs/UPSTREAM-ISSUES.md.
 	export function getArmorDamage(tmpdamage, tmptype, tmpmaterial, tmpismagic) {
+		tmptype = getBlockingDamageType(tmptype);
 		if (tmpismagic) { return 0; }
 		var tmpdmg = parseInt(tmpdamage) || 0;
 		if (tmptype == "Acid" || tmptype == "Obliteration") { return tmpdmg; }
@@ -1078,7 +1104,7 @@ export const MODE_DAMAGE_TYPES = {
 	// covers nine of his ten types but not Obliteration. See ENDURED_BY, generated from his own
 	// switch, and docs/UPSTREAM-ISSUES.md item 20 for the asymmetry.
 	export function isEndured(tmpdamagetype, tmpwornnames) {
-		var tmptags = ENDURED_BY[String(tmpdamagetype ?? "")];
+		var tmptags = ENDURED_BY[getBlockingDamageType(tmpdamagetype)];
 		if (!tmptags) { return false; }
 		var tmpworn = (tmpwornnames ?? []).join(",");
 		for (const tmptag of tmptags) {
@@ -1090,7 +1116,7 @@ export const MODE_DAMAGE_TYPES = {
 	// This is the function which says whether a blow rebounds off a "Rebound" item. Only the five
 	// physical damage types do (sheet-worker.js:71222); magic and the elements pass straight by.
 	export function isRebounded(tmpdamagetype, tmpwornnames) {
-		if (!REBOUNDED_TYPES.includes(String(tmpdamagetype ?? ""))) { return false; }
+		if (!REBOUNDED_TYPES.includes(getBlockingDamageType(tmpdamagetype))) { return false; }
 		return (tmpwornnames ?? []).join(",").includes("Rebound");
 	}
 
@@ -1267,8 +1293,20 @@ export const MODE_DAMAGE_TYPES = {
 	}
 
 	// This is the function which returns the body chart for a body type, as areas.
+	//
+	// Parsed once per chart and kept: _prepareBody asks for it on EVERY derive of every actor --
+	// each wound, each item, each flag -- and the charts never change. A copy of the areas is
+	// handed out, not the cached list itself, so a caller that decorates its areas (as both
+	// _prepareBody routines do) cannot bend the chart for the next one.
+	var tmpbodychartcache = new Map();
 	export function getBodyChart(tmpbodytype) {
-		return parseBodyChart(BODY_CHARTS[tmpbodytype] ?? BODY_CHARTS["Humanoid"]);
+		var tmpchart = BODY_CHARTS[tmpbodytype] ?? BODY_CHARTS["Humanoid"];
+		var tmpareas = tmpbodychartcache.get(tmpchart);
+		if (!tmpareas) {
+			tmpareas = parseBodyChart(tmpchart);
+			tmpbodychartcache.set(tmpchart, tmpareas);
+		}
+		return tmpareas.map(tmparea => ({ ...tmparea }));
 	}
 
 	// @MARKER TOKEN BAR

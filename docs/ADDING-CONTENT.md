@@ -30,6 +30,10 @@ with the system for everyone.
    | class | Class | a class with a choice (element, Call of Life/Death...) is one item per path |
    | ability, disability, immunity | Trait | set its category |
    | creature attack, creature power | Creature Attack / Power | creature-only |
+   | herb, potion, elixir, charm, poison | Consumable | set its kind; held as doses |
+   | ballad, rune, recipe, evoke and the other lores | Lore | set its kind |
+   | spell | Spell | level and ladder as the Player's Guide lists them |
+   | invocation | Invocation | level, and the Piety it asks |
 
 3. **Set the Sourcebook field**, for example "Custom" or your campaign's name. Every sourcebook any
    compendium cites turns up by itself as a switch in **Game Settings → Configure Settings → Content Availability**. That is
@@ -229,6 +233,8 @@ have happened to the race attribution contributed on 2026-09-21, which is why Ro
 Hand content lives only in `src/packs/manual/` (Routes 2 and 3) or in your own compendiums
 (Route 1). His data is never changed except by an `_override` that says so on every build.
 
-**Not verified:** Route 1 depends on Foundry V14's own item creation and compendium tools, which
-have not yet been exercised against this system in a running V14 install. Route 2 is tested
-(`build_documents.py --check` against every example).
+**What a re-import touches.** Running `game.imagine.importContent()` again updates only each
+document's `system` data, matched by name: the name, image and flags of a document already in a
+pack are left alone. World copies made by `game.imagine.populateItems()` are not refreshed by an
+import; clear and populate again. Route 2 is tested (`build_documents.py --check` against every
+example).

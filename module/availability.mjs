@@ -400,14 +400,26 @@ export const MAGIC_RULES = {
 
 	// This is the function which reads the current campaign's rules out of the world settings,
 	// in the shape explainAvailability expects.
+	// Read once and kept until a switch changes: every actor asks for these on every derive (each
+	// wound, each item), and each ask was five settings reads, each a scan of the world's settings.
+	// refreshAfterChange, which every switch's onChange runs, drops the copy first; a caller may
+	// also drop it by hand (clearAvailabilityRules) after writing the settings some other way.
+	var tmprulescache = null;
 	export function getAvailabilityRules() {
-		return {
+		if (tmprulescache) { return tmprulescache; }
+		tmprulescache = {
 			magicEnabled:    game.settings.get("imagine-rpg", "magicEnabled"),
 			magicSubsystems: normalizeMagicSubsystems(game.settings.get("imagine-rpg", "magicSubsystems")),
 			overrides:       game.settings.get("imagine-rpg", "contentOverrides"),
 			sourcebooks:     game.settings.get("imagine-rpg", "sourcebooks"),
 			magicRules:      game.settings.get("imagine-rpg", "magicRules")
 		};
+		return tmprulescache;
+	}
+
+	// This is the function which forgets the kept rules, so the next ask reads the settings again.
+	export function clearAvailabilityRules() {
+		tmprulescache = null;
 	}
 
 	// This is the function which refreshes every character after a switch changes, so the
@@ -417,6 +429,7 @@ export const MAGIC_RULES = {
 	// (bug sweep 2026-09-23), so an open sheet of one kept its old markings. Every actor a sheet is
 	// open for is reset as well, which takes in the token actors that anyone is looking at.
 	function refreshAfterChange() {
+		clearAvailabilityRules();
 		for (const tmpactor of game.actors) { tmpactor.reset(); }
 		for (const tmpapp of foundry.applications.instances.values()) {
 			if (tmpapp.document?.documentName == "Actor" && tmpapp.rendered) {

@@ -27,6 +27,12 @@ function piece(name, flexibility, value, locations = ["torsoUpper", "torsoMid"],
 }
 const names = (items, ids) => ids.map(id => items.find(i => i.id == id).name);
 
+// --- quantities (quality pass 2026-10-07) ---------------------------------------------------------
+check("an armour with no quantity at all is still offered (read as one)",
+	E.chooseBestArmor([piece("Gambeson", "Flexible", 3)]).worn.length, 1);
+check("an armour with a blank quantity is still offered", E.chooseBestArmor([piece("Gambeson", "Flexible", 3, undefined, { quantity: "" })]).worn.length, 1);
+check("an armour with quantity 0 is not", E.chooseBestArmor([piece("Gambeson", "Flexible", 3, undefined, { quantity: 0 })]).worn.length, 0);
+
 // --- one location, several layers -----------------------------------------------------------------
 let a = [piece("Gambeson", "Flexible", 3), piece("Chain", "Semi-Flexible", 6), piece("Plate", "Rigid", 10)];
 let r = E.chooseBestArmor(a);

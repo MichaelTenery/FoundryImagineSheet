@@ -42,6 +42,7 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
          learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
 import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
+import { buildBodyFigure, loadBodyTemplates, adjustBodyWound, healBodyArea } from "../body-view.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
 import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
 import { getNonAcquiredLookup } from "../non-acquired.mjs";
@@ -144,6 +145,10 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				learnMissileCombo: ImagineCharacterSheet.#onLearnMissileCombo,
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class.
 			toggleMartialPanel: ImagineCharacterSheet.#onToggleMartialPanel,
+			// The body figure (module/body-view.mjs): click an area, change its wounds by button.
+			selectBodyArea: ImagineCharacterSheet.#onSelectBodyArea,
+			adjustBodyWound: ImagineCharacterSheet.#onAdjustBodyWound,
+			healBodyArea: ImagineCharacterSheet.#onHealBodyArea,
 			rollMartialAttack: ImagineCharacterSheet.#onRollMartialAttack,
 			rollMartialSubskill: ImagineCharacterSheet.#onRollMartialSubskill,
 			rollMartialMove: ImagineCharacterSheet.#onRollMartialMove,
@@ -267,6 +272,17 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
 		// The martial panel is a partial; see loadMartialTemplates.
 		await loadMartialTemplates();
+		// @MARKER BODY FIGURE
+		// The clickable body above the body table (module/body-view.mjs). Which area is selected is
+		// kept on the sheet, like the martial panel's open state: it is how this window is laid out,
+		// not a fact about the actor, so it survives the re-render every wound change causes.
+		tmpcontext.bodyFigure = buildBodyFigure(this.document.system.body?.areas, {
+			bodyType: this.document.system.body?.type || this.document.system.body?.bodyType,
+			selected: this._bodyArea,
+			vitality: this.document.system.attributes?.vit?.value,
+			effects: tmpcontext.magic?.effects ?? []
+		});
+		await loadBodyTemplates();
 
 		// @MARKER ROUND CLOCK
 		// The round clock beside the Off-Hand Seconds box, read-only: "3 of 5 left this round" and
@@ -909,7 +925,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		}
 		var tmpanswer = await foundry.applications.api.DialogV2.prompt({
 			window: { title: `Split ${tmpitem.name}` },
-			content: `<p>${this.document.name} carries ${tmpheld}. How many go into a row of their own?</p>
+			content: `<p>${foundry.utils.escapeHTML(this.document.name)} carries ${tmpheld}. How many go into a row of their own?</p>
 				<input type="number" name="count" value="1" min="1" max="${tmpheld - 1}" autofocus>`,
 			rejectClose: false,
 			ok: { label: "Split", callback: (tmpe, tmpbutton) => tmpbutton.form.elements.count.value }
@@ -933,7 +949,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
 			window: { title: "Imagine RPG" },
-			content: `<p>Remove <strong>${tmpitem.name}</strong> from ${this.document.name}?</p>`,
+			// Names are player-editable, so they are escaped before they go into the dialog's HTML.
+			content: `<p>Remove <strong>${foundry.utils.escapeHTML(tmpitem.name)}</strong> from ${foundry.utils.escapeHTML(this.document.name)}?</p>`,
 			rejectClose: false,
 			modal: true
 		});
@@ -1065,7 +1082,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		if (!game.user?.isGM) { return; }
 		var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
 			window: { title: "Provide starting lore" },
-			content: `<p>Roll ${this.document.name}'s starting lore, as his character creation does? One entry for
+			content: `<p>Roll ${foundry.utils.escapeHTML(this.document.name)}'s starting lore, as his character creation does? One entry for
 				every lore skill held, stocks of herbs, potions and poisons, and starting spells for a caster.</p>
 				<p class="hint">Nothing already known is added twice; doses of anything already carried are added to it.</p>`,
 			rejectClose: false,
@@ -1207,7 +1224,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		});
 		await ChatMessage.create({
 			speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
-			flavor: `${tmpactor.name} counts their coins`,
+			flavor: `${foundry.utils.escapeHTML(tmpactor.name)} counts their coins`,
 			content: `<div>${tmpsummary}</div>`
 		});
 	}
@@ -1255,7 +1272,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		await ChatMessage.create({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
 			flavor: tmptitle,
-			content: `<div>${tmpresult.message}</div>`
+			// The message carries the gem or jewellery name the player typed.
+			content: `<div>${foundry.utils.escapeHTML(tmpresult.message)}</div>`
 		});
 		if (!tmpresult.ok) { ui.notifications.warn(tmpresult.message); }
 	}
@@ -1508,7 +1526,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 		await tmproll.toMessage({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
-			flavor: `Gave up a ${tmpcategory} skill slot &mdash; ${tmpskill.name} gains the bonus`
+			flavor: `Gave up a ${tmpcategory} skill slot &mdash; ${foundry.utils.escapeHTML(tmpskill.name)} gains the bonus`
 		});
 	}
 
@@ -1524,6 +1542,28 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	// This is the function which opens or closes the panel. Held on the sheet itself rather than
 	// the actor -- it is how this window is laid out, not a fact about the character -- so it
 	// survives the re-render every roll and every choice causes.
+	// @MARKER BODY FIGURE
+	// This is the function which selects one area of the body figure, and redraws the Combat tab.
+	// Clicking the selected area again clears the selection.
+	static async #onSelectBodyArea(event, target) {
+		event.preventDefault();
+		var tmpname = target.dataset.area ?? "";
+		this._bodyArea = (this._bodyArea == tmpname) ? "" : tmpname;
+		this.render({ parts: ["combat"] });
+	}
+
+	// This is the function behind the panel's −1 / +1 (data-delta).
+	static async #onAdjustBodyWound(event, target) {
+		event.preventDefault();
+		await adjustBodyWound(this.document, target.dataset.area, target.dataset.delta);
+	}
+
+	// This is the function behind the panel's Heal: every wound off one area.
+	static async #onHealBodyArea(event, target) {
+		event.preventDefault();
+		await healBodyArea(this.document, target.dataset.area);
+	}
+
 	static async #onToggleMartialPanel(event, target) {
 		event.preventDefault();
 		this._martialOpen = !this._martialOpen;

@@ -6,6 +6,10 @@ Design pass, 2026-09-10. **Revised** the same day after discovering the sheet's 
 
 ## 0. Sources, in priority order
 
+**Corrected 2026-10-07:** since 2026-09-21 there are three sources, and his **errata** (local,
+`docs/reference/errata/`) outranks both below -- see `CLAUDE.md` and `docs/ERRATA.md`. The list
+that follows is the original two.
+
 1. **`docs/reference/sheet-worker.js`** — 180,370 lines extracted from the Roll20 sheet's `<script type="text/worker">` block. Dev-authored, played-with computation code and ~37 data dictionaries. **Primary source.** Where this disagrees with the books, it wins (it *is* the Roll20 sheet, per the standing conflict rule).
 2. The Roll20 HTML markup — field names and sheet layout.
 3. `docs/reference/players-guide-fulltext.txt`, `masters-manual-fulltext.txt` — OCR'd rulebooks. Prose, rationale, and coverage for anything the JS doesn't implement.
@@ -70,6 +74,10 @@ The proposed `sourcebook` field is therefore not an invention imposed on the dat
 **Items (core scope):** `skill`, `race`, `class`, `weapon`, `armor` (with `layerType`), `equipment`
 
 **Deferred (magic phase):** `spell`, `invocation`, `power`, `ritual`, `evoke`, and the remaining crafting/lore subsystems — all of which have source data already sitting in the JS.
+
+*Superseded 2026-10-07:* `spell`, `invocation`, `power`, `consumable`, `lore`, `trait` and
+`creatureAttack` are all registered item types now (`module/data/item-*.mjs`, 13 in all); rituals
+and evokes are kinds of `lore`. The design note above is kept for its reasoning.
 
 ## 3. Character actor schema
 
@@ -150,6 +158,13 @@ system:
   skillSlots: { class, racial, social, memorization }   # derived from Knowledge
   combat:     mods: { melee, missile, damage, defense, initiative, skill: { misc } }
 ```
+
+*As built (corrected 2026-10-07, the code wins):* `wealth.gems` and `wealth.jewelry` are
+comma-separated STRINGS in his "2 Ruby w/50" form (`module/wealth-rules.mjs`), not arrays; the
+combat modifiers are flat fields `combat.meleeMisc`, `missileMisc`, `damageMisc`, `defenseMisc`,
+`initiativeMisc`, `skillMisc`; and the body stores `body.wounds` and `body.armorDamage` as objects
+keyed by area NAME plus `body.hide`, with `body.areas` wholly derived from the chart
+(`_prepareBody`). `skillSlotMoves` and `movement.specialName` are stored and not shown above.
 
 ### Combat additions from the round clock and Situation Mods work (2026-09-22)
 
@@ -592,7 +607,7 @@ Every content Item carries `sourcebook`. World settings:
 imagine-rpg.sourcebooks      { "players-guide": true, "masters-manual": true, ... }
 imagine-rpg.magicEnabled     bool
 imagine-rpg.magicSubsystems  { runes: true, potions: false, ... }
-imagine-rpg.contentOverrides { "<uuid>": false }
+imagine-rpg.contentOverrides { "<type>:<name>": false }   # keyed by type and name, not uuid (getOverrideKey); a class also by its base class
 imagine-rpg.magicRules       { <rule>: bool }   # optional casting rules (MAGIC_RULES); none built yet
 ```
 
@@ -616,7 +631,7 @@ isAvailable(item):
     if item carries a magic/divine type or belongs to a magic subsystem:
         if not magicEnabled: return false
         if item.subsystem and not magicSubsystems[item.subsystem]: return false
-    if item.uuid in contentOverrides: return contentOverrides[item.uuid]
+    if overrideKey(item) in contentOverrides: return contentOverrides[overrideKey(item)]   # "type:name"
     return sourcebooks[item.system.sourcebook] ?? true
 ```
 

@@ -8,14 +8,16 @@ A conversion of the **Imagine Role Playing System™** (role-playing.com) from i
 since before any of it was written.
 
 Working today: the character and creature actors with their derived values and sheets, a runtime
-content importer building nine compendia from **4,384 generated documents** (skills, weapons,
-armour, equipment, races, classes and the three trait packs), the content availability switches,
-combat phase 1 (attack charts, damage, armour, body areas, wounds, the ten-second round), a
-step-by-step character generator, and experience and levelling with its Level Up window.
+content importer building thirteen compendia from **about 7,000 generated documents** (skills,
+weapons, armour, equipment, races, classes, the three trait packs, consumables, lore, spells and
+invocations), the content availability switches, combat phase 1 (attack charts, damage, armour,
+body areas, wounds, the ten-second round, the clickable body figure), a step-by-step character
+generator, experience and levelling with its Level Up window, the Magic & Lore tab and casting.
 
-Not built: the magic and crafting subsystems (Layer 4), and the parts of combat phase 2 the board
-still lists. **Nothing has yet run in a Foundry V14 install** — every "not verified" note on the
-board reduces to that one sentence.
+Not built: most of the magic and crafting subsystems (Layer 4), and the parts of combat phase 2
+the board still lists. The system has run at his table since 0.20 (his bug reports are filed
+against real installs); anything the board still marks "not verified" has not been exercised in
+a running Foundry V14 by this project's own tests, which stub Foundry.
 
 See [`docs/PROGRESS.md`](docs/PROGRESS.md) for the live board and
 [`docs/DECISIONS.md`](docs/DECISIONS.md) for the decision log.
@@ -46,7 +48,10 @@ Foundry VTT **V14+**. No legacy/back-compat support — built exclusively on cur
 
 ## Source of truth
 
-When the original Roll20 sheet and the rulebooks disagree on a mechanic, the Roll20 sheet wins — it reflects what the table actually plays with.
+Three sources, in order. His **errata** (supplied 2026-09-21, kept local) wins over everything: it is
+his newest statement of the rules. Below it the **Roll20 sheet** wins over the rulebooks — it
+reflects what the table actually plays with. The **rulebooks** come last, for prose, rationale and
+gaps. See `CLAUDE.md` and `docs/ERRATA.md`.
 
 ## Scope
 

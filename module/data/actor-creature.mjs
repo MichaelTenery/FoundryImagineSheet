@@ -815,7 +815,10 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 			});
 		}
 
-		this.body.type = this.body.bodyType;
+		// tmpbodytype, not the raw field: bodyType may be blank, and the areas above were armoured
+		// as "Humanoid" when it is. applyBlowToActor reads body.type for the weave's slot, and a
+		// blank there found no slot and no weave (quality pass 2026-10-07).
+		this.body.type = tmpbodytype;
 		this.body.areas = tmpareas;
 		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
 		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);

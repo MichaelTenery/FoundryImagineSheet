@@ -111,6 +111,29 @@ export const ARMOR_BLOCKING = {
 	"Other":           [-1, -1, -1, -1],
 };
 
+// @MARKER DAMAGE TYPE SPELLINGS
+// A creature's attack, a spell and a weapon mode do not all spell a damage type the way the
+// armour tables do: his creature select (CREATURE_DAMAGE_TYPES, creature-tables.mjs) offers "Aura",
+// "Divine", "Holy", "Unholy", "Death", "Life" and "Draining", where ARMOR_BLOCKING and ENDURED_BY
+// know only "Aura/Divine", "Life/Death" and "Other". Found in the quality pass of 2026-10-07: a
+// "Death" bite matched no row, the damage dialog fell back to its FIRST option, Cutting, and a
+// 30-point bite against armour 20 landed 20 instead of 10. Every lookup goes through
+// getBlockingDamageType (combat-rules.mjs), which reads this; a spelling not here is itself.
+//   as written       as the armour tables have it
+export const BLOCKING_TYPE_OF = {
+	"Aura":            "Aura/Divine",
+	"Divine":          "Aura/Divine",
+	"Holy":            "Aura/Divine",
+	"Unholy":          "Aura/Divine",
+	"Life":            "Life/Death",
+	"Death":           "Life/Death",
+	"Draining":        "Life/Death",
+	"Fire":            "Flame",
+	"Cold":            "Frost",
+	"Lightning":       "Electricity",
+	"Electric":        "Electricity"
+};
+
 // @MARKER ARMOUR DEGRADATION
 // From armordamagedict. Armour takes (damage / divider) points of damage itself, using the
 // divider for the damage's family and the strongest material covering the struck area.

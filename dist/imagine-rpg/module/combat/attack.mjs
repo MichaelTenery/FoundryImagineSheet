@@ -271,11 +271,16 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		tmpmods.total = tmpmods.total + tmpentry.value;
 	}
 
+	// The chart: the Lore chart, one step better, whenever the weapon is lored -- his code's
+	// modWL/modML branch (sheet-worker.js:64872) -- and the ordinary one otherwise. loreAttackSkill
+	// is "" until the class reaches its Lore attack title, so the ordinary chart stands until then.
+	var tmpislore = tmplore.attack != 0;
 	var tmpd20 = await new Roll("1d20").evaluate();
 	var tmpresult = resolveAttack({
 		natural: tmpd20.total,
 		mods: tmpmods.total,
-		skill: tmpsys.combat.attackSkill,
+		skill: (tmpislore && tmpsys.combat.loreAttackSkill) || tmpsys.combat.attackSkill,
+		isLore: tmpislore,
 		calledShot: tmpoptions.calledShot
 	});
 
@@ -529,7 +534,7 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 					</select></div>
 				<div class="form-group"><label>Damage type</label>
 					<select name="type">${Object.keys(ARMOR_BLOCKING).map(t =>
-						`<option value="${t}" ${t == tmpattack.damage.type ? "selected" : ""}>${t}</option>`).join("")}
+						`<option value="${t}" ${t == getBlockingDamageType(tmpattack.damage.type) ? "selected" : ""}>${t}</option>`).join("")}
 					</select></div>
 				<div class="form-group"><label>Bypasses armour</label><input type="checkbox" name="bypass">
 					<p class="hint">For a called shot that goes through a gap, or damage armour cannot stop.</p></div>
@@ -551,6 +556,11 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 
 // This is the function which applies an attack's damage to its target: through the armour at the
 // struck area, onto the area's wounds, and reports what that means.
+// A card whose damage is being applied right now is held in applyingCards until its mark lands:
+// the applied flag is only set after the damage dialog and the target's write, so a second click
+// on Apply while the dialog stood open read "not applied" and, confirmed, doubled the wounds --
+// the same race spendAttackTime guards against below. Quality pass 2026-10-07.
+const applyingCards = new Set();
 export async function applyAttackDamage(tmpmessage) {
 	var tmpattack = tmpmessage.getFlag("imagine-rpg", "attack");
 	if (!tmpattack?.damage) { return; }
@@ -558,6 +568,16 @@ export async function applyAttackDamage(tmpmessage) {
 		ui.notifications.warn("That damage has already been applied.");
 		return;
 	}
+	if (applyingCards.has(tmpmessage.id)) { return; }
+	applyingCards.add(tmpmessage.id);
+	try {
+		return await applyAttackDamageInner(tmpmessage, tmpattack);
+	} finally {
+		applyingCards.delete(tmpmessage.id);
+	}
+}
+
+async function applyAttackDamageInner(tmpmessage, tmpattack) {
 	// Only someone who can mark the card applied may apply it -- its author or the Game Master. Anyone
 	// else could put the wounds on and leave the button live, and the Game Master, seeing it, would put
 	// them on again: a player applying a Game Master's blow to their own character did exactly that
@@ -720,7 +740,11 @@ export async function applyBlowToActor(tmptargetactor, tmpblow) {
 		bypass:       tmpoptions.bypass
 	});
 
-	var tmpblow = resolveAreaDamage({
+	// tmpblocked, NOT tmpblow: this used to be declared as `var tmpblow`, which shadowed the
+	// parameter of the same name, so the `tmpblow.beforeReport` test further down read the armour
+	// result instead of the caller's blow and the poison coating was never delivered (quality pass
+	// 2026-10-07; the split that introduced it was ff0db70).
+	var tmpblocked = resolveAreaDamage({
 		damage: tmpmagical.damage,
 		type: tmpoptions.type,
 		totalArmor: Math.max(0, tmparea.armor - tmpmagical.weave),
@@ -732,7 +756,7 @@ export async function applyBlowToActor(tmptargetactor, tmpblow) {
 
 	// Absorption is the last thing to touch the damage, after armour and hide, and it is spent
 	// by what it takes. See absorbDamage.
-	var tmpabsorbed = absorbDamage(tmpblow.net, tmpsys.combat.damageAbsorb);
+	var tmpabsorbed = absorbDamage(tmpblocked.net, tmpsys.combat.damageAbsorb);
 	var tmpafter = applyAreaDamage({
 		damage: tmpabsorbed.damage,
 		areaWounds: tmparea.wounds,
@@ -744,8 +768,8 @@ export async function applyBlowToActor(tmptargetactor, tmpblow) {
 
 	var tmpupdate = {};
 	tmpupdate[`system.body.wounds.${tmparea.name}`] = tmpafter.wounds;
-	if (tmpblow.armorDamage > 0) {
-		tmpupdate[`system.body.armorDamage.${tmparea.name}`] = tmparea.armorDamage + tmpblow.armorDamage;
+	if (tmpblocked.armorDamage > 0) {
+		tmpupdate[`system.body.armorDamage.${tmparea.name}`] = tmparea.armorDamage + tmpblocked.armorDamage;
 	}
 	if (tmpabsorbed.pool != tmpsys.combat.damageAbsorb) {
 		tmpupdate["system.combat.damageAbsorb"] = tmpabsorbed.pool;
@@ -756,9 +780,9 @@ export async function applyBlowToActor(tmptargetactor, tmpblow) {
 	if (tmpafter.effectTriggered) { tmpnotes.push(`<strong>${esc(tmparea.name)} is past Endurance plus Vitality: its effect is triggered.</strong>`); }
 	else if (tmpafter.vitalitySaveNeeded) { tmpnotes.push(`${esc(tmparea.name)} is past its Endurance: a Vitality save is needed.`); }
 	if (tmpafter.inShock) { tmpnotes.push(`<strong>${esc(tmptargetactor.name)} is in shock.</strong>`); }
-	if (tmpblow.armorDamage > 0) { tmpnotes.push(`The armour there takes ${tmpblow.armorDamage} damage.`); }
-	if (tmpabsorbed.damage != tmpblow.net) {
-		tmpnotes.push(`Absorption takes ${tmpblow.net - tmpabsorbed.damage}; `
+	if (tmpblocked.armorDamage > 0) { tmpnotes.push(`The armour there takes ${tmpblocked.armorDamage} damage.`); }
+	if (tmpabsorbed.damage != tmpblocked.net) {
+		tmpnotes.push(`Absorption takes ${tmpblocked.net - tmpabsorbed.damage}; `
 			+ `${tmpabsorbed.pool} left in the pool.`);
 	}
 	if (tmpmagical.damage != tmpfelt) {
@@ -781,7 +805,7 @@ export async function applyBlowToActor(tmptargetactor, tmpblow) {
 		content: `<div class="imagine-chat damage-result">
 			<p><strong>${esc(tmptargetactor.name)}</strong> takes ${tmpraw} ${esc(tmpoptions.type)}
 			damage to the ${esc(tmparea.name)}${tmpoptions.bypass ? " (bypassing armour)" : ` (armour ${tmparea.armor})`}.</p>
-			<p>${tmpblow.blocked} stopped, <strong>${tmpabsorbed.damage}</strong> through.
+			<p>${tmpblocked.blocked} stopped, <strong>${tmpabsorbed.damage}</strong> through.
 			Wounds there: ${tmpafter.wounds} / ${tmparea.endurance}.</p>
 			${tmpnotes.map(n => `<p>${n}</p>`).join("")}
 		</div>`

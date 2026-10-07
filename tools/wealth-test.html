@@ -24,6 +24,8 @@ check("gems and jewelry count at count x value",
 
 // --- his getGemValue ------------------------------------------------------------------------------
 check("an entry is count x value", W.getGemValue("3 Ruby w/50"), 150);
+check("a name with a slash of its own is still valued (quality pass 2026-10-07)", W.getGemValue("2 Opal/Fire w/100"), 200);
+check("...and round-trips through changeValuables", W.getListValue(W.changeValuables("", "Opal/Fire", 2, 100, true).list), 200);
 check("no count reads as one", W.getGemValue("Ruby w/50"), 50);
 check("no value is worth nothing", W.getGemValue("3 Ruby"), 0);
 check("blank is worth nothing", W.getGemValue(""), 0);

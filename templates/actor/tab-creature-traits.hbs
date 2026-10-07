@@ -71,7 +71,9 @@
 						{{#unless t.available}}<span class="unavailable-mark" data-tooltip="{{t.unavailableReason}}">!</span>{{/unless}}
 						{{#if t.value1}}<span class="muted">({{t.value1}}{{#if t.value2}} / {{t.value2}}{{/if}})</span>{{/if}}
 					</td>
-					<td class="trait-text">{{{t.description}}}</td>
+					{{!-- Escaped, not triple-stashed: the description is typed into a plain textarea on the
+					      trait sheet, so it is text; pre-line keeps its line breaks. --}}
+					<td class="trait-text">{{t.description}}</td>
 					<td class="col-row-actions">
 						<button type="button" class="row-button" data-action="openItem"
 							data-item-id="{{t.id}}" data-tooltip="Edit">&#9998;</button>

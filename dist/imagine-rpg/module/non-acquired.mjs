@@ -21,10 +21,32 @@ const INDEX_FIELDS = ["system.attr1", "system.attr2", "system.skillRating", "sys
 
 	// This is the function which reads the skill compendium's index, with the fields the footing
 	// and the base chance need. Empty when the content has not been imported.
+	//
+	// READ ONCE AND KEPT. getIndex with fields asks the server every time, and this was asked on
+	// every character-sheet render -- each field edit, each combat-tracker redraw, with one request
+	// per open sheet (quality pass 2026-10-07). The copy is dropped when the pack changes (Foundry's
+	// updateCompendium hook, which fires for an index change on every client) and after the content
+	// importer runs; clearSkillIndex drops it by hand.
+	var tmpindexcache = null;
 	export async function loadSkillIndex() {
+		if (tmpindexcache) { return tmpindexcache; }
 		var tmppack = game.packs.get(SKILL_PACK);
 		if (!tmppack) { return []; }
-		return [...await tmppack.getIndex({ fields: INDEX_FIELDS })];
+		tmpindexcache = [...await tmppack.getIndex({ fields: INDEX_FIELDS })];
+		return tmpindexcache;
+	}
+
+	// This is the function which forgets the kept index.
+	export function clearSkillIndex() {
+		tmpindexcache = null;
+	}
+
+	// Dropped whenever the skill pack's index changes. Registered on load; Hooks is absent in the
+	// test harness, where nothing is cached across pages anyway.
+	if (globalThis.Hooks?.on) {
+		Hooks.on("updateCompendium", function (tmppack) {
+			if (tmppack?.collection == SKILL_PACK) { clearSkillIndex(); }
+		});
 	}
 
 	// This is the function which builds a lookup for one character: (name) -> { chance, footing,
@@ -40,7 +62,9 @@ const INDEX_FIELDS = ["system.attr1", "system.attr2", "system.skillRating", "sys
 	// The same, from an index already read -- for a caller that has one, and for the previews.
 	export function buildNonAcquiredLookup(tmpactor, tmpindex) {
 		var tmpsystem = tmpactor?.system ?? {};
-		var tmpheld = (tmpactor?.items ?? []).filter(tmpitem => tmpitem.type == "skill").map(tmpitem => tmpitem.name);
+		// A Set: canUseNonAcquired is asked once per compendium entry for the untrained lists, and
+		// took an array it rebuilt into a Set each time.
+		var tmpheld = new Set((tmpactor?.items ?? []).filter(tmpitem => tmpitem.type == "skill").map(tmpitem => tmpitem.name));
 		var tmpnonacquired = getNonAcquiredSkillNames(tmpsystem.identity?.classProgression, tmpsystem.identity?.title);
 		var tmpbyname = new Map((tmpindex ?? []).map(tmpentry => [tmpentry.name, tmpentry]));
 

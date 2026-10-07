@@ -35,9 +35,15 @@ export default class ImagineAlignmentConfig extends HandlebarsApplicationMixin(A
 	_onRender(context, options) {
 		super._onRender?.(context, options);
 		applySheetTheme(this.element);
-		// Whatever is typed goes into the draft as it is typed, so a repaint from outside (the setting's
-		// onChange, a theme change -- refreshOpenWindows repaints every "imagine" window) rebuilds the
-		// rows as they are on screen, not as they were at the last Add or Remove.
+	}
+
+	// Whatever is typed goes into the draft as it is typed, so a repaint from outside (the setting's
+	// onChange, a theme change -- refreshOpenWindows repaints every "imagine" window) rebuilds the
+	// rows as they are on screen, not as they were at the last Add or Remove.
+	// ON FIRST RENDER ONLY: the window's root element outlives its re-renders, so listeners added in
+	// _onRender piled up -- two more per Add, Remove or repaint (quality pass 2026-10-07).
+	_onFirstRender(context, options) {
+		super._onFirstRender?.(context, options);
 		this.element.addEventListener("input",  () => this.#captureForm());
 		this.element.addEventListener("change", () => this.#captureForm());
 	}

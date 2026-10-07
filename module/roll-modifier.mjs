@@ -24,7 +24,9 @@
 	//
 	//   tmpevent    the click, whose shiftKey skips the prompt
 	//   tmptitle    the dialog's title ("Roll Modifier", "Pray for Bravery")
-	//   tmpprompt   the line above the field ("Modifier to this STR save:")
+	//   tmpprompt   the line above the field ("Modifier to this STR save:"). IT IS HTML, so a
+	//               caller putting a name into it escapes the name first (foundry.utils.escapeHTML),
+	//               as every caller today does.
 	//   tmpoklabel  the button's word, "Roll" unless a caller says "Pray" or "Attempt it"
 	export async function askRollModifier(tmpevent, tmptitle, tmpprompt, tmpoklabel) {
 		if (tmpevent?.shiftKey) { return 0; }

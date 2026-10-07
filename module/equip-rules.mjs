@@ -151,9 +151,17 @@ export function canBodyWearArmor(tmpname, tmpbodytype) {
 //   layers - { id: layer number }, 0 for clothing that takes no layer, else the outermost place the
 //            piece holds at any location it covers
 //   left   - the armour it did not use, with the reason
+// This is the function which says whether a quantity means "none held": 0 is none; blank, missing or
+// unreadable is read as one (an armour made before quantities existed). parseInt never gives null,
+// so the `?? 1` that stood here before never applied and a blank quantity passed as NaN.
+function isQuantityZero(tmpquantity) {
+	var tmpqty = parseInt(tmpquantity);
+	return !isNaN(tmpqty) && tmpqty == 0;
+}
+
 export function chooseBestArmor(tmpitems, tmpbodytype) {
 	var tmpcandidates = (tmpitems ?? []).filter(tmpitem => tmpitem.type == "armor"
-		&& !tmpitem.system?.isShield && (parseInt(tmpitem.system?.quantity) ?? 1) != 0
+		&& !tmpitem.system?.isShield && !isQuantityZero(tmpitem.system?.quantity)
 		&& tmpitem.system?.available !== false && getArmorTotal(tmpitem) > 0);
 	tmpcandidates.sort((tmpa, tmpb) => (getArmorTotal(tmpb) - getArmorTotal(tmpa))
 		|| (getPenaltyTotal(tmpb) - getPenaltyTotal(tmpa)));

@@ -38,6 +38,7 @@
 // getClassSkillsToGrant reads the character's own class item, where both edits live.
 //==================================================================================================================
 
+import { getPackDocumentsByName } from "./pack-lookup.mjs";
 import { getClassSkillsToGrant } from "./class-rules.mjs";
 import { getClassSkillBonuses } from "./chargen-rules.mjs";
 import { buildSkillModContext } from "./social-skill-rules.mjs";
@@ -63,10 +64,10 @@ const granting = new Set();
 	// This is the function which reads the skill compendium once per grant. A world with no content
 	// imported yet has no pack, which grants nothing rather than failing -- the same way the
 	// character generator answers a missing pack.
-	async function loadSkillDocuments() {
-		var tmppack = game.packs.get(SKILL_PACK);
-		if (!tmppack) { return []; }
-		return (await tmppack.getDocuments()).map(tmpdoc => tmpdoc.toObject());
+	// Only the skills owed are fetched (getPackDocumentsByName), not the whole pack: this runs on
+	// every title change and every class item update.
+	async function loadSkillDocuments(tmpnames) {
+		return getPackDocumentsByName(SKILL_PACK, tmpnames);
 	}
 
 	// @MARKER THE GRANT
@@ -95,7 +96,7 @@ const granting = new Set();
 		granting.add(tmpactor.id);
 
 		try {
-		var tmpskilldocs = await loadSkillDocuments();
+		var tmpskilldocs = await loadSkillDocuments(new Set(tmpowed.flatMap(tmpclass => tmpclass.owed.map(tmpskill => tmpskill.name))));
 		var tmprules = game.imagine.getAvailabilityRules();
 		var tmpheld = tmpactor.items.filter(tmpitem => tmpitem.type == "skill").map(tmpitem => tmpitem.name);
 		var tmpmodcontext = getActorSkillModContext(tmpactor);

@@ -1023,6 +1023,83 @@ input.source-unknown {
 .body-table tr.area-effect td        { background: var(--imagine-area-effect); }
 .body-table tr.area-effect .state    { color: var(--imagine-alarm); font-weight: 700; }
 
+/* @MARKER BODY FIGURE
+   The clickable body on the Combat tab (module/body-view.mjs, templates/actor/body-figure.hbs).
+   Picture on the left, the clicked area's panel on the right; the pair wraps on a narrow window.
+   An area's fill is the same tint the body table's row gets for that state, so the two agree, and
+   the one clicked is outlined in the accent. The map (non-humanoid bodies) is three columns of
+   tiles painted the same way, so the stylesheet does not care which picture it got. */
+.imagine .body-figure {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 18px;
+	align-items: flex-start;
+	margin: 4px 0 10px;
+}
+.imagine .body-picture { flex: 0 0 auto; max-width: 100%; }
+.imagine .body-svg { width: 150px; height: auto; display: block; }
+.imagine .body-svg .body-area {
+	fill: var(--imagine-panel);
+	stroke: var(--imagine-rule);
+	stroke-width: 1.5;
+	cursor: pointer;
+	transition: fill 0.1s;
+}
+.imagine .body-svg .body-area:hover { fill: var(--imagine-row-hover); }
+.imagine .body-svg .body-area.area-wounded      { fill: var(--imagine-area-wounded); }
+.imagine .body-svg .body-area.area-vitalitySave { fill: var(--imagine-area-vitality); }
+.imagine .body-svg .body-area.area-effect       { fill: var(--imagine-area-effect); stroke: var(--imagine-alarm); }
+.imagine .body-svg .body-area.selected { stroke: var(--imagine-accent); stroke-width: 3; }
+.imagine .body-caption { font-size: 10px; margin: 2px 0 0; text-align: center; max-width: 220px; }
+
+/* The map, and the tiles a figure has no place for. */
+.imagine .body-map { display: flex; gap: 8px; align-items: flex-start; }
+.imagine .body-column { display: flex; flex-direction: column; gap: 3px; min-width: 88px; }
+.imagine .body-column h4 {
+	margin: 0 0 2px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+	color: var(--imagine-muted); font-weight: 600; border: none; text-align: center;
+}
+.imagine .body-tiles { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; max-width: 220px; }
+.imagine .body-tile {
+	width: auto; height: auto; line-height: 1.2; padding: 3px 6px; font-size: 11px;
+	background: var(--imagine-panel); border: 1px solid var(--imagine-rule); border-radius: 3px;
+	color: var(--imagine-ink); cursor: pointer; text-align: center;
+}
+.imagine .body-tile:hover { background: var(--imagine-row-hover); }
+.imagine .body-tile.area-wounded      { background: var(--imagine-area-wounded); }
+.imagine .body-tile.area-vitalitySave { background: var(--imagine-area-vitality); }
+.imagine .body-tile.area-effect       { background: var(--imagine-area-effect); border-color: var(--imagine-alarm); }
+.imagine .body-tile.selected { border-color: var(--imagine-accent); box-shadow: inset 0 0 0 1px var(--imagine-accent); }
+
+/* The clicked area's panel. */
+.imagine .body-detail {
+	flex: 1 1 240px;
+	min-width: 220px;
+	background: var(--imagine-panel);
+	border: 1px solid var(--imagine-rule);
+	border-radius: 3px;
+	padding: 8px 10px;
+	font-size: 12px;
+}
+.imagine .body-detail-name { margin: 0 0 4px; font-size: 14px; font-weight: 600; border: none; }
+.imagine .body-state { margin: 0 0 6px; }
+.imagine .body-state.area-effect strong { color: var(--imagine-alarm); }
+.imagine .body-state.area-vitalitySave strong { color: var(--imagine-tag); }
+.imagine .body-facts { display: grid; grid-template-columns: max-content 1fr; gap: 3px 10px; margin: 0; }
+.imagine .body-facts dt { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--imagine-muted); padding-top: 2px; }
+.imagine .body-facts dd { margin: 0; }
+.imagine .body-wounds { display: flex; align-items: center; gap: 4px; }
+.imagine .body-wounds button { width: 24px; height: 22px; line-height: 1; padding: 0; font-size: 13px; }
+.imagine .body-wounds .body-heal { width: auto; padding: 0 8px; font-size: 11px; }
+.imagine .body-wound-count { min-width: 22px; text-align: center; font-weight: 600; font-size: 14px; }
+.imagine .body-layers, .imagine .body-effects { list-style: none; margin: 0; padding: 0; }
+.imagine .body-layers li::before, .imagine .body-effects li::before { content: "\00b7  "; color: var(--imagine-muted); }
+.imagine .body-hint { margin: 0; }
+.imagine .body-worst { width: auto; height: 20px; line-height: 1; padding: 0 8px; font-size: 11px; }
+
+/* A trait's description is typed as text; its line breaks are kept. */
+.imagine .trait-text { white-space: pre-line; }
+
 /* @MARKER CHAT CARDS
    Left as literal hexes on purpose, 2026-09-22 sweep. Everywhere else in this file a colour that
    is not a fallback inside var() is a bug the "Sheet colours" switch cannot reach -- but a chat

@@ -37,6 +37,7 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
          learnMartialLoreValue, loadMartialTemplates } from "../combat/martial-attack.mjs";
 import { parseMartialList, getStanceSkillBonus } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
+import { buildBodyFigure, loadBodyTemplates, adjustBodyWound, healBodyArea } from "../body-view.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
 import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
 
@@ -127,6 +128,10 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			// Martial arts, all in the @MARKER MARTIAL ARTS block at the foot of this class -- the
 			// same panel, rolls and handlers the character sheet has.
 			toggleMartialPanel: ImagineCreatureSheet.#onToggleMartialPanel,
+			// The body figure (module/body-view.mjs): click an area, change its wounds by button.
+			selectBodyArea: ImagineCreatureSheet.#onSelectBodyArea,
+			adjustBodyWound: ImagineCreatureSheet.#onAdjustBodyWound,
+			healBodyArea: ImagineCreatureSheet.#onHealBodyArea,
 			rollMartialAttack: ImagineCreatureSheet.#onRollMartialAttack,
 			rollMartialSubskill: ImagineCreatureSheet.#onRollMartialSubskill,
 			rollMartialMove: ImagineCreatureSheet.#onRollMartialMove,
@@ -237,6 +242,17 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		// The martial arts panel, the same partial and view the character's Combat tab uses.
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
 		await loadMartialTemplates();
+		// @MARKER BODY FIGURE
+		// The clickable body above the body table (module/body-view.mjs). Which area is selected is
+		// kept on the sheet, like the martial panel's open state: it is how this window is laid out,
+		// not a fact about the actor, so it survives the re-render every wound change causes.
+		tmpcontext.bodyFigure = buildBodyFigure(this.document.system.body?.areas, {
+			bodyType: this.document.system.body?.type || this.document.system.body?.bodyType,
+			selected: this._bodyArea,
+			vitality: this.document.system.attributes?.vit?.value,
+			effects: []
+		});
+		await loadBodyTemplates();
 
 		// @MARKER ROUND CLOCK
 		// The round clock on the Combat tab, as the character sheet shows it: live in the combat on
@@ -612,7 +628,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		await ChatMessage.create({
 			speaker: ChatMessage.getSpeaker({ actor: this.document }),
 			content: `<div class="imagine-chat power-use">
-				<p><strong>${this.document.name}</strong> uses <strong>${tmpitem.name}</strong>
+				<p><strong>${foundry.utils.escapeHTML(this.document.name)}</strong> uses <strong>${foundry.utils.escapeHTML(tmpitem.name)}</strong>
 				at level ${this.document.system.identity.powerLevel}${tmppower.selfOnly ? ", on itself" : ""}.</p>
 				<p class="muted">Uses left: ${tmpremaining}.</p>
 				${tmppower.description ? `<div class="power-text">${tmppower.description}</div>` : ""}
@@ -775,6 +791,28 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	// only what both actor types have (system.martial, the attack chart, Agility's save and missile
 	// modifier, Strength's melee figures), so they are called unchanged. The panel's open state is the
 	// sheet's own, as it is on the character's.
+	// @MARKER BODY FIGURE
+	// This is the function which selects one area of the body figure, and redraws the Combat tab.
+	// Clicking the selected area again clears the selection.
+	static async #onSelectBodyArea(event, target) {
+		event.preventDefault();
+		var tmpname = target.dataset.area ?? "";
+		this._bodyArea = (this._bodyArea == tmpname) ? "" : tmpname;
+		this.render({ parts: ["combat"] });
+	}
+
+	// This is the function behind the panel's −1 / +1 (data-delta).
+	static async #onAdjustBodyWound(event, target) {
+		event.preventDefault();
+		await adjustBodyWound(this.document, target.dataset.area, target.dataset.delta);
+	}
+
+	// This is the function behind the panel's Heal: every wound off one area.
+	static async #onHealBodyArea(event, target) {
+		event.preventDefault();
+		await healBodyArea(this.document, target.dataset.area);
+	}
+
 	static async #onToggleMartialPanel(event, target) {
 		event.preventDefault();
 		this._martialOpen = !this._martialOpen;

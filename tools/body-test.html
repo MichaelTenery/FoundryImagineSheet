@@ -1,0 +1,153 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG body figure test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/body-view.mjs -- laying a body out as a figure or a map, the clicked area's
+// panel, and the wound buttons -- against his 45 body charts (BODY_CHARTS) run through the real
+// parser, so every chart he has is laid out at least once.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/body-test.html
+const B = await import("../module/body-view.mjs");
+const R = await import("../module/combat/combat-rules.mjs");
+const T = await import("../module/combat-tables.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// An area as _prepareBody derives it, from a chart row plus whatever the test sets.
+const area = (row, extra = {}) => ({
+	name: row.name, type: row.type, multiplier: row.multiplier,
+	endurance: Math.ceil(12 * row.multiplier), wounds: 0, armor: 0, armorDamage: 0,
+	material: "", layers: [], shield: 0, shieldLayers: [], protectedByArmor: false, state: "sound", ...extra
+});
+const areasOf = (bodyType) => R.getBodyChart(bodyType).map(r => area(r));
+
+// --- sides from names ---------------------------------------------------------------------------
+check("'Left Foreleg' is the left side", B.getAreaSide("Left Foreleg"), "left");
+check("'Right Hindfoot' is the right side", B.getAreaSide("Right Hindfoot"), "right");
+check("'Upper Torso' is the centre line", B.getAreaSide("Upper Torso"), "centre");
+check("'Leftover Bit' is not the left side (whole word)", B.getAreaSide("Leftover Bit"), "centre");
+check("blank is the centre line", B.getAreaSide(""), "centre");
+
+// --- the Humanoid figure ------------------------------------------------------------------------
+const human = B.buildBodyFigure(areasOf("Humanoid"), { bodyType: "Humanoid" });
+check("Humanoid is drawn as a figure", human.kind, "figure");
+check("all nineteen areas are placed", human.shapes.length, 19);
+check("none are unplaced", human.unplaced.length, 0);
+check("the box is the drawing's own", human.box, { width: 200, height: 440 });
+check("the Head is where HUMANOID_FIGURE puts it", [human.shapes[0].name, human.shapes[0].x, human.shapes[0].y], ["Head", 78, 6]);
+check("a left area is drawn on the viewer's right (figure faces you)",
+	human.shapes.find(s => s.name == "Left Arm").x > human.shapes.find(s => s.name == "Right Arm").x, true);
+check("nothing is selected until clicked", human.selected, null);
+check("nothing is 'most hurt' when all is sound", human.worst, "");
+check("a shape carries its tooltip", human.shapes[0].tooltip, "Head · Vital · 0 / 12 · no armour · Sound");
+
+// --- the Humanoid variants: extras appear only when the chart has them -------------------------
+const winged = B.buildBodyFigure(areasOf("Humanoid(Wings/Tail)"), { bodyType: "Humanoid(Wings/Tail)" });
+check("Humanoid(Wings/Tail) is a figure with 22 shapes", [winged.kind, winged.shapes.length], ["figure", 22]);
+check("...its wings and tail are placed", winged.shapes.filter(s => ["Left Wing", "Right Wing", "Tail"].includes(s.name)).length, 3);
+const hooved = B.buildBodyFigure(areasOf("Humanoid(Hooves)"), {});
+check("hooves stand where feet do", hooved.shapes.find(s => s.name == "Left Hoof").y, 366);
+const fishy = B.buildBodyFigure(areasOf("Humanoid(Fish Tail)"), {});
+check("Humanoid(Fish Tail) is a figure (14 areas, 14 known)", [fishy.kind, fishy.shapes.length], ["figure", 14]);
+const saurian = B.buildBodyFigure(areasOf("Saurian"), {});
+check("Saurian (human chart plus a tail) is a figure", [saurian.kind, saurian.shapes.length], ["figure", 20]);
+
+// --- every other body is a map ------------------------------------------------------------------
+const centaur = B.buildBodyFigure(areasOf("Centaur"), { bodyType: "Centaur" });
+check("Centaur is a map (twelve human areas, but only half of it)", centaur.kind, "map");
+check("...left column holds its left pieces in chart order",
+	centaur.columns.left.map(t => t.name).slice(0, 3), ["Left Shoulder", "Left Arm", "Left Forearm"]);
+check("...centre column starts Head, Neck, Upper Torso", centaur.columns.centre.map(t => t.name).slice(0, 3), ["Head", "Neck", "Upper Torso"]);
+check("...every area is in exactly one column",
+	centaur.columns.left.length + centaur.columns.centre.length + centaur.columns.right.length, 23);
+check("Snake(Arms) is a map, not a figure (only ten human areas)", B.buildBodyFigure(areasOf("Snake(Arms)"), {}).kind, "map");
+check("Tiny is a map of one tile", B.buildBodyFigure(areasOf("Tiny"), {}).columns.centre.length, 1);
+check("an empty body is an empty map", B.buildBodyFigure([], {}).count, 0);
+check("no areas at all is tolerated", B.buildBodyFigure(undefined, {}).kind, "map");
+
+// Every one of his charts lays out with nothing lost.
+let laidOut = 0;
+for (const name of Object.keys(T.BODY_CHARTS)) {
+	const areas = areasOf(name);
+	const fig = B.buildBodyFigure(areas, { bodyType: name });
+	const placed = fig.kind == "figure"
+		? fig.shapes.length + fig.unplaced.length
+		: fig.columns.left.length + fig.columns.centre.length + fig.columns.right.length;
+	if (placed == areas.length && fig.count == areas.length) { laidOut += 1; }
+}
+check("all 45 charts lay out with every area accounted for", laidOut, Object.keys(T.BODY_CHARTS).length);
+
+// A Segmented Worm's repeated names ("Left Foot12 (2)") still land on the left.
+const worm = B.buildBodyFigure(areasOf("Segmented Worm"), {});
+check("a repeated area name keeps its side", worm.columns.left.some(t => t.name == "Left Foot12 (2)"), true);
+
+// --- a custom body built from a Humanoid keeps the figure, with its extra as a tile --------------
+const custom = areasOf("Humanoid").concat([area({ name: "Third Arm", type: "Limb", multiplier: 1 })]);
+const customFig = B.buildBodyFigure(custom, {});
+check("a Humanoid with an extra area is still a figure", customFig.kind, "figure");
+check("...and the extra is listed as an unplaced tile", customFig.unplaced.map(t => t.name), ["Third Arm"]);
+
+// --- states, the most-hurt area, and selection ---------------------------------------------------
+const hurt = areasOf("Humanoid");
+Object.assign(hurt.find(a => a.name == "Left Shin"), { wounds: 3, state: "wounded" });
+Object.assign(hurt.find(a => a.name == "Head"), { wounds: 14, state: "vitalitySave" });
+Object.assign(hurt.find(a => a.name == "Right Hand"), { wounds: 5, state: "wounded" });
+const hurtFig = B.buildBodyFigure(hurt, {});
+check("the worst state wins 'most hurt'", hurtFig.worst, "Head");
+check("a wounded shape carries its state", hurtFig.shapes.find(s => s.name == "Left Shin").state, "wounded");
+check("...and its label", hurtFig.shapes.find(s => s.name == "Head").stateLabel, "Vitality save");
+const tie = areasOf("Humanoid");
+Object.assign(tie.find(a => a.name == "Left Shin"), { wounds: 3, state: "wounded" });
+Object.assign(tie.find(a => a.name == "Right Hand"), { wounds: 5, state: "wounded" });
+check("within one state the greater wound count is 'most hurt'", B.buildBodyFigure(tie, {}).worst, "Right Hand");
+check("an unknown state reads as sound", B.buildBodyFigure([area({ name: "Head", type: "Vital", multiplier: 1 }, { state: "weird" })], {}).columns.centre[0].state, "sound");
+
+const picked = B.buildBodyFigure(hurt, { selected: "Head", vitality: 10, effects: ["Spell: Fly", "None", " Invoke: Chill "] });
+check("the clicked shape is marked", picked.shapes.find(s => s.name == "Head").selected, true);
+check("...and only it", picked.shapes.filter(s => s.selected).length, 1);
+check("the panel is the clicked area's", picked.selected.name, "Head");
+check("a name that is not an area selects nothing", B.buildBodyFigure(hurt, { selected: "Tentacle" }).selected, null);
+
+// --- the panel -------------------------------------------------------------------------------------
+const d = picked.selected;
+check("Endurance left is Endurance less wounds, never below 0", [d.endurance, d.wounds, d.left], [12, 14, 0]);
+check("the next thresholds: Vitality save past Endurance, effect past Endurance + Vitality", [d.vitalityAt, d.effectAt], [13, 23]);
+check("the state's word", d.stateLabel, "Vitality save");
+check("running effects are the whole body's list, 'None' and blanks dropped, trimmed", d.effects, ["Spell: Fly", "Invoke: Chill"]);
+check("a wounded area can be healed", d.canHeal, true);
+check("an unarmoured area says so", [d.protected, d.armor], [false, 0]);
+const armoured = B.describeArea(area({ name: "Upper Torso", type: "Vital", multiplier: 2 }, {
+	armor: 23, shield: 8, armorDamage: 2, material: "Chain", layers: ["Padding", "Chain Mail Shirt", "Buckler"], protectedByArmor: true }), {});
+check("an armoured area reports total, shield share, damage, material and layers",
+	[armoured.armor, armoured.shield, armoured.armorDamage, armoured.material, armoured.layers],
+	[23, 8, 2, "Chain", ["Padding", "Chain Mail Shirt", "Buckler"]]);
+check("a sound area cannot be healed", armoured.canHeal, false);
+check("no effects given reads as none", armoured.effects, []);
+
+// --- the wound buttons, against a stub actor ------------------------------------------------------
+const updates = [];
+const stub = { system: { body: { areas: hurt } }, update: async (u) => { updates.push(u); } };
+check("+1 adds a wound under the area's key", await B.adjustBodyWound(stub, "Left Shin", "1"), 4);
+check("...as one update", updates.at(-1), { "system.body.wounds.Left Shin": 4 });
+check("-1 takes one off", await B.adjustBodyWound(stub, "Left Shin", -1), 2);
+check("wounds never go below 0", await B.adjustBodyWound(stub, "Upper Torso", -5), 0);
+check("Heal clears the area", await B.healBodyArea(stub, "Head"), 0);
+check("...writing 0", updates.at(-1), { "system.body.wounds.Head": 0 });
+check("an area not on the body is refused", await B.adjustBodyWound(stub, "Tentacle", 1), null);
+check("...with no update sent", updates.length, 4);
+
+// --- report ---------------------------------------------------------------------------------------
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r.replace(/</g, "&lt;")}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

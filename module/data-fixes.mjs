@@ -65,6 +65,13 @@ const SETTING = "dataFixesApplied";
 	// This is the function which runs every fix this world has not had yet. Called once on ready,
 	// by the Game Master's client; safe to call again, since a fix that has run is skipped.
 	export async function applyDataFixes() {
+		// The active Game Master only: a player calling this from the console got part-way through
+		// the actors they own and then failed on the world setting; a second Game Master raced the
+		// first (quality pass 2026-10-07).
+		if (!game.user?.isActiveGM) {
+			ui.notifications?.warn("Only the active Game Master can run the data fixes.");
+			return;
+		}
 		var tmpdone = game.settings.get("imagine-rpg", SETTING) ?? [];
 		var tmpapplied = [...tmpdone];
 		for (const tmpfix of DATA_FIXES) {

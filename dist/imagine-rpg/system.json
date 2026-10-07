@@ -2,7 +2,7 @@
   "id": "imagine-rpg",
   "title": "Imagine Role Playing System",
   "description": "A Foundry VTT system for the Imagine Role Playing System (role-playing.com), converted from its original Roll20 character sheet with permission from the rights holder.",
-  "version": "0.22.1",
+  "version": "0.23.0",
   "compatibility": {
     "minimum": "14",
     "verified": "14.367"
@@ -41,21 +41,74 @@
       "creature": {}
     },
     "Item": {
-      "skill": {},
-      "race": {},
-      "class": {},
-      "weapon": {},
-      "armor": {},
-      "equipment": {},
-      "creatureAttack": {},
-      "power": {},
-      "trait": {},
-      "consumable": {},
-      "lore": {},
-      "spell": {},
-      "invocation": {}
+      "skill": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "race": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "class": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "weapon": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "armor": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "equipment": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "creatureAttack": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "power": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "trait": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "consumable": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "lore": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "spell": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "invocation": {
+        "htmlFields": [
+          "description"
+        ]
+      }
     }
   },
+  "primaryTokenAttribute": "body.shockBar",
   "url": "https://github.com/MichaelTenery/FoundryImagineSheet",
   "manifest": "https://raw.githubusercontent.com/MichaelTenery/FoundryImagineSheet/main/system.json",
   "download": "https://raw.githubusercontent.com/MichaelTenery/FoundryImagineSheet/main/dist/imagine-rpg.zip",

@@ -19,6 +19,8 @@
 // nothing twice.
 //==================================================================================================================
 
+import { getPackDocumentsByName } from "./pack-lookup.mjs";
+
 const WEAPON_PACK = "world.imagine-weapons";
 
 // Actors a grant is running for right now, for the same reason class-advancement.mjs keeps one: two
@@ -113,8 +115,8 @@ const granting = new Set();
 			var tmpheld = tmpactor.items.filter(tmpitem => tmpitem.type == "weapon").map(tmpitem => tmpitem.name);
 			if (tmpnames.every(tmpname => tmpheld.includes(tmpname))) { return tmpnothing; }
 
-			var tmppack = game.packs.get(WEAPON_PACK);
-			var tmpdocs = tmppack ? (await tmppack.getDocuments()).map(tmpdoc => tmpdoc.toObject()) : [];
+			// Only the weapons named, not the whole pack (getPackDocumentsByName).
+			var tmpdocs = await getPackDocumentsByName(WEAPON_PACK, tmpnames);
 			var tmpbuilt = buildNaturalWeaponItems(tmpnames, tmpdocs, tmpheld, tmpactor.system.physical?.handedness);
 			if (tmpbuilt.items.length) { await tmpactor.createEmbeddedDocuments("Item", tmpbuilt.items); }
 

@@ -67,6 +67,8 @@ Handlebars.registerHelper("gte", (a, b) => a >= b);
 // The martial arts panel is a partial both Combat tabs include (loadMartialTemplates registers it in
 // Foundry); a plain Handlebars render needs it registered by hand.
 Handlebars.registerPartial("imagine-martial-panel", await (await fetch("../templates/actor/martial-panel.hbs")).text());
+Handlebars.registerPartial("imagine-body-figure", await (await fetch("../templates/actor/body-figure.hbs")).text());
+const BV = await import("../module/body-view.mjs");
 const SV = await import("../module/situational-view.mjs");
 const MV = await import("../module/martial-view.mjs");
 Handlebars.registerHelper("localize", (k) => {
@@ -249,6 +251,9 @@ const ctx = {
 	// Mirrors the sheet's own two lines, built by the same functions.
 	situationLine: SV.describeSituationalTotals(creature.combat.situational),
 	martial: MV.buildMartialPanel(creature, true),
+	// The clickable body -- this Quadruped(Tail/Wings) gets the map, not the figure.
+	bodyFigure: BV.buildBodyFigure(creature.body.areas, { bodyType: creature.body.type,
+		selected: new URLSearchParams(location.search).get("area") ?? "", vitality: creature.attributes.vit.value }),
 	handednessChoices: [
 		{ value: "",             label: "Right (default)", selected: true },
 		{ value: "Right",        label: "Right" },
@@ -273,6 +278,15 @@ for (const name of ["stats", "skills", "combat", "traits"]) {
 	tabs.appendChild(div);
 }
 document.querySelector("#tabs .tab")?.classList.add("active");
+tabs.addEventListener("click", async (ev) => {
+	const hit = ev.target.closest("[data-action='selectBodyArea']");
+	if (!hit) return;
+	ctx.bodyFigure = BV.buildBodyFigure(creature.body.areas, { bodyType: creature.body.type,
+		selected: ctx.bodyFigure.selected?.name == hit.dataset.area ? "" : hit.dataset.area, vitality: creature.attributes.vit.value });
+	const combat = tabs.querySelector(".tab[data-tab='combat']");
+	combat.outerHTML = await render("../templates/actor/tab-creature-combat.hbs", ctx);
+	tabs.querySelector(".tab[data-tab='combat']").classList.add("active");
+});
 document.querySelectorAll(".tabstrip button").forEach(btn => {
 	btn.onclick = () => {
 		document.querySelectorAll(".tabstrip button").forEach(b => b.classList.remove("active"));

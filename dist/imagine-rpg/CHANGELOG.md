@@ -18,6 +18,52 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.23.0 — 2026-10-07
+
+Two things asked for, and a quality pass over the whole system.
+
+**The body, drawn to click.** Both Combat tabs now carry the body above the body table: a figure
+for human-shaped bodies (wings, tail, hooves and a fish tail drawn when the body has them), a
+three-column map -- its left, its centre, its right -- for every other body. Each area is tinted
+by its state; click one and the panel beside it says what is left of its Endurance, its wounds
+(with −1, +1 and Heal buttons), when the next Vitality save and the effect come, its armour with
+the shield's share, damage and material, every layer over it, and what is running on the being.
+"Most hurt" is offered before anything is clicked. The figure faces you, so its left is on your
+right.
+
+**His colour schemes.** A new client setting, *Panel colour scheme*: alternating gray, blue, green,
+red, brown, pink or purple panels, his seven and his own colours, on the paper look. Fields stay
+white so an entered value is still told from a derived one.
+
+**Fixed, from the quality pass:**
+- A weapon's poison coating was never delivered by a hit (a variable shadowed since the attack
+  card was split). It is now.
+- A lored weapon never rolled on the Lore attack chart. It does, one chart better as his code has
+  it, and a Grandmaster's natural 1 on it is a miss rather than a fumble.
+- A creature's Death, Life, Holy, Unholy, Aura, Divine or Draining damage met no armour row and
+  the damage dialog silently chose Cutting. Each now reads as its armour-table row.
+- Apply Damage could be clicked twice while its dialog was open and double the wounds.
+- A creature with a blank body type lost its magical weave.
+- The starting kit made "100 Pins" a hundred separate items; it is one row of 100 now, and kit
+  names in his spelling are found.
+- A gem or piece of jewellery named with a slash was valued at nothing.
+- Names typed by a player were put into dialogs and chat unescaped in nine places. A trait's
+  description showed as raw HTML.
+- Two logged-in Game Masters were both asked to build the packs at first launch, and could both do
+  it; now only the active one is, and the answer is recorded after the import runs through.
+- The generator's physique line showed a literal "&mdash;".
+- New tokens draw the Shock bar without being configured.
+
+**Faster:** the availability rules, the skill index and the body charts are read once and kept; the
+character sheet no longer asks the server for the skill index on every render; three hooks fetch
+only the documents they need instead of a whole pack; the content import and the Items directory
+work in slices of 250 so Foundry stays responsive; the item picker's search is debounced.
+
+**For anyone adding on:** `BLOCKING_TYPE_OF` (a damage spelling to its armour row),
+`PANEL_SCHEMES` (a scheme is one row), `HUMANOID_FIGURE` (an area is one row), and
+`getPackDocumentsByName`. `templates/README.md` now describes the templates; README, FIRST-RUN,
+ADDING-CONTENT and DATA-MODEL are brought up to the thirteen item types.
+
 ## 0.22.1 — 2026-10-05
 
 Three reports from 10/4 and 10/5, three features, and one report held back.

@@ -202,10 +202,13 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	} else {
 		var tmpd20 = await new Roll("1d20").evaluate();
 		tmprolls.push(tmpd20);
+		// The Lore chart, one step better, when the lore's +2 applies to this attack (his
+		// modWL/modML branch); loreAttackSkill is "" for a creature without the skill.
 		tmpresult = resolveAttack({
 			natural: tmpd20.total,
 			mods: tmpmods.total,
-			skill: tmpsys.combat.attackSkill,
+			skill: (tmplorehit != 0 && tmpsys.combat.loreAttackSkill) || tmpsys.combat.attackSkill,
+			isLore: tmplorehit != 0,
 			calledShot: tmpoptions.calledShot
 		});
 	}

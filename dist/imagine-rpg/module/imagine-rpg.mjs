@@ -61,7 +61,7 @@ import {
 	registerAvailabilitySettings, registerAvailabilityEnforcement,
 	getAvailabilityRules, explainAvailability
 } from "./availability.mjs";
-import { refreshOpenWindows } from "./sheet-theme.mjs";
+import { refreshOpenWindows, getPanelSchemeChoices } from "./sheet-theme.mjs";
 import { populateItemDirectory, clearItemDirectory } from "./item-directory.mjs";
 import { registerChangelog, showChangelog, showChangelogIfNew } from "./changelog.mjs";
 import { registerDataFixSetting, applyDataFixes } from "./data-fixes.mjs";
@@ -378,6 +378,23 @@ Hooks.once("init", function () {
 		onChange: refreshOpenWindows
 	});
 
+	// @MARKER PANEL COLOUR SCHEME
+	// His Roll20 sheet's colour schemes -- alternating gray, blue, green, red, brown, pink or purple
+	// panels, his own seven and his own colours -- on top of the paper look, for a player who reads a
+	// long tab more easily in bands. Per player, like the theme. See module/sheet-theme.mjs.
+	game.settings.register("imagine-rpg", "panelScheme", {
+		name: "Panel colour scheme",
+		hint: "Tints the paper look's page, panels and headings in one of his seven colour schemes "
+		    + "(the Color Scheme select of his Roll20 sheet). Applies with \"Imagine paper\" only; under "
+		    + "\"Foundry standard\" the sheets follow Foundry's own theme.",
+		scope: "client",
+		config: true,
+		type: String,
+		choices: getPanelSchemeChoices(),
+		default: "none",
+		onChange: refreshOpenWindows
+	});
+
 	// @MARKER VERSION BADGE
 	// The system's version in the title bar of every Imagine window, so which build is running is
 	// always in view. Per player; on by default. See module/sheet-theme.mjs.
@@ -533,24 +550,32 @@ Hooks.once("init", function () {
 // The content packs are built from JSON at runtime rather than compiled ahead of time, so a
 // fresh world starts with none. Offer to build them once, and let the Game Master decline
 // without being asked again.
+// THE ACTIVE Game Master only -- isActiveGM, not isGM: with two Game Masters logged in, both were
+// asked and both could build the packs at once, doubling every entry (quality pass 2026-10-07).
 Hooks.once("ready", async function () {
-	if (!game.user.isGM) { return; }
+	if (!game.user.isActiveGM) { return; }
 	if (game.settings.get("imagine-rpg", "contentImported")) { return; }
 
 	var tmpconfirmed = await foundry.applications.api.DialogV2.confirm({
 		window: { title: "Imagine RPG" },
 		content: `<p>This world has no Imagine content yet.</p>
-		          <p>Build the compendium packs now? This creates roughly 2,800 skills, races,
-		          classes, weapons, armour and equipment entries, and takes a moment.</p>
+		          <p>Build the compendium packs now? This creates about 7,000 skills, races, classes,
+		          weapons, armour, equipment, lore and spell entries, and takes a moment.</p>
 		          <p>You can run it later from a macro with
 		          <code>game.imagine.importContent()</code>.</p>`,
 		rejectClose: false,
 		modal: true
 	});
 
-	// Recorded either way. Declining is an answer, and repeating the question is rude.
-	await game.settings.set("imagine-rpg", "contentImported", true);
-	if (tmpconfirmed) { await importAllContent(); }
+	// Declining is an answer, and repeating the question is rude: recorded at once. Accepting is
+	// recorded only when the import has run through -- it used to be written BEFORE the import
+	// started, so a tab closed part-way left half-built packs and the question never came back.
+	if (!tmpconfirmed) {
+		await game.settings.set("imagine-rpg", "contentImported", true);
+		return;
+	}
+	var tmpreport = await importAllContent();
+	if (!tmpreport?.failed?.length) { await game.settings.set("imagine-rpg", "contentImported", true); }
 });
 
 // @MARKER WHAT'S NEW
@@ -566,7 +591,7 @@ Hooks.once("ready", async function () {
 // system has since retired, and the like (module/data-fixes.mjs). The Game Master's client only,
 // once per world per fix; a fix that fails is retried on the next load rather than recorded.
 Hooks.once("ready", async function () {
-	if (!game.user.isGM) { return; }
+	if (!game.user.isActiveGM) { return; }
 	try { await applyDataFixes(); }
 	catch (tmperror) { console.warn("Imagine RPG | the data fixes could not be run", tmperror); }
 });

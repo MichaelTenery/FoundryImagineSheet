@@ -461,7 +461,10 @@
 	// "nonAcquired", or "" with the reason it cannot be tried.
 	export function canUseNonAcquired(tmpdef, tmpheldnames, tmpnonacquirednames) {
 		var tmpname = tmpdef?.name ?? "";
-		var tmpheld = new Set(Array.isArray(tmpheldnames) ? tmpheldnames : []);
+		// A Set is taken as it is; an array is read into one (callers asking for many skills at once
+		// pass the Set, so it is built once rather than per skill).
+		var tmpheld = tmpheldnames instanceof Set ? tmpheldnames
+			: new Set(Array.isArray(tmpheldnames) ? tmpheldnames : []);
 		if (tmpheld.has(tmpname)) {
 			return { usable: false, footing: "held", reason: `${tmpname} is held, and is rolled as itself.` };
 		}

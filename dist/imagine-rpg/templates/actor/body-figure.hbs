@@ -1,0 +1,113 @@
+{{!--
+	The body figure, shared by the character's and the creature's Combat tabs. Registered as the
+	partial imagine-body-figure by loadBodyTemplates in module/body-view.mjs; everything it draws
+	comes from buildBodyFigure there, as `bodyFigure`. Click an area and the panel beside the
+	picture says what the sheet knows about it; the body table under both stays for the whole
+	body at once.
+
+	WOUNDS ARE CHANGED BY BUTTON HERE, NOT BY A FIELD. The table already carries the input named
+	system.body.wounds.<area>; a second input of the same name would make the form read the pair
+	back as an array and every edit would fail (the trap parseBodyChart's note records). So the
+	panel's −1 / +1 / Heal are actions (adjustBodyWound, healBodyArea) that update the one value.
+
+	The figure faces the viewer: its left is on the viewer's right, as on any anatomical chart.
+--}}
+{{#if bodyFigure}}
+<div class="body-figure body-figure-{{bodyFigure.kind}}">
+	<div class="body-picture">
+		{{#if (eq bodyFigure.kind "figure")}}
+		<svg class="body-svg" viewBox="0 0 {{bodyFigure.box.width}} {{bodyFigure.box.height}}" role="img"
+			aria-label="{{bodyFigure.bodyType}} body, {{bodyFigure.count}} areas">
+			{{#each bodyFigure.shapes as |s|}}
+			<rect class="body-area area-{{s.state}}{{#if s.selected}} selected{{/if}}"
+				data-action="selectBodyArea" data-area="{{s.name}}" data-tooltip="{{s.tooltip}}"
+				x="{{s.x}}" y="{{s.y}}" width="{{s.w}}" height="{{s.h}}" rx="{{s.rx}}"><title>{{s.tooltip}}</title></rect>
+			{{/each}}
+		</svg>
+		<p class="muted body-caption">{{bodyFigure.bodyType}} &middot; faces you, so its left is on your right</p>
+		{{#if bodyFigure.unplaced.length}}
+		{{!-- A custom body's areas the drawing has no place for: still here, still clickable. --}}
+		<div class="body-tiles">
+			{{#each bodyFigure.unplaced as |t|}}
+			<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}"
+				data-action="selectBodyArea" data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
+			{{/each}}
+		</div>
+		{{/if}}
+		{{else}}
+		{{!-- The map: the being's left side, its centre line, its right side, in chart order. --}}
+		<div class="body-map">
+			<div class="body-column">
+				<h4>Its left</h4>
+				{{#each bodyFigure.columns.left as |t|}}
+				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}"
+					data-action="selectBodyArea" data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
+				{{/each}}
+			</div>
+			<div class="body-column body-column-centre">
+				<h4>Centre</h4>
+				{{#each bodyFigure.columns.centre as |t|}}
+				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}"
+					data-action="selectBodyArea" data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
+				{{/each}}
+			</div>
+			<div class="body-column">
+				<h4>Its right</h4>
+				{{#each bodyFigure.columns.right as |t|}}
+				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}"
+					data-action="selectBodyArea" data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
+				{{/each}}
+			</div>
+		</div>
+		<p class="muted body-caption">{{bodyFigure.bodyType}} &middot; faces you, so its left is on your right</p>
+		{{/if}}
+	</div>
+
+	<div class="body-detail">
+		{{#with bodyFigure.selected as |d|}}
+		<h4 class="body-detail-name">{{d.name}} <span class="muted">{{d.type}} &middot; x{{d.multiplier}}</span></h4>
+		<p class="body-state area-{{d.state}}"><strong>{{d.stateLabel}}</strong></p>
+		<dl class="body-facts">
+			<dt>Endurance</dt><dd>{{d.left}} <span class="muted">of {{d.endurance}} left</span></dd>
+			<dt>Wounds</dt>
+			<dd class="body-wounds">
+				<button type="button" data-action="adjustBodyWound" data-area="{{d.name}}" data-delta="-1"
+					data-tooltip="One wound fewer" {{#unless d.canHeal}}disabled{{/unless}}>&minus;</button>
+				<span class="body-wound-count">{{d.wounds}}</span>
+				<button type="button" data-action="adjustBodyWound" data-area="{{d.name}}" data-delta="1"
+					data-tooltip="One wound more">+</button>
+				<button type="button" class="body-heal" data-action="healBodyArea" data-area="{{d.name}}"
+					data-tooltip="Clear every wound on this area" {{#unless d.canHeal}}disabled{{/unless}}>Heal</button>
+			</dd>
+			<dt>Next</dt>
+			<dd><span class="muted">Vitality save at {{d.vitalityAt}}, effect at {{d.effectAt}}</span></dd>
+			<dt>Armour</dt>
+			<dd>
+				{{#if d.protected}}
+				<strong>{{d.armor}}</strong>
+				{{#if d.shield}}<span class="muted">({{d.shield}} of it shield)</span>{{/if}}
+				{{#if d.armorDamage}}<span class="muted">(&minus;{{d.armorDamage}} damaged)</span>{{/if}}
+				{{#if d.material}}<span class="muted">&middot; {{d.material}}</span>{{/if}}
+				{{else}}<span class="muted">none</span>{{/if}}
+			</dd>
+			{{#if d.layers.length}}
+			<dt>Layers</dt>
+			<dd><ul class="body-layers">{{#each d.layers as |l|}}<li>{{l}}</li>{{/each}}</ul></dd>
+			{{/if}}
+			<dt>Running</dt>
+			<dd>
+				{{#if d.effects.length}}
+				<ul class="body-effects">{{#each d.effects as |e|}}<li>{{e}}</li>{{/each}}</ul>
+				<span class="muted">on the whole body &mdash; nothing is kept per area yet</span>
+				{{else}}<span class="muted">nothing</span>{{/if}}
+			</dd>
+		</dl>
+		{{else}}
+		<p class="muted body-hint">Click an area to see its state, armour and wounds.
+			{{#if bodyFigure.worst}}<br>Most hurt:
+			<button type="button" class="body-worst" data-action="selectBodyArea" data-area="{{bodyFigure.worst}}">{{bodyFigure.worst}}</button>{{/if}}
+		</p>
+		{{/with}}
+	</div>
+</div>
+{{/if}}

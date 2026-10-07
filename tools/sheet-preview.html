@@ -88,6 +88,10 @@ Handlebars.registerHelper("gte", (a, b) => a >= b);
 // The martial arts panel is a partial the Combat tab includes (loadMartialTemplates registers it
 // in Foundry); a plain Handlebars render needs it registered by hand.
 Handlebars.registerPartial("imagine-martial-panel", await (await fetch("../templates/actor/martial-panel.hbs")).text());
+// The body figure, likewise (loadBodyTemplates in module/body-view.mjs).
+Handlebars.registerPartial("imagine-body-figure", await (await fetch("../templates/actor/body-figure.hbs")).text());
+const BV = await import("../module/body-view.mjs");
+const TH = await import("../module/sheet-theme.mjs");
 Handlebars.registerHelper("localize", (k) => {
 	const names = { str: "Strength", agl: "Agility", vit: "Vitality", int: "Intelligence",
 		wis: "Wisdom", knw: "Knowledge", app: "Appearance", chm: "Charm", soc: "Social Class",
@@ -341,6 +345,11 @@ const ctx = {
 	magic: buildMagicPanel({ items: allItems, system: character }, game.imagine.getAvailabilityRules(), true),
 	// Mirrors the sheet's own line, built by the same function.
 	situationLine: SV.describeSituationalTotals(character.combat.situational),
+	// The clickable body, as the sheet builds it; ?area=Neck opens on an area, and a click below
+	// re-renders the Combat tab the way the sheet's selectBodyArea action does.
+	bodyFigure: BV.buildBodyFigure(character.body.areas, { bodyType: character.body.type,
+		selected: new URLSearchParams(location.search).get("area") ?? "", vitality: character.attributes.vit.value,
+		effects: ["Spell: Fly"] }),
 	handednessChoices: [
 		{ value: "",             label: "Right (default)", selected: true },
 		{ value: "Right",        label: "Right" },
@@ -393,6 +402,20 @@ document.querySelectorAll(".tabstrip button").forEach(btn => {
 		document.querySelectorAll("#tabs .tab").forEach(t => t.classList.toggle("active", t.dataset.tab === btn.dataset.t));
 	};
 });
+// Clicking an area of the body figure re-renders the Combat tab with it selected, as the sheet does.
+tabs.addEventListener("click", async (ev) => {
+	const hit = ev.target.closest("[data-action='selectBodyArea']");
+	if (!hit) return;
+	ctx.bodyFigure = BV.buildBodyFigure(character.body.areas, { bodyType: character.body.type,
+		selected: ctx.bodyFigure.selected?.name == hit.dataset.area ? "" : hit.dataset.area,
+		vitality: character.attributes.vit.value, effects: ["Spell: Fly"] });
+	const combat = tabs.querySelector(".tab[data-tab='combat']");
+	combat.outerHTML = await render("../templates/actor/tab-combat.hbs", ctx);
+	tabs.querySelector(".tab[data-tab='combat']").classList.add("active");
+});
+// ?scheme=green paints his panel colour scheme on every frame, as the setting would.
+const scheme = new URLSearchParams(location.search).get("scheme");
+if (scheme) { document.querySelectorAll(".frame").forEach(f => TH.applyPanelScheme(f, scheme)); }
 const start = new URLSearchParams(location.search).get("tab");
 if (start) document.querySelector(`.tabstrip button[data-t="${start}"]`)?.click();
 

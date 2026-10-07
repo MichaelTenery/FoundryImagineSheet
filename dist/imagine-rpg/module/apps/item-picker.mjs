@@ -160,7 +160,8 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 		if (this.#learnSkill) {
 			// Held, or usable unheld on its common or non-acquired footing (bug report 0.20.8:1):
 			// the lookup is read once here and kept for the roll itself.
-			this.#nonAcquired = this.#actor ? await getNonAcquiredLookup(this.#actor) : null;
+			// Built once for the window's life -- _prepareContext runs on every keystroke of the search.
+			this.#nonAcquired ??= this.#actor ? await getNonAcquiredLookup(this.#actor) : null;
 			var tmpstanding = getSkillStanding(this.#actor?.items?.filter(i => i.type == "skill"),
 				this.#learnSkill, this.#actor?.system?.identity?.title, this.#nonAcquired);
 			tmpcontext.learnChance = tmpstanding.chance;
@@ -190,9 +191,11 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 
 		var tmpsearch = this.element.querySelector("input[name='search']");
 		if (!tmpsearch) { return; }
+		// Debounced: a render per keystroke stacked overlapping renders when typing fast.
+		var tmprerender = foundry.utils.debounce(() => this.render(), 150);
 		tmpsearch.addEventListener("input", (tmpevent) => {
 			this.#search = tmpevent.target.value;
-			this.render();
+			tmprerender();
 		});
 		if (this.#search) {
 			tmpsearch.focus();
@@ -278,7 +281,7 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 			                 failure: "failed to learn", fumble: "rolled a 100 and failed to learn" };
 			await ChatMessage.create({
 				speaker: ChatMessage.getSpeaker({ actor: tmpactor }),
-				flavor: `Learn ${tmplabel}: ${tmpdata.name} &mdash; `
+				flavor: `Learn ${tmplabel}: ${foundry.utils.escapeHTML(tmpdata.name)} &mdash; `
 				      + `<strong>${isLoreSuccess(tmpresult.outcome) ? "learned" : "not learned"}</strong>`,
 				content: `<div class="imagine-skill-roll">${tmpskill} ${tmpresult.total}%${describeStanding(tmpstanding)}: `
 				       + `rolled ${tmpresult.roll} &mdash; ${tmpwords[tmpresult.outcome] ?? tmpresult.outcome}.</div>`,

@@ -333,8 +333,10 @@ import { isClassSkillForCharacter } from "./class-rules.mjs";
 	//
 	// Returns null for a type or potency he does not have, where his returns a row of zeros.
 	export function getPoisonDetails(tmpType, tmpPotency) {
-		var tmpTypeRow = POISON_TYPES[tmpType];
-		var tmpOnset = POISON_POTENCIES[tmpPotency];
+		// Own properties only: the type and potency come off an item, and an imported item's
+		// "constructor" found Object itself here and threw on .effect.
+		var tmpTypeRow = Object.hasOwn(POISON_TYPES, tmpType) ? POISON_TYPES[tmpType] : null;
+		var tmpOnset = Object.hasOwn(POISON_POTENCIES, tmpPotency) ? POISON_POTENCIES[tmpPotency] : undefined;
 		if (!tmpTypeRow || tmpOnset === undefined) { return null; }
 		return {
 			name: `Type: ${tmpType}, Potency: ${tmpPotency}`,

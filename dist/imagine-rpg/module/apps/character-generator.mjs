@@ -367,7 +367,7 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		if (tmpmoney) {
 			try {
 				await ChatMessage.create({
-					content: `<h3>${this.#state.name || "A new character"} counts their coins</h3>`
+					content: `<h3>${foundry.utils.escapeHTML(this.#state.name || "A new character")} counts their coins</h3>`
 						+ `<div>${describeStartingMoney(tmpmoney)}</div>`,
 					speaker: ChatMessage.getSpeaker()
 				});
@@ -438,7 +438,7 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		this.#state.manual = false;
 		var tmplines = this.#state.rolled.sets.map((tmpset, tmpindex) =>
 			`<p>Set ${tmpindex + 1}: ` + ATTRIBUTE_ORDER.map(tmpkey => `${tmpkey.toUpperCase()} ${tmpset[tmpkey]}`).join(", ") + "</p>");
-		await ChatMessage.create({ content: `<h3>${this.#state.name || "A new character"} rolls attributes</h3>${tmplines.join("")}`,
+		await ChatMessage.create({ content: `<h3>${foundry.utils.escapeHTML(this.#state.name || "A new character")} rolls attributes</h3>${tmplines.join("")}`,
 			speaker: ChatMessage.getSpeaker() });
 		this.render();
 	}
@@ -568,7 +568,9 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			tmprolled.height ? `${tmprolled.height.type} build: ${tmprolled.height.low.feet}'${tmprolled.height.low.inches}" to ${tmprolled.height.high.feet}'${tmprolled.height.high.inches}"` : "",
 			tmprolled.frame ? `${tmprolled.frame} frame (${tmprolled.frameType}, STR less AGL ${tmprolled.frameMeasure})` : "",
 			tmprolled.weight ? `that frame at that height runs ${tmprolled.weight.low} to ${tmprolled.weight.high} lb` : ""
-		].filter(tmppart => tmppart).join(" &mdash; ");
+		// A literal dash, not the entity: the template writes this line escaped ({{physique.summary}}),
+		// so "&mdash;" showed as six characters (quality pass 2026-10-07).
+		].filter(tmppart => tmppart).join(" — ");
 
 		var tmplines = [];
 		if (tmprolled.height) {
@@ -587,7 +589,7 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 		for (const tmpissue of tmprolled.issues) { tmplines.push(`<div class="alarm">${tmpissue}</div>`); }
 
 		await ChatMessage.create({
-			content: `<h3>${this.#state.name || "A new character"} takes shape</h3>${tmplines.join("")}`,
+			content: `<h3>${foundry.utils.escapeHTML(this.#state.name || "A new character")} takes shape</h3>${tmplines.join("")}`,
 			speaker: ChatMessage.getSpeaker()
 		});
 		this.render();
@@ -670,7 +672,7 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			if (tmpbought) {
 				try {
 					await ChatMessage.create({
-						content: `<h3>${tmpactor.name} goes shopping</h3><div>${tmpbought}</div>`,
+						content: `<h3>${foundry.utils.escapeHTML(tmpactor.name)} goes shopping</h3><div>${tmpbought}</div>`,
 						speaker: ChatMessage.getSpeaker()
 					});
 				} catch (tmperr) { console.error("Imagine RPG | the purchases could not be posted to chat", tmperr); }

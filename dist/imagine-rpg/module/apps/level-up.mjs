@@ -146,7 +146,7 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 			`<div>${ATTRIBUTE_LABELS[tmpresult.key] ?? tmpresult.key}: rolled ${tmpresult.roll} `
 			+ `against ${tmpresult.chance}% &mdash; <strong>${tmpresult.increased ? "+1" : "no increase"}</strong></div>`);
 		await ChatMessage.create({
-			content: `<h3>${this.#actor.name} reaches goal ${this.#actor.system.identity.goalToLevel}</h3>${tmplines.join("")}`,
+			content: `<h3>${foundry.utils.escapeHTML(this.#actor.name)} reaches goal ${this.#actor.system.identity.goalToLevel}</h3>${tmplines.join("")}`,
 			speaker: ChatMessage.getSpeaker({ actor: this.#actor })
 		});
 		this.render();
@@ -209,7 +209,7 @@ export default class ImagineLevelUp extends HandlebarsApplicationMixin(Applicati
 		var tmpstep = buildTitleStep(this.#actor, this.#working).titleStep;
 		this.#working.endurance = getTitleEndurance(tmpstep.enduranceFormula, tmpstep.title, ImagineLevelUp.#die);
 		await ChatMessage.create({
-			content: `<h3>${this.#actor.name} reaches title ${tmpstep.title}</h3>`
+			content: `<h3>${foundry.utils.escapeHTML(this.#actor.name)} reaches title ${tmpstep.title}</h3>`
 				+ `<div>Endurance (${tmpstep.enduranceFormula || "no formula"}): `
 				+ `<strong>+${this.#working.endurance}</strong></div>`,
 			speaker: ChatMessage.getSpeaker({ actor: this.#actor })

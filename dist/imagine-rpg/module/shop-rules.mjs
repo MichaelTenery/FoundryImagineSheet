@@ -627,6 +627,9 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 
 					var tmpOffer = makeOffer(tmpType, tmpName, tmpSubtype, tmpDoc, tmpBundle, tmpPrices, false);
 					tmpOffer.label = SHOP_BUNDLE_OVERRIDES[tmpName] ? `${tmpBundle} ${tmpName}` : tmpName;
+					// What the search box matches against, worked out once here rather than for every offer
+					// on every keystroke (listShopOffers). After the label, which it reads.
+					tmpOffer.searchText = normalizeItemName(tmpOffer.label).toLowerCase();
 					tmpOffers.push(tmpOffer);
 					tmpByKey[tmpKey] = tmpOffer;
 					tmpSold[tmpType].add(tmpDoc);
@@ -750,7 +753,7 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 		var tmpWords = normalizeItemName(tmpSearch).toLowerCase().split(" ").filter(tmpWord => tmpWord);
 		var tmpMatches = (tmpCatalog?.offers ?? []).filter(tmpOffer => tmpOffer.type == tmpType
 			&& (!tmpSubtype || tmpOffer.subtypes.includes(tmpSubtype))
-			&& tmpWords.every(tmpWord => normalizeItemName(tmpOffer.label).toLowerCase().includes(tmpWord)));
+			&& tmpWords.every(tmpWord => (tmpOffer.searchText ?? normalizeItemName(tmpOffer.label).toLowerCase()).includes(tmpWord)));
 		var tmpCap = parseInt(tmpLimit) || 60;
 		return { offers: tmpMatches.slice(0, tmpCap), total: tmpMatches.length };
 	}

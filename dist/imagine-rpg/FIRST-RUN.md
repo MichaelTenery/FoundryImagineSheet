@@ -1,7 +1,8 @@
 # The First Foundry Run
 
-Nothing in this system has ever been loaded by Foundry. Every "not verified" note on the board
-reduces to that one sentence, and this document exists to make the first run short: what was checked
+Written before the system had ever been loaded by Foundry; it has run at his table since 0.20
+(2026-09-30), and the counts below were brought up to date on 2026-10-07. It still exists to make a
+first run on a new machine short: what was checked
 against the V14 API ahead of time, what could not be, and the order to test things in so that each
 failure is the smallest one left.
 
@@ -28,7 +29,7 @@ current:
 | `updateDocument` hook `(document, changed, options, userId)` | yes; fires on **all** clients, `options` is a partial of the update operation |
 | `Folder#ancestors` | yes -- "the list of ancestors of this folder, starting with the parent." Checked 2026-09-22 against `foundryvtt.com/api/v14`, for `module/item-directory.mjs`'s retired-item sweep, which walks `tmpitem.folder.ancestors?.some(...)` to find items anywhere under a root folder rather than only directly inside it. |
 
-**`system.json` is correct**: `documentTypes` declares 2 actor and 9 item types, and every one has a
+**`system.json` is correct**: `documentTypes` declares 2 actor and 13 item types, and every one has a
 data model registered for it in `init`. A mismatch there is the classic first-run failure — an actor
 of an undeclared type is discarded by the server as invalid — and there is none.
 
@@ -59,8 +60,8 @@ These are the things to watch on the first run, and why:
    guard (an in-flight set) that should catch it even if the option is dropped.
 2. **Hook timing.** The grant reads `actor.system.identity.classProgression`, which is derived data.
    It assumes the actor has been re-prepared by the time `updateActor` fires.
-3. **Sheet registration actually taking.** Eleven registrations, three of them new today.
-4. **`createCompendium` metadata.** The importer builds nine world packs on first launch.
+3. **Sheet registration actually taking.** Fifteen registrations.
+4. **`createCompendium` metadata.** The importer builds thirteen world packs on first launch.
 5. **Anything to do with the dice, chat cards and notifications**, none of which exist outside Foundry.
 
 ---
@@ -76,15 +77,16 @@ almost always a bad namespace path or a missing file in `esmodules`/`styles`.
 *Expect:* no errors, and a prompt offering to build the content packs.
 
 **2. The content imports.**
-Accept the prompt, or run `game.imagine.importContent()`. It builds nine compendia from
-`src/packs/documents/*.json`.
-*Expect:* nine packs in the sidebar — skills 674, weapons 594, armour 719, equipment 637, races 105,
-classes 103, abilities 1,154, disabilities 249, immunities 149. **4,384 documents.**
+Accept the prompt, or run `game.imagine.importContent()`. It builds thirteen compendia from
+`src/packs/documents/*.json`, in slices of 250 documents a call.
+*Expect:* thirteen packs in the sidebar — skills, weapons, armour, equipment, races, classes,
+abilities, disabilities, immunities, consumables, lore, spells, invocations: **about 7,000
+documents** (`dist/imagine-rpg/BUILD.txt` carries the exact count of the build).
 *If it fails:* the `createCompendium` metadata, or a schema field the data does not match.
 
 **3. An actor exists and opens.**
 Create a Character. This is the moment `documentTypes` and `CONFIG.Actor.dataModels` are both proved.
-*Expect:* the sheet opens on five tabs, with zeros rather than blanks or `NaN`.
+*Expect:* the sheet opens on six tabs, with zeros rather than blanks or `NaN`.
 
 **4. A race and a class go on.**
 Drag `Human(Civilized:Village)` and `Warrior` from the compendia onto the sheet.

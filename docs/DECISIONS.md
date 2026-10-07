@@ -6493,3 +6493,131 @@ not given the slot: the report says Saurian types, and each added body needs its
 machine runs no Foundry to learn how V14 exposes it. See `docs/sonnet/2026-10-05-bug-reports.md`.
 
 Tests: 24 suites, 3,137 checks.
+
+
+## Quality pass, the body figure and his colour schemes (2026-10-07)
+
+Asked for: a quality and improvements pass -- computationally optimized, secure, well documented,
+easy for a human to add onto, with features suggested along the way; his Roll20 colour schemes
+(green, pink, grey...) as a quality-of-life setting; and, by preference, a body form on the sheet
+to click area by area for health, protections and buffs. Shipped as 0.23.0.
+
+### The body figure (`module/body-view.mjs`, `templates/actor/body-figure.hbs`)
+
+**Built as a pure view over `body.areas`, with no new numbers.** Both `_prepareBody` routines
+already derive everything an area can say -- Endurance, wounds, state, armour, shield, damage,
+material, layers -- so the module only decides WHERE an area is drawn and WHAT the panel says.
+
+**Two pictures, one code path, because his 45 charts do not fit one drawing.** The Humanoid
+family (Humanoid and its Wings/Tail/Hooves/Fish Tail variants, Saurian) gets a drawn silhouette:
+`HUMANOID_FIGURE` is a dictionary of area name to rounded rectangle in a 200 x 440 box, the
+nineteen human areas plus wings outside the arms, a tail below, hooves where feet go and a finned
+tail where the legs would be. Every other body gets a MAP: three columns, the being's left, its
+centre line, its right, one tile per area in chart order, the column read off the area name
+("Left Foreleg"). The rule for which: at least twelve areas known to the drawing AND two thirds
+of the chart -- a Centaur has exactly twelve human areas above a horse the drawing cannot show,
+and a Snake(Arms) is ten of twelve with its lengths unplaceable, so each test alone was wrong
+somewhere. A custom body built from a Humanoid keeps the picture, with its extras as tiles under
+it, so nothing is lost. All 45 charts are laid out in `tools/body-test.html` with every area
+accounted for.
+
+**The figure faces the viewer** (its left on your right, as on any anatomical chart) and the
+caption says so. **Wounds are changed by button in the panel, not by a second field**: the table
+already carries the input named `system.body.wounds.<area>`, and a second input of that name would
+make the form read the pair back as an array -- the trap the Segmented Worm's repeated names
+already taught. So −1 / +1 / Heal are actions (`adjustBodyWound`, `healBodyArea`), shared by both
+sheets. Which area is selected lives on the sheet instance like the martial panel's open state: it
+is layout, not a fact about the actor, so it survives the re-render every wound causes.
+
+**Buffs and debuffs are shown as the whole being's list, under their own heading.** His sheet
+keeps "Spell: Fly, Invoke: Chill" as one list on the character (`magic.effectList`) and nothing in
+his data ties an effect to an area. The panel shows what is running and says it is on the whole
+body -- rather than pretending a Fly belongs to the shin. Per-area effects, and wounds by type
+within an area, remain the schema question the dartboard row records.
+
+**Where the dartboard stands.** Still Backlog, and the figure is deliberately its first piece: the
+2026-09-16 design needs an aim point picked ON the target's own body, and a clickable area is
+that picker. What is still undesigned is the adjacency model (which area is High/Low/Left/Right
+of the aim, per chart) and the slash as a set of areas. Nothing of that was invented here.
+
+### His colour schemes (`PANEL_SCHEMES`, `module/sheet-theme.mjs`)
+
+His Roll20 "Color Scheme" select is seven schemes of three named CSS colours each (primary,
+secondary, tertiary -- `ImagineTabbedCharacterSheet.css` 3482-3552) alternated down the panels.
+**One dictionary, not seven CSS blocks**: `applyPanelScheme` writes the three tints onto the window
+root as the palette variables (`--imagine-paper` the pale tint, `--imagine-panel` and the row
+tints the middle one, `--imagine-head` and the hover the strong one), so the whole stylesheet
+follows and adding a scheme is one row. Fields are never tinted: an entered value is still told
+from a derived one, the reason the paper look exists. A client setting, "Panel colour scheme",
+his labels, his order. It applies with "Imagine paper" only -- under "Foundry standard" the sheets
+follow Foundry's own theme and these light tints would fight a dark one, so `applySheetTheme`
+takes the scheme off there. Verified off a rendered sheet (`?scheme=green` on the preview): page
+honeydew, headings palegreen, fields white.
+
+### The quality pass: what four read-only audits found, and what was done
+
+Four parallel audits over the data models and combat, the sheets and templates, the rules
+modules, and the entry/importer/packaging. Every finding acted on was first confirmed against the
+code. **Fixed now**, each with a comment at the site saying why:
+
+- **Poison on a weapon was never delivered by a hit.** `applyBlowToActor` redeclared its
+  parameter (`var tmpblow = resolveAreaDamage(...)`), so the `beforeReport` hook read the armour
+  result and never ran. Since ff0db70. Renamed `tmpblocked`.
+- **The Weapon Lore attack chart was derived and shown but never rolled on.** His code reads the
+  Lore chart whenever the weapon is lored (modWL/modML != 0, sheet-worker.js 64872-64895), with
+  one rule of its own: a Grandmaster's natural 1 is a miss, not a fumble. `resolveAttack` takes
+  `isLore`; the weapon and creature attacks pass `loreAttackSkill` when the lore's +2 applies.
+  A lored Warrior past his Lore attack title fought one chart too low on every swing.
+- **A creature's "Death", "Holy", "Aura", "Life" bite met no armour row** and the damage dialog
+  fell back to its first option, Cutting: a 30-point bite against armour 20 landed 20 instead of
+  10. `BLOCKING_TYPE_OF` (combat-tables) and `getBlockingDamageType`, used by every lookup.
+- **Apply Damage could be clicked twice while its dialog stood open** and double the wounds; the
+  same `Set` guard `spendAttackTime` already has.
+- **A creature with a blank body type found no weave slot**: `body.type` now carries the type the
+  areas were armoured as.
+- **"100 Pins" in the starting kit was a hundred items**: one row with a quantity for anything that
+  stacks (`itemStacks`, the shop's and the sheet's rule since 0.20.9), and his kit names looked up
+  by the shop's loose spelling as well, so "Cobbler's Tools" is found.
+- **A gem named with a slash ("Opal/Fire") was valued at nothing**: the value's slash is the last one.
+- **Names typed by a player went into dialog and chat HTML unescaped** on the character sheet
+  (delete, split, starting lore, coins, slot sacrifice), the generator, Level Up, the item picker
+  and the creature's power card. Escaped. A trait's description, typed as text, was shown as raw
+  HTML; now escaped with its line breaks kept. `system.json` declares `htmlFields` for every
+  item's description so the server cleans them too.
+- **Security guards**: the data fixes refuse anyone but the active Game Master; the first-launch
+  import and the data fixes run on the ACTIVE Game Master (two logged-in GMs were both asked and
+  could both build the packs); `contentImported` is written after the import runs through, not
+  before (a tab closed mid-import left half-built packs and the question never returned).
+  `getPoisonDetails` reads own properties only ("constructor" found Object).
+- **Performance**: the availability rules were five settings reads per actor per derive -- cached,
+  dropped by the switches' own onChange; the skill compendium index was fetched from the server on
+  EVERY character-sheet render, once per open sheet -- cached, dropped on `updateCompendium` and
+  after an import; the body chart was re-parsed per derive -- cached, copies handed out; three
+  hooks loaded a whole pack to find a few documents (`getPackDocumentsByName`, new
+  `module/pack-lookup.mjs`, index-filtered); the importer sent a thousand documents in one call and
+  the directory deleted seven thousand in one -- both in slices of 250; the item picker refetched
+  the lookup and re-rendered on every keystroke -- kept and debounced; the alignment window added
+  two listeners per render -- first render only; the shop normalised every offer's label per
+  keystroke -- once, at catalogue build; `canUseNonAcquired` built a Set per call -- takes one.
+- **Smaller**: `&mdash;` showed as six characters in the generator's physique line; a `?? 1` on
+  `parseInt` that never applied; `primaryTokenAttribute` so a new token draws the Shock bar.
+- **Docs**: `templates/README.md` still said the folder was empty; README, FIRST-RUN,
+  ADDING-CONTENT and DATA-MODEL carried counts and shapes from before the magic types existed
+  (nine packs, 4,384 documents, five tabs, overrides keyed by uuid, gems as arrays).
+
+**Deliberately not done here, written up for a cheaper window** (`docs/sonnet/2026-10-07-quality-pass.md`):
+the two actor sheets' duplicated plumbing (a shared base class, where the creature's delete dialog
+escapes and the character's did not until today); the Level Up window losing its picks on
+re-render; the 212 unscoped CSS rules; localisation (under 5% of UI text goes through `lang/`);
+the eight dice grammars; the parallel magic-kind lists; race rules keyed on race names; the
+character generator deriving five times per render; the tracker sort re-resolving clocks; the
+display-only class progression rebuilt per derive; the duplicated `_prepareBody`; stored movement
+fields the derive overwrites; packaging the release as a GitHub Release asset. Each is a pattern
+to extend, not a judgement to make.
+
+**Verified:** `node tools/run-tests.mjs` -- 26 suites, 3,237 checks, two new (`body-test` 57,
+`theme-test` 24) and regression checks in combat, wealth and equip. The figure, the click, the
+panel, the creature's map and the green scheme checked off rendered previews. **Not verified** in a
+running Foundry V14: `_onFirstRender`, `isActiveGM`, `htmlFields`, the `updateCompendium` hook's
+argument, `getDocuments({ _id__in })`, and the SVG rects taking `data-action` clicks and
+`data-tooltip` hovers -- each follows the V12+ API as documented.

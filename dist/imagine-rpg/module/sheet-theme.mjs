@@ -33,6 +33,80 @@ const THEME_CLASSES = {
 // Every class this module might add, so switching themes can take the other one's off again.
 const ALL_THEME_CLASSES = ["themed", "theme-light", "imagine-foundry"];
 
+// @MARKER PANEL COLOUR SCHEMES
+// His Roll20 sheet's "Color Scheme" select (HTML 57271-57279): seven schemes, each three tints that
+// alternate across the panels so a long tab reads in bands rather than as one field of text, and
+// "Standard" -- white, no scheme at all. Asked for here 2026-10-07 ("Michael had the ability to
+// change the theme of the sheets, green, pink, grey etc, to make reading the skills easier").
+// The three tints are his own named CSS colours, exactly as his stylesheet has them
+// (ImagineTabbedCharacterSheet.css 3482-3552): primary is the strong one, secondary the middle,
+// tertiary the pale ground. ONE DICTIONARY, NOT SEVEN CSS BLOCKS: applyPanelScheme writes these
+// onto the window as the palette variables (--imagine-paper and the rest, styles/imagine-rpg.css
+// @MARKER PALETTE), so adding a scheme is one row here and nothing in the stylesheet. A scheme
+// applies on top of "Imagine paper" only; under "Foundry standard" the sheets follow Foundry's own
+// theme and these light tints would fight a dark one.
+//  key       label (his words)             primary        secondary       tertiary
+export const PANEL_SCHEMES = {
+	none:   { label: "None (plain paper)",           primary: "",             secondary: "",              tertiary: "" },
+	gray:   { label: "Alternating gray panels",      primary: "darkgray",     secondary: "gainsboro",     tertiary: "whitesmoke" },
+	blue:   { label: "Alternating blue panels",      primary: "lightskyblue", secondary: "powderblue",    tertiary: "mintcream" },
+	green:  { label: "Alternating green panels",     primary: "palegreen",    secondary: "darkseagreen",  tertiary: "honeydew" },
+	red:    { label: "Alternating red panels",       primary: "salmon",       secondary: "lightsalmon",   tertiary: "linen" },
+	brown:  { label: "Alternating brown panels",     primary: "burlywood",    secondary: "antiquewhite",  tertiary: "cornsilk" },
+	pink:   { label: "Alternating pink panels",      primary: "hotpink",      secondary: "lightpink",     tertiary: "lavenderblush" },
+	purple: { label: "Alternating purple panels",    primary: "orchid",       secondary: "plum",          tertiary: "thistle" }
+};
+
+// Which palette variable each tint paints. His sheet alternates primary / secondary / tertiary
+// panels down the page; here the page itself is the pale tint, every panel and table row the
+// middle one, and headings and the row under the pointer the strong one -- the same three bands,
+// placed by the job each colour already has. Fields stay white (--imagine-field is not here) so
+// an entered value is still told from a derived one, the whole reason the paper look exists.
+//  palette variable         tint
+const SCHEME_VARIABLES = [
+	["--imagine-paper",       "tertiary"],
+	["--imagine-panel",       "secondary"],
+	["--imagine-row-alt",     "secondary"],
+	["--imagine-rule-soft",   "secondary"],
+	["--imagine-head",        "primary"],
+	["--imagine-row-hover",   "primary"]
+];
+
+// This is the function which gives the setting its choices, his labels, in his order.
+export function getPanelSchemeChoices() {
+	return Object.fromEntries(Object.entries(PANEL_SCHEMES).map(([tmpkey, tmprow]) => [tmpkey, tmprow.label]));
+}
+
+// This is the function which reads the scheme setting, "none" by default. Guarded as getSheetTheme is.
+export function getPanelScheme() {
+	try {
+		return game?.settings?.get("imagine-rpg", "panelScheme") ?? "none";
+	} catch (tmperror) {
+		return "none";
+	}
+}
+
+// This is the function which says what one scheme writes onto a window: { "--imagine-paper":
+// "honeydew", ... }, or null for "none" and for a name that is not a scheme -- in which case
+// nothing is painted and the paper look stands.
+export function getPanelSchemeVariables(tmpname) {
+	var tmprow = Object.hasOwn(PANEL_SCHEMES, tmpname) ? PANEL_SCHEMES[tmpname] : null;
+	if (!tmprow || !tmprow.tertiary) { return null; }
+	return Object.fromEntries(SCHEME_VARIABLES.map(([tmpvariable, tmptint]) => [tmpvariable, tmprow[tmptint]]));
+}
+
+// This is the function which paints one scheme onto one window, or takes every scheme off it
+// (tmpname "none", unknown, or omitted). Written as inline style properties on the window root,
+// which outrank the stylesheet's .imagine block and so re-point the palette for everything inside.
+export function applyPanelScheme(tmpelement, tmpname) {
+	if (!tmpelement?.style) { return; }
+	var tmpvariables = getPanelSchemeVariables(tmpname);
+	for (const [tmpvariable] of SCHEME_VARIABLES) {
+		if (tmpvariables) { tmpelement.style.setProperty(tmpvariable, tmpvariables[tmpvariable]); }
+		else { tmpelement.style.removeProperty(tmpvariable); }
+	}
+}
+
 // This is the function which reads the setting, defaulting to the paper look. Guarded because a
 // sheet can render before the settings are registered -- and during the preview harnesses, where
 // there is no `game` at all.
@@ -51,6 +125,8 @@ export function applySheetTheme(tmpelement) {
 	for (const tmpclass of ALL_THEME_CLASSES) {
 		tmpelement.classList.toggle(tmpclass, tmpwanted.includes(tmpclass));
 	}
+	// His colour scheme, on the paper look only; any other theme takes it off again.
+	applyPanelScheme(tmpelement, getSheetTheme() == "paper" ? getPanelScheme() : "none");
 	applyVersionBadge(tmpelement);
 }
 

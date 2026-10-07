@@ -1254,6 +1254,37 @@ check("...nothing in one hand, and nothing for a missile however held",
 		 R.getToHitModifiers({ ...base, twoHanded: false }).list.some(m => m.label === "Two Hands")], [false, false]);
 }
 
+// --- the quality pass of 2026-10-07 ----------------------------------------------------------------
+// The Weapon Lore chart (his modWL/modML branch, sheet-worker.js:64872-64895): a Grandmaster's
+// natural 1 on it is a miss and NOT a fumble; everyone else fumbles as before.
+{
+	const gm = R.resolveAttack({ skill: "Grandmaster", natural: 1, mods: 10, isLore: true });
+	check("Lore chart, Grandmaster natural 1: a miss, not a fumble", [gm.zone, gm.isFumble, gm.final, gm.isLore], ["Miss(Natural 1)", false, 1, true]);
+	const master = R.resolveAttack({ skill: "Master", natural: 1, mods: 10, isLore: true });
+	check("Lore chart, a Master's natural 1 still fumbles", [master.zone, master.isFumble], ["Fumble", true]);
+	const plain = R.resolveAttack({ skill: "Grandmaster", natural: 1, mods: 10 });
+	check("ordinary chart, a Grandmaster's natural 1 still fumbles", [plain.zone, plain.isFumble, plain.isLore], ["Fumble", true, false]);
+	check("Lore chart, a Grandmaster's 2 hits as before", R.resolveAttack({ skill: "Grandmaster", natural: 2, isLore: true }).zone, "Hit(Low)");
+}
+// A creature's damage-type spellings reach the armour tables' rows.
+check("'Death' blocks as Life/Death", R.getBlockingDamageType("Death"), "Life/Death");
+check("'Holy' blocks as Aura/Divine", R.getBlockingDamageType("Holy"), "Aura/Divine");
+check("a spelling the tables know is itself", R.getBlockingDamageType("Cutting"), "Cutting");
+check("an unknown spelling is itself (and the tables' Other row catches it)", R.getBlockingDamageType("Tickling"), "Tickling");
+check("a prototype name is not read off the map", R.getBlockingDamageType("constructor"), "constructor");
+check("a 30-point Death bite against armour 20 lands as Other does, 10, not as Cutting, 20",
+	[R.blockDamage(30, "Death", 20, false), R.blockDamage(30, "Other", 20, false), R.blockDamage(30, "Cutting", 20, false)], [10, 10, 20]);
+check("Enduring Life/Death endures a Death blow", R.isEndured("Death", ["Cloak [Enduring Life/Death]"]), true);
+// The body chart is cached, and every caller gets its own copy.
+{
+	const first = R.getBodyChart("Humanoid");
+	first[0].name = "Bent";
+	first[0].wounds = 99;
+	const second = R.getBodyChart("Humanoid");
+	check("getBodyChart hands out a fresh copy each time", [second[0].name, "wounds" in second[0]], ["Head", false]);
+	check("...and an unknown body type is the Humanoid chart", R.getBodyChart("Nonesuch").length, 19);
+}
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 document.getElementById("out").innerHTML =
 	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")

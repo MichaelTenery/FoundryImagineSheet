@@ -23,6 +23,7 @@
 // as results. That keeps this side testable and the randomness in one place.
 //==================================================================================================================
 
+import { getPackDocumentsByName } from "./pack-lookup.mjs";
 import { planExperienceGain, getArchMortalGains } from "./advancement-rules.mjs";
 import { grantClassSkills, GRANT_HANDLED } from "./class-advancement.mjs";
 
@@ -325,13 +326,8 @@ import { grantClassSkills, GRANT_HANDLED } from "./class-advancement.mjs";
 		// The compendium copy where there is one, so the skill carries its own description,
 		// sourcebook and type rather than a stub. Its attributes are "Special" in his skilldict
 		// -- this skill has no attribute base at all -- so the ability IS the whole chance.
-		var tmpdoc = null;
-		var tmppack = game.packs.get("world.imagine-skills");
-		if (tmppack) {
-			var tmpindex = (await tmppack.getDocuments())
-				.find(tmpcandidate => tmpcandidate.name == "Sense Supernatural");
-			tmpdoc = tmpindex ? tmpindex.toObject() : null;
-		}
+		// One document by name, not the whole pack (getPackDocumentsByName).
+		var tmpdoc = (await getPackDocumentsByName("world.imagine-skills", ["Sense Supernatural"]))[0] ?? null;
 
 		await tmpactor.createEmbeddedDocuments("Item", [{
 			name: "Sense Supernatural",

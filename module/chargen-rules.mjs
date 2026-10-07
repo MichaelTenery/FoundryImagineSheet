@@ -21,6 +21,7 @@
 
 import { buildStartingKit } from "./starting-kit.mjs";
 import { chooseBestArmor } from "./equip-rules.mjs";
+import { itemStacks, normalizeItemName } from "./shop-rules.mjs";
 import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapons.mjs";
 import { rollStartingEndurance, needsStartingEnduranceRoll } from "./race-rules.mjs";
 import { buildSkillModContext, getSocialSkillRaceMod, getExtraSocialMods, getExtraClassRacialMods,
@@ -599,16 +600,32 @@ import { getEveryClassSkill, isClassSkillForCharacter } from "./class-rules.mjs"
 			for (const tmpIssue of tmpKit.issues) { tmpIssues.push(tmpIssue); }
 
 			var tmpMissing = [];
+			// His kit names are looked up exactly first, then by the shop's own loose spelling
+			// (normalizeItemName), which is how "Cobbler's Tools" and a cage's measurements are found.
+			var tmpLoose = (tmpDocs, tmpName) => {
+				var tmpWant = normalizeItemName(tmpName);
+				return (tmpDocs ?? []).find(tmpDoc => normalizeItemName(tmpDoc.name) == tmpWant) ?? null;
+			};
 			for (const tmpEntry of tmpKit.items) {
 				var tmpGear = tmpByName(tmpContent.equipment, tmpEntry.name)
 					?? tmpByName(tmpContent.armor, tmpEntry.name)
-					?? tmpByName(tmpContent.weapons, tmpEntry.name);
-				for (var tmpCopy = 0; tmpCopy < tmpEntry.count; tmpCopy += 1) {
+					?? tmpByName(tmpContent.weapons, tmpEntry.name)
+					?? tmpLoose(tmpContent.equipment, tmpEntry.name)
+					?? tmpLoose(tmpContent.armor, tmpEntry.name)
+					?? tmpLoose(tmpContent.weapons, tmpEntry.name);
+				// ONE ROW with a quantity for anything that stacks -- general equipment and ammunition,
+				// the shop's and the sheet's own rule (itemStacks; bug report 0.20.9) -- and a row per copy
+				// for armour and weapons, each of which has a hand or a layer of its own. "100 Pins" used
+				// to be a hundred items (quality pass 2026-10-07).
+				var tmpStacks = tmpGear ? itemStacks(tmpGear.type, tmpGear.name, tmpGear.system) : true;
+				var tmpCopies = tmpStacks ? 1 : tmpEntry.count;
+				var tmpQuantity = tmpStacks ? tmpEntry.count : undefined;
+				for (var tmpCopy = 0; tmpCopy < tmpCopies; tmpCopy += 1) {
 					if (tmpGear) {
-						tmpItems.push(tmpItem(tmpGear, { location: "carried" }));
+						tmpItems.push(tmpItem(tmpGear, tmpQuantity ? { location: "carried", quantity: tmpQuantity } : { location: "carried" }));
 					} else {
 						tmpItems.push({ name: tmpEntry.name, type: "equipment", img: "",
-							system: { location: "carried", description:
+							system: { location: "carried", quantity: tmpQuantity ?? 1, description:
 								"From the starting kit. This name is not in his equipment tables." } });
 					}
 				}

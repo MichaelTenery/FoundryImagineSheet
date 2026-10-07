@@ -1,8 +1,8 @@
 Imagine RPG system build
-version   0.22.1
-built     2026-10-05
-commit    77dbb5c
-files     151
+version   0.23.0
+built     2026-10-07
+commit    581e842
+files     154
 documents 7004 (abilities 1154, armor 742, classes 103, consumables 515, disabilities 249, equipment 637, immunities 149, invocations 460, lore 961, races 120, skills 675, spells 550, weapons 689)
 
 Rebuild with:  python tools/build_system.py

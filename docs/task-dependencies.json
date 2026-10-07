@@ -496,6 +496,24 @@
         "Bug reports 0.20.1-10 (2026-09-30)"
       ],
       "note": "Done 2026-10-05, shipped as 0.22.1. See DECISIONS 2026-10-05."
+    },
+    "Body figure: the body drawn": {
+      "dependsOn": [
+        "Remaining tabs"
+      ],
+      "note": "Done 2026-10-07. The first piece of the dartboard row (its aim-point picker)."
+    },
+    "Panel colour schemes": {
+      "dependsOn": [
+        "Remaining tabs"
+      ],
+      "note": "Done 2026-10-07. His seven Roll20 schemes on the paper look."
+    },
+    "Quality pass 2026-10-07": {
+      "dependsOn": [
+        "His reports of 2026-10-04 and 10-05"
+      ],
+      "note": "Done 2026-10-07. Leftovers in docs/sonnet/2026-10-07-quality-pass.md."
     }
   }
 }
