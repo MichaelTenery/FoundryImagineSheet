@@ -920,10 +920,11 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 	// This is the function which returns the highest attribute rating a creature may reach.
 	// Ported from handleCreatureFinish (sheet-worker.js:174723).
 	//
-	// Note this is NOT the character rule. A character's cap comes from its title in four tiers;
-	// a creature's comes from its level in three, and the numbers differ (28 has no character
-	// equivalent). The difference is recorded in UPSTREAM-ISSUES.md item 8 as a question for him,
-	// but it is his code, so it is what the port does.
+	// Note this is NOT the character rule. A character's ordinary cap is the race's limit until title
+	// 11 and 25 after (getAttributeMax), with a magical maximum of 23, 25 or 27 by title
+	// (getMagicalAttributeMax); a creature's comes from its level in three tiers, 25, 28 and 30, and
+	// the numbers differ (28 has no character equivalent). The difference is recorded in
+	// UPSTREAM-ISSUES.md item 8 as a question for him, but it is his code, so it is what the port does.
 	static getCreatureAttributeCap(tmpLevel) {
 		var tmpLevelValue = parseInt(tmpLevel) || 0;
 		if (tmpLevelValue < 10) { return 25; }

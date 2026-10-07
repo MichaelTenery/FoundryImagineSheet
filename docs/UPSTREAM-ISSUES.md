@@ -28,6 +28,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 - **Item 37 is withdrawn**: our extractor missed fall-through `case` lines; his code does give those four races a height.
 - **Items 40 and 68** were answered by Daryl on 2026-09-25, replacing the user's ruling of 2026-09-23, and the port now follows that.
 - **Item 115** is partly answered (his bug report 0.22.5:2) and the port builds both bonuses.
+- **Seven code comments** that contradicted the code (items 8, 24 twice, 40, 68, 86, 115) were corrected the same day; comments only.
 - **Items 24 and 25** were out of order in the file and are sorted now; the Elemental Dancer template note that had landed at the end of item 24 is marked as belonging to items 22 and 26.
 - **Overlaps** (related, not duplicates): 13/75, 27/44, 40/67/68, 52/60, 17/18, 22/26, 24/47, 32/36, 39/100, 42/99, 83/84, 90/91/93/97.
 
@@ -271,7 +272,7 @@ Found while porting combat. In each case the Foundry port implements what the co
 
 `handleCreatureFinish` (sheet-worker.js:174723-174753) sets every attribute maximum, and every magical maximum, to 25, 28 or 30 by `creature_level` (under 10 / under 15 / otherwise). His Character path works differently: maximums start at the race's limits (`str_tmp_limit` etc., line 8099) and `setArchMortalAttributesMax` lifts them all to 27 at title 11 (line 27549). The two may simply be separate scales, since a creature's level is not a character's title, but nothing in the code says so and the numbers do not line up (28 has no Character equivalent). Worth asking whether creature levels 10 and 15 are meant to correspond to any title.
 
-**Update 2026-10-07:** The port's comment at `actor-creature.mjs:923` says the character cap is "four tiers"; it is 25 or 27 plus the race limit.
+**Update 2026-10-07:** The port's comment at `actor-creature.mjs:923` said the character cap is "four tiers"; it is 25 or 27 plus the race limit. Comment corrected 2026-10-07.
 
 ## 9. Five insect body charts write a torso multiplier without its "x"
 
@@ -864,7 +865,7 @@ is plausible.
 type ("This class has the focus of illusions and uses these skills to dazzle and confuse their
 foes..."). That has the look of the same kind of column slip as item 1, in a different row.
 
-**Update 2026-10-07:** The repair was made on book evidence (Legends pp.27-28), not on his word: `RACE_VALUE_REPAIRS` (`column_maps.py:359-369`) moves the -10 to `diseaseResistMod` on every build, and a runtime guard ignores a speed multiplier of 0 or less. So "we have not acted on that reading" and "it ignores a negative speed multiplier" are overtaken. Stale port comments: `combat-rules.mjs:2294-2296` and `:2382`. The Elemental Dancer template note at the end of this section is misfiled and belongs to item 22; the Beguiler note is item 27.
+**Update 2026-10-07:** The repair was made on book evidence (Legends pp.27-28), not on his word: `RACE_VALUE_REPAIRS` (`column_maps.py:359-369`) moves the -10 to `diseaseResistMod` on every build, and a runtime guard ignores a speed multiplier of 0 or less. So "we have not acted on that reading" and "it ignores a negative speed multiplier" are overtaken. Two stale port comments (`combat-rules.mjs`, the movement floor) were corrected 2026-10-07. The Elemental Dancer template note at the end of this section is misfiled and belongs to item 22; the Beguiler note is item 27.
 
 ---
 
@@ -1448,7 +1449,7 @@ the same function.
 of the rule was transcribed into the notes but not implemented — the multiplier table is
 unambiguous and this one line decides who it applies to.
 
-**Update 2026-10-07:** Stale: "still open with you". Starting Fortune now leaves out the class and race modifiers (item 68), which also makes the `+5% Fortune` concern moot. The comment at `starting-money.mjs:119` still says "still open with him".
+**Update 2026-10-07:** Stale: "still open with you". Starting Fortune now leaves out the class and race modifiers (item 68), which also makes the `+5% Fortune` concern moot. The comment at `starting-money.mjs:119` said "still open with him"; corrected 2026-10-07.
 
 ## 41. A Dark Fairy has no Iron Aversion and no Night Vision in `raceFeatureAbilities`
 
@@ -2255,7 +2256,7 @@ Also worth knowing: on your sheet the money is rolled when the racial features a
 the field name were right. The port rolls on its Equipment step (its Details step until 2026-09-23),
 after the class, for that reason.
 
-**Update 2026-10-07:** Stale: "what the port does: rolls against that whole Fortune, by the user's ruling of 2026-09-23". It now uses the average of Aura, Piety and Will Force only -- no race modifier, no `+5% Fortune`, no first-title +1 -- per the 2026-09-25 ruling (`starting-money.mjs:104-110`). The header comment at `starting-money.mjs:19-23` still lists this item among the departures from his code and is stale.
+**Update 2026-10-07:** Stale: "what the port does: rolls against that whole Fortune, by the user's ruling of 2026-09-23". It now uses the average of Aura, Piety and Will Force only -- no race modifier, no `+5% Fortune`, no first-title +1 -- per the 2026-09-25 ruling (`starting-money.mjs:104-110`). The header comment at `starting-money.mjs:19-23` listed this item among the departures from his code; corrected 2026-10-07.
 
 ## 69. The Segmented Worm's body chart names Left and Right Foot12 twice
 
@@ -2551,7 +2552,7 @@ bonus on a racial skill. On a class skill it is CORE 30, or 0 (63786).
 Two more are harmless: Avian(Forest) is listed twice under Falconry (55569), and the `templist` typo
 at 55712 is only reachable with an empty name.
 
-**Update 2026-10-07:** Stale: the port no longer reads "Botany or Botanist +10%". His bug report 0.20.5 (2026-09-30), "Botanist is Botany", answered the question: it is one skill, and Botanist was renamed out (`RENAMED_SKILLS`, `extract_social_skill_tables.py`). The comment at `social-skill-rules.mjs:62-64` still describes the old pairing.
+**Update 2026-10-07:** Stale: the port no longer reads "Botany or Botanist +10%". His bug report 0.20.5 (2026-09-30), "Botanist is Botany", answered the question: it is one skill, and Botanist was renamed out (`RENAMED_SKILLS`, `extract_social_skill_tables.py`). The comment at `social-skill-rules.mjs:62-64` described the old pairing; corrected 2026-10-07.
 
 ## 87. Only the first race's social-skill modifiers and BLOCKs count for a Half Race
 
@@ -3005,7 +3006,7 @@ Two questions:
 > hands (`getToHitModifiers`, label "Two Hands"). Left open: is it in ADDITION to the +2 damage and
 > doubled Strength (as built), and is the book's -2 speed wanted?
 
-**Update 2026-10-07:** The first question below ("is +2 to hit what you meant... it would be new") is overtaken: bug report 0.22.5:2 (2026-10-05) restates it, and the port builds both +2 to hit (melee, `combat-rules.mjs:453-458`) and +2 damage (`:886-889`). Still open with him: whether the two are meant to stack, and the book's -2 weapon speed, which is in neither his sheet nor the port. The comment at `combat-rules.mjs:882-885` still says to-hit is not built.
+**Update 2026-10-07:** The first question below ("is +2 to hit what you meant... it would be new") is overtaken: bug report 0.22.5:2 (2026-10-05) restates it, and the port builds both +2 to hit (melee, `combat-rules.mjs:453-458`) and +2 damage (`:886-889`). Still open with him: whether the two are meant to stack, and the book's -2 weapon speed, which is in neither his sheet nor the port. The comment at `combat-rules.mjs:882-885` said to-hit was not built; corrected 2026-10-07.
 
 ## 116. Full Shirt and Long Shirt: Leather and Padding rows look swapped
 

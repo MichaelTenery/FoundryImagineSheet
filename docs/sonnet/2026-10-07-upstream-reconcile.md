@@ -18,7 +18,7 @@ repository document counts as his answer; Daryl's answers are Daryl's.
    extractor's output: it will gain Winged/Wingless keys for Fairy, Podling and Sporeling), run
    `physique`-related suites, and drop the "substitution" report. NB: the script ignores `--help`
    and regenerates its output.
-3. **Six code comments that now contradict the code.** Correct each to match: `combat-rules.mjs:882-885`
+3. **DONE 2026-10-07 (by the same session).** Six code comments (seven edits) that contradicted the code, corrected, comments only; kept for the record of what each said: `combat-rules.mjs:882-885`
    (says +2 to hit is not built; it is, at 453-458); `starting-money.mjs:19-23` (lists item 68 among
    departures from his code; it now follows it) and `:119` (says item 40 is "still open with him";
    Daryl answered it); `social-skill-rules.mjs:62-64` (a "Botany|Botanist" pairing that no longer

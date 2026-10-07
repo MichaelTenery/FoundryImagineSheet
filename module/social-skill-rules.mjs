@@ -60,8 +60,9 @@ import { SOCIAL_SKILL_RACE_MODS, SOCIAL_FROM_SOCIAL_BONUS, SOCIAL_TO_RACE_CLASS_
 
 	// @MARKER NAMES
 	// This is the function which says whether a name out of the tables matches a skill. A table name
-	// may answer to more than one skill, written "A|B" -- "Botany|Botanist", which are one skill under
-	// two names, and "Set Trap|Set Trap(w)|Set Trap(u)", which players only ever hold as a variant.
+	// may answer to more than one skill, written "A|B|C" -- "Set Trap|Set Trap(w)|Set Trap(u)", which
+	// players only ever hold as a variant. (His "Botany|Botanist" pairing is gone from the tables:
+	// Botanist is Botany, his bug report 0.20.5, and the build renames it out.)
 	export function matchesSkillName(tmpTableName, tmpSkillName) {
 		if (!tmpTableName || !tmpSkillName) { return false; }
 		return ("" + tmpTableName).split("|").includes("" + tmpSkillName);

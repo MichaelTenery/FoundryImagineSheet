@@ -16,11 +16,15 @@
 //     4 the coins                a switch on social class 5 to 20                      74197
 //
 // The Player's Guide has the same rule and the same two tables ("Starting Money", "Starting Fortune"
-// and "Money Multiplier Random Table", p.207). Three places where his code and the book part company,
+// and "Money Multiplier Random Table", p.207). Two places where his code and the book part company,
 // each settled by the user's ruling of 2026-09-23 and recorded in docs/DECISIONS.md:
 //     - the Fortune check reads the wrong way round in his code          UPSTREAM-ISSUES.md item 40
+//       (confirmed by Daryl, 2026-09-25: made at or under Fortune)
 //     - Nobles lose the book's x5 and x10: "tempcoins*5;" assigns nothing  UPSTREAM-ISSUES.md item 67
-//     - the Fortune it rolls against leaves out the race and the class   UPSTREAM-ISSUES.md item 68
+// And one where the port now FOLLOWS his code: the Fortune it rolls against is the bare average of
+// Aura, Piety and Will Force, leaving out the race and the class, as his setCoins does. The user's
+// ruling of 2026-09-23 ("the whole Fortune") was replaced on 2026-09-25 on Daryl's say-so;
+// UPSTREAM-ISSUES.md item 68.
 //==================================================================================================================
 
 import { rollDicePool } from "./chargen-rules.mjs";
@@ -116,10 +120,11 @@ import { getApparentSocialClass } from "./starting-kit.mjs";
 	// character's Fortune. Every other percentile roll in his sheet is made AT OR UNDER the chance, and
 	// as written a character with Fortune 10 multiplies their money nine times in ten while one with
 	// Fortune 90 manages it once, and "+5% Fortune" makes the roll harder. UPSTREAM-ISSUES.md item 40,
-	// still open with him.
+	// answered by Daryl on 2026-09-25; the developer himself has not been asked.
 	//
-	// The user's ruling of 2026-09-23 is that it is a slip: at or under, like the rest. Both readings
-	// are written out, so that if he answers the other way it is this one line and nothing else.
+	// The user's ruling of 2026-09-23, which Daryl confirmed, is that it is a slip: at or under, like
+	// the rest. Both readings are written out, so that if he answers the other way it is this one line
+	// and nothing else.
 	export function checkStartingFortune(tmpFortune, tmpPercent) {
 		var tmpChance = parseInt(tmpFortune) || 0;
 		var tmpRoll = parseInt(tmpPercent) || 0;

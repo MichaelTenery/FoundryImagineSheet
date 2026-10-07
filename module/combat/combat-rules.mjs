@@ -879,10 +879,13 @@ export const MODE_DAMAGE_TYPES = {
 	// Weapon with Two Hands"): "x2 Strength damage modifier, +2 damage, -2 weapon speed". The x2 is
 	// getStrengthDamageMod above; this is the +2. Melee only, as his test is (thrust, cut or smash).
 	//
-	// Bug report 0.20.10:1 (Blocker) asked for "+2 to hit" -- neither his code nor the book has a
-	// to-hit bonus for two hands, and what both have is this +2 damage, which the port had not
-	// applied. Put to him as UPSTREAM-ISSUES item 115. The book's -2 speed is not in his sheet
-	// either, and is in the same item rather than built here (the sheet outranks the book).
+	// Bug report 0.20.10:1 (Blocker) asked for "+2 to hit". Neither his code nor the book has a
+	// to-hit bonus for two hands -- both have this +2 damage, which the port had not applied, so 0.22.0
+	// shipped the damage. He asked again (0.22.5:2, 2026-10-05), his statement is the newest source, and
+	// 0.22.1 built the +2 to hit as well: getToHitModifiers takes twoHanded and lists "Two Hands +2",
+	// melee only. Whether the two are meant to stack is still open with him, UPSTREAM-ISSUES item 115.
+	// The book's -2 speed is in neither his sheet nor the port, and is in the same item rather than
+	// built here (the sheet outranks the book).
 	export function getTwoHandedDamageBonus(tmpmode, tmptwohanded) {
 		if (!tmptwohanded || !MELEE_MODES.includes(tmpmode)) { return 0; }
 		return 2;
@@ -2291,9 +2294,12 @@ export const MODE_DAMAGE_TYPES = {
 	// (10 seconds) or 1 foot (1 second)". Only a rate below zero is lifted -- a rate that lands on
 	// zero honestly, as Agility 0-1 does, stays zero, which is what his sheet shows.
 	//
-	// HIS SHEET DOES NOT IMPLEMENT THAT RULE. Elf(Sea) and Elf(Ice) carry a -10 speed multiplier,
-	// and his sheet multiplies straight through it and hands them large negative distances. The
-	// book's floor is applied here rather than reproducing that. See docs/UPSTREAM-ISSUES.md.
+	// HIS SHEET HAS NO SUCH FLOOR, so a rate pushed below zero is lifted here as the book says. It is
+	// no longer what Elf(Sea) and Elf(Ice) land on: their -10 "speed multiplier" is a disease
+	// resistance entered one column to the right, and the build moves it back (RACE_VALUE_REPAIRS,
+	// tools/extract/column_maps.py; UPSTREAM-ISSUES item 24). A multiplier of zero or less is also read
+	// as "none" below, so a stray one cannot reverse a rate. The floor stays for what really reaches
+	// it: a Civilized Dwarf at Agility 5 goes under it on walking modifiers alone.
 	export function resolveMovementRate(tmpbase, tmpracemod, tmpmultiplier, tmpfloor) {
 		var tmpmulti = parseFloat(tmpmultiplier) || 0;
 		if (tmpmulti <= 0) { tmpmulti = 1; }
@@ -2379,8 +2385,9 @@ export const MODE_DAMAGE_TYPES = {
 		if (tmpspeed <= 0) { tmpspeed = 1; }   // 0 is his "none"; negative is incoherent, see above
 		if (!tmpshape.usesSpeedMultiplier || tmpbasename == "int") { tmpspeed = 1; }
 
-		// The same floor the ordinary rates take: a race carrying a negative speed multiplier drags
-		// its special rate negative too, so Elf(Sea) would otherwise swim at -150 miles an hour.
+		// The same floor the ordinary rates take, for a special rate that modifiers drag below zero. A
+		// negative speed multiplier no longer can (it is read as none, above); before the Elf(Sea)
+		// and Elf(Ice) -10 was repaired as a disease resistance, it swam them at -150 miles an hour.
 		var tmpfloors = { hourly: 1, tenSec: 10, oneSec: 1 };
 
 		for (const tmpscale of ["hourly", "tenSec", "oneSec"]) {
