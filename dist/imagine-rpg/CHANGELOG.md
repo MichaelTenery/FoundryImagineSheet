@@ -18,6 +18,13 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.24.2 — 2026-10-07
+
+**No +2 to hit for two hands, after all.** His bug retraction 0.22.1:5: "there is not in fact a bonus
+to hit when using 2 hands, only damage". The "Two Hands +2" that 0.22.1 added to the attack roll is
+gone; the +2 damage and the doubled Strength bonus stay, as his sheet and the Player's Guide's Rule
+of 2 always had it. Nothing else changes.
+
 ## 0.24.1 — 2026-10-07
 
 **A spell's cap now applies.** His `divideWithMinAndMax` was written with an arrow where an assignment

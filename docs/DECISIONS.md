@@ -6764,3 +6764,18 @@ would have hidden a live defect, so it was fixed instead: a second `CORRECTIONS`
 
 **Verified:** 27 suites, all passing; the regenerated worker parses and its 106 casting checks pass.
 Not verified: the spell itself in a running Foundry, where Diffuse Soma's cap would show.
+
+## Two hands: the to-hit bonus retracted (2026-10-07, after the release)
+
+Bug retraction 0.22.1:5, filed by him the same evening: *"Further review indicates that there is not
+in fact a bonus to hit when using 2 hands, only damage and so this is not a bug and should not be
+implemented."* The `Two Hands +2` that 0.22.1 added to `getToHitModifiers` on his second asking is
+removed, with its `twoHanded` input and its test; `getTwoHandedDamageBonus` (+2 damage) and the
+doubled Strength bonus stay. Shipped as 0.24.2.
+
+Worth a line because of what it says about the sources: his sheet and the book agreed, the port had
+followed them, and the port was then changed on his say-so against both. The rule in CLAUDE.md puts
+his newest statement first, and that was the right call to make -- but when a newest statement
+contradicts both his code and his book, it is worth saying so plainly when the change ships, so a
+retraction like this one finds everything it needs to undo in one place. UPSTREAM 115 keeps only the
+book's -2 weapon speed open.

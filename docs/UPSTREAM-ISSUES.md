@@ -1036,7 +1036,7 @@ Four `break;` statements would settle it.
 
 ## 115. Two hands: "+2 to hit" in bug report 0.20.10, +2 damage in your code and the book
 
-**Status:** answered in part 2026-10-05 (bug report 0.22.5:2 restates +2 to hit); the stacking and the -2 speed are still open · **Port:** Worked around · **Severity:** minor
+**Status:** to-hit retracted by him 2026-10-07 (bug retraction 0.22.1:5); only the -2 speed is still open · **Port:** Worked around · **Severity:** minor
 
 Bug report 0.20.10:1 (2026-09-30) says a quarterstaff marked 2H should get "+2 to hit", and that
 the port does not apply it. Neither your sheet nor the Player's Guide has a to-hit bonus for two
@@ -1061,6 +1061,8 @@ Two questions:
 > doubled Strength (as built), and is the book's -2 speed wanted?
 
 **Update 2026-10-07:** The first question below ("is +2 to hit what you meant... it would be new") is overtaken: bug report 0.22.5:2 (2026-10-05) restates it, and the port builds both +2 to hit (melee, `combat-rules.mjs:453-458`) and +2 damage (`:886-889`). Still open with him: whether the two are meant to stack, and the book's -2 weapon speed, which is in neither his sheet nor the port. The comment at `combat-rules.mjs:882-885` said to-hit was not built; corrected 2026-10-07.
+
+**Retracted 2026-10-07, later (bug retraction 0.22.1:5):** *"Further review indicates that there is not in fact a bonus to hit when using 2 hands, only damage and so this is not a bug and should not be implemented."* The +2 to hit of 0.22.1 is taken out in 0.24.2; the +2 damage stays. The first question is closed his way -- the sheet and the book had it right. **Still open:** only the book's -2 weapon speed.
 
 ## 116. Full Shirt and Long Shirt: Leather and Padding rows look swapped
 

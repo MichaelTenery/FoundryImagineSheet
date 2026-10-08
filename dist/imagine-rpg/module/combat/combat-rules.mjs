@@ -450,12 +450,10 @@ export const MODE_DAMAGE_TYPES = {
 		var tmpoffhand = parseInt(tmpinput.offhand) || 0;
 		if (tmpoffhand) { tmplist.push({ label: "Off Hand", value: tmpoffhand }); }
 
-		// Two hands on a melee weapon: +2 to hit. Bug report 0.22.5:2 (Blocker, 2026-10-05), his
-		// second asking after 0.20.10:1 -- "Make sure the +2 to hit roll when 2H is selected is
-		// applied." Neither his sheet nor the Player's Guide's Rule of 2 has it (they give +2
-		// DAMAGE, getTwoHandedDamageBonus), but it is his newest statement, so it is built as he
-		// states it; melee modes only, as the damage bonus is.
-		if (tmpinput.twoHanded && MELEE_MODES.includes(tmpmode)) { tmplist.push({ label: "Two Hands", value: 2 }); }
+		// Two hands give NO to-hit bonus. 0.22.1 listed "Two Hands +2" here on his bug report 0.22.5:2;
+		// he retracted it on 2026-10-07 ("there is not in fact a bonus to hit when using 2 hands, only
+		// damage"), which is what his sheet and the book's Rule of 2 said all along. The +2 is damage:
+		// getTwoHandedDamageBonus.
 
 		// Firing more than one missile at a time, already bought down by whichever of the two
 		// multi-missile skills applies. Passed in for the same reason lore and the off hand are.
@@ -879,13 +877,12 @@ export const MODE_DAMAGE_TYPES = {
 	// Weapon with Two Hands"): "x2 Strength damage modifier, +2 damage, -2 weapon speed". The x2 is
 	// getStrengthDamageMod above; this is the +2. Melee only, as his test is (thrust, cut or smash).
 	//
-	// Bug report 0.20.10:1 (Blocker) asked for "+2 to hit". Neither his code nor the book has a
+	// Bug reports 0.20.10:1 and 0.22.5:2 asked for "+2 to hit". Neither his code nor the book has a
 	// to-hit bonus for two hands -- both have this +2 damage, which the port had not applied, so 0.22.0
-	// shipped the damage. He asked again (0.22.5:2, 2026-10-05), his statement is the newest source, and
-	// 0.22.1 built the +2 to hit as well: getToHitModifiers takes twoHanded and lists "Two Hands +2",
-	// melee only. Whether the two are meant to stack is still open with him, UPSTREAM-ISSUES item 115.
-	// The book's -2 speed is in neither his sheet nor the port, and is in the same item rather than
-	// built here (the sheet outranks the book).
+	// shipped the damage; 0.22.1 built a to-hit bonus as well on his word, and he retracted it on
+	// 2026-10-07 (bug retraction 0.22.1:5: "only damage"), so 0.24.2 took it out again. The book's
+	// -2 speed is in neither his sheet nor the port, and is UPSTREAM-ISSUES item 115 rather than built
+	// here (the sheet outranks the book).
 	export function getTwoHandedDamageBonus(tmpmode, tmptwohanded) {
 		if (!tmptwohanded || !MELEE_MODES.includes(tmpmode)) { return 0; }
 		return 2;

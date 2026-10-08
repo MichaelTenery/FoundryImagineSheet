@@ -299,7 +299,6 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		situational: tmpoptions.situational,
 		lore: tmplore.attack,
 		offhand: tmpoffhand.melee,
-		twoHanded: tmpw.hand == "both",
 		multiMissile: tmpmissiles.attack
 	});
 	// The martial entries go onto the same list, labelled as his card labels them ("Stance",

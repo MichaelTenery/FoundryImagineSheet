@@ -1,8 +1,8 @@
 # 2026-10-05 — His 0.22 reports: what's left for a cheaper window
 
 Already decided. See DECISIONS 2026-10-05; don't re-open these. In particular: "Any" objects to
-nothing and a plain alignment word matches any of its Active/Passive forms; two hands is +2 to hit AND
-+2 damage (his word, UPSTREAM 115 still open); tail coverings are Saurian-only and the other
+nothing and a plain alignment word matches any of its Active/Passive forms; two hands is +2 DAMAGE only -- the
++2 to hit was retracted by him 2026-10-07 and is out again (UPSTREAM 115 keeps only the -2 speed); tail coverings are Saurian-only and the other
 Humanoid(Tail) races are not given the slot.
 
 1. **0.22.6, rolls vanish from the screen too quickly (not built).** The pop-up is Foundry's chat
