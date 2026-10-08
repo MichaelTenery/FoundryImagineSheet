@@ -209,7 +209,8 @@ check("the window shows the coating with its wipe-off button",
 const cardSource = await (await fetch("../templates/chat/attack-card.hbs", { cache: "no-store" })).text();
 document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({
 	actorName: "Calanar", weapon: "Long Sword", weaponDisplay: "Long Sword of the North", modeLabel: "Cut",
-	result: { natural: 19, final: 24, skill: "Expert", zone: "Hit(Center)", isHit: true },
+	result: { natural: 19, final: 24, skill: "Expert", zone: "Hit(High)", isHit: true },
+	aim: "Upper Torso", landing: { area: "Neck", how: "adjacent", text: "High of the Upper Torso, where it was aimed, lies the Neck." },
 	mods: { list: [{ label: "Magic", value: 2 }, { label: "Blessed", value: 1 }] },
 	damage: { total: 38, type: "Cutting", dice: "1d8", magic: 2, runeDice: "2d6+2", custom: 1, special: 9, specialDoubles: true,
 	          rolled: 19, multiplier: 2, shots: 1 },
@@ -219,6 +220,8 @@ check("the attack card shows the rune, the weapon's own damage, the magical extr
 	["Long Sword of the North", "+2d6+2 rune", "+1 weapon", "+9 magical", "doubled by the natural roll", "magical Flame damage"]
 		.map(t => document.getElementById("card").textContent.includes(t)), [true, true, true, true, true, true]);
 check("...and the poison on the blade", document.getElementById("card").textContent.includes("Poisoned: Type: IV, Potency: C"), true);
+check("...and where it lands, read off the target's body as soon as the roll is made",
+	document.getElementById("card").textContent.includes("Where it lands: High of the Upper Torso, where it was aimed, lies the Neck."), true);
 
 // A touch (a Brok's Harm Touch): his card's "needing a 10+ to contact", and the dice alone on contact.
 document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({
@@ -232,6 +235,8 @@ check("a touch's card says it is one, what it needs, and its dice alone",
 	[true, true, true, true]);
 check("...with no halving line, since a touch is never a called shot",
 	document.getElementById("card").textContent.includes("halved"), false);
+check("...and no landing line when the card has none (a miss, or no target)",
+	document.getElementById("card").textContent.includes("Where it lands"), false);
 
 const failed = results.filter(r => r.startsWith("FAIL")).length;
 document.getElementById("out").textContent =

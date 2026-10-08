@@ -167,6 +167,16 @@ check("a map body: Left of a left area is nothing", B.getStruckArea(cent, "Left 
 check("a map body: High of the head is nothing", B.getStruckArea(cent, "Head", "Hit(High)").how, "none");
 check("ZONE_DIRECTIONS names the five hit zones", Object.keys(B.ZONE_DIRECTIONS).length, 5);
 
+// --- the aim marked beside the landing (buildBodyFigure's aimed, the damage dialog's picker) ---------
+const marked = B.buildBodyFigure(h, { picker: true, selected: "Head", aimed: "Neck" });
+check("the area aimed at is marked on the figure", marked.shapes.find(s => s.name == "Neck").aimed, true);
+check("...and the landing is the one selected", marked.shapes.find(s => s.name == "Head").selected, true);
+check("...no other shape is aimed", marked.shapes.filter(s => s.aimed).length, 1);
+check("aim and landing may be the same area (a centre hit)",
+	[B.buildBodyFigure(h, { picker: true, selected: "Neck", aimed: "Neck" }).shapes.find(s => s.name == "Neck")].map(s => [s.aimed, s.selected]), [[true, true]]);
+check("with no aim given nothing is marked", B.buildBodyFigure(h, {}).shapes.filter(s => s.aimed).length, 0);
+check("a map body marks the aimed tile too", B.buildBodyFigure(cent, { picker: true, selected: "Neck", aimed: "Head" }).columns.centre.find(t => t.name == "Head").aimed, true);
+
 // --- the just-hit flash --------------------------------------------------------------------------
 const now = 1000000;
 const flashed = B.buildBodyFigure(h, { lastHit: { area: "Neck", at: now - 3000 }, now });

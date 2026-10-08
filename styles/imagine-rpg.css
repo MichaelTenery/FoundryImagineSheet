@@ -1049,7 +1049,10 @@ input.source-unknown {
 .imagine .body-svg .body-area.area-wounded      { fill: var(--imagine-area-wounded); }
 .imagine .body-svg .body-area.area-vitalitySave { fill: var(--imagine-area-vitality); }
 .imagine .body-svg .body-area.area-effect       { fill: var(--imagine-area-effect); stroke: var(--imagine-alarm); }
-.imagine .body-svg .body-area.selected { stroke: var(--imagine-accent); stroke-width: 3; }
+/* The area aimed at, when the figure shows where a blow landed (the damage dialog): dashed; the
+   landing itself is the selected one, solid, and wins where the two are the same area. */
+.imagine .body-svg .body-area.aimed { stroke: var(--imagine-accent); stroke-width: 2; stroke-dasharray: 4 3; }
+.imagine .body-svg .body-area.selected { stroke: var(--imagine-accent); stroke-width: 3; stroke-dasharray: none; }
 .imagine .body-caption { font-size: 10px; margin: 2px 0 0; text-align: center; max-width: 220px; }
 
 /* The map, and the tiles a figure has no place for. */
@@ -1069,7 +1072,8 @@ input.source-unknown {
 .imagine .body-tile.area-wounded      { background: var(--imagine-area-wounded); }
 .imagine .body-tile.area-vitalitySave { background: var(--imagine-area-vitality); }
 .imagine .body-tile.area-effect       { background: var(--imagine-area-effect); border-color: var(--imagine-alarm); }
-.imagine .body-tile.selected { border-color: var(--imagine-accent); box-shadow: inset 0 0 0 1px var(--imagine-accent); }
+.imagine .body-tile.aimed { border-color: var(--imagine-accent); border-style: dashed; }
+.imagine .body-tile.selected { border-color: var(--imagine-accent); border-style: solid; box-shadow: inset 0 0 0 1px var(--imagine-accent); }
 
 /* The clicked area's panel. */
 .imagine .body-detail {
@@ -1105,7 +1109,8 @@ input.source-unknown {
 .imagine .body-svg .body-area.just-hit { animation: imagine-just-hit 1.2s ease-out 3; stroke: var(--imagine-alarm); stroke-width: 3; }
 .imagine .body-tile.just-hit { animation: imagine-just-hit 1.2s ease-out 3; border-color: var(--imagine-alarm); }
 
-/* The aim picker inside the attack dialog: the figure alone, a little smaller, the chosen area outlined. */
+/* The body picker inside the attack dialog (the aim) and the damage dialog (where it landed): the
+   figure alone, a little smaller, the chosen area outlined. */
 .imagine-aim-picker { margin: 4px 0 8px; }
 .imagine-aim-picker .body-figure { margin: 0; }
 .imagine-aim-picker .body-svg { width: 120px; }
@@ -1151,6 +1156,7 @@ input.source-unknown {
 .imagine-chat .attack-line span { margin-right: 6px; white-space: nowrap; }
 .imagine-chat .attack-line .final { font-weight: 700; color: #1c1a17; }
 .imagine-chat .aim { font-size: 11px; color: #6d675e; }
+.imagine-chat .landing { font-size: 11px; }
 .imagine-chat .zone {
 	margin: 5px 0;
 	padding: 4px 6px;
@@ -1312,6 +1318,16 @@ input.source-unknown {
 .chargen-footer button { flex: none; width: auto; padding: 4px 14px; }
 .chargen-footer button.primary { background: var(--imagine-accent); color: #fff; border-color: var(--imagine-accent); }
 .imagine-chargen-button { flex: 1 1 100%; }
+.imagine-creaturegen-button { flex: 1 1 100%; }
+
+/* The creature generator (module/apps/creature-generator.mjs) wears the character generator's classes
+   for its layout and palette; these are only what it has of its own. */
+.creature-gen .creature-gen-summary { margin: -4px 0 4px; font-size: 12px; }
+.creature-gen .creature-gen-note { display: block; font-size: 11px; max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.creature-gen input.short { width: 90px; flex: none; }
+.creature-gen .chargen-attributes td select { max-width: 260px; }
+.creature-gen .swap-row > select { flex: 1 1 200px; min-width: 160px; }
+.creature-gen .swap-row > input[type="text"] { flex: 1 1 160px; }
 
 /* @MARKER FORM FIELDS ON PAPER
    Foundry V13 and later paint every form control from their own theme variables, and a Game

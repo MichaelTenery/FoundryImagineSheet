@@ -1108,7 +1108,9 @@ human shape that is read off the drawing (the nearest area above, below, or to t
 or right that overlaps the aim); for any other body it is read down the chart's own order (the
 area before or after in the same column for High and Low, the same height one column over for
 Left and Right). Off the edge of the body -- High of the head -- nothing lies that way, and the
-table decides. The damage dialog offers the answer and lets the player change it.
+table decides. The attack card says the answer as soon as the roll is made, and the damage dialog
+offers it on the target's own figure (the aim dashed, the landing solid) and lets the Game Master
+move it.
 
 **Question:** is that how you read your own chart at the table? If you have a fixed rule instead
 (a table per body type, or "left means the target's left arm"), the port will follow it.
