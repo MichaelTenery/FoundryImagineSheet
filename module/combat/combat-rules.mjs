@@ -994,8 +994,11 @@ export const MODE_DAMAGE_TYPES = {
 		else if (tmpdmg > tmpquarter) { tmpvalue = tmpblock[1]; }
 		else                          { tmpvalue = tmpblock[0]; }
 
-		if (tmpvalue < 0)      { tmpdmg = tmpdmg + (parseInt(tmpfull * tmpvalue)); }
-		else if (tmpvalue > 0) { tmpdmg = parseInt(tmpdmg * tmpvalue); }
+		// Rounded UP, as the book's own examples are ("halved and rounded up": 19 smashing against a
+		// 20-point helm puts 10 through, p.189) and as his bug report 0.22.7:1 has them. His code
+		// truncated (parseInt); a 15-point cut against 20 armour put 3 through where the book puts 4.
+		if (tmpvalue < 0)      { tmpdmg = Math.ceil(tmpdmg + (tmpfull * tmpvalue)); }
+		else if (tmpvalue > 0) { tmpdmg = Math.ceil(tmpdmg * tmpvalue); }
 		else                   { tmpdmg = 0; }
 
 		if (tmpdmg < 0) { tmpdmg = 0; }

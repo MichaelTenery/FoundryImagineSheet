@@ -1303,6 +1303,23 @@ def endured_damage_types():
     return mapping, start
 
 
+""" Damage types as a creature's attack, a spell or a weapon mode spell them, mapped to the rows
+    the armour tables know. Not his data: see DAMAGE TYPE SPELLINGS in main().                """
+BLOCKING_TYPE_OF = {
+    "Aura":       "Aura/Divine",
+    "Divine":     "Aura/Divine",
+    "Holy":       "Aura/Divine",
+    "Unholy":     "Aura/Divine",
+    "Life":       "Life/Death",
+    "Death":      "Life/Death",
+    "Draining":   "Life/Death",
+    "Fire":       "Flame",
+    "Cold":       "Frost",
+    "Lightning":  "Electricity",
+    "Electric":   "Electricity",
+}
+
+
 def load_raw(name):
     """The blocking and degradation tables are used positionally, so the raw extraction is
     exactly what is wanted -- they never needed a column map."""
@@ -1808,6 +1825,16 @@ def main():
     races, conditional, race_line = race_body_types()
     ranks, rank_line = material_rank()
     blocking = load_raw("armorblockingdict")
+    # HIS BUG REPORT 0.22.7:1 (2026-10-07, "damage is being applied incorrectly"): the Player's
+    # Guide's Damage Type Versus Armor Value table (p.189) governs, and its Smashing row lets HALF
+    # the damage through between half and full armour, where his dictionary has a quarter (the
+    # Cutting figure). His own example: 22 smashing against 38 armour puts 11 through, not 5.
+    # Corrected here, not in the generated file, so a regeneration keeps it. UPSTREAM 119.
+    BLOCKING_CORRECTIONS = {
+        "Smashing": [0, 0, 0.5, -0.5],
+    }
+    for name, row in BLOCKING_CORRECTIONS.items():
+        blocking[name] = row
     dividers = load_raw("armordamagedict")
 
     out = []
@@ -1852,7 +1879,9 @@ def main():
     # ARMOR BLOCKING
     out.append("// @MARKER ARMOUR BLOCKING\n")
     out.append("// From armorblockingdict. Incoming damage is compared with the total armour at the struck area\n")
-    out.append("// and falls into one of four bands. For that band's value:\n")
+    out.append("// and falls into one of four bands. The Smashing row is the book's (p.189), half through between\n")
+    out.append("// half and full armour, on his bug report 0.22.7:1 -- the one cell where his dictionary differed\n")
+    out.append("// from his table (BLOCKING_CORRECTIONS in the generator). For that band's value:\n")
     out.append("//     negative  ->  damage + (total armour x value)     armour subtracts a fraction of itself\n")
     out.append("//     positive  ->  damage x value                      only that share gets through\n")
     out.append("//     zero      ->  no damage at all\n")
@@ -1860,6 +1889,24 @@ def main():
     out.append("//                        UnderQuarter QuarterToHalf HalfToFull   OverArmour\n")
     out.append("export const ARMOR_BLOCKING = {\n")
     for name, row in blocking.items():
+        out.append("\t%-18s %s,\n" % (js(name) + ":", js(row)))
+    out.append("};\n\n")
+
+    # DAMAGE TYPE SPELLINGS -- not his: the quality pass of 2026-10-07 added this to the generated
+    # file by hand, and the next regeneration (2026-10-07, the Smashing correction) dropped it. It
+    # lives here now, so the file and the generator agree.
+    out.append("// @MARKER DAMAGE TYPE SPELLINGS\n")
+    out.append("// A creature's attack, a spell and a weapon mode do not all spell a damage type the way the\n")
+    out.append("// armour tables do: his creature select (CREATURE_DAMAGE_TYPES, creature-tables.mjs) offers \"Aura\",\n")
+    out.append("// \"Divine\", \"Holy\", \"Unholy\", \"Death\", \"Life\" and \"Draining\", where ARMOR_BLOCKING and ENDURED_BY\n")
+    out.append("// know only \"Aura/Divine\", \"Life/Death\" and \"Other\". Found in the quality pass of 2026-10-07: a\n")
+    out.append("// \"Death\" bite matched no row, the damage dialog fell back to its FIRST option, Cutting, and a\n")
+    out.append("// 30-point bite against armour 20 landed 20 instead of 10. Every lookup goes through\n")
+    out.append("// getBlockingDamageType (combat-rules.mjs), which reads this; a spelling not here is itself.\n")
+    out.append("// Not from his sheet: kept in the generator (BLOCKING_TYPE_OF), not read from it.\n")
+    out.append("//   as written       as the armour tables have it\n")
+    out.append("export const BLOCKING_TYPE_OF = {\n")
+    for name, row in BLOCKING_TYPE_OF.items():
         out.append("\t%-18s %s,\n" % (js(name) + ":", js(row)))
     out.append("};\n\n")
 

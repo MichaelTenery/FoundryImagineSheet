@@ -82,7 +82,9 @@ export const BODY_CHARTS = {
 
 // @MARKER ARMOUR BLOCKING
 // From armorblockingdict. Incoming damage is compared with the total armour at the struck area
-// and falls into one of four bands. For that band's value:
+// and falls into one of four bands. The Smashing row is the book's (p.189), half through between
+// half and full armour, on his bug report 0.22.7:1 -- the one cell where his dictionary differed
+// from his table (BLOCKING_CORRECTIONS in the generator). For that band's value:
 //     negative  ->  damage + (total armour x value)     armour subtracts a fraction of itself
 //     positive  ->  damage x value                      only that share gets through
 //     zero      ->  no damage at all
@@ -92,7 +94,7 @@ export const ARMOR_BLOCKING = {
 	"Cutting":         [0, 0, 0.25, -0.5],
 	"Thrusting":       [0, 0, 0.25, -0.5],
 	"Piercing":        [0, 0, 0.25, -0.25],
-	"Smashing":        [0, 0, 0.25, -0.5],
+	"Smashing":        [0, 0, 0.5, -0.5],
 	"Crushing":        [0, -0.25, -0.25, -0.25],
 	"Constricting":    [0, 0, 0, -1],
 	"Force":           [-1, -1, -1, -1],
@@ -119,6 +121,7 @@ export const ARMOR_BLOCKING = {
 // "Death" bite matched no row, the damage dialog fell back to its FIRST option, Cutting, and a
 // 30-point bite against armour 20 landed 20 instead of 10. Every lookup goes through
 // getBlockingDamageType (combat-rules.mjs), which reads this; a spelling not here is itself.
+// Not from his sheet: kept in the generator (BLOCKING_TYPE_OF), not read from it.
 //   as written       as the armour tables have it
 export const BLOCKING_TYPE_OF = {
 	"Aura":            "Aura/Divine",
@@ -131,7 +134,7 @@ export const BLOCKING_TYPE_OF = {
 	"Fire":            "Flame",
 	"Cold":            "Frost",
 	"Lightning":       "Electricity",
-	"Electric":        "Electricity"
+	"Electric":        "Electricity",
 };
 
 // @MARKER ARMOUR DEGRADATION

@@ -4,7 +4,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 **Reconciled with the code on 2026-10-07, then closed out.** Every issue was checked against what the port does today. Each section's status line carries **Status** (where the question stands with him) and **Port** (what the port does about it); a dated **Update** at the foot of a section says what had gone stale, with the original wording left above it as the record of what was found.
 
-**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 81 of 119 are. They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **38 issues remain active** above it.
+**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 82 of 119 are. They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **37 issues remain active** above it.
 
 **Status** (his side): `open` -- not yet answered. `answered` -- he, or his own book or code, has settled it (the date and who are on the line; **Daryl** is the tester at his table, whose answers are taken as the table's but are not the developer's). `withdrawn` -- our misreading. `duplicate` -- see the other item. A fifth value the file once promised, `fixed upstream`, has **no entries: nothing in the repository records him fixing any of these in his sheet.**
 
@@ -15,12 +15,12 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | | |
 |---|---|
 | Issues | 119 |
-| **Active** | **38** |
-| Active: worked around, awaiting him | 29 |
+| **Active** | **37** |
+| Active: worked around, awaiting him | 28 |
 | Active: feature not built, or nothing to do yet | 9 |
-| Active: open with him / answered | 37 / 1 |
-| **Resolved** | **81** |
-| Resolved: solved in the port | 48 |
+| Active: open with him / answered | 36 / 1 |
+| **Resolved** | **82** |
+| Resolved: solved in the port | 49 |
 | Resolved: follows his code on purpose | 29 |
 | Resolved: withdrawn | 2 |
 | Resolved: duplicate | 2 |
@@ -157,7 +157,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 116 | Full Shirt and Long Shirt: Leather and Padding rows look swapped | Open | Worked around | Active |
 | 117 | Common Skills Listing against the books' "Restricted: No" | Open | Worked around | Active |
 | 118 | Off-centre hits: which area "High", "Low", "Left" and "Right" land on | Open | Worked around | Active |
-| 119 | Smashing damage between half and full armour: his table says a quarter, the book says half | Open | Follows his code | Active |
+| 119 | Smashing damage between half and full armour: his table says a quarter, the book says half | Answered 2026-10-07 (bug report 0.22.7:1) | Solved in the port | Resolved (solved in the port) |
 | 120 | A failed Force Twist(Small) rolls no damage at all | Open | Solved (the Weapon Twist row of the same size) | Active |
 
 ---
@@ -1119,9 +1119,19 @@ move it.
 **Question:** is that how you read your own chart at the table? If you have a fixed rule instead
 (a table per body type, or "left means the target's left arm"), the port will follow it.
 
+---
+
+# Resolved issues
+
+Withdrawn, duplicate, solved in the port, or followed on purpose. Closed 2026-10-07. Full text kept; numbers are unchanged, so every cross-reference in the repository still lands.
+
 ## 119. Smashing damage between half and full armour: his table says a quarter, the book says half
 
-**Status:** open · **Port:** Follows his code · **Severity:** rules, one cell of a table
+**RESOLVED 2026-10-07 -- Solved in the port.** Answered by his bug report 0.22.7:1 the same day.
+
+**Status:** answered 2026-10-07 (bug report 0.22.7:1) · **Port:** Solved in the port · **Severity:** rules, one cell of a table
+
+**His answer (bug report 0.22.7:1, "damage is being applied incorrectly", classified Blocker):** the book's table governs. *"do a smashing attack that does over half the armor damage but does not exceed the armor value. The damage calculation should be half of the attack damage goes through the armor"* -- his example: 22 smashing against 38 armour (half is 19) *"should do half damage or 11 points"*, where the port put 5 through. He quotes the book's two examples, rounded up. `ARMOR_BLOCKING`'s Smashing row is now the book's, corrected in the generator (`BLOCKING_CORRECTIONS`, `tools/extract/extract_combat_tables.py`) so a regeneration keeps it, and `blockDamage` rounds up as the examples do (a 15-point cut against 20 armour now puts 4 through, not 3). The constriction footnote is still not built.
 
 Your `armorblockingdict` (sheet-worker.js:118817) and the Player's Guide's "Damage Type Versus
 Armor Value" table (p.189) agree on every cell but one. For a Smashing blow that exceeds half
@@ -1177,11 +1187,6 @@ rather than as this one does:
   yet, so there is nothing to read and the card does not pretend otherwise; it is in
   `docs/sonnet/2026-10-07-brawling.md` for when armour gets his Customize panel.
 
----
-
-# Resolved issues
-
-Withdrawn, duplicate, solved in the port, or followed on purpose. Closed 2026-10-07. Full text kept; numbers are unchanged, so every cross-reference in the repository still lands.
 
 ## 1. `Monk` class row is one column short — affects the live sheet
 

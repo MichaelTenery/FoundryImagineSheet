@@ -128,7 +128,13 @@ check("called shot halves damage",               R.combineDamageMultipliers([0.5
 // Cutting [0, 0, 0.25, -0.5]; armour 20 -> quarter 5, half 10.
 check("cutting under a quarter of the armour: stopped", R.blockDamage(5, "Cutting", 20), 0);
 check("cutting quarter-to-half: stopped",              R.blockDamage(8, "Cutting", 20), 0);
-check("cutting half-to-full: 25% through (15 -> 3)",   R.blockDamage(15, "Cutting", 20), 3);
+check("cutting half-to-full: 25% through, rounded up (15 -> 4)", R.blockDamage(15, "Cutting", 20), 4);
+// His bug report 0.22.7:1 and the book's own examples (p.189): Smashing between half and full armour is HALF through.
+check("0.22.7:1: 22 smashing against 38 armour puts 11 through, not 5", R.blockDamage(22, "Smashing", 38), 11);
+check("p.189 example 1: 19 smashing against a 20-point helm, halved and rounded up, 10", R.blockDamage(19, "Smashing", 20), 10);
+check("p.189 example 2: 24 smashing against 20, less half the armour, 14", R.blockDamage(24, "Smashing", 20), 14);
+check("p.189: a building (40 crushing) against 20, less a quarter of the armour, 35", R.blockDamage(40, "Crushing", 20), 35);
+check("smashing under half the armour is still stopped", R.blockDamage(8, "Smashing", 20), 0);
 check("exactly equal to the armour is half-to-full",   R.blockDamage(20, "Cutting", 20), 5);
 check("cutting over the armour: loses half of it (30 -> 20)", R.blockDamage(30, "Cutting", 20), 20);
 check("crushing quarter-to-half: loses a quarter of the armour (8 -> 3)", R.blockDamage(8, "Crushing", 20), 3);
