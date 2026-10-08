@@ -522,6 +522,12 @@
       ],
       "note": "Done 2026-10-07, shipped as 0.24.0. The adjacency reading is UPSTREAM 118."
     },
+    "Combat tab: every layer on a body area": {
+      "dependsOn": [
+        "Body figure: the body drawn"
+      ],
+      "note": "Player request relayed 2026-10-07. Names are already shown (tooltip and panel); this adds place, value and material per layer. Mechanical: docs/sonnet/2026-10-07-layers-per-area.md."
+    },
     "Two hands: +2 to hit retracted": {
       "dependsOn": [
         "His reports of 2026-10-04 and 10-05"
