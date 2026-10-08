@@ -109,9 +109,10 @@ const labels = (state) => state.ticks.map(t => t.label);
 const states = (state) => state.ticks.map(t => t.state[0]).join("");   // l(ost) c(arried) s(pent) f(ree)
 const clockOf = (rolled, spends = []) => {
 	let c = R.newRoundClock(1, rolled);
-	for (const [s, hand, label] of spends) { c = R.addClockSpend(c, s, hand, label); }
+	for (const [s, hand, label, at] of spends) { c = R.addClockSpend(c, s, hand, label, at); }
 	return c;
 };
+const offstates = (state) => state.offhand.ticks.map(t => t.state[0]).join("");   // l(ost) s(pent) i(dle) f(ree) o(ut)
 
 // --- extra seconds (Master's Manual p.2 and p.100) -----------------------------------------
 check("-10 earns no extra seconds; -11 earns one", [R.getRollExtraSeconds(-10), R.getRollExtraSeconds(-11)], [0, 1]);
@@ -163,6 +164,38 @@ s = R.resolveRoundClock(clockOf(2, [[1, "off", "Shield parry"]]), right);
 check("an off-hand parry spends the off hand and moves nobody", [s.ticks[s.next].label, s.offhand.spent, s.offhand.left, R.getClockInitiative(s)], ["2", 1, 3, 2]);
 s = R.resolveRoundClock(clockOf(5, [[4, "off", ""]]), right);
 check("an off hand spent past its pool is over, shown not refused", [s.offhand.left, s.offhand.over], [0, 1]);
+
+// --- the off hand's own bar (the user's ruling, 2026-10-07: each hand tracks its own time) ------
+s = R.resolveRoundClock(clockOf(3, [[4, "main", "Long Sword"], [1, "off", "Shield parry"]]), right);
+check("a parry said without a second lands where the off hand stands: level with the main hand, in the 7th",
+	[offstates(s), s.offhand.ticks[6].title, s.offhand.next, s.offhand.stand], ["lliiiisfff", "Shield parry", 7, 7]);
+check("...standing in the 8th with the three seconds that are left (budget 3, round 3), and marked there",
+	[s.offhand.left, s.offhand.expired, s.offhand.ticks[7].now, s.offhand.done], [3, 0, true, false]);
+s = R.resolveRoundClock(clockOf(1, [[5, "main", "Spear"], [1, "off", "Parry", 3]]), right);
+check("a parry said to be in the 3rd second is drawn there, behind the main hand; the seconds before and after it idle",
+	[offstates(s), s.offhand.ticks[2].state, s.offhand.stand], ["iisiifffff", "spent", 5]);
+s = R.resolveRoundClock(clockOf(1, [[1, "off", "A", 5], [1, "off", "B", 3]]), right);
+check("a second said earlier than the last off-hand action ended is pushed after it", [offstates(s), s.offhand.ticks[5].title], ["iiiissffff", "B"]);
+s = R.resolveRoundClock(clockOf(5, [[1, "off", "Parry", 2]]), right);
+check("and never into the seconds lost to a late start", [offstates(s), s.offhand.ticks[4].title], ["llllsfffff", "Parry"]);
+s = R.resolveRoundClock(clockOf(1, [[1, "off", ""], [1, "off", ""], [1, "off", ""], [1, "off", ""], [1, "off", ""]]), right);
+check("five parries use the budget: the rest of the round is out for that hand, nowhere to stand",
+	[offstates(s), s.offhand.done, s.offhand.left, s.offhand.ticks.some(t => t.now)], ["sssssooooo", true, 0, false]);
+s = R.resolveRoundClock(clockOf(1, [[3, "off", "Dagger", 9]]), right);
+check("an off-hand action begun in the 9th for three seconds runs one past the round", [offstates(s), s.offhand.overrun, s.offhand.done], ["iiiiiiiiss", 1, true]);
+s = R.resolveRoundClock(clockOf(1, [[7, "main", "Great Sword"]]), right);
+check("p.178 on the bar: the main hand at the 8th drags the off hand there, three seconds free, two of its five expired",
+	[offstates(s), s.offhand.stand, s.offhand.left, s.offhand.expired], ["iiiiiiifff", 7, 3, 2]);
+s = R.resolveRoundClock(clockOf(1, [[10, "main", "Great Sword"]]), right);
+check("main hand done for the round: the off hand is done too, and nothing is drawn free", [offstates(s), s.offhand.done, s.offhand.left], ["iiiiiiiiii", true, 0]);
+s = R.resolveRoundClock(R.setCarryRoll(R.getNextRoundClock({ seconds: 2, action: true }, 2), 3), right);
+check("a carried-in swing: the off hand is free from the first second while the main hand finishes it, and stands with it on the 5th",
+	[offstates(s), s.offhand.start, s.offhand.stand, s.offhand.lost], ["iiiiffffff", 0, 4, 1]);
+check("a carried-in wait is lost to both hands", offstates(R.resolveRoundClock(R.getNextRoundClock({ seconds: 2, action: false }, 2), right)), "llffffffff");
+check("no off hand at all: an empty, done bar", (() => { const z = R.resolveRoundClock(clockOf(1), { ...right, offhandCap: 0 }); return [z.offhand.cap, z.offhand.done, offstates(z)]; })(), [0, true, "oooooooooo"]);
+check("the second an off-hand spend begins in is kept; a main-hand spend takes none",
+	[R.addClockSpend(clockOf(1), 2, "off", "Parry", 4).spent[0].at, R.addClockSpend(clockOf(1), 2, "main", "Sword", 4).spent[0].at,
+	 R.addClockSpend(clockOf(1), 2, "off", "Parry", 0).spent[0].at, R.copyClock(R.addClockSpend(clockOf(1), 1, "off", "", 6)).spent[0].at], [4, undefined, undefined, 6]);
 check("the ambidextrous have ten in the other hand, and lose one for one",
 	(() => { const a = R.resolveRoundClock(clockOf(5), { handedness: "Ambidextrous" }); return [a.offhand.cap, a.offhand.pool]; })(), [10, 6]);
 check("Second Weapon Lore's cap is taken from the actor", R.resolveRoundClock(clockOf(1), { offhandCap: 7 }).offhand.left, 7);
@@ -270,8 +303,11 @@ check("ten columns, one cell each", [v.columns.length, v.columns.every(col => co
 check("status: where they stand and what is left", v.status, "Second 7 · 4 left");
 check("the spent seconds are titled with what they went on", v.columns[3].cells[0].title, "Second 4: Long Sword");
 check("the place they stand is marked", v.columns[6].cells[0].now, true);
-check("off hand: 5, 1 lost, 1 spent, 3 left -- as pips, one per second", [v.offhand.text, v.offhand.pips.map(p => p[0] ?? p.state[0]).join("")],
-	["3 of 5", "lsfff"]);
+check("off hand: 5, 1 lost, 1 spent, 3 left -- and its own bar of ten, the parry in the 7th, standing in the 8th",
+	[v.offhand.text, v.offhand.standing, v.offhand.bar.off, v.offhand.columns.length, v.offhand.columns.map(col => col.cells[0].state[0]).join(""),
+	 v.offhand.columns[6].cells[0].title, v.offhand.columns[7].cells[0].now],
+	["3 of 5", "second 8", true, 10, "lliiiisfff", "Off hand, second 7: Shield parry", true]);
+check("no bar for a being with no off hand", V.buildClockView(R.resolveRoundClock(c, { ...right, offhandCap: 0 }), c, {}).offhand.bar, null);
 check("the log says what was spent", v.log, ["4s Long Sword", "off hand 1s Shield parry"]);
 check("undo is offered once something is spent", v.canUndo, true);
 s = R.resolveRoundClock(clockOf(6), { speedSeconds: 2 });
@@ -314,8 +350,13 @@ await combat.spendSeconds(brom, 6, { label: "Great Sword" });
 check("Brom's great sword from the 7th runs to 13, past the round", [brom.initiative, D.getCombatantClockState(brom).carry], [13, { seconds: 2, action: true }]);
 await combat.spendSeconds(orgo, 1, { hand: "off", label: "Shield parry" });
 check("an off-hand parry leaves Orgo where he was", [orgo.initiative, D.getCombatantClockState(orgo).offhand.spent], [8, 1]);
+check("...drawn on his off hand's bar in the 8th, where he stands", D.getCombatantClockState(orgo).offhand.ticks[7].state, "spent");
 await combat.undoSeconds(orgo);
 check("undo takes the parry back", D.getCombatantClockState(orgo).offhand.spent, 0);
+await combat.spendSeconds(orgo, 1, { hand: "off", label: "Shield parry", at: 5 });
+check("a parry said to be in the 5th is drawn there, and the second kept on the clock",
+	[D.getCombatantClockState(orgo).offhand.ticks[4].state, orgo.flags["imagine-rpg"].clock.spent.at(-1).at], ["spent", 5]);
+await combat.undoSeconds(orgo);
 await combat.spendSeconds(orgo, 3, { label: "Spear" });
 check("Orgo's second thrust from the 8th ends exactly on the 10th", [orgo.initiative, D.getCombatantClockState(orgo).done, D.getCombatantClockState(orgo).carry], [11, true, null]);
 check("with everyone past the tenth second, the round is announced over", notices.some(m => m.includes("round is over")), true);

@@ -26,7 +26,7 @@
 				<div class="imagine-clock-bar head">
 					{{#each headers}}<div class="clock-second{{#if now}} now{{/if}}">{{label}}</div>{{/each}}
 				</div>
-				<span class="clock-off" data-tooltip="Off-hand seconds left this round, of the off hand's allowance">Off hand</span>
+				<span class="clock-off" data-tooltip="Off-hand seconds left this round, of the off hand's allowance, and where the off hand stands on its own bar (the lower one)">Off hand</span>
 				<span class="clock-speed" data-tooltip="Extra seconds from a Speed potion, spell, rune or glyph. Each splits one of the first seconds in two.">Speed</span>
 				<span class="clock-carrycol" data-tooltip="What runs over into next round, and whether it is carried">Carry</span>
 			</div>
@@ -35,9 +35,8 @@
 			<div class="clock-chart-row{{#if current}} current{{/if}}{{#if done}} done{{/if}}{{#if surprise}} surprise{{/if}}" data-combatant-id="{{id}}">
 				<span class="clock-name">{{#if img}}<img src="{{img}}" alt="">{{/if}}<span>{{name}}</span></span>
 				<span class="clock-split">{{#if surprise}}<i class="fa-solid fa-user-ninja" data-tooltip="Surprise: seconds before initiative is rolled" inert></i>{{else}}{{split}}{{/if}}</span>
-				{{#if ready}}{{> imagine-clock-bar}}{{else}}<span class="clock-unrolled">{{status}}</span>{{/if}}
-				<span class="clock-off{{#if offhand.over}} over{{/if}}">{{#if offhand}}<span class="pips" data-tooltip="{{offhand.title}}">{{#each offhand.pips}}<i class="pip {{state}}"></i>{{/each}}</span>
-					{{offhand.text}}{{/if}}</span>
+				{{#if ready}}<div class="clock-hands">{{> imagine-clock-bar}}{{#if offhand.bar}}{{> imagine-clock-bar offhand.bar}}{{/if}}</div>{{else}}<span class="clock-unrolled">{{status}}</span>{{/if}}
+				<span class="clock-off{{#if offhand.over}} over{{/if}}" data-tooltip="{{offhand.title}}">{{#if offhand}}{{offhand.text}}<br><span class="clock-off-standing">{{offhand.standing}}</span>{{/if}}</span>
 				<span class="clock-speed">{{#if canEditSpeed}}<input type="number" name="speedSeconds" min="0" max="10" value="{{speedSeconds}}"
 					aria-label="Speed seconds">{{else}}{{speedSeconds}}{{/if}}</span>
 				<span class="clock-carrycol">{{#if carry}}{{#if canSpend}}<button type="button" class="clock-button clock-carry{{#if carry.elected}} active{{/if}}"
@@ -69,6 +68,8 @@
 		<span><i class="clock-cell spent"></i><i class="clock-cell spent alt"></i> spent</span>
 		<span><i class="clock-cell free now"></i> acts now</span>
 		<span><i class="clock-cell free extra"></i> extra second</span>
+		<span><i class="clock-cell idle"></i> off hand stood by</span>
+		<span><i class="clock-cell out"></i> off hand used up</span>
 		{{#if surprise}}<span><i class="clock-cell over"></i> surprise action running into the round</span>{{/if}}
 	</p>
 	{{else}}

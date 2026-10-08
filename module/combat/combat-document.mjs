@@ -117,9 +117,12 @@ export default class ImagineCombat extends Combat {
 
 	// This is the function which spends a combatant's time. A main-hand spend moves them on by that
 	// many seconds and the tracker jumps back to the top, which is now whoever is free soonest; an
-	// off-hand spend comes out of the off hand's own seconds and moves nobody.
+	// off-hand spend comes out of the off hand's own seconds, on the off hand's own bar, and moves
+	// nobody.
 	//
-	//   tmpoptions = { hand: "main" | "off", label: what the seconds went on }
+	//   tmpoptions = { hand: "main" | "off", label: what the seconds went on,
+	//                  at: off hand only, the second the action begins in; left out, it begins
+	//                      where the off hand stands (resolveRoundClock, round-rules.mjs) }
 	//
 	// Nothing is refused. Spending past the end of the round runs into the next (carried over if
 	// the round ends that way), and an off hand spent past what it had is shown in red on the
@@ -160,7 +163,7 @@ export default class ImagineCombat extends Combat {
 		}
 
 		var tmphand = tmpoptions.hand == "off" ? "off" : "main";
-		var tmpafterclock = addClockSpend(tmpclock, tmpseconds, tmphand, tmpoptions.label);
+		var tmpafterclock = addClockSpend(tmpclock, tmpseconds, tmphand, tmpoptions.label, tmpoptions.at);
 		var tmpafter = resolveRoundClock(tmpafterclock, tmpactoroptions);
 		var tmpspent = tmpafterclock.spent[tmpafterclock.spent.length - 1].seconds;
 
@@ -168,9 +171,14 @@ export default class ImagineCombat extends Combat {
 			ui.notifications.info(`${tmpcombatant.name} has no seconds left this round; `
 				+ `these ${tmpspent} run into the next.`);
 		}
-		if (tmphand == "off" && tmpspent > tmpbefore.offhand.left) {
+		if (tmphand == "off" && tmpafter.offhand.over > tmpbefore.offhand.over) {
 			ui.notifications.warn(`${tmpcombatant.name}'s off hand had ${tmpbefore.offhand.left} `
 				+ `second${tmpbefore.offhand.left == 1 ? "" : "s"} left this round, and ${tmpspent} were spent.`);
+		}
+		if (tmphand == "off" && tmpafter.offhand.overrun > tmpbefore.offhand.overrun) {
+			var tmpoverrun = tmpafter.offhand.overrun - tmpbefore.offhand.overrun;
+			ui.notifications.info(`${tmpcombatant.name}'s off hand runs ${tmpoverrun} `
+				+ `second${tmpoverrun == 1 ? "" : "s"} past the end of the round.`);
 		}
 
 		await this.#writeClock(tmpcombatant, tmpafterclock, tmpafter);

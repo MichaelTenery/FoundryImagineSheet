@@ -41,7 +41,8 @@
 //            Guide's own Carry-Over example), then swung again
 //   Kel      rolled 13 last round and waited it out: starts on the 3rd second
 //   Fairy    a Speed potion's three extra seconds: 1a 1b 2a 2b 3a 3b, has spent three
-//   Orgo     rolled 6, spear and a shield parry in the off hand, and one parry too many
+//   Orgo     rolled 6, spear and three shield parries in the off hand (one said to be in the 7th
+//            second, the others where the off hand stood), one parry more than its budget
 //   Tess     rolled 4, fired, and began a reload that runs two seconds into next round
 //   Goblin   rolled -4: the split second
 //   Ogre     not rolled yet
@@ -56,7 +57,7 @@ Handlebars.registerPartial("imagine-clock-bar", await (await fetch("../templates
 const rowTemplate = Handlebars.compile(await (await fetch("../templates/combat/clock-row.hbs")).text());
 const windowTemplate = Handlebars.compile(await (await fetch("../templates/apps/round-clock.hbs")).text());
 
-const spend = (clock, list) => list.reduce((c, [s, hand, label]) => R.addClockSpend(c, s, hand, label), clock);
+const spend = (clock, list) => list.reduce((c, [s, hand, label, at]) => R.addClockSpend(c, s, hand, label, at), clock);
 const right = { handedness: "Right", offhandCap: 5 };
 const fighters = [
 	{ name: "Brom", opts: right,
@@ -66,7 +67,7 @@ const fighters = [
 	{ name: "Fairy", opts: { ...right, speedSeconds: 3 },
 	  clock: spend(R.newRoundClock(2, 7), [[3, "main", "Dagger"]]) },
 	{ name: "Orgo", opts: right,
-	  clock: spend(R.newRoundClock(2, 6), [[3, "main", "Spear"], [1, "off", "Shield parry"], [1, "off", "Shield parry"], [1, "off", "Shield parry"]]) },
+	  clock: spend(R.newRoundClock(2, 6), [[3, "main", "Spear"], [1, "off", "Shield parry", 7], [1, "off", "Shield parry"], [1, "off", "Shield parry"]]) },
 	{ name: "Tess", opts: right,
 	  clock: spend(R.newRoundClock(2, 4), [[4, "main", "Crossbow"], [5, "main", "Reload"]]) },
 	{ name: "Goblin", opts: right, clock: R.newRoundClock(2, -4) },

@@ -1328,16 +1328,6 @@ input.source-unknown {
 .creature-gen .chargen-attributes td select { max-width: 260px; }
 .creature-gen .swap-row > select { flex: 1 1 200px; min-width: 160px; }
 .creature-gen .swap-row > input[type="text"] { flex: 1 1 160px; }
-.imagine-creaturegen-button { flex: 1 1 100%; }
-
-/* The creature generator (module/apps/creature-generator.mjs) wears the character generator's classes
-   for its layout and palette; these are only what it has of its own. */
-.creature-gen .creature-gen-summary { margin: -4px 0 4px; font-size: 12px; }
-.creature-gen .creature-gen-note { display: block; font-size: 11px; max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.creature-gen input.short { width: 90px; flex: none; }
-.creature-gen .chargen-attributes td select { max-width: 260px; }
-.creature-gen .swap-row > select { flex: 1 1 200px; min-width: 160px; }
-.creature-gen .swap-row > input[type="text"] { flex: 1 1 160px; }
 
 /* @MARKER FORM FIELDS ON PAPER
    Foundry V13 and later paint every form control from their own theme variables, and a Game
@@ -1786,6 +1776,17 @@ input.source-unknown {
 .clock-cell.spent.extra, .clock-cell.carried.extra { border-style: solid; }
 .clock-cell.now { outline: 2px solid var(--clock-now); outline-offset: 0; }
 
+/* The off hand's own bar, under the main hand's: lower and quieter, so the main hand's reads first.
+   A second it stood by is dotted; a second it cannot use, its budget gone, is faint and crossed. */
+.imagine-clock-bar.off .clock-cell { height: 6px; }
+.clock-cell.idle { border-style: dotted; opacity: 0.6; }
+.clock-cell.out {
+	border-color: transparent;
+	background: repeating-linear-gradient(45deg, var(--clock-lost) 0 1px, transparent 1px 4px);
+	opacity: 0.7;
+}
+.clock-hands { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
 /* In the combat tracker, under the row. The row is Foundry's flex line (portrait, name, initiative);
    letting it wrap puts the clock on a line of its own beneath them. */
 .combat-sidebar .combat-tracker .combatant.imagine-clocked { flex-wrap: wrap; row-gap: 3px; }
@@ -1813,7 +1814,8 @@ input.source-unknown {
 }
 .imagine-clock-row .clock-carry.active { border-color: var(--color-level-info, #59a1f6); }
 
-/* The Mr. Initiative window: a chart, a row per combatant, the ten seconds lined up in columns. */
+/* The Mr. Initiative window: a chart, a row per combatant, the ten seconds lined up in columns,
+   the off hand's bar under each main bar in the same columns. */
 .imagine.round-clock-window .window-content {
 	display: flex;
 	flex-direction: column;
@@ -1867,14 +1869,11 @@ input.source-unknown {
 .imagine.round-clock-window .clock-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .imagine.round-clock-window .clock-split { text-align: center; font-weight: 600; }
 .imagine.round-clock-window .imagine-clock-bar .clock-cell { height: 16px; }
-.imagine.round-clock-window .clock-off { font-size: 11px; white-space: nowrap; }
+.imagine.round-clock-window .imagine-clock-bar.off .clock-cell { height: 9px; }
+.imagine.round-clock-window .clock-off { font-size: 11px; white-space: nowrap; line-height: 1.3; }
+.imagine.round-clock-window .clock-off-standing { color: var(--imagine-muted); font-weight: 400; }
 .imagine.round-clock-window .clock-off.over { color: var(--imagine-alarm); font-weight: 600; }
 .imagine.round-clock-window .clock-over { color: var(--imagine-alarm); font-weight: 600; }
-.imagine.round-clock-window .pips { display: inline-flex; gap: 2px; vertical-align: middle; }
-.imagine.round-clock-window .pip { width: 6px; height: 10px; border-radius: 1px; border: 1px solid var(--imagine-rule); }
-.imagine.round-clock-window .pip.lost { border-color: transparent; background: var(--imagine-rule-soft); }
-.imagine.round-clock-window .pip.spent { background: var(--imagine-clock-spent); border-color: var(--imagine-clock-spent); }
-.imagine.round-clock-window .pip.expired { border-style: dotted; opacity: 0.5; }
 .imagine.round-clock-window .clock-speed input { width: 40px; text-align: center; }
 .imagine.round-clock-window .clock-button { width: auto; min-width: 26px; line-height: 18px; padding: 0 6px; font-size: 11px; }
 .imagine.round-clock-window .clock-carry.active { border-color: var(--imagine-clock-carried); color: var(--imagine-clock-carried); font-weight: 600; }

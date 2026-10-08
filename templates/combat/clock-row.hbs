@@ -1,12 +1,14 @@
-{{!-- The round clock under a combatant in the combat tracker: the ten seconds, where they stand, the
-      off hand, and the buttons that spend time. Added to each row by module/combat/combat-tracker.mjs;
-      the Mr. Initiative window shows the same clock for everyone at once. --}}
+{{!-- The round clock under a combatant in the combat tracker: the ten seconds, the off hand's own
+      ten under them, where each stands, and the buttons that spend time. Added to each row by
+      module/combat/combat-tracker.mjs; the Mr. Initiative window shows the same clock for everyone
+      at once. --}}
 <div class="imagine-clock-row{{#if current}} current{{/if}}" data-combatant-id="{{id}}">
 	{{> imagine-clock-bar}}
+	{{#if offhand.bar}}{{> imagine-clock-bar offhand.bar}}{{/if}}
 	<div class="clock-line">
 		<span class="clock-status" data-tooltip="{{#if log.length}}{{#each log}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}{{else}}Nothing spent yet this round{{/if}}">{{status}}</span>
 		{{#if offhand}}<span class="clock-off{{#if offhand.over}} over{{/if}}" data-tooltip="{{offhand.title}}">
-			<i class="fa-solid fa-hand" inert></i> {{offhand.text}}{{#if offhand.over}}, over by {{offhand.over}}{{/if}}</span>{{/if}}
+			<i class="fa-solid fa-hand" inert></i> {{offhand.text}} &middot; {{offhand.standing}}{{#if offhand.over}}, over by {{offhand.over}}{{/if}}</span>{{/if}}
 	</div>
 	{{#if carriedIn}}<div class="clock-line clock-carried">{{carriedIn}}</div>{{/if}}
 	{{#if canSpend}}

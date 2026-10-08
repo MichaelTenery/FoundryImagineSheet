@@ -14,6 +14,14 @@
 //     carried   still finishing an action from last round
 //     spent     used, shaded alternately so one action reads apart from the next
 //     free      still to spend; the one marked "now" is where the combatant stands
+//
+// THE OFF HAND'S BAR sits under it: the same ten seconds, plain (extra seconds are the main
+// hand's), drawn from resolveRoundClock's offhand.ticks in the same partial. Each cell is
+//     lost      before the off hand could act -- the late start
+//     spent     an off-hand action, shaded apart from the next, in the second it happened
+//     idle      the off hand stood by: time passed, no budget spent
+//     free      still to spend, while the hand's budget lasts; "now" is where it stands
+//     out       the budget is gone: no more for this hand this round
 //==================================================================================================================
 
 import { ROUND_SECONDS } from "./combat/round-rules.mjs";
@@ -26,6 +34,17 @@ const CLOCK_STATE_TITLES = {
 	carried:           "finishing last round's action",
 	spent:             "spent",
 	free:              "free"
+};
+
+// The same for the off hand's bar.
+//
+//                     tooltip
+const OFFHAND_STATE_TITLES = {
+	lost:              "lost to initiative",
+	spent:             "spent",
+	idle:              "stood by",
+	free:              "free",
+	out:               "its seconds are used up for the round"
 };
 
 // This is the function which builds one combatant's clock for display. tmpclock is what the
@@ -108,23 +127,37 @@ export function buildClockView(tmpstate, tmpclock, tmpinfo = {}) {
 		tmpview.carriedIn = `Waited ${tmpin.seconds}s from last round's initiative`;
 	}
 
-	// THE OFF HAND, as pips: lost to the late start, spent, left, and run out with the round.
+	// THE OFF HAND: its own ten seconds as a second bar (offhand.bar, drawn by the same partial),
+	// where it stands, and its budget as a count. No bar for a being with no off hand at all.
 	var tmpoff = tmpstate.offhand;
-	var tmppips = [];
-	var tmpshownspent = Math.min(tmpoff.spent, tmpoff.pool);
-	for (var tmpp = 0; tmpp < tmpoff.lost; tmpp++) { tmppips.push({ state: "lost" }); }
-	for (var tmpp = 0; tmpp < tmpshownspent; tmpp++) { tmppips.push({ state: "spent" }); }
-	for (var tmpp = 0; tmpp < tmpoff.left; tmpp++) { tmppips.push({ state: "free" }); }
-	for (var tmpp = 0; tmpp < tmpoff.expired; tmpp++) { tmppips.push({ state: "expired" }); }
+	var tmpoffcolumns = [];
+	for (const tmptick of (tmpoff.ticks ?? [])) {
+		var tmpoffwhat = OFFHAND_STATE_TITLES[tmptick.state] ?? tmptick.state;
+		if (tmptick.state == "spent" && tmptick.title) { tmpoffwhat = tmptick.title; }
+		tmpoffcolumns.push({ second: tmptick.second, split: false, cells: [{
+			label: tmptick.label,
+			state: tmptick.state,
+			now: !!tmptick.now,
+			extra: false,
+			alt: tmptick.state == "spent" && (tmptick.action % 2) == 1,
+			title: `Off hand, second ${tmptick.label}: ${tmpoffwhat}${tmptick.now ? " -- stands here" : ""}`
+		}] });
+	}
+	var tmpstanding = tmpoff.done
+		? (tmpoff.overrun ? `${tmpoff.overrun}s into next round` : "done")
+		: `second ${tmpoff.stand + 1}`;
 	tmpview.offhand = {
-		pips: tmppips,
+		columns: tmpoffcolumns,
+		bar: tmpoff.cap > 0 ? { columns: tmpoffcolumns, done: tmpoff.done, off: true } : null,
 		left: tmpoff.left,
 		pool: tmpoff.pool,
 		over: tmpoff.over,
+		overrun: tmpoff.overrun,
+		standing: tmpstanding,
 		text: `${tmpoff.left} of ${tmpoff.cap}`,
 		overText: tmpoff.over ? `off hand over by ${tmpoff.over}` : "",
 		title: `Off hand: ${tmpoff.cap} seconds, ${tmpoff.lost} lost to initiative, ${tmpoff.spent} spent, `
-			+ `${tmpoff.left} left` + (tmpoff.expired ? `, ${tmpoff.expired} run out with the round` : "")
+			+ `${tmpoff.left} left, ${tmpstanding}` + (tmpoff.expired ? `, ${tmpoff.expired} run out with the round` : "")
 			+ (tmpoff.over ? `, ${tmpoff.over} more spent than it had` : "")
 	};
 
