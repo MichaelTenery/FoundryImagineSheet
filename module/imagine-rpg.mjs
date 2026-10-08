@@ -374,6 +374,16 @@ Hooks.once("init", function () {
 		default: false
 	});
 
+	// Records that this world has been given the "everyone may create characters" permission once,
+	// so a Game Master who later takes it back is not overruled on every load. See PLAYERS CREATE
+	// CHARACTERS below.
+	game.settings.register("imagine-rpg", "playersMayCreate", {
+		scope: "world",
+		config: false,
+		type: Boolean,
+		default: false
+	});
+
 	// @MARKER DATA FIXES
 	// Which one-time repairs to this world's own documents have run -- module/data-fixes.mjs.
 	registerDataFixSetting();
@@ -617,6 +627,28 @@ Hooks.once("ready", async function () {
 	if (!game.user.isActiveGM) { return; }
 	try { await applyDataFixes(); }
 	catch (tmperror) { console.warn("Imagine RPG | the data fixes could not be run", tmperror); }
+});
+
+// @MARKER PLAYERS CREATE CHARACTERS
+// Making a character is the first thing a player does, so it is open to every player. Foundry's own
+// default keeps "Create New Actors" for Trusted Players and above, which left an ordinary Player with
+// no Create Character button and an Actor.create it would refuse. A system cannot change a core
+// default, so the active Game Master's client grants it to the Player role -- ONCE per world. It is
+// recorded, so a Game Master who closes it again in Configure Permissions stays obeyed.
+Hooks.once("ready", async function () {
+	if (!game.user.isActiveGM) { return; }
+	if (game.settings.get("imagine-rpg", "playersMayCreate")) { return; }
+	try {
+		var tmppermissions = foundry.utils.deepClone(game.settings.get("core", "permissions"));
+		var tmproles = new Set(tmppermissions.ACTOR_CREATE ?? [CONST.USER_ROLES.TRUSTED, CONST.USER_ROLES.ASSISTANT, CONST.USER_ROLES.GAMEMASTER]);
+		if (!tmproles.has(CONST.USER_ROLES.PLAYER)) {
+			tmproles.add(CONST.USER_ROLES.PLAYER);
+			tmppermissions.ACTOR_CREATE = Array.from(tmproles);
+			await game.settings.set("core", "permissions", tmppermissions);
+			ui.notifications.info("Imagine RPG: every player may now create characters. You can change this in Configure Permissions.");
+		}
+		await game.settings.set("imagine-rpg", "playersMayCreate", true);
+	} catch (tmperror) { console.warn("Imagine RPG | players could not be allowed to create characters", tmperror); }
 });
 
 // @MARKER ADD NEW sheet specific functions HERE
