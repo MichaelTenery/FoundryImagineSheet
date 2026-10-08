@@ -50,6 +50,7 @@ import ImagineSituationalMods from "./apps/situational-mods.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
 import ImagineAlignmentConfig from "./apps/alignment-config.mjs";
 import ImagineCharacterGenerator, { registerCharacterGeneratorButton } from "./apps/character-generator.mjs";
+import ImagineCreatureGenerator, { registerCreatureGeneratorButton } from "./apps/creature-generator.mjs";
 import ImagineCombat, { ImagineCombatant } from "./combat/combat-document.mjs";
 import ImagineCombatTracker from "./combat/combat-tracker.mjs";
 import ImagineRoundClock, { loadClockTemplates } from "./apps/round-clock.mjs";
@@ -322,6 +323,10 @@ Hooks.once("init", function () {
 		explainAvailability: explainAvailability,
 		// The step-by-step character generator; also a button in the Actors directory.
 		generateCharacter: () => new ImagineCharacterGenerator().render(true),
+		// @MARKER CREATURE GENERATOR
+		// The step-by-step creature designer, by the Master's Manual's Creature Creation Guide; also a
+		// Create Creature button in the Actors directory for Game Masters.
+		generateCreature: () => new ImagineCreatureGenerator().render(true),
 		// @MARKER STARTING LORE
 		// His "Provide random lore" -- entries for every lore the character holds, stocks of herbs,
 		// potions and poisons, and starting spells. The generator runs it when its tick is on, and
@@ -517,6 +522,10 @@ Hooks.once("init", function () {
 	// @MARKER CHARACTER GENERATOR
 	// A Create Character button in the Actors directory. See module/apps/character-generator.mjs.
 	registerCharacterGeneratorButton();
+
+	// @MARKER CREATURE GENERATOR
+	// A Create Creature button beside it, for Game Masters. See module/apps/creature-generator.mjs.
+	registerCreatureGeneratorButton();
 
 	// @MARKER CLASS ADVANCEMENT
 	// Grants a title's class skills when the title is reached. See module/class-advancement.mjs.

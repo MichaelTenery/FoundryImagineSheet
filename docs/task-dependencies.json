@@ -533,6 +533,12 @@
         "His reports of 2026-10-04 and 10-05"
       ],
       "note": "Done 2026-10-07, shipped as 0.24.2."
+    },
+    "Creature generator": {
+      "dependsOn": [
+        "Creature sheet: authoring"
+      ],
+      "note": "Built 2026-10-07: the Master's Manual's Creature Creation Guide as a Create Creature window."
     }
   }
 }

@@ -103,6 +103,10 @@ the port knowingly building a figure he has since corrected.
 - **A creature-wide hide cap of 5 × level** (`Aspects.txt`, `aspectsfixes.txt`, and `MM.txt` "Pg: 290") —
   **modelled 2026-09-23 as a warning, not a clamp**: `body.hideMax`/`hideOverCap` on the creature, flagged
   on its sheet; plants, magical plants and the new Titanic size exempt (DECISIONS 2026-09-23, D4).
+  **Enforced in the Create Creature window, 2026-10-07**: a creature being designed has its hide held
+  to the cap unless the Game Master ticks "Allow hide above the caps" (DECISIONS 2026-10-07). The same
+  window applies the errata's Enhanced Affinity (p.294), Enhance Taste (p.289), Wings (p.291), Metal
+  as a transmutation type (p.296) and the Venom Blood correction.
 - **Undead** (`Epitaph.txt`) — shadowform vs phaseable form by alignment. Relevant to the undead
   transformations noted as absent on 2026-09-21.
 - **Race modifiers on social skills — APPLIED 2026-09-23.** `Aspects.txt` "Pg 23(After)",

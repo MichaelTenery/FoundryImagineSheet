@@ -1,0 +1,356 @@
+{{!--
+	Creature generator. One step at a time, in the Master's Manual's own order (module/creature-gen-view.mjs
+	lists them). Only the current step's inputs are rendered, so capturing the form merges that step's
+	choices without disturbing any other step's. Everything shown is worked out by buildCreatureGenView.
+	Shares the character generator's classes (chargen, chargen-steps, chargen-body, chargen-footer) so the
+	two windows are laid out and coloured alike.
+--}}
+<div class="imagine chargen creature-gen">
+
+	<ol class="chargen-steps">
+		{{#each steps as |s|}}
+		<li class="{{#if s.current}}current{{/if}} {{#if s.done}}done{{/if}}">
+			<button type="button" data-action="goToStep" data-step="{{s.index}}" {{#unless s.done}}{{#unless s.current}}disabled{{/unless}}{{/unless}}>{{s.name}}</button>
+		</li>
+		{{/each}}
+	</ol>
+	<p class="creature-gen-summary muted">{{summary}}</p>
+
+	<section class="chargen-body">
+
+	{{!-- @MARKER CONCEPT --}}
+	{{#if isConcept}}
+		<h2>What is it?</h2>
+		<p class="muted">"The most important element in creature design is the concept of the creature you are making" (Master's Manual p.281). The tables that follow put the concept into numbers; the concept is the final judge.</p>
+		<label class="row">Name <input type="text" name="name" value="{{state.name}}" placeholder="New Creature"></label>
+		<label class="row">Type
+			<select name="creatureType">{{#each typeOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<p class="muted">Animal, Magical Animal, Humanoid, Magical Humanoid, Magical, Plant, Magical Plant, Slime, Undead; and Supernatural, "a tenth category" for Planar Lore. The type decides which ability lists are open on the Abilities step.</p>
+		<label class="row">Subtype <input type="text" name="subtype" value="{{state.subtype}}" placeholder="e.g. Canine"></label>
+		<label class="row">Habits / life cycle <input type="text" name="lifecycle" value="{{state.lifecycle}}" placeholder="Solitary? Packs? How it raises its young"></label>
+		<label class="row">Climate <input type="text" name="climate" value="{{state.climate}}" list="creature-gen-climates">
+			<datalist id="creature-gen-climates">{{#each climates as |c|}}<option value="{{c}}"></option>{{/each}}</datalist></label>
+		<label class="row">Habitat <input type="text" name="habitat" value="{{state.habitat}}" list="creature-gen-habitats">
+			<datalist id="creature-gen-habitats">{{#each habitats as |h|}}<option value="{{h}}"></option>{{/each}}</datalist></label>
+		<label class="row">Alignment <input type="text" name="alignment" value="{{state.alignment}}" list="creature-gen-alignments">
+			<datalist id="creature-gen-alignments">{{#each alignments as |a|}}<option value="{{a}}"></option>{{/each}}</datalist></label>
+		<label class="row">Tendencies <input type="text" name="tendencies" value="{{state.tendencies}}" list="creature-gen-tendencies">
+			<datalist id="creature-gen-tendencies">{{#each tendencies as |t|}}<option value="{{t}}"></option>{{/each}}</datalist></label>
+		<p class="muted">"Only sapient creatures have alignments ... Sapient undead should almost always be evil. Supernatural servants the alignment of their deity." (p.298)</p>
+		<label class="row">Notes <input type="text" name="notes" value="{{state.notes}}" placeholder="Anything unique: parts used for lore, herbs..."></label>
+	{{/if}}
+
+	{{!-- @MARKER BODY --}}
+	{{#if isBody}}
+		<h2>Body, weight and size</h2>
+		<label class="row">Body type
+			<select name="bodyType">{{#each bodyTypeOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<p class="muted">The book's {{body.family.name}} family: weight x{{body.family.weight}}, the {{#if (eq body.family.kind "humanoid")}}humanoid{{else}}animal{{/if}} size and Endurance tables{{#if body.family.walk}}, and it {{#if (eq body.family.gait "Walk")}}walks{{else}}{{body.family.gait}}s{{/if}}{{else}}; no movement table of its own{{/if}}. The body chart is the stock one for the type; it can be edited on the sheet.</p>
+
+		<h3>Height or length</h3>
+		<div class="swap-row">
+			<label class="row">Feet <input type="number" name="heightFeet" value="{{state.heightFeet}}" min="0"></label>
+			<label class="row">Inches <input type="number" name="heightInches" value="{{state.heightInches}}" min="0" max="11"></label>
+		</div>
+		<p class="muted">"Humanoids, Saurians, Centaurs and birds are measured standing up, quadrupeds ... at the shoulder, and giant lizards, snakes/worms, sea mammals, mollusks, fish, spiders and insects ... from head to tail or tip." (p.284)</p>
+
+		{{#if body.isTree}}
+		<h3>Tree</h3>
+		<p>A {{body.tree.height}}' tree: {{body.tree.weight}} lb before its frame, Endurance {{body.tree.dice}} ({{body.tree.low}}-{{body.tree.high}}), damage {{body.tree.damage}} if it attacks, base level {{body.tree.baseLevel}} (p.285). The size is read off the animal table.</p>
+		{{else}}
+		<h3>Base weight</h3>
+		{{#if body.baseWeightRow.beyond}}
+		<p class="alarm">Over 100 feet the book gives no dice, only "100,000+ lb". Enter the final weight below.</p>
+		{{else}}
+		<p>For this height the book rolls <strong>{{body.baseWeightRow.dice}}</strong> ({{body.baseWeightRow.low}}-{{body.baseWeightRow.high}} lb).
+			<button type="button" data-action="rollBaseWeight"><i class="fa-solid fa-dice"></i> Roll</button>
+			<button type="button" data-action="averageBaseWeight">Average</button></p>
+		{{/if}}
+		<label class="row">Base weight (lb) <input type="number" name="baseWeight" value="{{#unless body.baseWeightIsAverage}}{{body.baseWeight}}{{/unless}}" placeholder="{{body.baseWeight}}" min="0" step="any">
+			<span class="muted">{{#if body.baseWeightIsAverage}}the book's average{{else}}{{body.baseWeightNote}}{{/if}}</span></label>
+		{{/if}}
+
+		<h3>Frame and form</h3>
+		<label class="row">Frame
+			<select name="frame">{{#each frameOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<label class="row">Form
+			<select name="form">{{#each formOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<p>{{body.baseWeight}} lb {{#unless body.isTree}}&times; {{body.family.weight}} ({{body.family.name}}) {{/unless}}&times; {{body.frameMultiplier}} (frame) &times; {{body.formMultiplier}} (form) = <strong>{{body.weightComputed}} lb</strong>.</p>
+		<label class="row">Final weight (lb) <input type="number" name="weight" value="{{#if body.weightOverridden}}{{body.weight}}{{/if}}" placeholder="{{body.weightComputed}}" min="0" step="any">
+			<span class="muted">{{#if body.weightOverridden}}entered; blank it to use the figure above{{else}}blank: the figure above. "Any accurate information for weight that you obtain from research on that animal should come first" (p.284){{/if}}</span></label>
+
+		<h3>Size and Endurance</h3>
+		<label class="row">Size
+			<select name="sizeOverride">{{#each sizeOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<p><strong>{{body.size}}</strong>{{#if body.sizeExample}} <span class="muted">(like a {{body.sizeExample}})</span>{{/if}}. Endurance for this size: <strong>{{body.enduranceRow.dice}}</strong>{{#if body.enduranceRow.average}} ({{body.enduranceRow.average}}){{/if}}, base level <strong>{{body.baseLevel}}</strong>{{#if body.enduranceRow.example}} <span class="muted">-- {{body.enduranceRow.example}}</span>{{/if}}.
+			<button type="button" data-action="rollEndurance"><i class="fa-solid fa-dice"></i> Roll</button>
+			<button type="button" data-action="averageEndurance">Average</button></p>
+		<label class="row">Endurance <input type="number" name="endurance" value="{{#unless body.enduranceIsAverage}}{{body.endurance}}{{/unless}}" placeholder="{{body.endurance}}" min="0">
+			<span class="muted">{{#if body.enduranceIsAverage}}the book's average{{else}}{{body.enduranceNote}}{{/if}}</span></label>
+		<p class="muted">Shock is Endurance x 3 on the sheet unless entered there. Tiny creatures "typically have 2 or fewer Endurance"; small ones "10 or less ... unless the creature is magical" (pp.281-282).</p>
+	{{/if}}
+
+	{{!-- @MARKER ATTRIBUTES --}}
+	{{#if isAttributes}}
+		<h2>Attributes <span class="muted">{{attributesPP}} PP</span></h2>
+		<p class="muted">A band for each attribute (pp.285-286); its PP is paid per attribute. Blank ratings take the band's average. The maximum at level {{level}} is {{attributeCap}}.
+			<button type="button" data-action="rollAttributes"><i class="fa-solid fa-dice"></i> Roll all from their bands</button>
+			<button type="button" data-action="resetBands">Suggested bands</button></p>
+		<table class="chargen-attributes">
+			<thead><tr><th></th><th>Band</th><th>Range</th><th>PP</th><th>Rating</th><th></th></tr></thead>
+			<tbody>
+			{{#each attributeRows as |a|}}
+			<tr class="{{#if a.outside}}over{{/if}} {{#if a.overCap}}over{{/if}}">
+				<td>{{a.label}}</td>
+				<td><select name="bands.{{a.key}}">{{#each a.bandOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></td>
+				<td class="muted">{{a.low}}-{{a.high}} ({{a.dice}})</td>
+				<td>{{a.pp}}</td>
+				<td><input type="number" name="ratings.{{a.key}}" value="{{a.typed}}" placeholder="{{a.rating}}" min="0" max="30"></td>
+				<td class="strong">{{a.rating}}{{#if a.outside}} <span class="muted">outside band</span>{{/if}}{{#if a.overCap}} <span class="alarm">over {{../attributeCap}}</span>{{/if}}</td>
+			</tr>
+			{{/each}}
+			</tbody>
+		</table>
+		<p class="muted">"Make the physical attributes match the size and likely speed and coordination of the average creature of its type." A creature much stronger for its size takes a higher band -- that is the book's Enhanced Strength, priced on the same table.</p>
+
+		<h3>Resistances <span class="muted">from the attributes</span></h3>
+		<p>{{#each resistances as |r|}}<span class="race-chip">{{r.label}} {{#if r.immune}}Immune{{else}}{{r.value}}%{{/if}}</span>{{/each}}</p>
+		<p class="muted">The same tables a character's come from (Master's Manual p.286 is his attribute tables' resistance columns): Magic from Aura, Illusion from Wisdom, Poison and Disease from Vitality, Control from Will Force with the Intelligence and Wisdom adjustments. The Enhanced ... Resistance abilities and the immunities change them on the Abilities step.</p>
+	{{/if}}
+
+	{{!-- @MARKER COMBAT --}}
+	{{#if isCombat}}
+		<h2>Combat <span class="muted">{{attackSkillPP}} + {{hide.pp}} + {{attacksPP}} PP</span></h2>
+		<label class="row">Attack skill
+			<select name="attackChart">{{#each attackChartOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<p class="muted">The attack chart the creature rolls down (p.287). Grandmaster is his sheet's chart and not priced in the book; 12 PP is the generator's own step.</p>
+
+		<h3>Hide <span class="muted">{{hide.pp}} PP</span></h3>
+		<label class="row">Kind
+			<select name="hideKind">{{#each hideKindOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<label class="row">Points <input type="number" name="hidePoints" value="{{state.hidePoints}}" min="0">
+			<span class="muted">{{#if hide.kindMax}}this kind gives at most {{hide.kindMax}} at this Endurance; {{/if}}{{#if hide.errataMax}}the errata caps hide at {{hide.errataMax}} (5 per level){{else}}no errata cap for this creature{{/if}}</span></label>
+		<label class="row check"><input type="checkbox" name="hideOverCap" {{#if state.hideOverCap}}checked{{/if}}> Allow hide above the caps (the Game Master means the figure)</label>
+		{{#if hide.overCap}}<p class="alarm">{{#if state.hideOverCap}}Hide {{hide.points}} is above the errata's cap of {{hide.errataMax}}.{{else}}Hide held to {{hide.points}}, the errata's cap. "Hide has a maximum value of 5 points per level of the creature regardless of the type of hide. 0 level counts as level 1." (MM errata p.290){{/if}}</p>{{/if}}
+		<label class="row check"><input type="checkbox" name="shockImmune" {{#if state.shockImmune}}checked{{/if}}> Immune to shock</label>
+
+		<h3>Standard attacks <span class="muted">no PP; "any animals with teeth can have a bite attack, any with basic limbs a kick, and any with fists a punch" (p.287)</span></h3>
+		<table class="chargen-attributes compact">
+			<tbody>
+			{{#each standardAttacks as |a|}}
+			<tr><td>{{a.name}}</td><td class="muted">{{a.damageType}}</td>
+				<td><select name="standardAttacks.{{a.name}}">{{#each a.options as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></td></tr>
+			{{/each}}
+			</tbody>
+		</table>
+
+		<h3>Bought attacks <span class="muted">{{attacksPP}} PP; damage by size (p.287)</span></h3>
+		<div class="swap-row">
+			<select name="addBought"><option value="">-- choose an attack --</option>{{#each boughtCatalogOptions as |o|}}<option value="{{o.value}}" {{#if (eq o.value ../adding.bought)}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
+			<label class="row">&times; <input type="number" name="addBoughtCount" value="{{#if adding.boughtCount}}{{adding.boughtCount}}{{else}}1{{/if}}" min="1"></label>
+			<button type="button" data-action="addBoughtAttack"><i class="fa-solid fa-plus"></i> Add</button>
+		</div>
+		{{#if boughtAttacks.length}}
+		<table class="chargen-attributes">
+			<thead><tr><th>Attack</th><th>Damage</th><th>Count</th><th>PP</th><th>Seconds</th><th></th></tr></thead>
+			<tbody>
+			{{#each boughtAttacks as |a|}}
+			<tr><td>{{a.name}} <span class="muted">{{a.damageType}}</span></td>
+				<td>{{#if a.damageOptions.length}}<select name="boughtAttacks.{{a.index}}.damage">{{#each a.damageOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>{{else}}<span class="muted">none at this size</span>{{/if}}</td>
+				<td><input type="number" name="boughtAttacks.{{a.index}}.count" value="{{a.count}}" min="1"></td>
+				<td>{{a.pp}}</td>
+				<td class="muted">{{a.speed}}{{#if a.minSpeed}} ({{a.minSpeed}} min.){{/if}}</td>
+				<td><button type="button" data-action="removeBoughtAttack" data-index="{{a.index}}"><i class="fa-solid fa-trash"></i></button></td></tr>
+			{{/each}}
+			</tbody>
+		</table>
+		{{/if}}
+		<label class="row">Attack notes <input type="text" name="attackNotes" value="{{state.attackNotes}}" placeholder="Tactics: charging x2, diving x3, lies in wait, hunts in packs..."></label>
+	{{/if}}
+
+	{{!-- @MARKER MOVEMENT --}}
+	{{#if isMovement}}
+		<h2>Movement</h2>
+		{{#if movement.hasTable}}
+		<label class="row">Speed
+			<select name="speedName">{{#each speedOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+		<p class="muted">The base for a {{movement.family.name}} of this size, with the {{movement.speedName}} modifier for its family (p.288); then Jog x2 and Run x3 for walkers, Gallop x4 with Hooves, Fly x4 with Wings or Magical Flight, Swim x3 with Swimming. Crawlers have no jog or run.</p>
+		<div class="swap-row">
+			<label class="check"><input type="checkbox" name="gaits.gallop" {{#if movement.gaits.gallop}}checked{{/if}}> Gallop (quadrupeds "and some reptiles")</label>
+			<label class="check"><input type="checkbox" name="gaits.fly" {{#if movement.gaits.fly}}checked{{/if}}> Fly</label>
+			<label class="check"><input type="checkbox" name="gaits.swim" {{#if movement.gaits.swim}}checked{{/if}}> Swim</label>
+			<label class="check"><input type="checkbox" name="gaits.hop" {{#if movement.gaits.hop}}checked{{/if}}> Hop (tiny creatures)</label>
+		</div>
+		{{else}}
+		<p class="muted">The book has no movement table for a {{movement.family.name}} body. Add its movement by hand, if it moves.</p>
+		{{/if}}
+		<p><button type="button" data-action="resetMovement">{{#if movement.edited}}Back to the book's figures{{else}}Edit the figures{{/if}}</button>
+			{{#if movement.edited}}<input type="text" name="addMoveName" value="{{adding.moveName}}" placeholder="Mode name" class="short"> <button type="button" data-action="addMovement"><i class="fa-solid fa-plus"></i> Add a mode</button>{{/if}}</p>
+		<table class="chargen-attributes">
+			<thead><tr><th>Mode</th><th>Miles an hour</th><th>Feet per 10 s</th><th>Feet per second</th><th></th></tr></thead>
+			<tbody>
+			{{#each movement.modes as |m|}}
+			<tr>
+				{{#if ../movement.edited}}
+				<td><input type="text" name="movementModes.{{@index}}.name" value="{{m.name}}"></td>
+				<td><input type="number" name="movementModes.{{@index}}.hourly" value="{{m.hourly}}" step="any"></td>
+				<td><input type="number" name="movementModes.{{@index}}.tenSec" value="{{m.tenSec}}" step="any"></td>
+				<td><input type="number" name="movementModes.{{@index}}.oneSec" value="{{m.oneSec}}" step="any"></td>
+				<td><button type="button" data-action="removeMovement" data-index="{{@index}}"><i class="fa-solid fa-trash"></i></button></td>
+				{{else}}
+				<td>{{m.name}}</td><td>{{m.hourly}}</td><td>{{m.tenSec}}</td><td>{{m.oneSec}}</td><td></td>
+				{{/if}}
+			</tr>
+			{{/each}}
+			</tbody>
+		</table>
+		<p class="muted">Jumps are worked out from Agility on the sheet, as his sheet does.</p>
+	{{/if}}
+
+	{{!-- @MARKER ABILITIES --}}
+	{{#if isAbilities}}
+		<h2>Abilities, skills and powers <span class="muted">{{abilitiesPP}} + {{skillsPP}} + {{powersPP}} PP</span></h2>
+		<p class="muted">The lists open to a {{state.creatureType}} (pp.289-298). Hide and the attacks were bought on the Combat step; a higher Strength, Vitality or Agility is its band on the Attributes step. A disability GAINS points.</p>
+		<div class="swap-row">
+			<select name="addAbility"><option value="">-- choose an ability --</option>
+				{{#each abilityGroups as |g|}}<optgroup label="{{g.label}}">{{#each g.options as |o|}}<option value="{{o.value}}" {{#if (eq o.value @root.adding.ability)}}selected{{/if}}>{{o.label}}</option>{{/each}}</optgroup>{{/each}}
+			</select>
+			<label class="row">&times; <input type="number" name="addAbilityCount" value="{{#if adding.abilityCount}}{{adding.abilityCount}}{{else}}1{{/if}}" min="1"></label>
+			<button type="button" data-action="addAbility"><i class="fa-solid fa-plus"></i> Add</button>
+		</div>
+		<div class="swap-row">
+			<input type="text" name="addCustomName" value="{{adding.customName}}" placeholder="An ability of your own">
+			<select name="addCustomList">{{#each customListOptions as |o|}}<option value="{{o.value}}" {{#if (eq o.value @root.adding.customList)}}selected{{/if}}>{{o.label}}</option>{{/each}}</select>
+			<label class="row">PP <input type="number" name="addCustomPP" value="{{adding.customPP}}" step="any"></label>
+			<button type="button" data-action="addCustomAbility"><i class="fa-solid fa-plus"></i> Add</button>
+		</div>
+		{{#if abilityRows.length}}
+		<table class="chargen-attributes">
+			<thead><tr><th>Ability</th><th>List</th><th>Count</th><th>PP</th><th></th></tr></thead>
+			<tbody>
+			{{#each abilityRows as |a|}}
+			<tr><td>{{a.name}}{{#if a.note}} <span class="muted creature-gen-note" title="{{a.note}}">{{a.note}}</span>{{/if}}</td>
+				<td class="muted">{{a.listLabel}}</td>
+				<td>{{#if a.custom}}<input type="number" name="customAbilities.{{a.customIndex}}.pp" value="{{a.pp}}" step="any">{{else}}{{#if a.unit}}<input type="number" name="abilities.{{a.index}}.count" value="{{a.count}}" min="1"> <span class="muted">per {{a.unit}}</span>{{else}}1{{/if}}{{/if}}</td>
+				<td class="strong">{{a.pp}}</td>
+				<td><button type="button" data-action="removeAbility" data-index="{{a.index}}"><i class="fa-solid fa-trash"></i></button></td></tr>
+			{{/each}}
+			</tbody>
+		</table>
+		{{/if}}
+
+		<h3>Skills <span class="muted">{{skillsPP}} PP; "any skill can be bought in PP for 1/2 the cost of its rating (round up)" (p.298)</span></h3>
+		<div class="swap-row">
+			<input type="text" name="addSkillName" value="{{adding.skillName}}" placeholder="Skill" list="creature-gen-skills">
+			<datalist id="creature-gen-skills">{{#each skillNames as |n|}}<option value="{{n}}"></option>{{/each}}</datalist>
+			<label class="row">Chance % <input type="number" name="addSkillChance" value="{{adding.skillChance}}" min="0"></label>
+			<label class="row">PP if unknown <input type="number" name="addSkillPP" value="{{adding.skillPP}}" min="0"></label>
+			<button type="button" data-action="addSkill"><i class="fa-solid fa-plus"></i> Add</button>
+		</div>
+		{{#if skills.length}}
+		<table class="chargen-attributes">
+			<thead><tr><th>Skill</th><th>Chance</th><th>Rating</th><th>PP</th><th></th></tr></thead>
+			<tbody>
+			{{#each skills as |s|}}
+			<tr><td>{{s.name}}{{#unless s.known}} <span class="alarm">not in the compendium</span>{{/unless}}{{#if s.social}} <span class="muted">social: no experience</span>{{/if}}</td>
+				<td><input type="number" name="skills.{{s.index}}.chance" value="{{s.chance}}" min="0"></td>
+				<td class="muted">{{#if s.known}}{{s.rating}} (base {{s.base}}%){{else}}<input type="number" name="skills.{{s.index}}.pp" value="{{s.typedPP}}" min="0"> PP{{/if}}</td>
+				<td class="strong">{{s.pp}}</td>
+				<td><button type="button" data-action="removeSkill" data-index="{{s.index}}"><i class="fa-solid fa-trash"></i></button></td></tr>
+			{{/each}}
+			</tbody>
+		</table>
+		{{/if}}
+		<p class="muted">Above the base chance (rating x 5) is "Enhanced [skill]": 1 PP per +10%, 2 for a restricted skill. "Any time a skill needs a Practitioner Title or Class Title, use the level of the creature for both."</p>
+
+		<h3>Powers <span class="muted">{{powersPP}} PP; a spell at its Aura level or an invocation at its Piety level, +1 per use a day beyond the first (to 10), or 15 for at will (p.298)</span></h3>
+		<div class="swap-row">
+			<input type="text" name="addPowerName" value="{{adding.powerName}}" placeholder="Spell or invocation" list="creature-gen-powers">
+			<datalist id="creature-gen-powers">{{#each powerNames as |n|}}<option value="{{n}}"></option>{{/each}}</datalist>
+			<label class="row">Uses a day <input type="number" name="addPowerUses" value="{{#if adding.powerUses}}{{adding.powerUses}}{{else}}1{{/if}}" min="1"></label>
+			<label class="check"><input type="checkbox" name="addPowerAtWill" {{#if adding.powerAtWill}}checked{{/if}}> At will</label>
+			<label class="row">Level if unknown <input type="number" name="addPowerLevel" value="{{adding.powerLevel}}" min="0"></label>
+			<button type="button" data-action="addPower"><i class="fa-solid fa-plus"></i> Add</button>
+		</div>
+		{{#if powers.length}}
+		<table class="chargen-attributes">
+			<thead><tr><th>Power</th><th>Level</th><th>Uses</th><th>At will</th><th>PP</th><th></th></tr></thead>
+			<tbody>
+			{{#each powers as |p|}}
+			<tr><td>{{p.name}} <span class="muted">{{p.kind}}</span></td>
+				<td>{{#if p.known}}{{p.level}}{{else}}<input type="number" name="powers.{{p.index}}.level" value="{{p.typedLevel}}" min="0">{{/if}}</td>
+				<td><input type="number" name="powers.{{p.index}}.uses" value="{{p.uses}}" min="1"></td>
+				<td><input type="checkbox" name="powers.{{p.index}}.atWill" {{#if p.atWill}}checked{{/if}}></td>
+				<td class="strong">{{p.pp}}</td>
+				<td><button type="button" data-action="removePower" data-index="{{p.index}}"><i class="fa-solid fa-trash"></i></button></td></tr>
+			{{/each}}
+			</tbody>
+		</table>
+		{{/if}}
+	{{/if}}
+
+	{{!-- @MARKER REVIEW --}}
+	{{#if isReview}}
+		<h2>{{#if state.name}}{{state.name}}{{else}}New Creature{{/if}}</h2>
+		<p>{{derived.size}} {{state.creatureType}}{{#if state.subtype}} [{{state.subtype}}]{{/if}}, {{state.bodyType}} body, {{derived.weight}} lb, Endurance {{derived.endurance}}, hide {{hide.points}}{{#if state.hideKind}}{{#unless (eq state.hideKind "None")}} ({{state.hideKind}}){{/unless}}{{/if}}.</p>
+
+		<h3>Power points and level</h3>
+		<table class="chargen-attributes compact"><tbody>
+			<tr><td>Attributes</td><td class="strong">{{powerPoints.attributes}}</td></tr>
+			<tr><td>Attack skill</td><td class="strong">{{powerPoints.attackSkill}}</td></tr>
+			<tr><td>Hide</td><td class="strong">{{powerPoints.hide}}</td></tr>
+			<tr><td>Attacks</td><td class="strong">{{powerPoints.attacks}}</td></tr>
+			<tr><td>Abilities, disabilities, immunities</td><td class="strong">{{powerPoints.abilities}}</td></tr>
+			<tr><td>Skills</td><td class="strong">{{powerPoints.skills}}</td></tr>
+			<tr><td>Powers</td><td class="strong">{{powerPoints.powers}}</td></tr>
+			<tr><td><strong>Total</strong></td><td class="strong">{{powerPoints.total}}</td></tr>
+		</tbody></table>
+		<p>Base level {{baseLevel}} for the size, plus one per full {{powerPoints.perLevel}} PP: <strong>level {{levelAuto.level}}</strong> <span class="muted">({{levelAuto.remainder}} PP towards the next)</span>.</p>
+		<label class="row">Level <input type="number" name="levelOverride" value="{{#if levelOverridden}}{{level}}{{/if}}" placeholder="{{levelAuto.level}}" min="0">
+			<span class="muted">{{#if levelOverridden}}set by hand; blank it for the worked-out level{{else}}blank: the worked-out level. The attribute maximum is {{attributeCap}} at this level{{/if}}</span></label>
+
+		<h3>Experience value <span class="muted">his creature experience table, with the errata's level 0 row</span></h3>
+		<div class="pick-list">
+			{{#each expSpecials as |x|}}<label><input type="checkbox" name="expSpecials.{{x.key}}" {{#if x.checked}}checked{{/if}}> {{x.label}} <span class="muted">(x{{x.share}} base)</span></label>{{/each}}
+		</div>
+		<label class="row">Poison type <input type="text" name="poisonType" value="{{state.poisonType}}" placeholder="I to XXV" class="short"> <span class="muted">times the base experience</span></label>
+		<table class="chargen-attributes compact"><tbody>
+			<tr><td>Base for level {{exp.row.level}}</td><td class="strong">{{exp.parts.base}}</td></tr>
+			<tr><td>Attributes over {{exp.row.attrOver}}</td><td class="strong">{{exp.parts.attributes}}</td></tr>
+			<tr><td>Endurance over {{exp.row.endOver}}</td><td class="strong">{{exp.parts.endurance}}</td></tr>
+			<tr><td>Resistances over {{exp.row.resistOver}}%</td><td class="strong">{{exp.parts.resistances}}</td></tr>
+			<tr><td>Race and class skills over {{exp.row.skillOver}}%</td><td class="strong">{{exp.parts.skills}}</td></tr>
+			<tr><td>Powers</td><td class="strong">{{exp.parts.powers}}</td></tr>
+			<tr><td>Specials and poison</td><td class="strong">{{exp.parts.specials}}</td></tr>
+			<tr><td>Hide over 29</td><td class="strong">{{exp.parts.hide}}</td></tr>
+			<tr><td>Immunities ({{derived.immunityCount}})</td><td class="strong">{{exp.parts.immunities}}</td></tr>
+			<tr><td><strong>Total</strong></td><td class="strong">{{exp.total}}</td></tr>
+		</tbody></table>
+		<label class="row">Experience value <input type="number" name="expOverride" value="{{#if expOverridden}}{{expValue}}{{/if}}" placeholder="{{exp.total}}" min="0">
+			<span class="muted">{{#if expOverridden}}set by hand{{else}}blank: the worked-out value{{/if}}</span></label>
+		<label class="row">Experience note <input type="text" name="expNote" value="{{state.expNote}}" placeholder="e.g. first kill only"></label>
+
+		<h3>Attributes and resistances</h3>
+		<p>{{#each attributeRows as |a|}}<span class="race-chip">{{a.label}} {{a.rating}}</span>{{/each}}</p>
+		<p>{{#each resistances as |r|}}<span class="race-chip">{{r.label}} {{#if r.immune}}Immune{{else}}{{r.value}}%{{/if}}</span>{{/each}}</p>
+		<h3>Attacks</h3>
+		<p>{{#if attacks.length}}{{#each attacks as |a|}}<span class="race-chip">{{a.name}} {{a.damage}} {{a.damageType}}</span>{{/each}}{{else}}<span class="muted">none</span>{{/if}} <span class="muted">on the {{state.attackChart}} chart</span></p>
+		<h3>Movement</h3>
+		<p>{{#if movement.modes.length}}{{#each movement.modes as |m|}}<span class="race-chip">{{m.name}} {{m.hourly}} mi / {{m.tenSec}}' / {{m.oneSec}}'</span>{{/each}}{{else}}<span class="muted">none</span>{{/if}}</p>
+		<h3>Abilities, skills and powers</h3>
+		<p>{{#each abilityRows as |a|}}<span class="race-chip">{{a.name}}{{#if a.unit}} &times;{{a.count}}{{/if}}</span>{{/each}}{{#each skills as |s|}}<span class="race-chip">{{s.name}} {{s.chance}}%</span>{{/each}}{{#each powers as |p|}}<span class="race-chip">{{p.name}} {{#if p.atWill}}at will{{else}}&times;{{p.uses}}/day{{/if}}</span>{{/each}}</p>
+		{{#if issues.length}}<h3>To note</h3>{{#each issues as |i|}}<p class="alarm">{{i}}</p>{{/each}}{{/if}}
+	{{/if}}
+
+	</section>
+
+	<footer class="chargen-footer">
+		{{#if blocker}}<span class="alarm">{{blocker}}</span>{{/if}}
+		<button type="button" data-action="previousStep" {{#if isFirst}}disabled{{/if}}><i class="fa-solid fa-arrow-left"></i> Back</button>
+		{{#if isLast}}
+		<button type="button" data-action="createCreature" class="primary"><i class="fa-solid fa-dragon"></i> Create creature</button>
+		{{else}}
+		<button type="button" data-action="nextStep">Next <i class="fa-solid fa-arrow-right"></i></button>
+		{{/if}}
+	</footer>
+</div>

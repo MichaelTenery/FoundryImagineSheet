@@ -3260,7 +3260,7 @@ row 16, Weapon Making, has no type. The mods column is off from row 10 too.
 - **Tendency typo:** `getTendencyDescription` (73380/73383/73386) says "tum a chaotic situation"
   for "turn" (PG p.41). Fixed in the port's text.
 
-## 116. calcCreatureExp counts one immunity on a creature that has none
+## 120. calcCreatureExp counts one immunity on a creature that has none
 
 **Status:** open · **Port:** Solved in the port · **Severity:** minor
 

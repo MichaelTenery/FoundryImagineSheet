@@ -1,0 +1,302 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG creature generator test</title>
+<style>body{font:13px monospace;padding:1rem}.p{color:#0a0}.f{color:#c00;font-weight:bold}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for module/creature-gen-tables.mjs, creature-gen-rules.mjs and creature-gen-view.mjs: the
+// Master's Manual's Creature Creation Guide (pp.281-298) as the generator works it, and his
+// calcCreatureExp (sheet-worker.js:175518) as the generator values it. Every die is scripted.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/creature-gen-test.html
+//
+// The creature data model is imported for ONE check (the attribute cap agrees with it), so Foundry's
+// globals are stubbed the way tools/creature-test.html stubs them.
+globalThis.foundry = {
+	abstract: { TypeDataModel: class { constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+const T = await import("../module/creature-gen-tables.mjs");
+const R = await import("../module/creature-gen-rules.mjs");
+const V = await import("../module/creature-gen-view.mjs");
+const { default: ImagineCreatureData } = await import("../module/data/actor-creature.mjs");
+const { ATTRIBUTE_TABLES } = await import("../module/config-tables.mjs");
+const { BODY_CHARTS } = await import("../module/combat-tables.mjs");
+const { CREATURE_BODY_TYPES, CREATURE_SIZES } = await import("../module/creature-tables.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+	return ok;
+}
+const always = (face) => () => face;
+const dice = (...faces) => { let i = 0; return () => faces[Math.min(i++, faces.length - 1)]; };
+
+// --- dice ---------------------------------------------------------------------------------------------
+check("2d4+10 reads as two d4 plus 10", R.parseDice("2d4+10"), { count: 2, sides: 4, divide: 1, multiply: 1, add: 10 });
+check("the book's 1d10/2+25 rounds the half up: 26-30", R.diceRange("1d10/2+25"), { low: 26, high: 30 });
+check("...so a 1 rolls 26 and a 10 rolls 30", [R.rollDice("1d10/2+25", always(1)), R.rollDice("1d10/2+25", always(10))], [26, 30]);
+check("1d2-1 is the Tiny band's 0-1", R.diceRange("1d2-1"), { low: 0, high: 1 });
+check("20d100x10+10000 (the 45'-49' weight row) with all 50s is 20,000", R.rollDice("20d100x10+10000", always(50)), 20000);
+check("a plain 7 is 7", R.rollDice("7", always(3)), 7);
+check("nonsense rolls 0", R.rollDice("lots", always(3)), 0);
+check("the average of 6d4+10 (a Medium Humanoid's Endurance) is the book's 25", R.averageDice("6d4+10"), 25);
+check("every band's dice give the band's printed range",
+	Object.values(T.ATTRIBUTE_BANDS).flat().every(([name, low, high, d]) => { const r = R.diceRange(d); return r.low == low && r.high == high; }), true);
+check("every Endurance row's bracketed figure lies within its dice (the book rounds its averages: 4d10+10 is printed 30)",
+	Object.values(T.ENDURANCE_BY_SIZE).flatMap(k => Object.values(k)).every(([d, avg]) => { const r = R.diceRange(d); return avg >= r.low && avg <= r.high; }), true);
+check("every tree row's dice give the book's printed range", T.TREE_TABLE.every(row => { const r = R.diceRange(row[2]); return r.low == row[3] && r.high == row[4]; }), true);
+check("every base-weight row's dice top out at the book's printed high (its printed lows are off its own dice: 10,000 + 20d100x10 cannot be 12,000)",
+	T.BASE_WEIGHT_BY_HEIGHT.every(row => { const r = R.diceRange(row[1]); return r.high <= row[3] + 1 && r.low <= row[2]; }), true);
+
+// --- body, weight and size (MM pp.284-285) -------------------------------------------------------------
+check("every one of his 45 body types has a family", CREATURE_BODY_TYPES.every(b => T.BODY_TYPE_FAMILY[b] && T.BODY_FAMILIES[T.BODY_TYPE_FAMILY[b]]), true);
+check("a Quadruped weighs six times its base; a Snake a tenth", [R.getBodyFamily("Quadruped(Tail)").weight, R.getBodyFamily("Snake").weight], [6, 0.1]);
+check("a winged humanoid is an Avian, read off the humanoid tables", [R.getBodyFamily("Humanoid(Wings)").name, R.getBodyFamily("Humanoid(Wings)").kind], ["Avian", "humanoid"]);
+check("a Bird is an animal for size though it walks the humanoid table", [R.getBodyFamily("Bird").kind, R.getBodyFamily("Bird").walk], ["animal", "humanoid"]);
+check("5'8\" (68\") reads the 5'6\"-5'11\" row: 10d6+121", R.getBaseWeightRow(68).dice, "10d6+121");
+check("2'6\" reads 8d4+24 (32-56)", R.getBaseWeightRow(30), { dice: "8d4+24", low: 32, high: 56, beyond: false });
+check("under 5\" is 1d4", R.getBaseWeightRow(3).dice, "1d4");
+check("over 100' has no dice", R.getBaseWeightRow(1300).beyond, true);
+check("a Medium-framed human of 151 base lb weighs 151", R.computeWeight(151, 1, 1, 1), 151);
+check("a Heavy, Dense Quadruped of 44 base lb: 44 x 6 x 1.25 x 2 = 660", R.computeWeight(44, 6, 1.25, 2), 660);
+check("a 2 lb base at a tenth and wispy is 0.1 lb", R.computeWeight(2, 0.1, 0.5, 1), 0.1);
+check("frame and form labels give their multipliers; unknown is 1", [R.getFrameMultiplier("Wispy"), R.getFormMultiplier("Very Dense"), R.getFrameMultiplier("??")], [0.5, 4, 1]);
+check("a 180 lb humanoid is Medium (Human)", R.getSizeClass(180, "humanoid"), { size: "Medium", example: "Human" });
+check("a 180 lb animal is Medium (Wolf)", R.getSizeClass(180, "animal").size, "Medium");
+check("a 9,000 lb humanoid is Titanic", R.getSizeClass(9000, "humanoid").size, "Titanic");
+check("two ounces is Minuscule (Insect)", R.getSizeClass(0.125, "animal").size, "Minuscule");
+check("every size the tables name is a sheet size, Minuscule aside",
+	T.SIZE_ORDER.filter(s => s != "Minuscule").every(s => CREATURE_SIZES.includes(s)), true);
+
+// --- Endurance by size (MM p.286) ----------------------------------------------------------------------
+check("a Medium Humanoid: 6d4+10, 25, base level 1", R.getEnduranceRow("Medium", "humanoid"), { dice: "6d4+10", average: 25, baseLevel: 1, example: "Human" });
+check("a Medium Animal: 4d10+10, 30, level 1 (Wolf)", [R.getEnduranceRow("Medium", "animal").dice, R.getEnduranceRow("Medium", "animal").baseLevel], ["4d10+10", 1]);
+check("a Titanic Animal is base level 8 with 800 Endurance (Dragon)", [R.getEnduranceRow("Titanic", "animal").average, R.getEnduranceRow("Titanic", "animal").baseLevel], [800, 8]);
+check("a Minuscule humanoid reads the animal row", R.getEnduranceRow("Minuscule", "humanoid").average, 1);
+check("a 12' tree: 1,000 lb, 6d10+14, 4d10 damage, base level 1", R.getTreeRow(12), { height: 12, weight: 1000, dice: "6d10+14", low: 20, high: 74, damage: "4d10", baseLevel: 1 });
+check("a 200' tree reads the 99' row", R.getTreeRow(200).height, 99);
+
+// --- attributes (MM pp.285-286) -------------------------------------------------------------------------
+check("the Medium body band is 7-16 (3d4+4) for 2 PP", R.getBand("body", "Medium"), { name: "Medium", low: 7, high: 16, dice: "3d4+4", pp: 2 });
+check("Divine Speed is 20 PP", R.getBand("speed", "Divine Speed").pp, 20);
+check("an Animal is suggested Animal mind and spirit, no soul, Average speed, its size's body",
+	R.suggestBands("Medium", "Animal"), { str: "Medium", agl: "Average", vit: "Medium", int: "Animal Intelligence", wis: "Animal Intelligence", knw: "Animal Intelligence",
+		app: "N/A (no soul)", chm: "N/A (no soul)", soc: "N/A (no soul)", aur: "Animal Spirit", pty: "Animal Spirit", wil: "Animal Spirit" });
+check("a Magical Animal gets at least an Average spirit", R.suggestBands("Large", "Magical Animal").aur, "Average Spirit");
+check("an Undead's soul is Condemned", R.suggestBands("Medium", "Undead").app, "Condemned/Damned Soul");
+check("a Plant is Lethargic with Basic drives", [R.suggestBands("Large", "Plant").agl, R.suggestBands("Large", "Plant").int], ["Lethargic", "Basic Drives and Instincts"]);
+const medium = R.resolveAttributes(R.suggestBands("Medium", "Humanoid"), {});
+check("a Medium humanoid average in everything: eleven bands at 2 and Average Agility at 3, 25 PP, under a level's worth", medium.pp, 25);
+check("...with each rating at its band's average (Medium 7-16 is 12; Average 11-14 is 13)", [medium.ratings.str, medium.ratings.int], [12, 13]);
+const typed = R.resolveAttributes(R.suggestBands("Medium", "Humanoid"), { str: 20, agl: 0 });
+check("a typed rating stands, even 0, and one outside its band is reported", [typed.ratings.str, typed.ratings.agl, typed.rows[0].outside, typed.rows[1].outside], [20, 0, true, true]);
+check("a typed 40 is held to 30", R.resolveAttributes(R.suggestBands("Medium", "Humanoid"), { str: 40 }).ratings.str, 30);
+check("the level cap agrees with the data model's at every level 0-30",
+	Array.from({ length: 31 }, (_, l) => R.getLevelAttributeCap(l) == ImagineCreatureData.getCreatureAttributeCap(l)).every(x => x), true);
+check("...25 under 10, 28 under 15, 30 from 15", [R.getLevelAttributeCap(9), R.getLevelAttributeCap(10), R.getLevelAttributeCap(15)], [25, 28, 30]);
+
+// --- resistances (MM p.286 is his attribute tables) ------------------------------------------------------
+// The book's rows at ratings 10 and 20, read from the printed table.
+check("rating 10 everywhere: Magic 10, Illusion 20, Control 10, Poison 25, Disease 20",
+	Object.fromEntries(Object.entries(R.deriveResistances({ aur: 10, wis: 10, wil: 10, int: 10, vit: 10 })).map(([k, v]) => [k, v.value])),
+	{ magic: 10, illusion: 20, control: 10, poison: 25, disease: 20 });
+check("rating 20 everywhere: Control 60 + WIS +15 + INT +20 = 95", R.deriveResistances({ aur: 20, wis: 20, wil: 20, int: 20, vit: 20 }).control.value, 95);
+check("a rating of 0 everywhere: Control -90 floors at 0", R.deriveResistances({ aur: 0, wis: 0, wil: 0, int: 0, vit: 0 }).control.value, 0);
+check("the attribute tables carry the book's columns (ratings 7 and 25)",
+	[ATTRIBUTE_TABLES.vit[7].poisonResist, ATTRIBUTE_TABLES.vit[7].diseaseResist, ATTRIBUTE_TABLES.wil[7].controlResist, ATTRIBUTE_TABLES.wis[7].illusionResist, ATTRIBUTE_TABLES.aur[7].magicResist,
+	 ATTRIBUTE_TABLES.vit[25].poisonResist, ATTRIBUTE_TABLES.wis[25].illusionResist, ATTRIBUTE_TABLES.wis[25].controlResistAdjust, ATTRIBUTE_TABLES.int[25].controlResistAdjust],
+	[10, 5, 4, 5, 4, 94, 95, 40, 45]);
+const resistPicks = R.readResistanceAbilities([{ name: "Enhanced Poison Resistance", count: 3 }, { name: "Enhanced Magic Resistance", count: 7 }, { name: "Disease", list: "immunity" }]);
+check("Enhanced Poison Resistance x3 is +15%; Enhanced Magic x7 is +7%; the Disease immunity marks the track", resistPicks, { enhancements: { poison: 15, magic: 7 }, immune: { disease: true } });
+check("...and they are applied", (() => { const r = R.deriveResistances({ aur: 10, wis: 10, wil: 10, int: 10, vit: 10 }, resistPicks.enhancements, resistPicks.immune); return [r.poison.value, r.magic.value, r.disease.immune]; })(), [40, 17, true]);
+
+// --- attacks (MM p.287, pp.289-291) ---------------------------------------------------------------------
+check("'3d4-4d4' offers both", R.readDamageRange("3d4-4d4").map(c => c.value), ["3d4", "4d4"]);
+check("'1-3' is one d3", R.readDamageRange("1-3")[0].value, "1d3");
+check("'0-1' is 1d2-1", R.readDamageRange("0-1")[0].value, "1d2-1");
+check("'1' is 1", R.readDamageRange("1")[0].value, "1");
+check("'0' is no attack", R.readDamageRange("0"), []);
+check("a Medium creature's standard attacks: Bite 1-3, Punch 1, Kick 1-2, Trample 2d4",
+	R.getStandardAttacks("Medium").map(a => [a.name, a.choices.map(c => c.value).join("|")]), [["Bite", "1d3"], ["Punch", "1"], ["Kick", "1d2"], ["Trample", "2d4"]]);
+check("a Tiny creature cannot trample", R.getStandardAttacks("Tiny").map(a => a.name), ["Bite", "Punch", "Kick"]);
+check("a Titanic trample is 20d6", R.getStandardAttacks("Titanic").find(a => a.name == "Trample").choices[0].value, "20d6");
+check("a Medium creature's Fangs do 3d4 or 4d4 for 6 PP, 5 seconds (3 min.), piercing",
+	(() => { const f = R.getBoughtAttacks("Medium").find(a => a.name == "Fangs"); return [f.choices.map(c => c.value), f.pp, f.speed, f.minSpeed, f.damageType]; })(), [["3d4", "4d4"], 6, 5, 3, "Piercing"]);
+check("Large Claws on a Large creature: 4d6, 8 PP, cutting", (() => { const c = R.getBoughtAttacks("Large").find(a => a.name == "Claws (Large)"); return [c.choices[0].value, c.pp, c.damageType]; })(), ["4d6", 8, "Cutting"]);
+check("Quills are thrown: a Missile", R.getBoughtAttacks("Medium").find(a => a.name == "Quills").attackType, "Missile");
+check("a Minuscule creature's bought attacks read the Tiny row", R.getBoughtAttacks("Minuscule").find(a => a.name == "Fangs").choices[0].value, "1d2");
+check("the attack charts' PP: Beginner 1 ... Master 10, None 0", [R.getAttackSkillPP("Beginner"), R.getAttackSkillPP("Expert"), R.getAttackSkillPP("Master"), R.getAttackSkillPP("None")], [1, 8, 10, 0]);
+
+// --- hide (MM p.290, the errata's cap) -----------------------------------------------------------------
+check("Fur gives 1 per 5 Endurance: 30 Endurance is 6, at 1 PP each", (() => { const h = R.resolveHide("Fur", 6, 30, 5, "Animal", "Medium", false); return [h.kindMax, h.points, h.pp]; })(), [6, 6, 6]);
+check("the errata caps a level 1 creature at 5, and says so", (() => { const h = R.resolveHide("Fur", 6, 30, 1, "Animal", "Medium", false); return [h.errataMax, h.points, h.overCap, h.pp]; })(), [5, 5, true, 5]);
+check("level 0 counts as level 1", R.resolveHide("Scales", 9, 30, 0, "Animal", "Medium", false).errataMax, 5);
+check("allowed over the cap, the points stand and are flagged", (() => { const h = R.resolveHide("Fur", 6, 30, 1, "Animal", "Medium", true); return [h.points, h.overCap]; })(), [6, true]);
+check("a plant has no errata cap; Bark is 2 PP a point", (() => { const h = R.resolveHide("Bark", 20, 40, 1, "Plant", "Large", false); return [h.errataMax, h.kindMax, h.points, h.pp]; })(), [null, 20, 20, 40]);
+check("a Titanic creature has no errata cap either", R.resolveHide("Scales", 100, 800, 8, "Animal", "Titanic", false).errataMax, null);
+check("Fibrous is 1 PP per 2 points, rounded up", R.resolveHide("Fibrous", 5, 25, 3, "Plant", "Medium", false).pp, 3);
+check("Supernatural hide is 5 PP + 1 a point, no Endurance limit, but still the errata's cap", (() => { const h = R.resolveHide("Supernatural", 12, 10, 3, "Magical", "Medium", false); return [h.kindMax, h.errataMax, h.points, h.pp]; })(), [null, 15, 12, 17]);
+check("None is nothing", R.resolveHide("None", 10, 30, 1, "Animal", "Medium", false).pp, 0);
+
+// --- movement (MM pp.287-288) ---------------------------------------------------------------------------
+const quad = R.getBodyFamily("Quadruped");
+check("a Medium quadruped at Average speed: 6+2 = 8 miles, 80', 8'; then Jog x2 and Run x3",
+	R.buildMovementModes(quad, "Medium", "Average", {}), [
+		{ name: "Walk", hourly: 8, tenSec: 80, oneSec: 8 }, { name: "Jog", hourly: 16, tenSec: 160, oneSec: 16 }, { name: "Run", hourly: 24, tenSec: 240, oneSec: 24 }]);
+check("with Hooves (gallop) a fourth gait at x4", R.buildMovementModes(quad, "Medium", "Average", { gallop: true }).find(m => m.name == "Gallop"), { name: "Gallop", hourly: 32, tenSec: 320, oneSec: 32 });
+check("a Medium humanoid at Average speed walks 4 miles an hour", R.buildMovementModes(R.getBodyFamily("Humanoid"), "Medium", "Average", {})[0], { name: "Walk", hourly: 4, tenSec: 40, oneSec: 4 });
+check("...Lethargic takes it to nothing, never below", R.buildMovementModes(R.getBodyFamily("Humanoid"), "Medium", "Lethargic", {})[0], { name: "Walk", hourly: 0, tenSec: 0, oneSec: 0 });
+check("...Incredibly Fast adds 4", R.buildMovementModes(R.getBodyFamily("Humanoid"), "Medium", "Incredibly Fast", {})[0].hourly, 8);
+check("a Medium snake crawls 2 miles less 1 (Average on the crawl table), and has no jog or run",
+	R.buildMovementModes(R.getBodyFamily("Snake"), "Medium", "Average", {}), [{ name: "Crawl", hourly: 1, tenSec: 10, oneSec: 1 }]);
+check("a fish swims the humanoid table and Swimming adds no second swim", R.buildMovementModes(R.getBodyFamily("Fish"), "Medium", "Average", { swim: true }).map(m => m.name), ["Swim"]);
+check("a bird with Flight flies at x4 walking", R.buildMovementModes(R.getBodyFamily("Bird"), "Small", "Average", { fly: true }).find(m => m.name == "Fly").oneSec, 8);
+check("a Tiny creature crawls 250' an hour, and flies only if it can", [R.buildMovementModes(R.getBodyFamily("Tiny"), "Tiny", "Average", {}).map(m => m.name),
+	R.buildMovementModes(R.getBodyFamily("Tiny"), "Tiny", "Average", { fly: true }).map(m => m.name)], [["Crawl"], ["Crawl", "Fly"]]);
+check("a plant has no movement table", R.buildMovementModes(R.getBodyFamily("Tree"), "Large", "Average", {}), []);
+check("the Agility bands name the speed: Fast is Fast, Immortal Speed is Incredibly Fast", [R.speedForAgilityBand("Fast"), R.speedForAgilityBand("Immortal Speed"), R.speedForAgilityBand("??")], ["Fast", "Incredibly Fast", "Average"]);
+check("Hooves, Wings, Magical Flight and Swimming bring their gaits", R.readGaitAbilities([{ name: "Hooves" }, { name: "Magical Flight" }, { name: "Swimming" }]), { gallop: true, fly: true, swim: true });
+
+// --- abilities (MM pp.289-298) --------------------------------------------------------------------------
+check("an Animal may take animal abilities and no magical ones", (() => { const l = R.listAbilitiesFor("Animal"); return [l.animal.length > 50, l.magical.length, l.plant.length]; })(), [true, 0, 0]);
+check("a Plant takes plant abilities only (and disabilities, immunities)", (() => { const l = R.listAbilitiesFor("Plant"); return [l.animal.length, l.plant.length > 30, l.mplant.length, l.magical.length, l.disability.length > 50, l.immunity.length > 40]; })(), [0, true, 0, 0, true, true]);
+check("a Slime takes from every list", (() => { const l = R.listAbilitiesFor("Slime"); return [l.animal.length > 0, l.plant.length > 0, l.mplant.length > 0, l.magical.length > 0]; })(), [true, true, true, true]);
+check("a Magical Plant takes plant, magical plant and magical", (() => { const l = R.listAbilitiesFor("Magical Plant"); return [l.animal.length, l.plant.length > 0, l.mplant.length > 0, l.magical.length > 0]; })(), [0, true, true, true]);
+check("no ability is listed twice on one list (Insanity is on two: a disability and an immunity)", new Set(T.ABILITY_LIST.map(r => r[1] + "|" + r[0])).size, T.ABILITY_LIST.length);
+check("...and a pick with its list gets its own row", [R.getAbilityRow("Insanity", "immunity").pp, R.getAbilityRow("Insanity", "disability").pp, R.priceAbilities([{ name: "Insanity", list: "immunity" }]).pp], [5, -5, 5]);
+check("every disability is a gain and everything else a cost or free", T.ABILITY_LIST.every(r => r[1] == "disability" ? r[2] < 0 : r[2] >= 0), true);
+const priced = R.priceAbilities([{ name: "Hooves", count: 1 }, { name: "Enhanced Smell", count: 3 }, { name: "Blind", count: 1 }, { name: "Fire", count: 1 }, { name: "Spines", list: "animal", pp: 7, custom: true }]);
+check("Hooves 10 + Enhanced Smell x3 at 2 = 6 + Blind -5 + Fire immunity 12 + a custom 7 = 30 PP", priced.pp, 30);
+check("...each row says what it is", priced.rows.map(r => [r.name, r.list, r.pp, r.custom]), [["Hooves", "animal", 10, false], ["Enhanced Smell", "animal", 6, false], ["Blind", "disability", -5, false], ["Fire", "immunity", 12, false], ["Spines", "animal", 7, true]]);
+check("a flat ability ignores its count", R.priceAbilities([{ name: "Gills", count: 4 }]).pp, 5);
+check("Enhanced Affinity is the errata's: 2 PP per +1%", R.getAbilityRow("Enhanced Affinity").pp, 2);
+check("the errata's missing Enhance Taste is there", !!R.getAbilityRow("Enhance Taste"), true);
+
+// --- skills and powers (MM p.298) -----------------------------------------------------------------------
+const track = { name: "Track", system: { skillRating: 12, category: "class", isRestricted: false } };
+check("Track (rating 12) at its base 60%: half the rating, 6 PP", R.priceSkill({ name: "Track", chance: 60 }, track), { pp: 6, rating: 12, base: 60, enhanced: 0, known: true });
+check("...at 85%: +25 over base is three +10% steps at 1 PP, 9 PP", R.priceSkill({ name: "Track", chance: 85 }, track).pp, 9);
+check("a restricted skill's steps cost 2", R.priceSkill({ chance: 80 }, { system: { skillRating: 12, isRestricted: true } }).pp, 10);
+check("an odd rating rounds up: 15 is 8", R.priceSkill({ chance: 0 }, { system: { skillRating: 15 } }).pp, 8);
+check("an unknown skill is priced at the PP typed", R.priceSkill({ name: "Glare", chance: 50, pp: 4 }, null), { pp: 4, rating: 0, base: 0, enhanced: 0, known: false });
+check("a level 3 spell once a day is 3 PP", R.pricePower({ uses: 1 }, { system: { level: 3 } }, null).pp, 3);
+check("...four times a day is 3 + 3 = 6", R.pricePower({ uses: 4 }, { system: { level: 3 } }, null).pp, 6);
+check("...twenty times a day counts only to 10: 3 + 9 = 12", R.pricePower({ uses: 20 }, { system: { level: 3 } }, null).pp, 12);
+check("...at will is 3 + 15 = 18", R.pricePower({ uses: 1, atWill: true }, { system: { level: 3 } }, null).pp, 18);
+check("an invocation is priced at its Piety level", R.pricePower({ uses: 1 }, null, { system: { level: 5 } }), { pp: 5, level: 5, known: true, kind: "invocation" });
+check("an unknown power takes the level typed", R.pricePower({ uses: 1, level: 4 }, null, null).kind, "unknown");
+
+// --- level (MM p.281) -----------------------------------------------------------------------------------
+check("39 PP add nothing to the base level", R.levelFromPowerPoints(1, 39), { level: 1, fromPoints: 0, remainder: 39 });
+check("40 PP add one; 85 add two with 5 over", [R.levelFromPowerPoints(1, 40).level, R.levelFromPowerPoints(1, 85)], [2, { level: 3, fromPoints: 2, remainder: 5 }]);
+check("points below nothing take no level away", R.levelFromPowerPoints(2, -30).level, 2);
+
+// --- experience: his calcCreatureExp (sheet-worker.js:175518) -------------------------------------------
+check("the table has his 22 rows, 0 to 21+", T.CREATURE_EXP_TABLE.length, 22);
+check("his level 7 row: 4000 base, Endurance 40/+80, attributes 18/+80, resistances 50%/+400, skills 50%/+200, powers x80",
+	R.getExpRow(7), { level: 7, base: 4000, endOver: 40, endPer: 80, attrOver: 18, attrPer: 80, resistOver: 50, resistPer: 400, skillOver: 50, skillPer: 200, powerPer: 80 });
+check("the errata's level 0 row: 0 base, Endurance 0/+1, attributes 15/+1, skills 10/+1, resistances 10%/+5", (() => { const r = R.getExpRow(0); return [r.base, r.endOver, r.endPer, r.attrOver, r.attrPer, r.skillOver, r.skillPer, r.resistOver, r.resistPer]; })(), [0, 0, 1, 15, 1, 10, 1, 10, 5]);
+check("level 30 reads the 21+ row", R.getExpRow(30).base, 1000000);
+const plain = (level, extra) => R.calcCreatureExp({ level, ratings: { str: 10, agl: 10, vit: 10, int: 10, wis: 10, knw: 10, app: 10, chm: 10, soc: 10, aur: 10, pty: 10, wil: 10 },
+	endurance: 20, resistances: {}, skills: [], powerLevels: [], specials: {}, poisonType: 0, hide: 0, immunityCount: 0, ...(extra ?? {}) });
+check("a plain level 1 creature is worth its base 50", plain(1).total, 50);
+check("Strength 20 at level 1 (16/+1) adds 4", plain(1, { ratings: { str: 20, agl: 10, vit: 10, int: 10, wis: 10, knw: 10, app: 10, chm: 10, soc: 10, aur: 10, pty: 10, wil: 10 } }).parts.attributes, 4);
+check("Endurance 35 at level 4 (30/+10) adds 50", plain(4, { endurance: 35 }).parts.endurance, 50);
+check("two resistances over 30% at level 2 add 10 each; an immune track adds nothing",
+	plain(2, { resistances: { magic: { value: 40 }, poison: { value: 31 }, control: { value: 30 }, disease: { value: 90, immune: true } } }).parts.resistances, 20);
+check("a class skill over 30% at level 1 adds 2; a social one adds nothing (the errata)",
+	plain(1, { skills: [{ chance: 60, counted: true }, { chance: 60, counted: false }] }).parts.skills, 2);
+check("a level 4 power at level 1 (x1) adds 4; at level 5 (x20) 80", [plain(1, { powerLevels: [4] }).parts.powers, plain(5, { powerLevels: [4] }).parts.powers], [4, 80]);
+check("Slaying adds the base; Caster twice the base; Draining Touch a quarter, truncated",
+	plain(4, { specials: { slaying: true, caster: true, drainTouch: true } }).parts.specials, 500 + 1000 + 125);
+check("a type III poison adds three times the base", plain(1, { poisonType: 3 }).parts.specials, 150);
+check("hide 30 at level 1: (30 - 20) / 10 = 1 base; hide 29 nothing; hide 55 three times", [plain(1, { hide: 30 }).parts.hide, plain(1, { hide: 29 }).parts.hide, plain(1, { hide: 55 }).parts.hide], [50, 0, 150]);
+check("each immunity is a fifth of the base, and none is none (his split-of-nothing counted one: UPSTREAM 120)", [plain(1, { immunityCount: 2 }).parts.immunities, plain(1).parts.immunities], [20, 0]);
+check("roman poison types read: XIV 14, XXV 25, IV 4, blank 0, nonsense 0, a number as itself", [R.readPoisonType("XIV"), R.readPoisonType("XXV"), R.readPoisonType("IV"), R.readPoisonType(""), R.readPoisonType("abc"), R.readPoisonType("7")], [14, 25, 4, 0, 0, 7]);
+
+// --- the whole design: a wolf, a human bandit, a dragon, a tree -------------------------------------------
+const content = { skills: [track, { name: "Charm", system: { skillRating: 10, category: "social" } }], spells: [{ name: "Ath-Carmor", system: { level: 1, sourcebook: "Player's Guide", page: "1" } }],
+	invocations: [], traits: [{ name: "Hooves", type: "trait", _id: "abc", system: { category: "ability", canonicalName: "Hooves", description: "pack" } }] };
+const wolf = V.newCreatureGenState();
+Object.assign(wolf, { name: "Wolf", creatureType: "Animal", bodyType: "Quadruped(Tail)", heightFeet: 2, heightInches: 6, standardAttacks: { Bite: "1d3" },
+	boughtAttacks: [{ name: "Fangs", damage: "4d4", count: 1 }], hideKind: "Fur", hidePoints: 6, attackChart: "Novice", abilities: [{ name: "Enhanced Smell", count: 2 }, { name: "Social Bonding", count: 1 }],
+	skills: [{ name: "Track", chance: 60 }] });
+const wolfD = V.deriveCreatureDesign(wolf, content);
+check("the wolf: a 2'6\" quadruped averages 44 base lb x 6 = 264 lb, a Medium animal, Endurance 30, base level 1",
+	[wolfD.baseWeight, wolfD.weight, wolfD.size, wolfD.endurance, wolfD.baseLevel], [44, 264, "Medium", 30, 1]);
+check("...its PP: attributes 7 (2+3+2 and nothing for an animal's mind, soul and spirit), Novice 2, Fangs 6, hide 5 (capped), abilities 7, Track 6 = 33",
+	wolfD.powerPoints, { attributes: 7, attackSkill: 2, attacks: 6, hide: 5, abilities: 7, skills: 6, powers: 0, total: 33, perLevel: 40 });
+check("...level 1, with its fur held to the errata's 5", [wolfD.level, wolfD.hide.points, wolfD.hide.overCap], [1, 5, true]);
+check("...it walks 8, jogs 16, runs 24", wolfD.movementModes.map(m => m.hourly), [8, 16, 24]);
+check("...experience 50 + 10 (Endurance 30 over 20) + 5 (Poison 35% over 30) + 2 (Track) = 67", wolfD.exp.total, 67);
+check("...the view says so in one line", V.buildCreatureGenView(wolf, content).summary, "Wolf: Medium Animal, level 1, 33 PP");
+const wolfA = V.assembleFromState(wolf, content);
+check("...and assembles: a creature with its bite and fangs, its traits and its hide", wolfA.items.map(i => i.type + ":" + i.name), ["creatureAttack:Bite", "creatureAttack:Fangs", "trait:Enhanced Smell (x2)", "trait:Social Bonding", "trait:Hide (Fur)"]);
+check("...the fangs carry the book's seconds and damage type", (() => { const f = wolfA.items[1].system; return [f.damage, f.damageType, f.speed, f.minSpeed]; })(), ["4d4", "Piercing", 5, 3]);
+check("...the actor's figures are the design's", (() => { const s = wolfA.actor.system; return [wolfA.actor.type, s.identity.level, s.identity.size, s.characteristics.endurance.entered, s.body.hide, s.body.bodyType, s.physical.weight, s.combat.attackChart, s.attributes.str.rating, s.resistances.poison.entered, s.skills[0]]; })(),
+	["creature", 1, "Medium", 30, 5, "Quadruped(Tail)", 264, "Novice", 12, 35, { name: "Track", chance: 60 }]);
+check("...with the stock body chart for its type", wolfA.actor.system.body.bodyChart, BODY_CHARTS["Quadruped(Tail)"]);
+check("...and Shock left for the sheet to make Endurance x 3", wolfA.actor.system.characteristics.shock, { entered: 0, immune: false });
+
+const bandit = V.newCreatureGenState();
+Object.assign(bandit, { name: "Bandit", creatureType: "Humanoid", bodyType: "Humanoid", heightFeet: 5, heightInches: 10, attackChart: "Intermediate",
+	ratings: { str: 14 }, abilities: [{ name: "Hooves", count: 1 }], skills: [{ name: "Charm", chance: 50 }], powers: [{ name: "Ath-Carmor", uses: 3 }], expSpecials: { characterClass: true } });
+const banditD = V.deriveCreatureDesign(bandit, content);
+check("the bandit: 5'10\" averages 156 base lb, Medium humanoid, Endurance 25", [banditD.baseWeight, banditD.weight, banditD.size, banditD.endurance], [156, 156, "Medium", 25]);
+check("...25 PP of attributes + Intermediate 4 + Hooves 10 + Charm 5 + the spell 3 = 47: one level over base, level 2", [banditD.powerPoints.total, banditD.level, banditD.levelAuto.fromPoints], [47, 2, 1]);
+check("...its hooves bring a gallop", banditD.movementModes.map(m => m.name), ["Walk", "Jog", "Run", "Gallop"]);
+check("...Character Class adds the base to its experience; the social skill adds nothing", [banditD.exp.parts.specials, banditD.exp.parts.skills], [100, 0]);
+const banditA = V.assembleFromState(bandit, content);
+check("...the pack's Hooves is copied, without its id, as an ability", (() => { const t = banditA.items.find(i => i.type == "trait"); return [t.name, t._id, t.system.category, t.system.description]; })(), ["Hooves", undefined, "ability", "pack"]);
+check("...the power is a spell with three uses", (() => { const p = banditA.items.find(i => i.type == "power"); return [p.system.powerKind, p.system.uses, p.system.usesMax, p.system.unlimited]; })(), ["spell", 3, 3, false]);
+
+const dragon = V.newCreatureGenState();
+Object.assign(dragon, { name: "Dragon", creatureType: "Magical Animal", bodyType: "Reptile", heightFeet: 60, frame: "Extra Heavy", hideKind: "Scales", hidePoints: 400, attackChart: "Master",
+	bands: { int: "Genius", wis: "Genius", knw: "Genius", aur: "Highly Magical Spirit", pty: "Highly Magical Spirit", wil: "Highly Magical Spirit" },
+	boughtAttacks: [{ name: "Fangs (Large)", damage: "14d6", count: 1 }, { name: "Claws (Large)", damage: "", count: 2 }],
+	abilities: [{ name: "Wings", count: 1 }, { name: "Breath Attack (Fire)", count: 10 }, { name: "Fire", count: 1 }, { name: "Magical Flight", count: 1 }] });
+const dragonD = V.deriveCreatureDesign(dragon, content);
+check("the dragon: 60' averages 36,500 base lb x 1.5, Titanic, Endurance 800, base level 8", [dragonD.baseWeight, dragonD.weight, dragonD.size, dragonD.endurance, dragonD.baseLevel], [36500, 54750, "Titanic", 800, 8]);
+check("...Titanic, so no errata cap on its 400 scales (1 per 3 of 800 Endurance allows 266, so held to 266)", [dragonD.hide.errataMax, dragonD.hide.kindMax, dragonD.hide.points], [null, 266, 266]);
+check("...its PP: body bands 20+20, Average speed 3, Genius 5x3, Highly Magical 4x3, Master 10, attacks 8+16, hide 266, Wings 10 + Fire breath 60 + Fire 12 + Flight 20",
+	dragonD.powerPoints, { attributes: 70, attackSkill: 10, attacks: 24, hide: 266, abilities: 102, skills: 0, powers: 0, total: 472, perLevel: 40 });
+check("...472 PP is eleven levels over the base: level 19, maximum 30", [dragonD.level, dragonD.attributeCap], [19, 30]);
+check("...it flies at x4 its walk", dragonD.movementModes.find(m => m.name == "Fly").oneSec, dragonD.movementModes[0].oneSec * 4);
+check("...the Fire immunity counts once towards its experience", dragonD.immunityCount, 1);
+check("...two large claws become two attack items", V.assembleFromState(dragon, content).items.filter(i => i.name.startsWith("Claws")).map(i => i.name), ["Claws (Large) 1", "Claws (Large) 2"]);
+
+const tree = V.newCreatureGenState();
+Object.assign(tree, { name: "Treant", creatureType: "Magical Plant", bodyType: "Tree", heightFeet: 30, hideKind: "Bark", hidePoints: 30 });
+const treeD = V.deriveCreatureDesign(tree, content);
+check("the tree: 30' is 7,000 lb, Endurance 24d10+26 averaging 158, base level 3, Giant by the animal table", [treeD.weight, treeD.endurance, treeD.baseLevel, treeD.size], [7000, 158, 3, "Giant"]);
+check("...Bark on a plant: no errata cap, 1 per 2 Endurance allows 79, 30 points at 2 PP = 60", [treeD.hide.errataMax, treeD.hide.kindMax, treeD.hide.pp], [null, 79, 60]);
+check("...a plant has plant and magical lists and no animal one", [treeD.abilityLists.animal.length, treeD.abilityLists.plant.length > 0], [0, true]);
+check("...and no movement table, which is noted", [treeD.movementModes, treeD.issues.some(i => i.includes("no movement table"))], [[], true]);
+
+// --- the steps ------------------------------------------------------------------------------------------
+const blank = V.newCreatureGenState();
+check("the Concept step wants a name and a type", V.checkStep(blank, V.deriveCreatureDesign(blank, content)), "Give the creature a name.");
+check("...then a type", V.checkStep({ ...blank, name: "X" }, V.deriveCreatureDesign({ ...blank, name: "X" }, content)), "Choose a creature type.");
+check("the Body step wants a height or a weight", V.checkStep({ ...blank, step: 1 }, V.deriveCreatureDesign({ ...blank, step: 1 }, content)), "Enter a height or length, or a weight.");
+check("...a typed weight is enough", V.checkStep({ ...blank, step: 1, weight: 40 }, V.deriveCreatureDesign({ ...blank, step: 1, weight: 40 }, content)), "");
+check("...over 100' needs a weight", V.checkStep({ ...blank, step: 1, heightFeet: 120 }, V.deriveCreatureDesign({ ...blank, step: 1, heightFeet: 120 }, content)), "Over 100 feet the book gives no weight: enter one.");
+check("later steps never block", [2, 3, 4, 5, 6].map(step => V.checkStep({ ...blank, step }, V.deriveCreatureDesign({ ...blank, step }, content))), ["", "", "", "", ""]);
+check("the seven steps in the book's order", V.STEPS, ["Concept", "Body", "Attributes", "Combat", "Movement", "Abilities", "Review"]);
+check("rolling every attribute from its bands with all 1s gives each band's floor (a five-foot-ten humanoid: Medium 7, Average 11)", (() => { const r = V.rollAllAttributes({ ...blank, creatureType: "Humanoid", heightFeet: 5, heightInches: 10 }, content, always(1)); return [r.str, r.int, r.app]; })(), [7, 11, 11]);
+check("...and N/A rolls 0", V.rollAllAttributes({ ...blank, creatureType: "Animal" }, content, always(4)).app, 0);
+check("a level set by hand stands and re-caps the hide", (() => { const d = V.deriveCreatureDesign({ ...wolf, levelOverride: 3 }, content); return [d.level, d.levelOverridden, d.hide.points]; })(), [3, true, 6]);
+check("an experience value set by hand stands", V.deriveCreatureDesign({ ...wolf, expOverride: 999 }, content).expValue, 999);
+check("edited movement is kept as given", V.deriveCreatureDesign({ ...wolf, movementModes: [{ name: "Lope", hourly: 1, tenSec: 2, oneSec: 3 }] }, content).movementModes, [{ name: "Lope", hourly: 1, tenSec: 2, oneSec: 3 }]);
+check("a trait is found by his spelling of its name", V.findTrait([{ name: "Fangs(Large)", system: { category: "ability" } }], "Fangs (Large)", "ability")?.name, "Fangs(Large)");
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const report = results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n") + `\n\n${passed} passed, ${results.length - passed} failed`;
+if (typeof document !== "undefined") { document.getElementById("out").innerHTML = report; }
+else { console.log(results.filter(r => !r.startsWith("PASS")).join("\n")); console.log(`${passed} passed, ${results.length - passed} failed`); }
+</script>
