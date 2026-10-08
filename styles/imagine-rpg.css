@@ -1671,6 +1671,30 @@ input.source-unknown {
 .imagine.situation-mods .empty { color: var(--imagine-muted); padding: 10px; }
 .imagine-chat .situation, .imagine-chat .situation-notes { font-size: 11px; }
 
+/* ---- Brawling: the combat tab's bar (the Situation Mods bar's own classes) and the window ------ */
+.imagine.brawling .brawling-window { display: flex; flex-direction: column; gap: 6px; }
+.imagine.brawling .brawl-head label { display: flex; align-items: center; gap: 8px; }
+.imagine.brawling .brawl-head select { flex: 1; }
+.imagine.brawling .brawl-figures {
+	display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px;
+	padding: 4px 8px; border: 1px solid var(--imagine-line); border-radius: 3px;
+}
+.imagine.brawling .brawl-figures label { font-weight: 600; margin-right: 2px; }
+.imagine.brawling .brawl-note { margin: 0 2px; font-size: 11px; }
+.imagine.brawling .brawl-body { display: flex; flex-direction: column; gap: 4px; }
+.imagine.brawling .form-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+.imagine.brawling .form-group > label { flex: 0 0 150px; font-weight: 600; }
+.imagine.brawling .form-group > input[type="number"] { width: 5em; flex: none; }
+.imagine.brawling .form-group > select { flex: 1 1 160px; }
+.imagine.brawling .form-group > .hint { flex-basis: 100%; margin: 0 0 0 158px; font-size: 11px; color: var(--imagine-muted); }
+.imagine.brawling .imagine-aim-picker { margin-left: 158px; }
+.imagine.brawling .empty { color: var(--imagine-muted); padding: 10px; }
+.imagine.brawling .brawl-foot { display: flex; align-items: center; gap: 8px; }
+.imagine.brawling .brawl-foot .muted { flex: 1; font-size: 11px; }
+.imagine.brawling .brawl-foot button { width: auto; }
+.imagine.brawling .brawl-foot button.primary { background: var(--imagine-accent); color: var(--imagine-on-accent, #fff); border-color: var(--imagine-accent); }
+.imagine-chat.brawling-card .skill-line { font-size: 11px; margin-bottom: 2px; }
+
 
 /* @MARKER MAGIC AND LORE TAB ---------------------------------------------------------------------
    His Magic/Lore tab: consumables, lores, spells, invocations (templates/actor/tab-magic.hbs).

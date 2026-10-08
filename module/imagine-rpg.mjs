@@ -47,6 +47,7 @@ import { registerRolledStartingEndurance } from "./race-endurance.mjs";
 import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
+import ImagineBrawling from "./apps/brawling.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
 import ImagineAlignmentConfig from "./apps/alignment-config.mjs";
 import ImagineCharacterGenerator, { registerCharacterGeneratorButton } from "./apps/character-generator.mjs";
@@ -350,6 +351,11 @@ Hooks.once("init", function () {
 		// The melee and missile situational modifiers window, also a button on the Combat tab of
 		// both sheets.
 		situationMods: (tmpactor) => ImagineSituationalMods.open(tmpactor),
+		// @MARKER BRAWLING
+		// His BRAWLER row as a window: a fist, a chair, a bottle, or a weapon twisted in a wound; also
+		// a button on the Combat tab of either sheet.
+		//     game.imagine.brawling(actor)
+		brawling: (tmpactor) => ImagineBrawling.open(tmpactor),
 		// @MARKER ROUND CLOCK
 		// The Mr. Initiative window, also the stopwatch at the top of the Combat tracker.
 		roundClock: () => ImagineRoundClock.open(),

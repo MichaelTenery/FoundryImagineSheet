@@ -1,0 +1,81 @@
+{{!--
+	The Brawling window: his BRAWLER row stood up. One root element, as the framework requires.
+	Everything here comes from buildBrawlingView (module/brawling-view.mjs), plus the window's own
+	answers (working) and the target's figure (bodyFigure, module/body-view.mjs).
+--}}
+<div class="brawling-window">
+	<div class="brawl-head">
+		<label>Brawl with
+			<select name="name">
+				<option value="" {{#unless hasChoice}}selected{{/unless}}></option>
+				{{#each groups as |g|}}
+				<optgroup label="{{g.label}}">
+					{{#each g.options as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}} ({{o.figures}})</option>{{/each}}
+				</optgroup>
+				{{/each}}
+			</select></label>
+	</div>
+
+	{{!-- His four boxes: Type, Speed, Min, Damage. --}}
+	<div class="brawl-figures">
+		<span><label>Type</label> {{type}}</span>
+		<span><label>Speed</label> {{speed}}{{#if hasChoice}}{{#if speedMod}} <span class="muted">({{#if (gt speedMod 0)}}+{{/if}}{{speedMod}} yours)</span>{{/if}}{{/if}}</span>
+		<span><label>Min</label> {{minSpeed}}</span>
+		<span><label>Damage</label> {{damage}}</span>
+	</div>
+	<p class="hint brawl-note">{{note}}</p>
+
+	{{#if hasChoice}}
+	<div class="brawl-body">
+		{{#if isForceTwist}}
+		<p class="hint">Force skill: {{#if forceHeld}}{{forceChance}}%{{else}}<strong>not held</strong> &mdash; the twist is made as a Weapon Twist{{/if}}.</p>
+		{{/if}}
+
+		{{#if askAim}}
+		<div class="form-group"><label>{{#if isTwist}}Weapon is set in{{else}}Aimed at{{/if}}</label>
+			<select name="aim" data-working="aim">
+				{{#if areas.length}}
+				{{#each areas as |a|}}<option value="{{a.name}}" {{#if a.selected}}selected{{/if}}>{{a.name}}</option>{{/each}}
+				{{else}}
+				<option value="">(no target selected)</option>
+				{{/if}}
+			</select></div>
+		{{#if bodyFigure}}
+		<div class="imagine imagine-aim-picker" data-tooltip="Click where to aim">{{> imagine-body-figure}}</div>
+		{{/if}}
+		{{/if}}
+
+		{{#if situationLine}}
+		<div class="form-group situation-summary"><label>Situation Mods</label>
+			<p class="hint">{{situationLine}}{{#unless situationMelee}} &mdash; set for missile attacks, which a brawl does not read{{/unless}}. Change them from the Combat tab.</p></div>
+		{{/if}}
+
+		{{#unless isTwist}}
+		<div class="form-group"><label>Other modifier</label>
+			<input type="number" name="situational" value="{{working.situational}}" data-working="situational">
+			<p class="hint">His MOD: anything the Situation Mods do not list.</p></div>
+		<div class="form-group"><label>Called shot</label>
+			<input type="checkbox" name="calledShot" {{#if working.calledShot}}checked{{/if}} data-working="calledShot">
+			<p class="hint">Needs an unmodified roll of 21 minus your attack skill level, takes one more second and does half damage.</p></div>
+		<div class="form-group"><label>Called shot bonus</label>
+			<input type="number" name="calledShotMod" value="{{working.calledShotMod}}" data-working="calledShotMod"></div>
+		<div class="form-group"><label>Fumble range</label>
+			<input type="number" name="fumbleMod" value="{{working.fumbleMod}}" min="0" data-working="fumbleMod">
+			<p class="hint">Widens the fumble: 1 makes a natural 1 or 2 a fumble.</p></div>
+		{{#if hasTarget}}
+		<div class="form-group"><label>Target is avoiding the blow</label>
+			<input type="checkbox" name="useDefense" {{#if working.useDefense}}checked{{/if}} data-working="useDefense">
+			<p class="hint">{{#if targetNoDefense}}{{targetName}} has No Defense from their own Situation Mods.{{else}}Applies {{targetName}}'s defensive adjustment.{{/if}} Untick if they are held, surprised or otherwise cannot move.</p></div>
+		{{/if}}
+		{{/unless}}
+	</div>
+	{{else}}
+	<p class="empty">Nothing chosen. Pick a fist, a boot, whatever is to hand, or a weapon already in a wound.</p>
+	{{/if}}
+
+	<footer class="brawl-foot">
+		{{#if hasTarget}}<span class="muted">vs {{targetName}}</span>{{else}}<span class="muted">no target; target one to aim</span>{{/if}}
+		<button type="button" class="primary" data-action="brawl" {{#unless hasChoice}}disabled{{/unless}}><i class="fa-solid fa-hand-fist"></i> {{#if isTwist}}Twist{{else}}Brawl{{/if}}</button>
+		<button type="button" data-action="done"><i class="fa-solid fa-check"></i> Done</button>
+	</footer>
+</div>

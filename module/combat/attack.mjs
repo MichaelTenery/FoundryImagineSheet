@@ -184,7 +184,8 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 	// uses it for "Aimed at" (the select named aim); the damage dialog for "Area struck" (area).
 	//     tmproot        the dialog's element
 	//     tmpselectname  the name of the select the picker drives; "aim" when not given
-	function wireAimPicker(tmproot, tmpselectname) {
+	// Exported for the Brawling window (module/apps/brawling.mjs), which carries the same picker.
+	export function wireAimPicker(tmproot, tmpselectname) {
 		var tmppicker = tmproot?.querySelector?.(".imagine-aim-picker");
 		var tmpselect = tmproot?.querySelector?.(`select[name='${tmpselectname || "aim"}']`);
 		if (!tmppicker || !tmpselect) { return; }
@@ -639,8 +640,9 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 					<select name="type">${Object.keys(ARMOR_BLOCKING).map(t =>
 						`<option value="${t}" ${t == getBlockingDamageType(tmpattack.damage.type) ? "selected" : ""}>${t}</option>`).join("")}
 					</select></div>
-				<div class="form-group"><label>Bypasses armour</label><input type="checkbox" name="bypass">
-					<p class="hint">For a called shot that goes through a gap, or damage armour cannot stop.</p></div>
+				<div class="form-group"><label>Bypasses armour</label><input type="checkbox" name="bypass" ${tmpattack.damage.bypass ? "checked" : ""}>
+					<p class="hint">For a called shot that goes through a gap, or damage armour cannot stop.${tmpattack.damage.bypass
+						? " Ticked already: a twisted weapon is inside the armour (brawling-attack.mjs)." : ""}</p></div>
 			</div>`;
 
 		return await foundry.applications.api.DialogV2.prompt({

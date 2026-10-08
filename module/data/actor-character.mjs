@@ -392,6 +392,12 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				secondWeaponKnowList: new fields.StringField({ required: true, initial: "" }),
 				secondWeaponLoreList: new fields.StringField({ required: true, initial: "" }),
 
+				// @MARKER BRAWLING
+				// What the Brawling window has chosen to brawl with -- his all_brawling_weapons, a
+				// name off the Brawling Weapons Table (module/combat/brawling-rules.mjs), or "". Stored
+				// as his sheet stores it, so the window opens on the last thing used.
+				brawlingWeapon: new fields.StringField({ required: true, blank: true, initial: "" }),
+
 				// @MARKER SITUATION MODS
 				// What the Situation Mods window has ticked, which every attack of that kind reads
 				// until it is cleared -- his situational_mod_* bar. Stored, because it outlives any

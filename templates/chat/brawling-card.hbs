@@ -1,0 +1,62 @@
+{{!--
+	Brawling attack chat card. The weapon attack card's layout: the natural roll, every modifier by
+	name, the result read against the attack chart, where the blow landed, then the damage and the
+	buttons. A twist has no roll to hit -- the weapon is in the wound -- and says where it is set
+	and that its damage bypasses armour; a Force Twist shows the Force skill roll first. The flag
+	this card is posted with is the weapon card's, in the same shape, so Apply Damage and Spend
+	Seconds are the weapon card's own buttons.
+--}}
+<div class="imagine-chat attack-card brawling-card">
+	<header>
+		<strong>{{actorName}}</strong> — {{weapon}} <span class="muted">(brawling, {{row.type}})</span>
+		{{#if targetName}}<span class="target">vs {{targetName}}</span>{{/if}}
+	</header>
+
+	{{#if force}}
+	<div class="skill-line">Force {{force.chance}}%: rolled {{force.roll}} —
+		<strong>{{#if force.made}}made{{else}}failed{{/if}}</strong>{{#unless force.made}} <span class="muted">(a Weapon Twist: {{damageRowName}}){{/unless}}{{#unless force.heldSkill}} <span class="muted">(Force is not held)</span>{{/unless}}</div>
+	{{/if}}
+
+	{{#if isTwist}}
+	<div class="zone zone-hit">Twisted{{#if aim}} — the weapon is set in the {{aim}}{{/if}}</div>
+	{{else}}
+	<div class="attack-line">
+		<span class="natural">d20: {{result.natural}}</span>
+		{{#each mods.list as |m|}}<span class="mod">{{m.label}} {{#if (gt m.value 0)}}+{{/if}}{{m.value}}</span>{{/each}}
+		<span class="final">= {{result.final}}</span>
+		<span class="skill">as {{result.skill}}</span>
+	</div>
+
+	{{#if aim}}<div class="aim">Aimed at: {{aim}}</div>{{/if}}
+
+	{{#if situation.labels.length}}<div class="situation">Situation: {{#each situation.labels as |l|}}{{l}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
+	{{#if situation.notes.length}}<div class="situation-notes">{{#each situation.notes as |n|}}<strong>{{n}}</strong>{{#unless @last}} &middot; {{/unless}}{{/each}}</div>{{/if}}
+	{{#if martialNotes.length}}<div class="situation-notes">{{#each martialNotes as |n|}}{{n}}{{#unless @last}} &middot; {{/unless}}{{/each}}</div>{{/if}}
+
+	<div class="zone zone-{{#if result.isHit}}hit{{else}}miss{{/if}}">
+		{{#if result.isFumble}}FUMBLE{{else}}{{result.zone}}{{/if}}
+		{{#if result.calledShotDeclared}}
+			— Called shot: {{#if result.isCalledShot}}<strong>made</strong>{{else}}missed{{/if}}
+		{{/if}}
+	</div>
+	{{/if}}
+
+	{{#if fumble}}<p class="fumble">{{fumble.text}}</p>{{/if}}
+
+	{{#if damage}}
+	<div class="damage">
+		<span class="total">{{damage.total}}</span> {{damage.type}} damage{{#if damage.bypass}}, <strong>bypassing armour</strong>{{/if}}
+		<span class="breakdown">({{damage.dice}} = {{damage.rolled}}{{#if damage.str}} {{#if (gt damage.str 0)}}+{{/if}}{{damage.str}} STR{{/if}}{{#if damage.weight}} {{#if (gt damage.weight 0)}}+{{/if}}{{damage.weight}} weight{{/if}}{{#if damage.misc}} {{#if (gt damage.misc 0)}}+{{/if}}{{damage.misc}}{{/if}}{{#if damage.flat}} {{#if (gt damage.flat 0)}}+{{/if}}{{damage.flat}} martial/situation{{/if}}{{#if damage.perDie}} {{#if (gt damage.perDie 0)}}+{{/if}}{{damage.perDie}} per die{{/if}}{{#if damage.maximized}}, every die at its highest{{/if}}{{#if (gt damage.multiplier 1)}} &times;{{damage.multiplier}}{{/if}}{{#if damage.halved}}, halved{{/if}})</span>
+	</div>
+	{{/if}}
+
+	<footer>
+		<span class="speed">{{speed}} seconds</span>
+		{{#if damage}}{{#unless applied}}
+			<button type="button" data-imagine-action="applyDamage"><i class="fa-solid fa-droplet"></i> Apply damage</button>
+		{{/unless}}{{/if}}
+		{{#if inCombat}}
+			<button type="button" data-imagine-action="spendTime"><i class="fa-solid fa-stopwatch"></i> Spend {{speed}}s</button>
+		{{/if}}
+	</footer>
+</div>

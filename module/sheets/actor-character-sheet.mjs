@@ -27,6 +27,7 @@ import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
          isLauncherWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
+import { describeBrawlingChoice } from "../brawling-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import ImagineItemPicker from "../apps/item-picker.mjs";
 import { buildMagicPanel } from "../magic-view.mjs";
@@ -128,6 +129,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			openLevelUp: ImagineCharacterSheet.#onOpenLevelUp,
 			openSituation: ImagineCharacterSheet.#onOpenSituation,
 			clearSituation: ImagineCharacterSheet.#onClearSituation,
+			openBrawling: ImagineCharacterSheet.#onOpenBrawling,
 			transferSlot: ImagineCharacterSheet.#onTransferSlot,
 			sacrificeSlot: ImagineCharacterSheet.#onSacrificeSlot,
 			addLanguage: ImagineCharacterSheet.#onAddLanguage,
@@ -257,6 +259,9 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.lore = ImagineCharacterSheet.#buildLorePanel(this.document.system);
 		// The Situation Mods bar, one line, as his combat page shows it.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
+		// The Brawling bar: what is chosen to brawl with, as his BRAWLER row shows it.
+		tmpcontext.brawlingLine = describeBrawlingChoice(this.document.system.combat.brawlingWeapon,
+			this.document.system.combat.weaponSpeedMod);
 		tmpcontext.languages = ImagineCharacterSheet.#buildLanguageRows(this.document.system);
 		// @MARKER WEALTH -- his Loose Equipment money panel, on the Equipment tab. module/wealth-rules.mjs.
 		tmpcontext.wealthPanel = {
@@ -1348,6 +1353,13 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	static async #onClearSituation(event, target) {
 		event.preventDefault();
 		await this.document.update({ "system.combat.situation.kind": "", "system.combat.situation.selected": [] });
+	}
+
+	// This is the function which opens the Brawling window from the Combat tab's bar -- his BRAWLER
+	// row. module/apps/brawling.mjs.
+	static async #onOpenBrawling(event, target) {
+		event.preventDefault();
+		game.imagine.brawling(this.document);
 	}
 
 	// This is the function which advances or steps back one class's own title.

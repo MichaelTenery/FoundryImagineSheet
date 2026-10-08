@@ -539,6 +539,14 @@
         "Creature sheet: authoring"
       ],
       "note": "Built 2026-10-07: the Master's Manual's Creature Creation Guide as a Create Creature window."
+    },
+    "Brawling": {
+      "dependsOn": [
+        "Situation Mods",
+        "Martial arts",
+        "Body figure: the body drawn"
+      ],
+      "note": "Built 2026-10-07 at the user's request ('add the brawling pop up'): his BRAWLER row as a window on both Combat tabs."
     }
   }
 }

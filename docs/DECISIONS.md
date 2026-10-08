@@ -6806,3 +6806,72 @@ book's -2 weapon speed open.
 **What the window writes.** His handleCreatureFinish's fields in the port's names: identity (type, subtype, level, life cycle, habitat with the climate, alignment, tendencies, size, experience value and note), the twelve ratings, entered Endurance, Shock left at 0 for the model's x3, the five resistances with immunities, body type with its stock chart, hide, height and weight, the movement modes, the skill list, the attack chart and notes; items for every attack, trait, hide and power. The whole design state is kept on the actor as a flag (`imagine-rpg.creatureDesign`) so a later pass can reopen it.
 **Not built, deliberately:** the Supernatural Servants tables (pp.299-300, replaced wholesale by the errata) -- a design of their own; the Famorian and evoke body builders (the model's standing gap); venom and disease riders on attacks (the attack items are made without rider effects, which the sheet authors); the "creature template" ranges the chapter asks to be recorded (one instance is made; the bands and dice are on the notes). All in `docs/sonnet/2026-10-07-creature-generator.md`.
 **Not verified:** in a running Foundry V14, as nothing is. The window's form handling follows the character generator's line for line, which has run.
+
+## Brawling: his BRAWLER row as a window (2026-10-07, later)
+
+Asked for: "add the brawling pop up." His combat page has one row for it -- a dropdown of fifty
+brawling weapons, ROLL and MOD, and four read-only boxes (Type, Speed, Min, Damage) that follow the
+dropdown -- on the character page (HTML 15375) and again on the creature page (65746), one handler
+for both. It is a window now, opened from a bar under the Situation Mods bar on either Combat tab,
+the way the Situation Mods and weapon mods windows were asked for and built.
+
+**Three kinds of row, treated as his roll treats them.** His handleBrawling (sheet-worker.js:69670)
+tests the name: the six twists roll no d20 at all (the weapon is in the wound, and the damage goes
+"directly to the body area the weapon is set in (bypassing armor)"); ten hand-to-hand rows are the
+only ones his worn-magic and spike extras attach to; the rest are improvised weapons read down the
+attack chart. The port keeps the three kinds (`kind` on `getBrawlingValues`): a twist asks "Weapon
+is set in" instead of "Aimed at", posts no d20 line, and its Apply Damage dialog opens with
+"Bypasses armour" already ticked (a one-line change to `askDamageOptions`, reading `damage.bypass`
+off the card's flag). A Force Twist rolls the Force skill first -- his plain `skillRoll<=tempValue`,
+no critical, no made-by-half -- and failed is the Weapon Twist of its size. His fallback for the
+Small size can never fire (`!brawlingAttack=="Force Twist(Small)"`, UPSTREAM 120); the intent is in
+the two lines beside it, and in the table itself (2d8 IS Weapon Twist(Small)), so the port reads
+the Weapon Twist row of the same size for all three.
+
+**What the roll reads, and from where.** To hit: Strength, Melee Other, the Situation Mods cut to
+melee, the martial list (stance and moves, as on a weapon attack), the typed modifier, and the
+target's defence -- through `getToHitModifiers` with an empty weapon, so each figure is summed once
+(his `toHitMod=toHitMod+parseInt(x)||0` zeroes the running total on a "-", UPSTREAM 11, which now
+holds only the evoke path). Speed: the row's plus the actor's `weaponSpeedMod` (Strength, Agility,
+armour, and the stance the model folds in), never under the row's minimum -- `getWeaponSpeed`, which
+is his handleBrawlingAttackChange exactly. Damage: his `combat_mod_damage` on a brawl is Strength and
+body weight (setCombatModifierValues, 82322, with no weapon in hand), so it is `getWeaponMartialStrength`
+(Tension and Snap honoured) and `getWeightDamageAdjust` (signed for a character, floored for a
+creature), then the Game Master's `damageMisc`, the Situation Mods' and martial flats and per-die,
+a stance's extra die through `addMartialDice` ("cannot add dice to '1'" kept), his additive
+multipliers held at x3, and a called shot halved. **His brawling path never halves a called shot**
+(it reads it only to print "Called Shot:Hit!"); the weapon path and the Player's Guide do, and the
+port follows them, the same call UPSTREAM 15 made for creatures. The fumble is his brawling one:
+there is no weapon to throw, so an ordinary failure is "fall prone and lose 1d6+1 seconds standing"
+(69776), and a critical reads his melee table with nothing dropped on the map.
+
+**One window, not a window and a dialog.** The weapon attack asks its questions in a DialogV2 after
+the row's button; the martial attack the same. A brawl has no row -- the choice IS the question -- so
+the window carries both: the dropdown (grouped: twists, hand to hand, improvised), his four boxes,
+and then the attack dialog's own questions, the aim on the target's figure included (`wireAimPicker`
+exported from attack.mjs rather than copied). The choice is written to the actor as his
+`all_brawling_weapons` was (`combat.brawlingWeapon`, both actor types), so it is there next session;
+the other answers are the window's own, captured on change and rendered back, since every actor
+update re-renders the window (the alignment window's `#captureForm`). A `targetToken` hook re-renders
+it when the player targets someone else, so the figure is always the target's.
+
+**Not read, and said so rather than silently dropped.** His handToHand branch reads the worn armour's
+names for `[Spiked]` (1d6+1 more), Disruption, Piercing, Foe Strike, an energy, Holy and Unholy
+Touch and Bane (getExtraMagicalDamage, getSpecialMagic). The port has customized weapons and no
+customized armour, so there is nothing on a gauntlet to read; the card does not pretend otherwise,
+the rules file's head says so, and `docs/sonnet/2026-10-07-brawling.md` says where it plugs in when
+armour gets his panel. Likewise "All manipulator limbs lost" (no lost-limb state in the port, as the
+martial pass found) and the Game Master's extra dice (on neither actor yet).
+
+**Checked against the book.** Every row of `BRAWLING_WEAPONS` against the Player's Guide's Brawling
+Weapons Table (p.187-188): all fifty agree, his "1d3" for the book's "1-3" and his "1" for "1 point".
+The twist's three seconds and Force's two more are p.189 ("Twisting/Pushing a Weapon in an Opponent")
+and the Force skill's own text (p.74); the table's Speed column carries them. The errata says nothing
+of brawling.
+
+**Verified:** `tools/brawling-test.html`, 49 checks -- the table, speed, to hit (including the "-"
+that must not wipe Strength), the Force roll and its fallbacks, the fumble's three branches, the
+damage's order, cap and halving, the view, and the window and two cards rendered from the real
+templates; 29 suites, 3,520 checks, all passing. **Not verified:** in a running Foundry V14 -- the
+window re-rendering on `targetToken`, the body picker inside an ApplicationV2 part, a `<select>` with
+optgroups under the sheet theme.

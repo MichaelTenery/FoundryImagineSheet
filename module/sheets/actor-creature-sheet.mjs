@@ -30,6 +30,7 @@ import { resolveCharacteristicRoll, readBodyChartRows, serializeBodyChart, getSt
 import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
+import { describeBrawlingChoice } from "../brawling-view.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import { resolveSkillRoll, describeSkillResult, resolveAttributeSave } from "../skills-rules.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
@@ -111,6 +112,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			deleteItem: ImagineCreatureSheet.#onDeleteItem,
 			openSituation: ImagineCreatureSheet.#onOpenSituation,
 			clearSituation: ImagineCreatureSheet.#onClearSituation,
+			openBrawling: ImagineCreatureSheet.#onOpenBrawling,
 			// Authoring in play, all in the @MARKER AUTHORING block below: the creature's own items,
 			// its skill and movement lists, its body chart and the modifiers panel.
 			// (openItem and deleteItem, above, open and remove what these create.)
@@ -238,6 +240,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 		// The Situation Mods bar, one line -- his creature page carries the same bar.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
+		// The Brawling bar: what is chosen to brawl with, as his BRAWLER row shows it.
+		tmpcontext.brawlingLine = describeBrawlingChoice(this.document.system.combat.brawlingWeapon,
+			this.document.system.combat.weaponSpeedMod);
 
 		// The martial arts panel, the same partial and view the character's Combat tab uses.
 		tmpcontext.martial = buildMartialPanel(this.document.system, !!this._martialOpen);
@@ -586,6 +591,13 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	static async #onOpenSituation(event, target) {
 		event.preventDefault();
 		game.imagine?.situationMods(this.document);
+	}
+
+	// This is the function which opens the Brawling window from the Combat tab's bar -- his BRAWLER
+	// row, which his creature page carries too. module/apps/brawling.mjs.
+	static async #onOpenBrawling(event, target) {
+		event.preventDefault();
+		game.imagine?.brawling(this.document);
 	}
 
 	// This is the function which clears every Situation Mod -- his "Clear all modifiers".

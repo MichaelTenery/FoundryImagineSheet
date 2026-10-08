@@ -1,0 +1,179 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG brawling test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:560px}</style>
+<pre id="out">running...</pre>
+<h3>The window, rendered with a fist chosen and an Orc targeted</h3>
+<div id="window" class="render imagine brawling"></div>
+<h3>The window with nothing chosen</h3>
+<div id="window2" class="render imagine brawling"></div>
+<h3>A brawling card: a kick that landed</h3>
+<div id="card" class="render"></div>
+<h3>A brawling card: a Force Twist that failed its skill roll</h3>
+<div id="card2" class="render"></div>
+<script type="module">
+// Tests for brawling: module/combat/brawling-rules.mjs (his table, speed, to hit, the twists, the
+// fumble and the damage) and module/brawling-view.mjs (what the window shows) -- and the window's
+// template and the card's, compiled and rendered against the same view.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/brawling-test.html
+const R = await import("../module/combat/brawling-rules.mjs");
+const V = await import("../module/brawling-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- his table, against the Player's Guide's Brawling Weapons Table (p.187-188) -------------------
+check("fifty rows: six twists, ten hand to hand, thirty-four improvised",
+	[R.BRAWLING_WEAPONS.length, R.WEAPON_TWIST_NAMES.length + R.FORCE_TWIST_NAMES.length, R.HAND_TO_HAND_NAMES.length,
+	 R.BRAWLING_WEAPONS.filter(r => R.getBrawlingValues(r[0]).kind == "improvised").length], [50, 6, 10, 34]);
+check("every name on the table reads back as itself", R.BRAWLING_WEAPONS.every(r => R.getBrawlingValues(r[0])?.name == r[0]), true);
+check("Fist(Punch): Smash, 2 seconds, minimum 1, 1 point (the book's '1 point')",
+	(({ type, speed, minSpeed, damage, kind }) => [type, speed, minSpeed, damage, kind])(R.getBrawlingValues("Fist(Punch)")),
+	["Smash", 2, 1, "1", "hand"]);
+check("Small Table: the slowest thing on the table, 10 seconds, minimum 6, 3d4",
+	(({ speed, minSpeed, damage }) => [speed, minSpeed, damage])(R.getBrawlingValues("Small Table")), [10, 6, "3d4"]);
+check("Sap: 2d4+2 at 3 seconds", (({ speed, damage }) => [speed, damage])(R.getBrawlingValues("Sap")), [3, "2d4+2"]);
+check("Force Twist: 9d6 at 5 seconds, a twist", (({ speed, damage, kind }) => [speed, damage, kind])(R.getBrawlingValues("Force Twist")), [5, "9d6", "twist"]);
+check("Chair is an improvised weapon", R.getBrawlingValues("Chair").kind, "improvised");
+check("a name not on the table is null, and blank is null", [R.getBrawlingValues("Halberd"), R.getBrawlingValues("")], [null, null]);
+check("damage types: Smash, Cut, Thrust, and the first word of a slashed kind",
+	["Smash", "Cut", "Thrust", "Thrust/Cut", "Smash/Thrust"].map(R.getBrawlingDamageType),
+	["Smashing", "Cutting", "Piercing", "Piercing", "Smashing"]);
+check("the rows that bypass the chart and the rows worn magic would add to",
+	[R.isTwist("Weapon Twist(Small)"), R.isForceTwist("Weapon Twist"), R.isForceTwist("Force Twist(Proj./Knife)"),
+	 R.isHandToHand("Mailed Knee"), R.isHandToHand("Brass Knuckles")], [true, false, true, true, false]);
+
+// --- speed: his handleBrawlingAttackChange ----------------------------------------------------------
+check("Chair at -2 weapon speed: 8 -> 6", R.getBrawlingSpeed("Chair", -2), 6);
+check("...never under the row's minimum: 8 - 6 -> 4, not 2", R.getBrawlingSpeed("Chair", -6), 4);
+check("a slow puncher: Fist 2 + 3 = 5", R.getBrawlingSpeed("Fist(Punch)", 3), 5);
+check("no row, no seconds", R.getBrawlingSpeed("", 0), 0);
+
+// --- to hit: his list, summed once each (UPSTREAM 11) ---------------------------------------------
+const hit = R.getBrawlingToHitModifiers({ attacker: { meleeAttack: 2, meleeMisc: 1 }, target: { defensiveAdjust: -2 },
+	situation: 3, situational: -1, martial: [{ label: "Stance (Crane)", value: 1 }] });
+check("to hit: STR, Melee Other, Target Defence, Situational, Modifier, then the martial entries",
+	hit.list.map(m => m.label), ["STR", "Melee Other", "Target Defence", "Situational", "Modifier", "Stance (Crane)"]);
+check("...totalled", hit.total, 4);
+check("a '-' in Melee Other (his normal case) does NOT wipe the Strength before it",
+	R.getBrawlingToHitModifiers({ attacker: { meleeAttack: 2, meleeMisc: "-" } }).total, 2);
+check("no weapon figures at all: nothing from a mode, a plus, a lore or the off hand",
+	R.getBrawlingToHitModifiers({ attacker: { meleeAttack: 0, meleeMisc: 0 } }), { list: [], total: 0 });
+
+// --- a Force Twist's skill roll -----------------------------------------------------------------------
+check("Force 60%, rolled 40: made, the Force row's 9d6",
+	(({ made, damageRow }) => [made, damageRow.name, damageRow.damage])(R.resolveForceTwist("Force Twist", 60, 40)), [true, "Force Twist", "9d6"]);
+check("Force 60%, rolled 70: failed, a Weapon Twist's 3d6",
+	(({ made, damageRow }) => [made, damageRow.name, damageRow.damage])(R.resolveForceTwist("Force Twist", 60, 70)), [false, "Weapon Twist", "3d6"]);
+check("the Small size falls to the Small twist (his second branch could not -- UPSTREAM 120)",
+	R.resolveForceTwist("Force Twist(Small)", 60, 70).damageRow.damage, "2d8");
+check("...and Proj./Knife to its own", R.resolveForceTwist("Force Twist(Proj./Knife)", 60, 70).damageRow.damage, "3d4");
+check("exactly the chance is made (his <=)", R.resolveForceTwist("Force Twist", 60, 60).made, true);
+check("Force not held: not made, a Weapon Twist, and the card can say why",
+	(({ made, heldSkill, chance, damageRow }) => [made, heldSkill, chance, damageRow.name])(R.resolveForceTwist("Force Twist", null, 1)),
+	[false, false, 0, "Weapon Twist"]);
+check("Force at 0%: a 1 does not make it", R.resolveForceTwist("Force Twist", 0, 1).made, false);
+
+// --- the fumble: his, with no weapon to throw -----------------------------------------------------------
+const dice = { saveRoll: 90, recoveryRoll: 3, severityRoll: 50, standRoll: 4, criticalRoll: 95, variantRoll: 10,
+               throwRoll: 12, directionRoll: 3, stunRoll: 2 };
+check("Agility save made: recovers, losing 1d4+1 seconds",
+	(({ saved, secondsLost }) => [saved, secondsLost])(R.resolveBrawlingFumble(95, dice)), [true, 4]);
+check("save failed, 80 or under: falls prone and loses 1d6+1 seconds standing",
+	(({ saved, critical, secondsLost, text }) => [saved, critical, secondsLost, text])(R.resolveBrawlingFumble(50, dice)),
+	[false, false, 5, "Agility save failed: falls prone and loses 5 seconds standing."]);
+check("exactly 80 is still ordinary", R.resolveBrawlingFumble(50, { ...dice, severityRoll: 80 }).critical, false);
+const crit = R.resolveBrawlingFumble(50, { ...dice, severityRoll: 81 });
+check("over 80: his melee critical table, and nothing dropped on the map for a fist",
+	[crit.critical, crit.target, crit.weaponLost, crit.thrownFeet, crit.text.startsWith("Agility save failed: CRITICAL fumble -- Trips")],
+	[true, "self", false, 0, true]);
+
+// --- the damage: his order, his x3, his halving ------------------------------------------------------------
+check("dice + STR + weight + misc + flat + per die, then multiplied",
+	R.resolveBrawlingDamage({ rolled: 5, dice: "2d4", strength: 2, weight: 1, misc: 0, flat: 2, perDie: 1, multipliers: [] }),
+	{ base: 12, perDie: 2, multiplier: 1, halved: false, total: 12 });
+check("two x2 multipliers are held at x3", R.resolveBrawlingDamage({ rolled: 5, dice: "2d4", multipliers: [2, 2] }).total, 15);
+check("a called shot halves it, a half rounded up: 7 -> 4", R.resolveBrawlingDamage({ rolled: 7, dice: "1d8", halve: true }).total, 4);
+check("a weak brawler floors at 0, not below", R.resolveBrawlingDamage({ rolled: 1, dice: "1", strength: -3 }).total, 0);
+check("a flat point is a point, not dice", [R.isFlatDamage("1"), R.isFlatDamage("1d3+1"), R.isFlatDamage("2d4")], [true, false, false]);
+
+// --- the view ----------------------------------------------------------------------------------------------
+const view = V.buildBrawlingView("Fist(Punch)", { weaponSpeedMod: 1, forceChance: null, areas: [{ name: "Head" }, { name: "Neck" }],
+	targetName: "Orc", targetNoDefense: false, situationLine: "For Melee attacks · Melee +2", situationMelee: true });
+check("the view: his four boxes, with the speed already modified",
+	[view.type, view.speed, view.minSpeed, view.damage, view.speedMod], ["Smash", 3, 1, "1", 1]);
+check("the view: three groups, in his order, with the fist chosen",
+	[view.groups.map(g => [g.label, g.options.length]), view.groups[1].options.find(o => o.selected)?.name],
+	[[["Twisting a weapon in a wound", 6], ["Hand to hand", 10], ["Improvised weapons", 34]], "Fist(Punch)"]);
+check("the view: a fist asks where it is aimed, is hand to hand, no twist", [view.askAim, view.isHandToHand, view.isTwist, view.hasTarget], [true, true, false, true]);
+check("the view: nothing chosen shows his dashes", (({ hasChoice, type, speed, damage }) => [hasChoice, type, speed, damage])(V.buildBrawlingView("", {})),
+	[false, "-", "-", "-"]);
+const force = V.buildBrawlingView("Force Twist(Small)", { weaponSpeedMod: -4, forceChance: 45 });
+check("the view: a Force Twist, Force held at 45%, speed floored at its 5", [force.isTwist, force.isForceTwist, force.forceHeld, force.forceChance, force.speed],
+	[true, true, true, 45, 5]);
+check("the view: Force not held says so", V.buildBrawlingView("Force Twist", { forceChance: null }).forceHeld, false);
+check("the bar line: 'Chair: Smash, 6s, 2d4' at -2, and nothing for nothing", [V.describeBrawlingChoice("Chair", -2), V.describeBrawlingChoice("", 0)],
+	["Chair: Smash, 6s, 2d4", ""]);
+check("the note says what a twist does", V.describeBrawlingRow(R.getBrawlingValues("Weapon Twist")).includes("bypassing armour"), true);
+
+// --- the templates, rendered against the view ------------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+Handlebars.registerHelper("lt", (a, b) => a < b);
+Handlebars.registerPartial("imagine-body-figure", "<div class=\"body-figure\">(the target's figure)</div>");
+const windowSource = await (await fetch("../templates/apps/brawling.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(windowSource)({ ...view,
+	working: { aim: "Head", situational: 0, calledShot: false, calledShotMod: 0, fumbleMod: 0, useDefense: true },
+	areas: view.areas.map(a => ({ ...a, selected: a.name == "Head" })), bodyFigure: {} });
+const windowText = document.getElementById("window").textContent;
+check("the window renders: the dropdown, his four boxes, the aim, the Situation Mods line, the target",
+	["Brawl with", "Smash", "Aimed at", "For Melee attacks", "vs Orc", "Called shot", "Other modifier"].map(t => windowText.includes(t)),
+	[true, true, true, true, true, true, true]);
+check("...with the groups (an optgroup's label is markup, not text) and the fist in them",
+	[document.getElementById("window").innerHTML.includes("label=\"Hand to hand\""), windowText.includes("Fist(Punch) (Smash, 2s, 1)"), windowText.includes("Small Table")],
+	[true, true, true]);
+check("...and the Brawl button live", !!document.querySelector("#window [data-action='brawl']"), true);
+document.getElementById("window2").innerHTML = Handlebars.compile(windowSource)({ ...V.buildBrawlingView("", {}), working: {}, areas: [] });
+check("nothing chosen: the empty line, and no questions", [document.getElementById("window2").textContent.includes("Nothing chosen"),
+	document.getElementById("window2").textContent.includes("Called shot")], [true, false]);
+
+const cardSource = await (await fetch("../templates/chat/brawling-card.hbs", { cache: "no-store" })).text();
+document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({
+	actorName: "Brom", weapon: "Foot(Kick)", row: R.getBrawlingValues("Foot(Kick)"), targetName: "Orc",
+	result: { natural: 15, final: 18, skill: "Intermediate", zone: "Hit(Center)", isHit: true, isFumble: false },
+	mods: { list: [{ label: "STR", value: 2 }, { label: "Situational", value: 1 }] }, aim: "Head",
+	situation: { labels: ["Higher ground"], notes: [] }, martialNotes: [],
+	damage: { total: 6, type: "Smashing", dice: "1d3", rolled: 2, str: 2, weight: 1, flat: 1, perDie: 0, multiplier: 1, halved: false },
+	speed: 4, inCombat: true });
+const cardText = document.getElementById("card").textContent;
+check("the card: the kick, the roll with its modifiers, where it landed, the damage and its parts, the seconds",
+	["Foot(Kick)", "(brawling, Smash)", "d20: 15", "STR +2", "= 18", "Hit(Center)", "Aimed at: Head", "Situation: Higher ground",
+	 "6 Smashing damage", "+2 STR", "+1 weight", "+1 martial/situation", "4 seconds", "Spend 4s"].map(t => cardText.includes(t)),
+	[true, true, true, true, true, true, true, true, true, true, true, true, true, true]);
+check("...no armour-bypass line on a kick", cardText.includes("bypassing armour"), false);
+
+document.getElementById("card2").innerHTML = Handlebars.compile(cardSource)({
+	actorName: "Brom", weapon: "Force Twist", row: R.getBrawlingValues("Force Twist"), targetName: "Orc", isTwist: true, isForceTwist: true,
+	force: R.resolveForceTwist("Force Twist", 60, 70), damageRowName: "Weapon Twist",
+	result: { natural: 0, final: 0, skill: "Intermediate", zone: "Twist", isHit: true, isFumble: false, twist: true },
+	mods: { list: [] }, aim: "Mid Torso", situation: { labels: [], notes: [] }, martialNotes: [],
+	damage: { total: 13, type: "Piercing", dice: "3d6", rolled: 11, str: 2, weight: 0, flat: 0, perDie: 0, multiplier: 1, halved: false, bypass: true },
+	speed: 5, inCombat: false });
+const card2 = document.getElementById("card2").textContent;
+check("the twist's card: the Force roll failed to a Weapon Twist, no d20, where the weapon is set, bypassing armour",
+	["Force 60%: rolled 70", "failed", "(a Weapon Twist: Weapon Twist)", "d20:", "Twisted", "the weapon is set in the Mid Torso",
+	 "13 Piercing damage", "bypassing armour", "5 seconds"].map(t => card2.includes(t)),
+	[true, true, true, false, true, true, true, true, true]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

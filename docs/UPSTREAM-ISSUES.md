@@ -158,6 +158,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 117 | Common Skills Listing against the books' "Restricted: No" | Open | Worked around | Active |
 | 118 | Off-centre hits: which area "High", "Low", "Left" and "Right" land on | Open | Worked around | Active |
 | 119 | Smashing damage between half and full armour: his table says a quarter, the book says half | Open | Follows his code | Active |
+| 120 | A failed Force Twist(Small) rolls no damage at all | Open | Solved (the Weapon Twist row of the same size) | Active |
 
 ---
 
@@ -208,6 +209,8 @@ Because `||` binds more loosely than `+`, each line means `toHitMod = (toHitMod 
 The main weapon attack, `handlePhysicalAttacks`, reads each value into its own variable (lines 64367-64370) and sums them. That is the evident intent, and what the Foundry port does. It is unaffected, and so is the combat already ported. The four affected paths are not ported yet; when they are, they will follow `handlePhysicalAttacks`.
 
 **Update 2026-10-07:** Stale: "the four affected paths are not ported yet". The creature path and natural weapons (ordinary weapons) are ported and sum STR/AGL and Other once each (`creature-rules.mjs:142-170`, `natural-weapons.mjs`). The brawling and evoke attack paths are still not ported.
+
+**Update 2026-10-07, later:** the brawling path is now ported (`getBrawlingToHitModifiers`, `module/combat/brawling-rules.mjs`), summing each figure once through `getToHitModifiers`; its test puts a "-" in Melee Other and checks the Strength before it survives. Only the evoke path is left.
 
 ## 15. A creature's called shot does not halve its damage
 
@@ -1140,6 +1143,39 @@ Two smaller differences on the same page, for completeness:
 The port follows your table (`ARMOR_BLOCKING` in `module/combat-tables.mjs`, generated from your
 code): a quarter. **Question:** which do you play -- a quarter, as the sheet has it, or half, as
 the book and its example have it? If half, it is a one-cell change and the port will follow.
+
+## 120. A failed Force Twist(Small) rolls no damage at all
+
+**Status:** open · **Port:** Solved (the Weapon Twist row of the same size) · **Severity:** real bug, one brawling row
+
+When a Force Twist's Force roll fails, `handleBrawling` drops the damage to the Weapon Twist of the
+same size (sheet-worker.js:69818-69826):
+```js
+if (brawlingAttack=="Force Twist") {
+	damString="3d6";
+} else if (!brawlingAttack=="Force Twist(Small)") {
+	damString="2d8";
+} else if (brawlingAttack=="Force Twist(Proj./Knife)") {
+	damString="3d4";
+}
+```
+The second test reads `!brawlingAttack`, which is `false`, and `false=="Force Twist(Small)"` never
+holds, so a failed **Force Twist(Small)** leaves `damString` unset and `rollDiceFromString(undefined)`
+is what is posted. The other two sizes are fine. The intent is plain from the two lines around it
+and from the Weapon Twist rows (2d8 is Weapon Twist(Small)'s own damage), so the port reads the
+Weapon Twist row of the same size for all three (`FORCE_TWIST_FALLBACK`, `module/combat/brawling-rules.mjs`).
+
+Two smaller things on the same path, for completeness, both followed as the weapon path has them
+rather than as this one does:
+
+- **A called shot never halves a brawl.** `handleBrawling` reads the called shot to say "Called
+  Shot:Hit!" or ":Miss" but never sets `damMulti=.5` for it, where `handlePhysicalAttacks` does and
+  the Player's Guide says a called shot does half damage whether or not it lands. The same gap item
+  15 records for creatures; the port halves it.
+- **The worn-magic extras on a hand-to-hand blow** (`getExtraMagicalDamage`, `getSpecialMagic`,
+  `[Spiked]`) read the worn armour's names for its customizations. The port has no customized armour
+  yet, so there is nothing to read and the card does not pretend otherwise; it is in
+  `docs/sonnet/2026-10-07-brawling.md` for when armour gets his Customize panel.
 
 ---
 
