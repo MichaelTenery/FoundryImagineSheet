@@ -4,7 +4,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 **Reconciled with the code on 2026-10-07, then closed out.** Every issue was checked against what the port does today. Each section's status line carries **Status** (where the question stands with him) and **Port** (what the port does about it); a dated **Update** at the foot of a section says what had gone stale, with the original wording left above it as the record of what was found.
 
-**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 81 of 118 are. They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **37 issues remain active** above it.
+**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 81 of 119 are. They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **38 issues remain active** above it.
 
 **Status** (his side): `open` -- not yet answered. `answered` -- he, or his own book or code, has settled it (the date and who are on the line; **Daryl** is the tester at his table, whose answers are taken as the table's but are not the developer's). `withdrawn` -- our misreading. `duplicate` -- see the other item. A fifth value the file once promised, `fixed upstream`, has **no entries: nothing in the repository records him fixing any of these in his sheet.**
 
@@ -14,11 +14,11 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 | | |
 |---|---|
-| Issues | 118 |
-| **Active** | **37** |
-| Active: worked around, awaiting him | 28 |
+| Issues | 119 |
+| **Active** | **38** |
+| Active: worked around, awaiting him | 29 |
 | Active: feature not built, or nothing to do yet | 9 |
-| Active: open with him / answered | 36 / 1 |
+| Active: open with him / answered | 37 / 1 |
 | **Resolved** | **81** |
 | Resolved: solved in the port | 48 |
 | Resolved: follows his code on purpose | 29 |
@@ -157,6 +157,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 116 | Full Shirt and Long Shirt: Leather and Padding rows look swapped | Open | Worked around | Active |
 | 117 | Common Skills Listing against the books' "Restricted: No" | Open | Worked around | Active |
 | 118 | Off-centre hits: which area "High", "Low", "Left" and "Right" land on | Open | Worked around | Active |
+| 119 | Smashing damage between half and full armour: his table says a quarter, the book says half | Open | Follows his code | Active |
 
 ---
 
@@ -1114,6 +1115,31 @@ move it.
 
 **Question:** is that how you read your own chart at the table? If you have a fixed rule instead
 (a table per body type, or "left means the target's left arm"), the port will follow it.
+
+## 119. Smashing damage between half and full armour: his table says a quarter, the book says half
+
+**Status:** open · **Port:** Follows his code · **Severity:** rules, one cell of a table
+
+Your `armorblockingdict` (sheet-worker.js:118817) and the Player's Guide's "Damage Type Versus
+Armor Value" table (p.189) agree on every cell but one. For a Smashing blow that exceeds half
+the armour value but not the full value, the book says **1/2 Damage**, and its own Example 1 works
+it that way (19 points against a 20-point plate helm: "the damage is halved and rounded up for a
+total of 10 points"). Your sheet says **1/4 Damage** -- the same as Cutting, Thrusting and
+Piercing -- so the same blow puts 4 points through. Your errata of 2026-09-21 replaces Example 2
+on that page (the over-full-armour column, where book and sheet agree) and leaves the table and
+Example 1 as printed, so it does not settle this.
+
+Two smaller differences on the same page, for completeness:
+
+- **Rounding.** The book rounds the fraction up ("rounded up", both examples); your code
+  truncates (`parseInt`). The port truncates, as your code does.
+- **Constriction.** The table's footnote halves the armour value each consecutive round of
+  constriction (the boa example: 15, then 8, 4, 2, 1). Nothing in your sheet does this; the port
+  does not either. The Game Master can lower the armour by hand for now.
+
+The port follows your table (`ARMOR_BLOCKING` in `module/combat-tables.mjs`, generated from your
+code): a quarter. **Question:** which do you play -- a quarter, as the sheet has it, or half, as
+the book and its example have it? If half, it is a one-cell change and the port will follow.
 
 ---
 
@@ -3233,3 +3259,22 @@ row 16, Weapon Making, has no type. The mods column is off from row 10 too.
 - **Healer:** Philosophy should be Physiology per your Master's Manual errata p.46. Applied.
 - **Tendency typo:** `getTendencyDescription` (73380/73383/73386) says "tum a chaotic situation"
   for "turn" (PG p.41). Fixed in the port's text.
+
+## 116. calcCreatureExp counts one immunity on a creature that has none
+
+**Status:** open · **Port:** Solved in the port · **Severity:** minor
+
+In `calcCreatureExp` (sheet-worker.js:175629-175635) the immunities are counted by splitting the
+Configurator's list on commas and taking the array's length:
+
+    tmpImmunityList=""+values.new_creat_immun_list;
+    tmpArrayList=tmpImmunityList.split(",");
+    tmpNumOfImmunities=tmpArrayList.length;
+
+`"".split(",")` is `[""]`, length 1, so a creature with NO immunities is valued as having one: a fifth
+of its base experience too high (10 at level 1, 200 at level 7). Every creature the Configurator
+values with the list empty carries it.
+
+**What the port does:** the creature generator (`module/creature-gen-rules.mjs`, calcCreatureExp)
+counts the immunities the creature actually has, zero included; the rest of your valuation is kept as
+written. Found 2026-10-07 while porting the function for the Create Creature window.
