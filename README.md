@@ -11,8 +11,13 @@ Working today: the character and creature actors with their derived values and s
 content importer building thirteen compendia from **about 7,000 generated documents** (skills,
 weapons, armour, equipment, races, classes, the three trait packs, consumables, lore, spells and
 invocations), the content availability switches, combat phase 1 (attack charts, damage, armour,
-body areas, wounds, the ten-second round, the clickable body figure), a step-by-step character
-generator, experience and levelling with its Level Up window, the Magic & Lore tab and casting.
+body areas, wounds, the ten-second round, the clickable body figure, brawling), a step-by-step
+character generator and a Create Creature designer (both buttons in the Actors directory),
+experience and levelling with its Level Up window, the Magic & Lore tab and casting.
+
+Every player may create characters: Foundry's own default keeps "Create New Actors" from ordinary
+Players, so the first time a Game Master logs in after updating to 0.25.0 the system grants it to
+the Player role, once. Configure Permissions can take it back, and the system will not give it again.
 
 Not built: most of the magic and crafting subsystems (Layer 4), and the parts of combat phase 2
 the board still lists. The system has run at his table since 0.20 (his bug reports are filed

@@ -128,6 +128,13 @@ the Game Master:
 It matches documents by name and updates them in place, so anything already dragged onto a character
 keeps pointing at the same document.
 
+## Players creating characters
+
+Foundry's own default keeps **Create New Actors** for Trusted Players and above, which hides the
+Create Character button from an ordinary Player. The first time a Game Master logs in after updating
+to 0.25.0 or later, the system grants it to the Player role -- once, and it says so. If you would
+rather players did not, take it back in **Configure Permissions**; the system will not give it again.
+
 ## Before you trust it
 
 **This system has never been run in Foundry.** `FIRST-RUN.md`, beside this file, lists what was

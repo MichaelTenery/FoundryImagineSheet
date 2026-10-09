@@ -547,6 +547,12 @@
         "Body figure: the body drawn"
       ],
       "note": "Built 2026-10-07 at the user's request ('add the brawling pop up'): his BRAWLER row as a window on both Combat tabs."
+    },
+    "Every player may create characters": {
+      "dependsOn": [
+        "Character Generation module"
+      ],
+      "note": "User's ruling 2026-10-07. Granted once per world by the active Game Master's client; shipped in 0.25.0."
     }
   }
 }
