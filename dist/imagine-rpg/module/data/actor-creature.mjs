@@ -303,6 +303,11 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				// does nothing at all, +1/+2 a quarter, +3/+4 a half, +5 and better full damage.
 				invulnerable: new fields.BooleanField({ required: true, initial: false }),
 
+				// @MARKER BRAWLING
+				// What the Brawling window has chosen to brawl with -- his creature combat page carries
+				// the same BRAWLER row (ImagineTabbedCharacterSheet.html:65746). See the character model.
+				brawlingWeapon: new fields.StringField({ required: true, blank: true, initial: "" }),
+
 				// @MARKER SITUATION MODS
 				// The same Situation Mods a character has -- his creature combat page carries the
 				// same bar and the same two panels (change_situation_mods2). See the character model.

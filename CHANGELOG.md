@@ -18,6 +18,48 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.25.0 — 2026-10-09
+
+Two windows asked for, a second bar, and three things his table found.
+
+**Create Creature.** A step-by-step designer by the Master's Manual's Creature Creation Guide
+(pp.281-298), for Game Masters, in the Actors directory beside Create Character (or
+`game.imagine.generateCreature()`). Seven steps in the chapter's own order: concept, body,
+attributes, combat, movement, abilities, review. Power points become the level, his experience table
+values it with the errata's level 0 row, and the errata's hide cap is applied, with one tick to allow
+over it. It creates the creature with its attacks, traits, hide and powers.
+
+**Brawling.** His BRAWLER row as a window -- a fist, a chair, a bottle, or a weapon twisted in a
+wound -- opened from a bar under the Situation Mods on both Combat tabs, with a card Apply Damage and
+Spend Seconds already understand. A failed Force Twist falls to the Weapon Twist of its size, which
+his code meant and could not do for the Small one (UPSTREAM 121).
+
+**Each hand has its own bar.** The off hand's seconds are a second ten-second bar under the main
+hand's, in the tracker and in the Mr. Initiative window, and an off-hand action is placed in the
+second it happened -- say which in the spend dialog, or it lands where the off hand stands, never
+behind the main hand. Its five seconds are still the budget the Player's Guide gives it (p.178).
+
+**Smashing damage through armour, his bug report 0.22.7:1.** Between half and full armour a smashing
+blow now puts half its damage through, as the Player's Guide's table and examples have it (p.189),
+not a quarter; and the fractions round up, as the book's examples do. 22 smashing against 38 armour
+lands 11, where 0.24 landed 5.
+
+**Damage no longer goes to the head by default.** When an attack was rolled with no token targeted,
+Apply damage now asks where it was aimed, on the target's own figure, and reads where it lands from
+the roll, as his report of 2026-10-08 proposed. Before, the dialog fell back to the first area of
+the body, which is the head.
+
+**Where it lands, said on the card.** After the to-hit roll the attack card says where the blow
+lands, read off the target's own body from the aim and the zone ("High of the Neck, where it was
+aimed, lies the Head"); a Random Location from the Situation Mods says so instead. Apply damage
+shows the target's figure as the picker, the aim outlined dashed and the landing solid, and a click
+moves the landing. The reading is still offered, not imposed (UPSTREAM 118).
+
+**Every player may create characters.** Foundry's own default keeps "Create New Actors" from
+ordinary Players, which hid the Create Character button from them. The first time a Game Master
+logs in after this update the Player role is given it, once, and a notice says so. Configure
+Permissions can take it back, and the system will not give it again.
+
 ## 0.24.2 — 2026-10-07
 
 **No +2 to hit for two hands, after all.** His bug retraction 0.22.1:5: "there is not in fact a bonus

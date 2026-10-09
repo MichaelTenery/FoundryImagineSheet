@@ -9,10 +9,11 @@
 // clock is drawn under every combatant in the combat tracker too.
 //
 // What each row shows, left to right: the Split Second (a roll below 1, ordering the first second),
-// the ten seconds (lost, carried, spent, free; the combatant's place marked), the off hand's
-// seconds as pips, the extra seconds from a Speed effect (editable by whoever owns the actor), and
-// what runs into the next round with the button that carries it or declines it. Underneath, where
-// they stand, what they have spent, and the buttons that spend time.
+// the ten seconds (lost, carried, spent, free; the combatant's place marked) with the off hand's
+// own ten seconds under them (its bar, module/round-view.mjs), the off hand's seconds left, the
+// extra seconds from a Speed effect (editable by whoever owns the actor), and what runs into the
+// next round with the button that carries it or declines it. Underneath, where they stand, what
+// they have spent, and the buttons that spend time.
 //
 // Above the chart, the Game Master's Surprise buttons: his chart's Surprise row, the "mini round"
 // before initiative (Master's Manual p.100). "Surprise..." gives chosen combatants 1d4+1 seconds of
@@ -30,7 +31,7 @@ import {
 } from "../combat/combat-document.mjs";
 export { findActorCombatant };
 import {
-	resolveRoundClock, getClockOptions, isRoundOver, MAX_EXTRA_SECONDS,
+	resolveRoundClock, getClockOptions, isRoundOver, MAX_EXTRA_SECONDS, ROUND_SECONDS,
 	resolveSurprise, getSurpriseSeconds, SURPRISE_DICE, MAX_SURPRISE_SECONDS
 } from "../combat/round-rules.mjs";
 import { buildClockView, buildRoundView, buildSurpriseView, buildSheetClockView } from "../round-view.mjs";
@@ -144,7 +145,7 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 		var tmpanswer = await askSpendSeconds(tmpcombatant);
 		if (!tmpanswer) { return; }
 		return await tmpcombat.spendSeconds(tmpcombatant, tmpanswer.seconds,
-			{ hand: tmpanswer.hand, label: tmpanswer.label });
+			{ hand: tmpanswer.hand, label: tmpanswer.label, at: tmpanswer.at });
 	}
 
 	// This is the function which takes back the last spend from a clock button.
@@ -245,8 +246,9 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 		});
 	} // END askSurprise
 
-	// This is the function which asks how many seconds to spend, on which hand, and on what. The
-	// hand's own seconds left are shown beside it, since the off hand runs out on its own.
+	// This is the function which asks how many seconds to spend, on which hand, on what, and -- for
+	// the off hand -- in which second the action begins. The hand's own seconds left are shown
+	// beside it, since the off hand runs out on its own.
 	async function askSpendSeconds(tmpcombatant) {
 		var tmpstate = getCombatantClockState(tmpcombatant);
 		var tmpname = esc(tmpcombatant.name);
@@ -256,6 +258,8 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 		var tmpsurprisestate = tmpsurprise ? resolveSurprise(tmpsurprise) : null;
 		var tmpmainleft = tmpsurprisestate ? `${tmpsurprisestate.left} of the surprise left` : `${tmpstate.left} left`;
 		var tmpoffleft = tmpsurprisestate ? "costs the surprise nothing" : `${tmpstate.offhand.left} left`;
+		// Where the off hand stands, for the second an off-hand action begins in when none is given.
+		var tmpoffstand = (tmpstate.ready && !tmpstate.offhand.done) ? tmpstate.offhand.stand + 1 : null;
 		var tmpcontent = `<div class="imagine-dialog">
 			<div class="form-group"><label>Seconds</label>
 				<input type="number" name="seconds" value="1" min="1" max="60" autofocus></div>
@@ -265,7 +269,13 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 					<option value="off">Off hand (${tmpoffleft})</option>
 				</select>
 				<p class="hint">An off-hand action runs alongside the main hand -- a shield parry while the sword
-				swings -- so it spends the off hand's seconds and does not move ${tmpname} along the round.</p></div>
+				swings -- so it spends the off hand's seconds, on the off hand's own bar, and does not move
+				${tmpname} along the round.</p></div>
+			${tmpsurprisestate ? "" : `<div class="form-group"><label>Off hand: begins in second</label>
+				<input type="number" name="at" min="1" max="${ROUND_SECONDS}" placeholder="${tmpoffstand ?? ""}">
+				<p class="hint">The second the off-hand action happened in -- a parry at the second the blow came.
+				Left blank it begins where the off hand stands${tmpoffstand ? ` (second ${tmpoffstand})` : ""},
+				which is never behind the main hand.</p></div>`}
 			<div class="form-group"><label>On</label>
 				<input type="text" name="label" placeholder="Parry, draw a weapon, move, reload..."></div>
 		</div>`;
@@ -277,10 +287,12 @@ export function buildCombatantClockView(tmpcombat, tmpcombatant) {
 				label: "Spend",
 				callback: (event, button) => {
 					var tmpform = button.form.elements;
+					var tmpat = parseInt(tmpform.at?.value);
 					return {
 						seconds: Math.max(1, parseInt(tmpform.seconds.value) || 1),
 						hand: tmpform.hand.value == "off" ? "off" : "main",
-						label: ("" + tmpform.label.value).trim()
+						label: ("" + tmpform.label.value).trim(),
+						at: (tmpform.hand.value == "off" && Number.isFinite(tmpat) && tmpat >= 1) ? tmpat : null
 					};
 				}
 			}

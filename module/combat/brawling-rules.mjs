@@ -97,7 +97,7 @@ export const HAND_TO_HAND_NAMES = ["Elbow", "Fist(Punch)", "Foot(Kick)", "Headbu
 
 // The twists, and which Weapon Twist a failed Force Twist falls back to (69740-69829). His fallback
 // is written out as three dice strings; they are the Weapon Twist rows' own, which is what this
-// reads -- see UPSTREAM-ISSUES.md 120 for the slip in his second branch.
+// reads -- see UPSTREAM-ISSUES.md 121 for the slip in his second branch.
 export const WEAPON_TWIST_NAMES = ["Weapon Twist", "Weapon Twist(Small)", "Weapon Twist(Proj./Knife)"];
 export const FORCE_TWIST_NAMES  = ["Force Twist", "Force Twist(Small)", "Force Twist(Proj./Knife)"];
 const FORCE_TWIST_FALLBACK = {

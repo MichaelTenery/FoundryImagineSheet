@@ -84,6 +84,14 @@
 		{{#if situationLine}}<button type="button" data-action="clearSituation" data-tooltip="Clear all modifiers"><i class="fa-solid fa-eraser"></i></button>{{/if}}
 	</div>
 
+	{{!-- His BRAWLER row: a fist, a chair, a bottle, or a weapon twisted in a wound. The window holds
+	      the dropdown and the roll (module/apps/brawling.mjs); the bar says what is chosen. --}}
+	<div class="situation-bar brawling-bar">
+		<strong>Brawling:</strong>
+		{{#if brawlingLine}}<span class="situation-line">{{brawlingLine}}</span>{{else}}<span class="muted">nothing chosen</span>{{/if}}
+		<button type="button" data-action="openBrawling"><i class="fa-solid fa-hand-fist"></i> Brawl</button>
+	</div>
+
 	{{!-- Everything here comes off a blow BEFORE any worn armour blocks it, in his order. Each is
 	      the best of what worn magic items grant and the Game Master's modifier, not a sum, and
 	      the items that grant them belong to the deferred magic subsystems -- so for now they are

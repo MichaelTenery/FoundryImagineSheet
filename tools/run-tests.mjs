@@ -69,12 +69,16 @@ const BROWSER_ONLY = ["window-test.html"];
 		};
 		globalThis.window = globalThis;
 		// A page that loads Handlebars from the CDN gets the copy Foundry itself ships, where this machine
-		// has Foundry installed; otherwise it errors as before and wants a browser.
+		// has Foundry installed; failing that, any "handlebars" Node can find (a node_modules beside the
+		// repository, or one named in NODE_PATH -- the cloud sessions have no Foundry install); otherwise
+		// it errors as before and wants a browser.
 		if (/<script src="[^"]*handlebars/.test(tmpHtml)) {
-			try {
-				var tmpRequire = (await import("node:module")).createRequire(import.meta.url);
-				globalThis.Handlebars = tmpRequire("C:/Program Files/Foundry Virtual Tabletop/resources/app/node_modules/handlebars");
-			} catch (tmpIgnored) { }
+			var tmpRequire = (await import("node:module")).createRequire(import.meta.url);
+			var tmpSources = ["C:/Program Files/Foundry Virtual Tabletop/resources/app/node_modules/handlebars", "handlebars"];
+			for (var tmpSource of tmpSources) {
+				try { globalThis.Handlebars = tmpRequire(tmpSource); break; }
+				catch (tmpIgnored) { }
+			}
 		}
 		globalThis.document = {
 			getElementById: tmpElement,

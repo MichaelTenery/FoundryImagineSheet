@@ -29,7 +29,7 @@
 // and the template says so under the picture. The map keeps the same convention so the two agree.
 //
 // This is also the attack-chart "dartboard"'s body half (PROGRESS, Epic 3): the aim point is
-// picked ON the target's own body (the attack dialog shows this same figure as its picker), and
+// picked ON the target's own body (the attack dialog shows this figure as its aim picker, the damage dialog as the picker for where it landed), and
 // @MARKER AIM AND ADJACENCY below turns a chart zone -- Hit(High), Hit(Left) -- into the area that
 // sits that way from the aim, read off the drawing's geometry for a figure and off the columns
 // for a map. Built 2026-10-07 on the user's 2026-09-16 reading: a zone is relative to wherever the
@@ -127,6 +127,7 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 			wounds: parseInt(tmparea.wounds) || 0,
 			selected: !!tmpselected && tmpselected == tmpname,
 			justHit: false,
+			aimed: false,
 			tooltip: `${tmpname} · ${tmparea.type ?? "Limb"} · ${parseInt(tmparea.wounds) || 0} / ${parseInt(tmparea.endurance) || 0} · ${tmparmor} · ${AREA_STATES[tmpstate].label}`
 		};
 	}
@@ -153,13 +154,17 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 	//                          flags.imagine-rpg.lastHit); that area flashes (justHit) for
 	//                          JUST_HIT_SECONDS after `at`, so a wound just taken is seen landing
 	//                 now      the clock to read `at` against (Date.now() unless a test says)
-	//                 picker   true when the figure is an aim picker in the attack dialog: the
+	//                 picker   true when the figure is a picker in the attack or damage dialog: the
 	//                          panel is left out and the shapes carry no sheet action
+	//                 aimed    the name of the area the attack was aimed at, when the figure shows
+	//                          where a blow landed (the damage dialog): that area is marked (aimed)
+	//                          beside the selected one, so the aim and the landing are both seen
 	export function buildBodyFigure(tmpareas, tmpoptions) {
 		var tmpopts = tmpoptions ?? {};
 		var tmplist = Array.isArray(tmpareas) ? tmpareas : [];
 		var tmpselectedname = String(tmpopts.selected ?? "");
 		var tmpselectedarea = tmplist.find(tmpa => tmpa.name == tmpselectedname) ?? null;
+		var tmpaimedname = String(tmpopts.aimed ?? "");
 		var tmpjusthit = getJustHitName(tmpopts.lastHit, tmpopts.now);
 
 		// The most-hurt area, so the heading can point at it before anything is clicked.
@@ -199,6 +204,7 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 				var tmpplace = HUMANOID_FIGURE[tmparea.name];
 				var tmpshape = describeShape(tmparea, tmpselectedname);
 				tmpshape.justHit = tmpshape.name == tmpjusthit;
+				tmpshape.aimed = tmpshape.name == tmpaimedname;
 				if (tmpplace) { tmpresult.shapes.push({ ...tmpshape, ...tmpplace }); }
 				else { tmpresult.unplaced.push(tmpshape); }
 			}
@@ -210,6 +216,7 @@ const FIGURE_MINIMUM_SHARE = 2 / 3;
 		for (const tmparea of tmplist) {
 			var tmptile = describeShape(tmparea, tmpselectedname);
 			tmptile.justHit = tmptile.name == tmpjusthit;
+			tmptile.aimed = tmptile.name == tmpaimedname;
 			tmpresult.columns[getAreaSide(tmparea.name)].push(tmptile);
 		}
 		return tmpresult;

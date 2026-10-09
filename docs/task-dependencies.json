@@ -553,6 +553,18 @@
         "Character Generation module"
       ],
       "note": "User's ruling 2026-10-07. Granted once per world by the active Game Master's client; shipped in 0.25.0."
+    },
+    "Damage always to the head": {
+      "dependsOn": [
+        "The fun pass"
+      ],
+      "note": "His report of 2026-10-08; the aim asked for at Apply Damage when the roll had none. Shipped in 0.25.0."
+    },
+    "Smashing through armour": {
+      "dependsOn": [
+        "His reports of 2026-10-04 and 10-05"
+      ],
+      "note": "Bug report 0.22.7:1 (2026-10-07): the book's half, rounded up; UPSTREAM 119 closed. Shipped in 0.25.0."
     }
   }
 }

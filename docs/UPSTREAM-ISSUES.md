@@ -14,13 +14,13 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 | | |
 |---|---|
-| Issues | 119 |
+| Issues | 121 |
 | **Active** | **37** |
 | Active: worked around, awaiting him | 28 |
 | Active: feature not built, or nothing to do yet | 9 |
 | Active: open with him / answered | 36 / 1 |
-| **Resolved** | **82** |
-| Resolved: solved in the port | 49 |
+| **Resolved** | **84** |
+| Resolved: solved in the port | 51 |
 | Resolved: follows his code on purpose | 29 |
 | Resolved: withdrawn | 2 |
 | Resolved: duplicate | 2 |
@@ -1154,7 +1154,7 @@ The port follows your table (`ARMOR_BLOCKING` in `module/combat-tables.mjs`, gen
 code): a quarter. **Question:** which do you play -- a quarter, as the sheet has it, or half, as
 the book and its example have it? If half, it is a one-cell change and the port will follow.
 
-## 120. A failed Force Twist(Small) rolls no damage at all
+## 121. A failed Force Twist(Small) rolls no damage at all
 
 **Status:** open · **Port:** Solved (the Weapon Twist row of the same size) · **Severity:** real bug, one brawling row
 

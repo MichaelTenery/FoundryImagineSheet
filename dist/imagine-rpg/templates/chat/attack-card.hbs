@@ -33,6 +33,11 @@
 		{{/if}}
 	</div>
 
+	{{!-- Where it lands, read off the target's own body from the aim and the zone the moment the
+	      roll was made (getLanding, module/combat/attack.mjs). The damage dialog offers the same
+	      answer on the target's figure, and the Game Master may move it there. --}}
+	{{#if landing}}<div class="landing">Where it lands: {{landing.text}}</div>{{/if}}
+
 	{{#if fumble}}<p class="fumble">{{fumble.text}}</p>{{/if}}
 
 	{{#if damage}}

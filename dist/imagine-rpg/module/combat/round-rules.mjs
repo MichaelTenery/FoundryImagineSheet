@@ -45,7 +45,12 @@
 //     the ambidextrous (getOffhandSecondsCap), used alongside the main hand rather than after it.
 //     A late start costs it half the seconds lost, rounded up -- all of them if ambidextrous --
 //     and it can never have more left than the round has (Player's Guide p.178, Timing in the
-//     Combat Round).
+//     Combat Round). His chart keeps the off hand as a counter of five places, "not meant to
+//     parallel the combat round" (Master's Manual p.100); here it has a ten-second bar of its own
+//     and tracks time (the user's ruling, 2026-10-07): an off-hand action is placed in the second
+//     it begins -- the second the spender said, else where the off hand stands -- and the off hand
+//     stands no earlier than the main hand, as his chart moves the off-hand marker along with the
+//     primary one. Its five seconds are a BUDGET, not a place: see @MARKER THE CLOCK.
 //
 //   - An action still under way when the round ends can be CARRIED OVER. "No initiative is rolled
 //     for that character until the action is finished. A new initiative is rolled at the point
@@ -177,8 +182,10 @@ import { getOffhandSecondsCap } from "./combat-rules.mjs";
 	//                    seconds  how far into this round the carried thing runs
 	//                    action   true for an action under way, false for a late start waited out
 	//                    roll     the initiative rolled when the action finishes, once rolled
-	//       spent:     [ { seconds, hand, label } ] every spend this round, in order
+	//       spent:     [ { seconds, hand, label, at } ] every spend this round, in order
 	//                    hand     "main" moves the combatant along; "off" spends the off hand
+	//                    at       off hand only: the second (1 to 10) the action begins in, when
+	//                             the spender said; left out, it begins where the off hand stands
 	//       carryOver: whether, if this round ends with something running over, it is carried
 	//   }
 
@@ -197,14 +204,19 @@ import { getOffhandSecondsCap } from "./combat-rules.mjs";
 
 	// This is the function which spends seconds on a clock, returning a new clock (the one passed
 	// is left alone, so the caller can compare before and after). "No event can ever take less
-	// than one second for combat purposes" (Player's Guide p.168), so less than one is one.
-	export function addClockSpend(tmpclock, tmpseconds, tmphand, tmplabel) {
+	// than one second for combat purposes" (Player's Guide p.168), so less than one is one. An
+	// off-hand spend may say the second it begins in (tmpat); a main-hand spend always runs on
+	// from where the combatant stands, so for it the second is ignored.
+	export function addClockSpend(tmpclock, tmpseconds, tmphand, tmplabel, tmpat) {
 		var tmpout = copyClock(tmpclock);
-		tmpout.spent.push({
+		var tmpentry = {
 			seconds: Math.max(1, parseInt(tmpseconds) || 0),
 			hand: tmphand == "off" ? "off" : "main",
 			label: "" + (tmplabel ?? "")
-		});
+		};
+		var tmpsecond = parseInt(tmpat);
+		if (tmpentry.hand == "off" && Number.isFinite(tmpsecond) && tmpsecond >= 1) { tmpentry.at = tmpsecond; }
+		tmpout.spent.push(tmpentry);
 		return tmpout;
 	}
 
@@ -244,9 +256,18 @@ import { getOffhandSecondsCap } from "./combat-rules.mjs";
 	//   done         nothing left this round; overrun, seconds past its end
 	//   splitSecond  a roll below 1, still ordering the first second (null once they have acted)
 	//   used, left   action seconds spent and still to spend on the main hand
-	//   secondsLeft  whole seconds of the round left from where they stand (the off hand's ceiling)
+	//   secondsLeft  whole seconds of the round left from where they stand
 	//   lost         seconds lost to initiative this round -- what the off hand pays half of
-	//   offhand      { cap, lost, pool, spent, left, expired, over }
+	//   offhand      the off hand's own bar and budget (THE OFF HAND below):
+	//                  cap, lost, pool          its seconds, what the late start cost, what is left of them
+	//                  spent, left, expired     spent this round; left to spend; budget the round ran out on
+	//                  over                     spent past the budget, shown rather than refused
+	//                  overrun                  seconds of an off-hand action past the end of the round
+	//                  start, next, stand       indexes on its bar: where it could first act, where its
+	//                                           last action ended, where it stands now
+	//                  done                     nothing more for this hand this round
+	//                  ticks                    ten { second, label, state, action, title, now }, state
+	//                                           lost, spent, idle, free or out
 	//   carry        what runs into the next round if carried ({ seconds, action }), or null
 	//   carriedIn    the carry this round began with, or null
 	export function resolveRoundClock(tmpclock, tmpoptions = {}) {
@@ -265,7 +286,8 @@ import { getOffhandSecondsCap } from "./combat-rules.mjs";
 			ready: false, rolled: tmprolled, extra: tmpextra, ticks: tmpticks,
 			start: 0, next: 0, done: false, overrun: 0, splitSecond: null,
 			used: 0, left: 0, secondsLeft: 0, lost: 0,
-			offhand: { cap: 0, lost: 0, pool: 0, spent: 0, left: 0, expired: 0, over: 0 },
+			offhand: { cap: 0, lost: 0, pool: 0, spent: 0, left: 0, expired: 0, over: 0, overrun: 0,
+				start: 0, next: 0, stand: 0, done: false, ticks: [] },
 			carry: null, carriedIn: tmpcarry ? { ...tmpcarry } : null
 		};
 		for (const tmptick of tmpticks) { tmptick.state = "free"; }
@@ -306,16 +328,53 @@ import { getOffhandSecondsCap } from "./combat-rules.mjs";
 		}
 
 		// WHAT THEY HAVE SPENT
-		// The main hand moves the marker along its places; the off hand is counted on its own.
-		// Each place spent carries which main-hand action it went to (0 for the first, 1 for the
-		// next...), so the chart can shade one action apart from the one after it.
+		// The main hand moves the marker along its places; each place spent carries which action it
+		// went to (0 for the first, 1 for the next...), so the chart can shade one action apart
+		// from the one after it. The off hand moves along its own ten seconds (THE OFF HAND below):
+		// an off-hand action begins in the second the spender said (at), never earlier than its
+		// last action ended or than the off hand could first act; said nothing, it begins where the
+		// off hand stands -- after its last action, or level with the main hand if that is further
+		// on, since the off hand acts alongside the main one and cannot act in a second the
+		// character has already lived through. The seconds it stood by in between are idle.
+		//
+		// Where the off hand could first act: the seconds lost to a late start are lost to it too
+		// (its budget pays half of them, below). A carried-in action is the main hand's; the off
+		// hand is free from the first second while the main hand finishes it.
+		var tmpoffstart = tmpcarry?.action ? 0 : Math.min(ROUND_SECONDS, tmplost);
+		var tmpoffticks = [];
+		for (var tmps = 1; tmps <= ROUND_SECONDS; tmps++) {
+			tmpoffticks.push({ second: tmps, label: "" + tmps, state: (tmps - 1 < tmpoffstart) ? "lost" : "free", now: false });
+		}
 		var tmpnext = tmpstart;
 		var tmpused = 0;
-		var tmpoffspent = 0;
 		var tmpactions = 0;
+		var tmpoffnext = tmpoffstart;
+		var tmpoffspent = 0;
+		var tmpoffactions = 0;
+		var tmpoffoverrun = 0;
+		// The second the main hand stands in, as an index on the off hand's bar; past the end of
+		// the round, the end.
+		var tmpmainsecond = () => (tmpnext < tmplength) ? tmpticks[tmpnext].second - 1 : ROUND_SECONDS;
 		for (const tmpentry of tmpspent) {
 			var tmpseconds = Math.max(0, parseInt(tmpentry?.seconds) || 0);
-			if (tmpentry?.hand == "off") { tmpoffspent = tmpoffspent + tmpseconds; continue; }
+			if (tmpentry?.hand == "off") {
+				var tmpat = parseInt(tmpentry.at);
+				var tmpplace = (Number.isFinite(tmpat) && tmpat >= 1)
+					? Math.max(tmpoffnext, tmpat - 1, tmpoffstart)
+					: Math.max(tmpoffnext, tmpmainsecond());
+				for (var tmpi2 = tmpoffnext; tmpi2 < Math.min(tmpplace, ROUND_SECONDS); tmpi2++) { tmpoffticks[tmpi2].state = "idle"; }
+				for (var tmpk2 = 0; tmpk2 < tmpseconds; tmpk2++) {
+					var tmpofftick = tmpoffticks[tmpplace + tmpk2];
+					if (!tmpofftick) { tmpoffoverrun = tmpoffoverrun + 1; continue; }   // past the end of the round
+					tmpofftick.state = "spent";
+					tmpofftick.action = tmpoffactions;
+					tmpofftick.title = "" + (tmpentry.label ?? "");
+				}
+				tmpoffnext = tmpplace + tmpseconds;
+				tmpoffspent = tmpoffspent + tmpseconds;
+				tmpoffactions = tmpoffactions + 1;
+				continue;
+			}
 			for (var tmpk = 0; tmpk < tmpseconds; tmpk++) {
 				var tmptick = tmpticks[tmpnext + tmpk];
 				if (!tmptick) { continue; }   // past the end of the round: carried, not drawn
@@ -342,21 +401,35 @@ import { getOffhandSecondsCap } from "./combat-rules.mjs";
 		}
 
 		// THE OFF HAND
-		// Its cap, less what the late start cost it, less what it has spent -- and never more than
-		// the round has left. What it cannot use because the round is running out has EXPIRED; what
-		// has been spent past its pool is OVER, shown rather than refused.
+		// Its seconds are a BUDGET: the cap, less what the late start cost it (getOffhandLoss), less
+		// what it has spent. Its PLACE is where it stands on its own bar -- after its last action,
+		// or level with the main hand if that is further on -- and from there every second to the
+		// end of the round is free while the budget lasts: "the off-hand seconds can be used at any
+		// point in the round" (p.178). Budget beyond the seconds left has EXPIRED ("a character can
+		// never have more time left in his off-hand than there are seconds in the round" -- on the
+		// 8th second with nothing done, 3 left, not 5); budget spent past itself is OVER, shown
+		// rather than refused; once the budget is gone the rest of the round is OUT for that hand.
+		// Seconds the off hand stood by between actions are idle: time, not budget.
 		var tmpoffcap = (tmpoptions.offhandCap === undefined || tmpoptions.offhandCap === null)
 			? getOffhandSecondsCap(tmpoptions.handedness, 0)
 			: Math.max(0, parseInt(tmpoptions.offhandCap) || 0);
 		var tmpofflost = Math.min(tmpoffcap, getOffhandLoss(tmplost, tmpoptions.handedness));
 		var tmpoffpool = tmpoffcap - tmpofflost;
 		var tmpoffremaining = tmpoffpool - tmpoffspent;
-		var tmpoffleft = Math.max(0, Math.min(tmpoffremaining, tmpstate.secondsLeft));
+		var tmpoffstand = Math.min(ROUND_SECONDS, Math.max(tmpoffnext, tmpmainsecond()));
+		for (var tmpi3 = tmpoffnext; tmpi3 < tmpoffstand; tmpi3++) { tmpoffticks[tmpi3].state = "idle"; }
+		var tmpoffleft = Math.max(0, Math.min(tmpoffremaining, ROUND_SECONDS - tmpoffstand));
+		var tmpoffdone = tmpoffstand >= ROUND_SECONDS || tmpoffremaining <= 0;
+		for (var tmpi4 = tmpoffstand; tmpi4 < ROUND_SECONDS; tmpi4++) { tmpoffticks[tmpi4].state = tmpoffremaining > 0 ? "free" : "out"; }
+		if (!tmpoffdone) { tmpoffticks[tmpoffstand].now = true; }
 		tmpstate.offhand = {
 			cap: tmpoffcap, lost: tmpofflost, pool: tmpoffpool, spent: tmpoffspent,
 			left: tmpoffleft,
 			expired: Math.max(0, tmpoffremaining - tmpoffleft),
-			over: Math.max(0, -tmpoffremaining)
+			over: Math.max(0, -tmpoffremaining),
+			overrun: tmpoffoverrun,
+			start: tmpoffstart, next: tmpoffnext, stand: tmpoffstand, done: tmpoffdone,
+			ticks: tmpoffticks
 		};
 
 		// WHAT RUNS OVER

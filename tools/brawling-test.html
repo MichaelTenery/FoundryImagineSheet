@@ -73,7 +73,7 @@ check("Force 60%, rolled 40: made, the Force row's 9d6",
 	(({ made, damageRow }) => [made, damageRow.name, damageRow.damage])(R.resolveForceTwist("Force Twist", 60, 40)), [true, "Force Twist", "9d6"]);
 check("Force 60%, rolled 70: failed, a Weapon Twist's 3d6",
 	(({ made, damageRow }) => [made, damageRow.name, damageRow.damage])(R.resolveForceTwist("Force Twist", 60, 70)), [false, "Weapon Twist", "3d6"]);
-check("the Small size falls to the Small twist (his second branch could not -- UPSTREAM 120)",
+check("the Small size falls to the Small twist (his second branch could not -- UPSTREAM 121)",
 	R.resolveForceTwist("Force Twist(Small)", 60, 70).damageRow.damage, "2d8");
 check("...and Proj./Knife to its own", R.resolveForceTwist("Force Twist(Proj./Knife)", 60, 70).damageRow.damage, "3d4");
 check("exactly the chance is made (his <=)", R.resolveForceTwist("Force Twist", 60, 60).made, true);

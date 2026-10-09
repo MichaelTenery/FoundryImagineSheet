@@ -6829,7 +6829,7 @@ is set in" instead of "Aimed at", posts no d20 line, and its Apply Damage dialog
 "Bypasses armour" already ticked (a one-line change to `askDamageOptions`, reading `damage.bypass`
 off the card's flag). A Force Twist rolls the Force skill first -- his plain `skillRoll<=tempValue`,
 no critical, no made-by-half -- and failed is the Weapon Twist of its size. His fallback for the
-Small size can never fire (`!brawlingAttack=="Force Twist(Small)"`, UPSTREAM 120); the intent is in
+Small size can never fire (`!brawlingAttack=="Force Twist(Small)"`, UPSTREAM 121); the intent is in
 the two lines beside it, and in the table itself (2d8 IS Weapon Twist(Small)), so the port reads
 the Weapon Twist row of the same size for all three.
 

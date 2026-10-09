@@ -3,7 +3,7 @@
 //==================================================================================================================
 // Foundry's combat tracker, with each combatant's round clock drawn under their row: the ten
 // seconds of the round (lost to a late start, spent, left, and where they stand now), the off
-// hand's seconds, and buttons to spend a second, spend several, take the last spend back, and
+// hand's own ten seconds under them, and buttons to spend a second, spend several, take the last spend back, and
 // carry over what runs past the end of the round. A stopwatch at the top opens the Mr. Initiative
 // window, which lines everyone's clock up on one chart. A surpriser's row shows their surprise
 // seconds instead, before round 1 (his chart's Surprise row), with the same buttons; the Game

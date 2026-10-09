@@ -12,10 +12,12 @@
 
 	The figure faces the viewer: its left is on the viewer's right, as on any anatomical chart.
 
-	PICKER MODE (bodyFigure.picker): the same picture inside the attack dialog as its aim picker --
-	no panel, and the areas carry data-area only, with no sheet action; the dialog wires the click
-	(wireAimPicker, module/combat/attack.mjs). An area struck in the last few seconds carries
-	just-hit and flashes (buildBodyFigure's lastHit).
+	PICKER MODE (bodyFigure.picker): the same picture inside the attack dialog as its aim picker,
+	and inside the damage dialog as the picker for where the blow landed -- no panel, and the areas
+	carry data-area only, with no sheet action; the dialog wires the click (wireAimPicker,
+	module/combat/attack.mjs). In the damage dialog the area aimed at carries `aimed` (a dashed
+	outline) beside the selected landing. An area struck in the last few seconds carries just-hit
+	and flashes (buildBodyFigure's lastHit).
 --}}
 {{#if bodyFigure}}
 <div class="body-figure body-figure-{{bodyFigure.kind}}">
@@ -24,7 +26,7 @@
 		<svg class="body-svg" viewBox="0 0 {{bodyFigure.box.width}} {{bodyFigure.box.height}}" role="img"
 			aria-label="{{bodyFigure.bodyType}} body, {{bodyFigure.count}} areas">
 			{{#each bodyFigure.shapes as |s|}}
-			<rect class="body-area area-{{s.state}}{{#if s.selected}} selected{{/if}}{{#if s.justHit}} just-hit{{/if}}"
+			<rect class="body-area area-{{s.state}}{{#if s.selected}} selected{{/if}}{{#if s.justHit}} just-hit{{/if}}{{#if s.aimed}} aimed{{/if}}"
 				{{#unless ../bodyFigure.picker}}data-action="selectBodyArea"{{/unless}} data-area="{{s.name}}" data-tooltip="{{s.tooltip}}"
 				x="{{s.x}}" y="{{s.y}}" width="{{s.w}}" height="{{s.h}}" rx="{{s.rx}}"><title>{{s.tooltip}}</title></rect>
 			{{/each}}
@@ -34,7 +36,7 @@
 		{{!-- A custom body's areas the drawing has no place for: still here, still clickable. --}}
 		<div class="body-tiles">
 			{{#each bodyFigure.unplaced as |t|}}
-			<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}"
+			<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}{{#if t.aimed}} aimed{{/if}}"
 				{{#unless ../bodyFigure.picker}}data-action="selectBodyArea"{{/unless}} data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
 			{{/each}}
 		</div>
@@ -45,21 +47,21 @@
 			<div class="body-column">
 				<h4>Its left</h4>
 				{{#each bodyFigure.columns.left as |t|}}
-				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}"
+				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}{{#if t.aimed}} aimed{{/if}}"
 					{{#unless ../bodyFigure.picker}}data-action="selectBodyArea"{{/unless}} data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
 				{{/each}}
 			</div>
 			<div class="body-column body-column-centre">
 				<h4>Centre</h4>
 				{{#each bodyFigure.columns.centre as |t|}}
-				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}"
+				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}{{#if t.aimed}} aimed{{/if}}"
 					{{#unless ../bodyFigure.picker}}data-action="selectBodyArea"{{/unless}} data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
 				{{/each}}
 			</div>
 			<div class="body-column">
 				<h4>Its right</h4>
 				{{#each bodyFigure.columns.right as |t|}}
-				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}"
+				<button type="button" class="body-tile area-{{t.state}}{{#if t.selected}} selected{{/if}}{{#if t.justHit}} just-hit{{/if}}{{#if t.aimed}} aimed{{/if}}"
 					{{#unless ../bodyFigure.picker}}data-action="selectBodyArea"{{/unless}} data-area="{{t.name}}" data-tooltip="{{t.tooltip}}">{{t.name}}</button>
 				{{/each}}
 			</div>

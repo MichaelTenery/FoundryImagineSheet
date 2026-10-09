@@ -1,6 +1,6 @@
 # Imagine Role Playing System — Foundry VTT system
 
-Version 0.24.2. A conversion of the Imagine Role Playing System from its Roll20 character sheet,
+Version 0.25.0. A conversion of the Imagine Role Playing System from its Roll20 character sheet,
 built with permission from the rights holder. Foundry VTT **V14** or later.
 
 ## Installing
@@ -16,7 +16,7 @@ the archive has no top-level folder of its own.)
 
 ## Updating
 
-**Version 0.24.2 and later update themselves.** In Foundry's **Game Systems** tab, press
+**Version 0.25.0 and later update themselves.** In Foundry's **Game Systems** tab, press
 **Check for Updates**; if a newer version has been published, an **Update** button appears and
 Foundry fetches and installs it. Nothing needs to be copied by hand.
 
@@ -30,7 +30,7 @@ and offers the update when they differ. It compares the version number and **not
 dates, not file contents — so a build published without raising the version is invisible to every
 existing install.
 
-One catch, once: an install from BEFORE 0.24.2 has no `download` in its manifest and cannot
+One catch, once: an install from BEFORE 0.25.0 has no `download` in its manifest and cannot
 update itself. Replace that folder by hand one last time, and every update after it is a button.
 
 After updating, rebuild the compendium content so new and corrected entries come through — the
@@ -52,6 +52,13 @@ the Game Master:
 
 It matches documents by name and updates them in place, so anything already dragged onto a character
 keeps pointing at the same document.
+
+## Players creating characters
+
+Foundry's own default keeps **Create New Actors** for Trusted Players and above, which hides the
+Create Character button from an ordinary Player. The first time a Game Master logs in after updating
+to 0.25.0 or later, the system grants it to the Player role -- once, and it says so. If you would
+rather players did not, take it back in **Configure Permissions**; the system will not give it again.
 
 ## Before you trust it
 

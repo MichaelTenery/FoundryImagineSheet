@@ -10,9 +10,10 @@
 // The attack follows the Player's Guide's sequence: the attacker declares where they are aiming,
 // rolls a d20, and the modified result read against their attack chart says whether the blow
 // lands and where relative to the aim. A centre hit lands exactly where aimed. An off-centre hit
-// lands on whatever area sits that way from the aim on the target -- which depends on the attack's
-// motion and the target's shape, so the Game Master picks it when damage is applied, just as the
-// original sheet left it to the table.
+// lands on whatever area sits that way from the aim on the target, read off the target's own body
+// (getStruckArea, module/body-view.mjs): the card says so the moment the roll is made, and the
+// Game Master confirms or moves it on the target's figure when the damage is applied -- still the
+// table's call, as the original sheet left it, with the reading offered first.
 //==================================================================================================================
 
 import {
@@ -95,7 +96,7 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 		var tmpareas = tmptarget?.actor?.system?.body?.areas ?? [];
 		var tmpaim = tmpareas.length
 			? tmpareas.map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join("")
-			: `<option value="">(no target selected)</option>`;
+			: `<option value="">(no target: aim when the damage is applied)</option>`;
 		// The target's own body as the aim picker (module/body-view.mjs): click an area and the
 		// select follows. The dartboard's aim point, picked ON the target (DECISIONS 2026-10-07).
 		var tmppicker = "";
@@ -178,11 +179,15 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 	}
 
 
-	// This is the function which wires the aim picker inside the attack dialog: a click on an area
-	// of the target's figure (or map) sets the "Aimed at" select to it and marks it selected.
-	function wireAimPicker(tmproot) {
+	// This is the function which wires the body picker inside a dialog: a click on an area of the
+	// target's figure (or map) sets the named select to it and marks it selected. The attack dialog
+	// uses it for "Aimed at" (the select named aim); the damage dialog for "Area struck" (area).
+	//     tmproot        the dialog's element
+	//     tmpselectname  the name of the select the picker drives; "aim" when not given
+	// Exported for the Brawling window (module/apps/brawling.mjs), which carries the same picker.
+	export function wireAimPicker(tmproot, tmpselectname) {
 		var tmppicker = tmproot?.querySelector?.(".imagine-aim-picker");
-		var tmpselect = tmproot?.querySelector?.("select[name='aim']");
+		var tmpselect = tmproot?.querySelector?.(`select[name='${tmpselectname || "aim"}']`);
 		if (!tmppicker || !tmpselect) { return; }
 		var tmpmark = function (tmpname) {
 			for (const tmpel of tmppicker.querySelectorAll("[data-area]")) {
@@ -198,6 +203,49 @@ const MODE_LABELS = { thrust: "Thrust", cut: "Cut", smash: "Smash", missile: "Mi
 		});
 		tmpselect.addEventListener("change", () => tmpmark(tmpselect.value));
 		tmpmark(tmpselect.value);
+	}
+
+	// This is the function which wires the damage dialog's picker when NO AIM WAS DECLARED at the
+	// roll -- no token was targeted, so the attack dialog had no body to aim at. The figure then
+	// picks the aim: a click (or the "Aimed at" select) sets the aim, the area struck follows from
+	// it and the roll's zone (getStruckArea, module/body-view.mjs), and the hint says what was read;
+	// the "Area struck" select stays free to overrule it. The aim is outlined dashed, the landing
+	// solid, as when the aim was declared.
+	//
+	// His report of 2026-10-08: "damage is always being applied to the head, rather than where
+	// the attack was aimed at" -- the dialog fell back to the first area of the body, which is the
+	// head, whenever the aim was blank. Fixed, as he proposed, by choosing the location here.
+	//     tmproot    the dialog's element
+	//     tmpareas   body.areas of the target
+	//     tmpzone    the chart result's zone, "Hit(High)" and the like
+	function wireLandingPicker(tmproot, tmpareas, tmpzone) {
+		var tmppicker = tmproot?.querySelector?.(".imagine-aim-picker");
+		var tmpaimselect = tmproot?.querySelector?.("select[name='aim']");
+		var tmpareaselect = tmproot?.querySelector?.("select[name='area']");
+		var tmphint = tmproot?.querySelector?.(".landing-hint");
+		if (!tmppicker || !tmpaimselect || !tmpareaselect) { return; }
+		var tmpmark = function () {
+			for (const tmpel of tmppicker.querySelectorAll("[data-area]")) {
+				tmpel.classList.toggle("aimed", tmpel.dataset.area == tmpaimselect.value);
+				tmpel.classList.toggle("selected", tmpel.dataset.area == tmpareaselect.value);
+			}
+		};
+		var tmpfollow = function () {
+			var tmplanding = getStruckArea(tmpareas, tmpaimselect.value, tmpzone);
+			if (tmplanding.area) { tmpareaselect.value = tmplanding.area; }
+			if (tmphint) { tmphint.textContent = tmplanding.text + (tmplanding.area ? "" : " Pick the area."); }
+			tmpmark();
+		};
+		tmppicker.addEventListener("click", function (tmpevent) {
+			var tmphit = tmpevent.target.closest("[data-area]");
+			if (!tmphit) { return; }
+			tmpevent.preventDefault();
+			tmpaimselect.value = tmphit.dataset.area;
+			tmpfollow();
+		});
+		tmpaimselect.addEventListener("change", tmpfollow);
+		tmpareaselect.addEventListener("change", tmpmark);
+		tmpfollow();
 	}
 
 // @MARKER ATTACK ROLL
@@ -498,12 +546,18 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		};
 	}
 
+	// Where the blow lands, read off the target's own body the moment the roll is known, so the card
+	// says it straight away (WHERE IT LANDS below); the damage dialog offers the same answer.
+	var tmplanding = getLanding(tmptarget?.actor?.system?.body?.areas, tmpoptions.aim, tmpresult, tmpsitmods.special);
+
 	// The chat card
 	var tmpattack = {
 		attackerUuid: tmpactor.uuid,
 		weapon: tmpweapon.name,
 		mode: tmpmode,
 		aim: tmpoptions.aim,
+		// Where it lands, as read above: { area, how, text }, or null for a miss or no target.
+		landing: tmplanding,
 		targetUuid: tmptarget?.actor?.uuid ?? null,
 		targetName: tmptarget?.name ?? null,
 		result: tmpresult,
@@ -554,9 +608,32 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 }
 
 
+// @MARKER WHERE IT LANDS
+	// This is the function which says where a blow landed, for the card and the damage dialog:
+	//     { area, how, text }                  as getStruckArea gives it (module/body-view.mjs)
+	//     { area: "", how: "random", text }    the Situation Mods call for a Random Location (extreme
+	//                                          range), which overrides the aim: the table rolls it
+	//     null                                 nothing to read: a miss, or no target with a body
+	//     tmpareas    body.areas of the target, if any
+	//     tmpaim      the area the attack was aimed at, by name
+	//     tmpresult   the resolved attack (its zone and isHit)
+	//     tmpspecial  the Situation Mods' special words (getSituationalForAttack's special)
+	function getLanding(tmpareas, tmpaim, tmpresult, tmpspecial) {
+		var tmplist = Array.isArray(tmpareas) ? tmpareas : [];
+		if (!tmplist.length || !tmpresult?.isHit) { return null; }
+		if ((tmpspecial ?? []).includes("Random Location")) {
+			return { area: "", how: "random",
+				text: "A Random Location, from the Situation Mods: the table rolls where it lands, whatever the aim." };
+		}
+		return getStruckArea(tmplist, tmpaim, "" + (tmpresult.zone ?? ""));
+	}
+
+
 // @MARKER DAMAGE APPLICATION
 
-	// This is the function which asks where the blow landed and what kind of damage it is.
+	// This is the function which asks where the blow landed and what kind of damage it is. The
+	// target's own body is the picker, as it is for the aim in the attack dialog: the aim outlined
+	// dashed, the landing the card read outlined solid, and a click moves the landing.
 	async function askDamageOptions(tmptargetactor, tmpattack) {
 		var tmpareas = tmptargetactor.system.body?.areas ?? [];
 		if (!tmpareas.length) {
@@ -571,41 +648,86 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		var tmpoffcentre = tmpzone.startsWith("Hit(") && !tmpcentre;
 		// Where it lands, read off the target's own body from the aim and the zone (getStruckArea,
 		// module/body-view.mjs): the area that sits that way, offered as the default and explained,
-		// with the select still free for the table to see it otherwise.
-		var tmpstruck = tmpoffcentre ? getStruckArea(tmpareas, tmpattack.aim, tmpzone) : null;
-		var tmpdefault = tmpoffcentre ? (tmpstruck?.area ?? "") : tmpattack.aim;
-		var tmpareahint = tmpcentre
-			? `A centre hit: it lands where it was aimed (${esc(tmpattack.aim)}).`
-			: tmpoffcentre
-			? `An off-centre hit, <strong>${esc(tmpzone.replace("Hit(", "").replace(")", ""))}</strong> of
-			   where it was aimed. ${esc(tmpstruck.text)}${tmpstruck.area ? "" : " Pick the area."}`
-			: `${esc(tmpzone)}: not read down the attack chart, so it lands where it was aimed
-			   (${esc(tmpattack.aim) || "no aim declared"}).`;
+		// with the select still free for the table to see it otherwise. The card's own reading
+		// (landing, made when the roll was) is used when the card has one, so the two agree; a card
+		// from before it existed is read now.
+		// NO AIM DECLARED -- no token was targeted at the roll, so the attack dialog had no body to
+		// aim at -- and the blow is not a Random Location: the aim is asked for here, on the target's
+		// figure, and the landing read from it and the zone (wireLandingPicker). The torso is the
+		// natural first guess; the head was only ever the first area in the list (his report of
+		// 2026-10-08, "always being applied to the head").
+		var tmprandom = tmpattack.landing?.how == "random";
+		var tmpneedsaim = !tmprandom && !tmpareas.some(a => a.name == tmpattack.aim);
+		var tmpaim = tmpneedsaim
+			? (tmpareas.find(a => a.name == "Upper Torso")?.name ?? tmpareas[0].name)
+			: tmpattack.aim;
+		var tmplanding = tmpneedsaim ? getStruckArea(tmpareas, tmpaim, tmpzone)
+			: (tmpattack.landing ?? getStruckArea(tmpareas, tmpattack.aim, tmpzone));
+		var tmpdefault = tmplanding.area || tmpareas[0].name;
+		var tmpzoneword = esc(tmpzone.replace("Hit(", "").replace(")", ""));
+		var tmpareahint = tmpneedsaim
+			? `No aim was declared when the attack was rolled (no token was targeted). Pick where it was
+			   aimed, on the figure or below; where it lands follows from the roll's
+			   <strong>${tmpzoneword}</strong>.`
+			: (tmpoffcentre && !tmprandom)
+			? `An off-centre hit, <strong>${tmpzoneword}</strong> of where it was aimed. ${esc(tmplanding.text)}`
+			: tmpcentre
+			? `A centre hit. ${esc(tmplanding.text)}`
+			: esc(tmplanding.text);
+		if (!tmplanding.area && !tmpneedsaim) { tmpareahint += " Pick the area."; }
+
+		// The target's own body as the picker, as the attack dialog's is for the aim
+		// (module/body-view.mjs): the aim dashed, the landing solid. With an aim declared a click
+		// moves the landing; without one a click sets the aim and the landing follows.
+		var tmpfigure = buildBodyFigure(tmpareas, { bodyType: tmptargetactor.system.body?.type, picker: true,
+			selected: tmpdefault, aimed: tmpaim });
+		var tmppicker = `<div class="imagine imagine-aim-picker" data-tooltip="${tmpneedsaim ? "Click where it was aimed" : "Click where it landed"}">`
+			+ await foundry.applications.handlebars.renderTemplate("systems/imagine-rpg/templates/actor/body-figure.hbs", { bodyFigure: tmpfigure })
+			+ `</div>`;
+		var tmpaimfield = tmpneedsaim ? `
+				<div class="form-group"><label>Aimed at</label>
+					<select name="aim">${tmpareas.map(a =>
+						`<option value="${esc(a.name)}" ${a.name == tmpaim ? "selected" : ""}>${esc(a.name)}</option>`).join("")}
+					</select></div>` : "";
 
 		var tmpcontent = `
 			<div class="imagine-damage-dialog">
 				<p>${tmpareahint}</p>
+				${tmpaimfield}
 				<div class="form-group"><label>Area struck</label>
 					<select name="area">${tmpareas.map(a =>
 						`<option value="${esc(a.name)}" ${a.name == tmpdefault ? "selected" : ""}>${esc(a.name)} (armour ${a.armor})</option>`).join("")}
-					</select></div>
+					</select>
+					${tmpneedsaim
+						? `<p class="hint landing-hint">${esc(tmplanding.text)}${tmplanding.area ? "" : " Pick the area."}</p>`
+						: `<p class="hint">${tmpattack.aim ? `Aimed at the ${esc(tmpattack.aim)}, the dashed outline.` : "No aim was declared."}
+					The solid outline is where it lands; click the figure to see it otherwise.</p>`}</div>
+				${tmppicker}
 				<div class="form-group"><label>Damage type</label>
 					<select name="type">${Object.keys(ARMOR_BLOCKING).map(t =>
 						`<option value="${t}" ${t == getBlockingDamageType(tmpattack.damage.type) ? "selected" : ""}>${t}</option>`).join("")}
 					</select></div>
-				<div class="form-group"><label>Bypasses armour</label><input type="checkbox" name="bypass">
-					<p class="hint">For a called shot that goes through a gap, or damage armour cannot stop.</p></div>
+				<div class="form-group"><label>Bypasses armour</label><input type="checkbox" name="bypass" ${tmpattack.damage.bypass ? "checked" : ""}>
+					<p class="hint">For a called shot that goes through a gap, or damage armour cannot stop.${tmpattack.damage.bypass
+						? " Ticked already: a twisted weapon is inside the armour (brawling-attack.mjs)." : ""}</p></div>
 			</div>`;
 
 		return await foundry.applications.api.DialogV2.prompt({
 			window: { title: `Apply damage to ${tmptargetactor.name}` },
 			content: tmpcontent,
 			rejectClose: false,
+			// The picker: with an aim declared a click sets the "Area struck" select; without one it sets
+			// the aim and the area follows.
+			render: (tmpevent, tmpdialog) => tmpneedsaim
+				? wireLandingPicker(tmpdialog.element, tmpareas, tmpzone)
+				: wireAimPicker(tmpdialog.element, "area"),
 			ok: {
 				label: "Apply",
 				callback: (event, button) => {
 					var tmpform = button.form.elements;
-					return { area: tmpform.area.value, type: tmpform.type.value, bypass: tmpform.bypass.checked };
+					return { area: tmpform.area.value, type: tmpform.type.value, bypass: tmpform.bypass.checked,
+						// The aim chosen here, when the roll had none, for the card's record.
+						aim: tmpneedsaim ? tmpform.aim.value : null };
 				}
 			}
 		});
@@ -708,8 +830,16 @@ async function applyAttackDamageInner(tmpmessage, tmpattack) {
 	if (!tmplanded) { return; }
 
 	// Only the message's author or the Game Master may mark it -- and only they get this far (see the
-	// test at the head of this function), so the mark is always written.
-	if (tmpmessage.isOwner) { await tmpmessage.setFlag("imagine-rpg", "attack.applied", true); }
+	// test at the head of this function), so the mark is always written. An aim chosen at apply time
+	// (none was declared at the roll) is recorded with it, and the landing read from it.
+	if (tmpmessage.isOwner) {
+		var tmpmarks = { "flags.imagine-rpg.attack.applied": true };
+		if (tmpoptions.aim) {
+			tmpmarks["flags.imagine-rpg.attack.aim"] = tmpoptions.aim;
+			tmpmarks["flags.imagine-rpg.attack.landing"] = getStruckArea(tmptargetactor.system.body?.areas ?? [], tmpoptions.aim, "" + (tmpattack.result?.zone ?? ""));
+		}
+		await tmpmessage.update(tmpmarks);
+	}
 
 	// The poison delivered: the target rolls their Poison Resistance on its own card, as a poison used
 	// from the tab does, and a dose comes off the weapon -- the coating gone with its last one.

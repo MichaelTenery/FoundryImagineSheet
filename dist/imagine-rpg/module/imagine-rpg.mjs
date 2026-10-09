@@ -47,9 +47,11 @@ import { registerRolledStartingEndurance } from "./race-endurance.mjs";
 import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
+import ImagineBrawling from "./apps/brawling.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
 import ImagineAlignmentConfig from "./apps/alignment-config.mjs";
 import ImagineCharacterGenerator, { registerCharacterGeneratorButton } from "./apps/character-generator.mjs";
+import ImagineCreatureGenerator, { registerCreatureGeneratorButton } from "./apps/creature-generator.mjs";
 import ImagineCombat, { ImagineCombatant } from "./combat/combat-document.mjs";
 import ImagineCombatTracker from "./combat/combat-tracker.mjs";
 import ImagineRoundClock, { loadClockTemplates } from "./apps/round-clock.mjs";
@@ -322,6 +324,10 @@ Hooks.once("init", function () {
 		explainAvailability: explainAvailability,
 		// The step-by-step character generator; also a button in the Actors directory.
 		generateCharacter: () => new ImagineCharacterGenerator().render(true),
+		// @MARKER CREATURE GENERATOR
+		// The step-by-step creature designer, by the Master's Manual's Creature Creation Guide; also a
+		// Create Creature button in the Actors directory for Game Masters.
+		generateCreature: () => new ImagineCreatureGenerator().render(true),
 		// @MARKER STARTING LORE
 		// His "Provide random lore" -- entries for every lore the character holds, stocks of herbs,
 		// potions and poisons, and starting spells. The generator runs it when its tick is on, and
@@ -345,6 +351,11 @@ Hooks.once("init", function () {
 		// The melee and missile situational modifiers window, also a button on the Combat tab of
 		// both sheets.
 		situationMods: (tmpactor) => ImagineSituationalMods.open(tmpactor),
+		// @MARKER BRAWLING
+		// His BRAWLER row as a window: a fist, a chair, a bottle, or a weapon twisted in a wound; also
+		// a button on the Combat tab of either sheet.
+		//     game.imagine.brawling(actor)
+		brawling: (tmpactor) => ImagineBrawling.open(tmpactor),
 		// @MARKER ROUND CLOCK
 		// The Mr. Initiative window, also the stopwatch at the top of the Combat tracker.
 		roundClock: () => ImagineRoundClock.open(),
@@ -357,6 +368,16 @@ Hooks.once("init", function () {
 	// Records whether the content has ever been imported into this world, so the first-launch
 	// prompt does not keep reappearing once it has been dealt with.
 	game.settings.register("imagine-rpg", "contentImported", {
+		scope: "world",
+		config: false,
+		type: Boolean,
+		default: false
+	});
+
+	// Records that this world has been given the "everyone may create characters" permission once,
+	// so a Game Master who later takes it back is not overruled on every load. See PLAYERS CREATE
+	// CHARACTERS below.
+	game.settings.register("imagine-rpg", "playersMayCreate", {
 		scope: "world",
 		config: false,
 		type: Boolean,
@@ -518,6 +539,10 @@ Hooks.once("init", function () {
 	// A Create Character button in the Actors directory. See module/apps/character-generator.mjs.
 	registerCharacterGeneratorButton();
 
+	// @MARKER CREATURE GENERATOR
+	// A Create Creature button beside it, for Game Masters. See module/apps/creature-generator.mjs.
+	registerCreatureGeneratorButton();
+
 	// @MARKER CLASS ADVANCEMENT
 	// Grants a title's class skills when the title is reached. See module/class-advancement.mjs.
 	registerClassAdvancement();
@@ -602,6 +627,28 @@ Hooks.once("ready", async function () {
 	if (!game.user.isActiveGM) { return; }
 	try { await applyDataFixes(); }
 	catch (tmperror) { console.warn("Imagine RPG | the data fixes could not be run", tmperror); }
+});
+
+// @MARKER PLAYERS CREATE CHARACTERS
+// Making a character is the first thing a player does, so it is open to every player. Foundry's own
+// default keeps "Create New Actors" for Trusted Players and above, which left an ordinary Player with
+// no Create Character button and an Actor.create it would refuse. A system cannot change a core
+// default, so the active Game Master's client grants it to the Player role -- ONCE per world. It is
+// recorded, so a Game Master who closes it again in Configure Permissions stays obeyed.
+Hooks.once("ready", async function () {
+	if (!game.user.isActiveGM) { return; }
+	if (game.settings.get("imagine-rpg", "playersMayCreate")) { return; }
+	try {
+		var tmppermissions = foundry.utils.deepClone(game.settings.get("core", "permissions"));
+		var tmproles = new Set(tmppermissions.ACTOR_CREATE ?? [CONST.USER_ROLES.TRUSTED, CONST.USER_ROLES.ASSISTANT, CONST.USER_ROLES.GAMEMASTER]);
+		if (!tmproles.has(CONST.USER_ROLES.PLAYER)) {
+			tmproles.add(CONST.USER_ROLES.PLAYER);
+			tmppermissions.ACTOR_CREATE = Array.from(tmproles);
+			await game.settings.set("core", "permissions", tmppermissions);
+			ui.notifications.info("Imagine RPG: every player may now create characters. You can change this in Configure Permissions.");
+		}
+		await game.settings.set("imagine-rpg", "playersMayCreate", true);
+	} catch (tmperror) { console.warn("Imagine RPG | players could not be allowed to create characters", tmperror); }
 });
 
 // @MARKER ADD NEW sheet specific functions HERE
