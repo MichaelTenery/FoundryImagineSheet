@@ -79,3 +79,7 @@ graphify update ./tools --no-cluster
 graphify merge-graphs ./module/graphify-out/graph.json ./tools/graphify-out/graph.json --out graphify-out/graph.json
 ```
 Note: the `graphify.exe` shim in `.local/bin` can mis-resolve itself on multi-argument or backgrounded invocations (Windows symlink issue) — if `graphify <cmd>` fails oddly, call the venv's `python.exe -m graphify <cmd>` directly instead (find the venv with `pipx environment --value PIPX_LOCAL_VENVS` or under `AppData\Local\pipx\pipx\venvs\graphifyy`). `graphify-out/` (at any depth) is gitignored — the graph is a local cache, not something to commit or treat as source of truth over the code itself.
+
+## Find-skills
+
+**Check for an installable skill before starting real work.** At the start of any non-trivial task here (new feature, new tooling, unfamiliar file format, anything where a packaged skill might already exist), invoke the `find-skills` skill first to see whether one covers it. If a relevant skill turns up, tell the user and offer to install it before proceeding; don't install anything without asking. Skip it for trivial edits and for work the existing project tooling already covers.
