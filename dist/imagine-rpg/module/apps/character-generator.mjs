@@ -19,7 +19,7 @@ import { rollPhysique } from "../physique-rules.mjs";
 import { getFamorianBreed, rollEvokeBudget } from "../famorian-rules.mjs";
 import { STEPS, newGeneratorState, deriveGenerator, checkStep, buildGeneratorView, choicesFromState,
 	colourChoices, rollStartingMoneyIfDue, getSecondRaceNames, reconcileAlignment,
-	getRequiredSocialSkillNames } from "../chargen-view.mjs";
+	getRequiredSocialSkillNames, isBlankCharacterCreation } from "../chargen-view.mjs";
 import { describeStartingMoney } from "../starting-money.mjs";
 import { addPurchase, describeCart, DEFAULT_PRICE_LEVEL } from "../shop-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
@@ -78,6 +78,14 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 
 	#state = newGeneratorState();
 	#content = null;
+
+	// This is the function which opens the generator with a name already filled in -- the name typed
+	// into Foundry's own Create Actor dialog, when that dialog is turned into this window.
+	static openFor(tmpname) {
+		var tmpwindow = new ImagineCharacterGenerator();
+		if (tmpname) { tmpwindow.#state.name = "" + tmpname; }
+		return tmpwindow.render(true);
+	}
 	// True while Create is writing the character. Foundry runs a second click's action whatever the
 	// first is still doing, so a double-click once made two identical characters (bug sweep 2026-09-23).
 	#busy = false;
@@ -661,8 +669,10 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			// it was taken INSTEAD of coins.
 			var tmpmoneyrecord = this.#state.startingKit?.byCulture ? "Gear by culture, taken instead of coins."
 				: (this.#state.startingMoney ? describeStartingMoney(this.#state.startingMoney) : "Entered in the character generator.");
+			// imagineGenerated: the preCreateActor hook below lets this one through -- a blank Actor.create
+			// of a character is turned into this window instead.
 			var tmpactor = await Actor.create({ ...tmpassembled.actor, items: tmpassembled.items,
-				flags: { "imagine-rpg": { startingMoney: tmpmoneyrecord } } });
+				flags: { "imagine-rpg": { startingMoney: tmpmoneyrecord } } }, { imagineGenerated: true });
 			ui.notifications.info(`${tmpactor.name} is created.`);
 			// @MARKER SHOP
 			// What was bought, on one card. His add_item posts each purchase as it is made; the generator
@@ -700,8 +710,25 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 
 // @MARKER DIRECTORY BUTTON
 // This is the function which puts a Create Character button at the top of the Actors directory,
-// for anyone allowed to create actors.
+// for anyone allowed to create actors -- and which turns Foundry's OWN Create Actor into this
+// window when it would have made a blank character.
+//
+// His note of 2026-10-15: "When you create actor (character) now it doesn't let you make the
+// character. It just makes instantly a character with no class, no skills, and all 10's for
+// attributes." That is Foundry's own Create Actor button, beside this system's Create Character:
+// its dialog takes a name and a type and makes an empty actor with the schema's defaults. Nothing
+// in the system intercepted it, and the two buttons look alike. Now a blank character from that
+// dialog is refused and the generator opens with the typed name; everything with substance -- the
+// generator's own creation, an import, a duplicate, any creature -- goes through as before
+// (isBlankCharacterCreation, chargen-view.mjs).
 export function registerCharacterGeneratorButton() {
+	Hooks.on("preCreateActor", (tmpdocument, tmpdata, tmpoptions, tmpuserid) => {
+		if (tmpuserid != game.user.id) { return; }
+		if (!isBlankCharacterCreation(tmpdata, tmpoptions)) { return; }
+		ui.notifications.info("A character is made with the character generator -- opening it.");
+		ImagineCharacterGenerator.openFor(tmpdata?.name);
+		return false;
+	});
 	Hooks.on("renderActorDirectory", (tmpapp, tmphtml) => {
 		if (!game.user.can("ACTOR_CREATE")) { return; }
 		var tmproot = (tmphtml instanceof HTMLElement) ? tmphtml : tmphtml[0];

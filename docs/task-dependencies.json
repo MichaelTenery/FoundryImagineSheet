@@ -565,6 +565,12 @@
         "His reports of 2026-10-04 and 10-05"
       ],
       "note": "Bug report 0.22.7:1 (2026-10-07): the book's half, rounded up; UPSTREAM 119 closed. Shipped in 0.25.0."
+    },
+    "Create Actor opens the generator": {
+      "dependsOn": [
+        "Character Generation module"
+      ],
+      "note": "Done 2026-10-15, shipped as 0.25.1."
     }
   }
 }

@@ -6895,3 +6895,29 @@ optgroups under the sheet theme.
 **Decision:** When an attack was rolled with no aim -- no single token was targeted, so the attack dialog had no body to aim at -- the Apply Damage dialog now asks where it was aimed, on the target's own figure, and reads where it lands from that aim and the roll's zone (`wireLandingPicker`, `module/combat/attack.mjs`, over `getStruckArea`); the "Area struck" select follows the aim and stays free to overrule it. The torso is the first guess. The aim chosen and its landing are written onto the card's flag with the applied mark. A Random Location from the Situation Mods still asks for the area alone. The attack dialog's empty option now says "(no target: aim when the damage is applied)".
 **Rationale:** His report of 2026-10-08: "After a successful hit, damage is always being applied to the head, rather than where the attack was aimed at. This should be fixed by choosing the attack location to apply damage to in the 'Apply Damage' portion of the attack." With the aim blank the dialog fell back to the first area in the body list, which is the head on every humanoid chart; his table does not target a token before rolling, so every hit read as a hit on the head. His proposed fix is the one built. One dialog serves every card: the weapon, creature, brawling and martial cards all carry the same attack flag and go through `applyAttackDamage`.
 **Not done:** letting the attacker aim with no target by offering a Humanoid chart in the attack dialog -- the target's own body is the aim picker, and without a target there is no body; asking at apply time, when the target is known, is the honest place.
+
+## Foundry's own Create Actor opens the generator (2026-10-15)
+
+His note: *"When you create actor (character) now it doesn't let you make the character. It just
+makes instantly a character with no class, no skills, and all 10's for attributes."* Not a change in
+the port: Foundry's own Create Actor button has always stood beside the system's Create Character,
+and its name-and-type dialog makes an empty actor with the schema's defaults (every attribute 10).
+The two buttons look alike and nothing intercepted the native one. Probably more visible now that
+0.25.0 grants every Player the Create New Actors permission, which puts both buttons in front of
+players who never had either.
+
+**Ruling:** a blank character is the generator's to make. A `preCreateActor` hook refuses an
+Actor.create of type character that carries nothing but a name (`isBlankCharacterCreation`,
+chargen-view) and opens the generator with that name (`ImagineCharacterGenerator.openFor`). The
+generator's own creation passes an `imagineGenerated` option; a compendium import or a duplicate
+carries items; a race or class already set passes too; creatures are never touched (a creature may
+be built on its sheet, DECISIONS 2026-09-23). Only the creating user's client acts, so one dialog
+opens, not one per client.
+
+Also from the same message, awaiting his write-ups: **Armor Lore and Armor Knowledge** have no
+configuration in the port (the skills exist as skills; his `armor know/lore config` Updater options
+are in the Updater board row's "missing" list), and the character sheet has no **combat modifiers
+panel** (already a Backlog row: "Character sheet: Modifiers panel").
+
+Shipped as 0.25.1, which also publishes 0.25.0 -- twelve commits of 2026-10-07 to 10-10 that were
+never pushed.

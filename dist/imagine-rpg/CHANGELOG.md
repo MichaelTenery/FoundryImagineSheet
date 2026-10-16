@@ -18,6 +18,18 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.25.1 — 2026-10-15
+
+**Foundry's own Create Actor now opens the character generator.** His note of 10/15: creating a
+character "just makes instantly a character with no class, no skills, and all 10's for attributes".
+That was Foundry's own Create Actor button, which sits beside this system's Create Character and
+makes an empty actor from its name-and-type dialog. A blank character from that dialog is now refused
+and the generator opens with the name you typed. Creatures, imports and duplicates are untouched.
+
+Also noted from the same message, for the reports he is writing: there is no way yet to set **Armor
+Lore and Armor Knowledge** configurations (neither is in the port at all), and the character sheet
+has no **combat modifiers panel** (the creature sheet's is on the board to be mirrored).
+
 ## 0.25.0 — 2026-10-09
 
 Two windows asked for, a second bar, and three things his table found.

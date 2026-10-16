@@ -1126,5 +1126,24 @@ import {
 		return tmpChanged;
 	}
 
+	// @MARKER BLANK CHARACTER
+	// This is the function which says whether an Actor.create is Foundry's own blank "Create Actor"
+	// of a character -- the dialog's name and type and nothing else -- which the generator should
+	// take over (his note of 2026-10-15: "it just makes instantly a character with no class, no
+	// skills, and all 10's for attributes"). Anything with substance passes through: a character the
+	// generator itself made (its imagineGenerated option), a compendium import or a duplicate (items
+	// on it), a race or class already on it, a creature of any kind.
+	//
+	//   tmpdata     the data handed to Actor.create (preCreateActor's second argument)
+	//   tmpoptions  its options
+	export function isBlankCharacterCreation(tmpdata, tmpoptions) {
+		if (tmpoptions?.imagineGenerated) { return false; }
+		if ((tmpdata?.type ?? "") != "character") { return false; }
+		if (Array.isArray(tmpdata?.items) && tmpdata.items.length) { return false; }
+		var tmpsystem = tmpdata?.system ?? {};
+		if (tmpsystem.identity?.race || tmpsystem.identity?.className) { return false; }
+		return true;
+	}
+
 // @MARKER ADD NEW character generator view functions HERE
 // @END (CODE)

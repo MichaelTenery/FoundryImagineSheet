@@ -508,6 +508,21 @@ check("...and its breakless 12-13 die roll is listed as read as a choice, still 
 	 KT.WILDERNESS_KITS.setStandardWildernessEquipment["12"].length],
 	[["setStandardWildernessEquipment 12/13"], 4]);
 
+// --- Foundry's own Create Actor is turned into the generator (his note of 2026-10-15) ---------------
+check("a blank character from the Create Actor dialog is the generator's to make",
+	V.isBlankCharacterCreation({ name: "Bob", type: "character" }, {}), true);
+check("...with an empty system or items block all the same",
+	V.isBlankCharacterCreation({ name: "Bob", type: "character", system: {}, items: [] }, {}), true);
+check("the generator's own creation goes through (imagineGenerated)",
+	V.isBlankCharacterCreation({ name: "Bob", type: "character" }, { imagineGenerated: true }), false);
+check("an import or a duplicate carrying items goes through",
+	V.isBlankCharacterCreation({ name: "Bob", type: "character", items: [{ type: "race" }] }, {}), false);
+check("a character with a race or class already set goes through",
+	[V.isBlankCharacterCreation({ type: "character", system: { identity: { race: "Elf(Gray)" } } }, {}),
+	 V.isBlankCharacterCreation({ type: "character", system: { identity: { className: "Mage" } } }, {})], [false, false]);
+check("a creature is never the character generator's",
+	V.isBlankCharacterCreation({ name: "Wolf", type: "creature" }, {}), false);
+
 const passed = results.filter(r => r.startsWith("PASS")).length;
 const failed = results.length - passed;
 document.getElementById("out").innerHTML =
