@@ -6921,3 +6921,16 @@ panel** (already a Backlog row: "Character sheet: Modifiers panel").
 
 Shipped as 0.25.1, which also publishes 0.25.0 -- twelve commits of 2026-10-07 to 10-10 that were
 never pushed.
+
+## Hexland 1-3 is a separate, private module (2026-10-21)
+
+His *Part II - Hexland (Levels 1-3)* (246 pp, ©2025) is a sandbox generator, not rules: Dice GM,
+Reaction Handler, Hex / Sub-Hex / Location / Encounter / Treasure / Scenario generators and record
+forms, about 220 tables. It is to be sold as an expansion.
+
+**Ruling (user, 2026-10-21):** it ships as its own Foundry module (`imagine-hexland`) that requires
+the `imagine-rpg` system, never inside the public system repo -- the tables are the product. Source
+lives in a local folder with no remote until the sale is arranged. The tables become RollTables
+built from data files (so OCR fixes and his revisions regenerate), chained between generators;
+Encounter results link to system creature compendium entries by sourcebook tag. First phase: Dice
+GM + Reaction Handler. Extracted text is at `docs/reference/hexland-fulltext.txt` (gitignored).
