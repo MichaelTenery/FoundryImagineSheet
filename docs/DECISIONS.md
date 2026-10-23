@@ -6934,3 +6934,26 @@ lives in a local folder with no remote until the sale is arranged. The tables be
 built from data files (so OCR fixes and his revisions regenerate), chained between generators;
 Encounter results link to system creature compendium entries by sourcebook tag. First phase: Dice
 GM + Reaction Handler. Extracted text is at `docs/reference/hexland-fulltext.txt` (gitignored).
+
+### 2026-10-21 — Hexland: how the module is built (Phase 1)
+
+Architecture only; the content stays in the private module (`C:\Users\samwy\imagine-hexland`, local git).
+
+- **Compiled packs, not the system's runtime importer.** The system builds its compendia at runtime from
+  shipped JSON (2026-09-19) because its content changes mid-campaign with his sheet. A paid module's content
+  changes only with a release, and paid modules declare their packs in the manifest, so the module ships
+  LevelDB packs compiled at build time with Foundry's own `@foundryvtt/foundryvtt-cli`. Nothing to click on
+  first load. Source of truth is hand-editable `src/tables/**/*.json` + `src/journal/**/*.html`; ids are a hash
+  of each document's key, so links survive rebuilds.
+- **Tables you roll become RollTables; tables you read stay in the text.** Each rules section is one journal
+  page with every lookup chart as an HTML table, and every rollable table embedded live (`@Embed[... rollable]`)
+  where the book prints it. A row that says "roll on X" is a document result, which Foundry rolls on in turn.
+- **Roll with Modifier.** Foundry's draw re-rolls any total that misses every row (`RollTable#roll`, V13
+  build 347), which silently discards his modifiers (weather by season/climate, the Reaction Table's
+  Affinity/Intimidation). Hexland tables get a Roll with Modifier button that clamps inside the formula —
+  `min(max((1d10) + 3, 1), 10)` — his "1 being the lowest and 10 the highest regardless of modifier".
+- **Validated against Foundry's own schema at build time.** `tools/validate-packs.mjs` loads `common/` from the
+  installed Foundry and constructs every document with strict validation before compiling. The installed copy
+  is V13; RollTable/TableResult/JournalEntry have the same shape in V14, but a pass is a pass against V13.
+- **Transcribe the scan's errors away, never the author's.** OCR slips are fixed; his own contradictions and
+  typos are kept as printed and collected in the module's `docs/ODDITIES.md` for him to rule on.

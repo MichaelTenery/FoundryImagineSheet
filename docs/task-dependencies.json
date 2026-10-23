@@ -571,6 +571,35 @@
         "Character Generation module"
       ],
       "note": "Done 2026-10-15, shipped as 0.25.1."
+    },
+    "Hexland Phase 1": {
+      "dependsOn": [
+        "Every player may create characters"
+      ],
+      "note": "Private module, outside this repository. Done 2026-10-22, V13 only."
+    },
+    "Hexland Phase 2": {
+      "dependsOn": [
+        "Hexland Phase 1"
+      ]
+    },
+    "Hexland Phase 3": {
+      "dependsOn": [
+        "Hexland Phase 2",
+        "Creature compendium"
+      ]
+    },
+    "Hexland Phase 4": {
+      "dependsOn": [
+        "Hexland Phase 3"
+      ]
+    },
+    "Hexland: his rulings": {
+      "dependsOn": [
+        "Hexland Phase 1"
+      ],
+      "waitingOn": "the developer",
+      "note": "His answers to the module's oddities list."
     }
   }
 }
