@@ -18,6 +18,61 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.26.0 — 2026-10-28
+
+**His eleven Missing Feature reports of 10/27 (0.25.1:1-11), all built, plus what the first pass left
+undone.** Most of them are one thing his sheet had and the port did not: the **Character Updater**, his
+"What do you want to do?" list. It is now the **Updater** button in the character sheet header (or
+`game.imagine.updater(actor)`). Pick what to do and it opens that window, does it in place, or says
+where on the sheet it already lives. Anything not built yet stays in the list, greyed, with the reason.
+
+- **Grappling (0.25.1:1).** His GRAPPLING row as a window from a new bar under Brawling on both Combat
+  tabs: his fifteen moves (Touch, Grapple, Strangle, Claw, Bite, Escape, Ear Rip, Eye Gouge, Hold,
+  Knee/Elbow, Pin, Punch, Tackle, Throw, Slam), each with its Speed, Min, Mod and Damage. A move that
+  does damage gets an **Apply damage** button. It lands at random, or on the ear, eye or neck as his
+  text says, and the GM can move it.
+- **Armor Knowledge and Armor Lore configurations (0.25.1:2).** Shows the armour you are wearing, your
+  slots and the sets you know, and gives his ROLL and MOD. A learned set eases the armour's penalties
+  (Knowledge) or removes them (Lore). Lore cannot be used until it has been reached; Knowledge can.
+  A set learned by mistake can be removed. Shield Parry and Body Parry feel the penalty. Creatures
+  have it too.
+- **Add and Train Up Racial and Social Skills (0.25.1:3-4).** Add a skill only while there is an open
+  slot of that kind, with his message when there is not. Training follows his panel: book, library,
+  self-taught, teacher, instructor, earlier improvements and failures, and hours trained.
+- **Powers and Abilities (0.25.1:5).** Add from typed text or from the magical and divine lists, with
+  activation by title; remove. They show on the Magic & Lore tab.
+- **Temporary Modifiers (0.25.1:6).** His whole panel: effect names, attributes (mundane and magic,
+  each held to its own maximum), characteristics, resistances and immunities, movement, combat, extra
+  damage dice, equipment weight and capacity, fatigue and mental fatigue, berserking, and non-skill
+  evokes. Each section has SET and CLEAR, and every figure reaches the sheet and the rolls.
+- **GME attack skill (0.25.1:7)** is in the Updater, and only a GME can change it.
+- **The COMBAT panel (0.25.1:8)** at the top of the character's Combat tab: attack skill and Lore attack
+  skill, both attack charts drawn as his dartboards, the modifiers table by source (STR, AGL, INT,
+  Weight, Armor, Other, Total, Off Hand), the Specific Combat Modifiers list, and weapon proficiencies
+  Total / Used / Available. Character melee damage now carries the signed body-weight term.
+  Temporary Agility now reaches the off-hand figures.
+- **Soldiering weapon (0.25.1:9).** A character with Soldiering picks one weapon for +1 to hit and +1
+  damage. It does not stack: a magical or master weapon, or Weapon Lore, replaces it.
+- **GM experience tools (0.25.1:10).** For the Game Master: a character's or GME's experience value
+  (with his bonuses: poison, slaying, breath weapon, gaze and the rest), shown at the foot of the main
+  tab when ticked; and Split Experience by number of people and difficulty.
+- **GM creature tools (0.25.1:11).** All nineteen of his Randoms/Extras (dice, encounter, direction,
+  double reflection, insanity, animal, substance, element, plane, subject, skill, social skill, race,
+  class, alignment, aura colour, magic chaos, random spell), whispered to the GMs. Use the GM Tools
+  bar on a creature's Combat tab, or `game.imagine.gmRandoms()` from a macro.
+
+**Also in the Updater now:** Add Weapon Proficiency (with his to-hit penalty for weapons you are not
+proficient in. It applies only once a character has recorded a first proficiency, so nobody's sheet
+changed overnight). Also the Weapon Lore, Missile Lore, 2nd Weapon Knowledge and Lore, and Projectile
+Knowledge and Lore pickers, Changeling Switch Race, and Formless New Host, Host Retention and Free
+Psyche.
+
+**What to look at if you are testing:** open each Updater row once on a real character; drag the
+Temporary Modifiers SET/CLEAR through a few sections and watch the sheet; roll a grapple at a targeted
+token and apply its damage; a GME's attack skill change; a Changeling switching form and back. The
+questions this raised for him are in `docs/UPSTREAM-ISSUES.md` (items 123-125), which is now sorted
+with what needs his answer first.
+
 ## 0.25.1 — 2026-10-15
 
 **Foundry's own Create Actor now opens the character generator.** His note of 10/15: creating a

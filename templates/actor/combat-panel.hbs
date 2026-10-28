@@ -1,0 +1,57 @@
+{{!--
+	His COMBAT panel (the Roll20 sheet's Combat tab, top half): the attack skill bars, the two dartboard
+	attack charts, the Combat Modifiers table, the Specific Combat Modifiers list and the weapon proficiency
+	bar. A partial, so one root element. Everything shown is built by buildCombatPanelView
+	(module/combat-panel-view.mjs) from the derived character; nothing here is worked out.
+--}}
+<div class="combat-panel">
+	<div class="cp-bar">
+		<span><strong>Attack skill:</strong> {{attackSkill}}</span>
+		<span><strong>Lore attack skill:</strong> {{loreAttackSkill}}</span>
+	</div>
+
+	<div class="cp-body">
+		{{#each boards as |b|}}
+		<div class="cp-board" data-tooltip="Roll the d20, add your modifiers, and read the result against the rings">
+			<div class="cp-board-title">{{b.title}}: {{b.skill}}</div>
+			<div class="cp-dart">
+				<div class="cp-ring cp-miss-ring"><span class="cp-label">Miss</span>
+					<div class="cp-box cp-miss cp-mh">{{b.missHigh}}</div>
+					<div class="cp-box cp-miss cp-ml">{{b.missLeft}}</div>
+					<div class="cp-box cp-miss cp-mr">{{b.missRight}}</div>
+					<div class="cp-box cp-miss cp-mlow">{{b.missLow}}</div>
+				</div>
+				<div class="cp-ring cp-hit-ring"><span class="cp-label">Hit</span>
+					<div class="cp-box cp-hh">{{b.hitHigh}}</div>
+					<div class="cp-box cp-hl">{{b.hitLeft}}</div>
+					<div class="cp-box cp-hc">{{b.hitCenter}}</div>
+					<div class="cp-box cp-hr">{{b.hitRight}}</div>
+					<div class="cp-box cp-hlow">{{b.hitLow}}</div>
+				</div>
+			</div>
+			<div class="cp-foot"><span>Called <b class="cp-box">{{b.called}}</b></span> <span>Short <b class="cp-box">{{b.missShort}}</b></span></div>
+		</div>
+		{{/each}}
+
+		<div class="cp-mods">
+			<table class="cp-table">
+				<thead><tr><th>Modifier</th><th>STR</th><th>AGL</th><th>INT</th><th>Weight</th><th>Armor</th><th>Other</th><th>|</th><th>Total</th><th>Off Hand</th></tr></thead>
+				<tbody>
+				{{#each rows as |r|}}
+				<tr><th>{{r.label}}</th><td>{{r.str}}</td><td>{{r.agl}}</td><td>{{r.int}}</td><td>{{r.weight}}</td><td>{{r.armor}}</td><td>{{r.other}}</td><td>|</td><td class="cp-total">{{r.total}}</td><td>{{r.offhand}}</td></tr>
+				{{/each}}
+				</tbody>
+			</table>
+			<div class="cp-specific"><strong>Specific combat modifiers:</strong>
+				{{#if specificNone}}<span class="muted">None</span>{{else}}<ul>{{#each specific as |line|}}<li>{{line}}</li>{{/each}}</ul>{{/if}}
+			</div>
+		</div>
+	</div>
+
+	{{#if profs.held}}
+	<div class="cp-bar"><span><strong>Total weapon proficiencies:</strong> {{profs.total}}</span>
+		<span><strong>Used:</strong> {{profs.used}}</span>
+		<span><strong>Available:</strong> {{profs.available}}</span></div>
+	{{#if profs.list}}<div class="cp-bar"><span class="muted">Proficient with: {{profs.list}}</span></div>{{/if}}
+	{{/if}}
+</div>

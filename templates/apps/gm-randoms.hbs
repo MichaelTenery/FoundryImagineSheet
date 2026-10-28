@@ -1,0 +1,56 @@
+{{!--
+	The Randoms/Extras window: his creature GM tools' twenty panels, one under another. One root element,
+	as the framework requires. Everything here comes from buildRandomsView (module/random-view.mjs).
+	The panels' boxes carry data-working so a re-render keeps what was typed (module/apps/gm-randoms.mjs).
+--}}
+<div class="gm-randoms-window">
+	<div class="gm-randoms-body">
+		{{#each sections as |s|}}
+		<section class="random-panel" data-key="{{s.key}}">
+			<h3>{{s.title}}</h3>
+
+			{{#if s.isDice}}
+			<div class="random-row">
+				<label>Dice <input type="text" name="dice" value="{{../dice}}" placeholder="1d3, 4d6, 3d4+2" data-working></label>
+				<label class="check"><input type="checkbox" name="max" {{#if ../max}}checked{{/if}} data-working> Get Maximum Value</label>
+			</div>
+			{{/if}}
+			{{#if s.isChance}}
+			<div class="random-row">
+				<label>Chance?
+					<select name="chance" data-working>
+						{{#each ../chances as |c|}}<option value="{{c.value}}" {{#if c.selected}}selected{{/if}}>{{c.label}}</option>{{/each}}
+					</select></label>
+			</div>
+			{{/if}}
+			{{#if s.isAlign}}
+			<div class="random-row">
+				<label>Align?
+					<select name="align" data-working>
+						{{#each ../aligns as |a|}}<option value="{{a.value}}" {{#if a.selected}}selected{{/if}}>{{a.label}}</option>{{/each}}
+					</select></label>
+			</div>
+			{{/if}}
+			{{#if s.isLevel}}
+			<div class="random-row">
+				<label>Aura Level <input type="number" name="level" value="{{../level}}" min="1" data-working></label>
+				<span class="muted">whole number (1-20)</span>
+			</div>
+			{{/if}}
+
+			<div class="random-row">
+				<button type="button" data-action="roll" data-key="{{s.key}}">{{s.button}}</button>
+				<i>{{s.caption}}</i>
+			</div>
+			<div class="random-row answer">
+				<label>{{s.answerLabel}}</label>
+				{{#if s.wide}}
+				<textarea readonly rows="3" class="random-answer">{{s.result}}</textarea>
+				{{else}}
+				<input type="text" readonly class="random-answer" value="{{s.result}}">
+				{{/if}}
+			</div>
+		</section>
+		{{/each}}
+	</div>
+</div>

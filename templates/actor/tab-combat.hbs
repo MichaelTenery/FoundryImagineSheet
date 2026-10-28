@@ -7,6 +7,9 @@
 --}}
 <section class="tab imagine-combat{{#if tab.active}} active{{/if}}" data-tab="combat" data-group="primary">
 
+	{{!-- His COMBAT panel: charts, modifiers, specific modifiers (module/combat-panel-view.mjs). --}}
+	{{> imagine-combat-panel combatPanel}}
+
 	<div class="combat-stats">
 		<div class="char-box"><label>Attack Skill</label><span class="value small">{{system.combat.attackSkill}}</span>
 			{{!-- A GME earns no chart by title; the player picks it, as on his sheet. --}}
@@ -90,6 +93,14 @@
 		<strong>Brawling:</strong>
 		{{#if brawlingLine}}<span class="situation-line">{{brawlingLine}}</span>{{else}}<span class="muted">nothing chosen</span>{{/if}}
 		<button type="button" data-action="openBrawling"><i class="fa-solid fa-hand-fist"></i> Brawl</button>
+	</div>
+
+	{{!-- His GRAPPLING row: fifteen moves, ROLL and MOD. The window holds the dropdown and the roll
+	      (module/apps/grappling.mjs); the bar says what is chosen. --}}
+	<div class="situation-bar grappling-bar">
+		<strong>Grappling:</strong>
+		{{#if grapplingLine}}<span class="situation-line">{{grapplingLine}}</span>{{else}}<span class="muted">nothing chosen</span>{{/if}}
+		<button type="button" data-action="openGrappling"><i class="fa-solid fa-hands-holding"></i> Grapple</button>
 	</div>
 
 	{{!-- Everything here comes off a blow BEFORE any worn armour blocks it, in his order. Each is
@@ -269,6 +280,9 @@
 	</h3>
 	{{!-- @MARKER BODY FIGURE -- the clickable body, a partial shared with the other Combat tab. --}}
 	{{> imagine-body-figure}}
+	{{!-- His armor_know_check / armor_lore_check boxes, read-only: whether the armour worn is a configuration
+	      learned with Armor Knowledge or Armor Lore, and what that eases (module/armor-know-rules.mjs). --}}
+	<p class="armor-skills-line">{{#if system.combat.armorSkillsLine}}<i class="fa-solid fa-shield-halved"></i> {{system.combat.armorSkillsLine}}{{else}}<span class="muted">Armor Knowledge / Lore: the armour worn is not a learned configuration.</span>{{/if}}</p>
 	<table class="body-table">
 		<thead>
 			<tr>

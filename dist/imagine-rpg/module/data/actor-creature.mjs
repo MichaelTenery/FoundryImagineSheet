@@ -35,6 +35,7 @@ import {
 } from "../combat/combat-rules.mjs";
 import { MARTIAL_DISCIPLINE_NAMES, deriveMartialArts } from "../combat/martial-arts.mjs";
 import { getCreatureHideMax, getCreatureJumps } from "../creature-sheet-rules.mjs";
+import { getEquippedArmorSet, isConfigLearned, applyArmorSkills, describeArmorSkillsLine } from "../armor-know-rules.mjs";
 
 const fields = foundry.data.fields;
 
@@ -308,6 +309,19 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				// the same BRAWLER row (ImagineTabbedCharacterSheet.html:65746). See the character model.
 				brawlingWeapon: new fields.StringField({ required: true, blank: true, initial: "" }),
 
+				// @MARKER GRAPPLING
+				// His all_grapple_moves on the creature page too. See the character model.
+				grapplingMove: new fields.StringField({ required: true, blank: true, initial: "" }),
+
+				// @MARKER ARMOR KNOWLEDGE AND LORE
+				// The armour configurations learned, his armor_know_list / armor_lore_list on the creature page too
+				// (HTML 87798, 87828), in the character's shape ("A|B,C|D"), and his two "Automatic" ticks, which
+				// make the learning roll a success "for creatures only". See module/armor-know-rules.mjs.
+				armorKnowList:      new fields.StringField({ required: true, blank: true, initial: "" }),
+				armorLoreList:      new fields.StringField({ required: true, blank: true, initial: "" }),
+				automaticArmorKnow: new fields.BooleanField({ required: true, initial: false }),
+				automaticArmorLore: new fields.BooleanField({ required: true, initial: false }),
+
 				// @MARKER SITUATION MODS
 				// The same Situation Mods a character has -- his creature combat page carries the
 				// same bar and the same two panels (change_situation_mods2). See the character model.
@@ -378,6 +392,9 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 		this._prepareResistances();
 		this._prepareEncumbrance();
 		this._prepareCombat();
+		// A learned armour configuration eases the armour's penalties, as for a character; after the
+		// standing figures it corrects, and before anything that reads them.
+		this._prepareArmorSkills();
 		// Martial arts after the standing combat figures it adds to, and before the Situation Mods,
 		// which read the blind fighting it sets -- the character's order.
 		this._prepareMartialArts();
@@ -730,6 +747,39 @@ export default class ImagineCreatureData extends foundry.abstract.TypeDataModel 
 				if (tmpresistadd) { tmpresist.value = tmpresist.value + tmpresistadd; }
 			}
 		}
+	}
+
+	// @MARKER ARMOR KNOWLEDGE AND LORE
+	// This is the function which eases the creature's armour penalties when the set it wears is one it has
+	// learned -- his setArmorKnowModifiers / setArmorLoreModifiers (sheet-worker.js:118539, 118608), which his
+	// creature page runs too. The levels of Knowledge come from the stat block's Armor Knowledge chance:
+	// his setter reads temp_class_skill_chance, which a creature never has (checkForClassSkill is the class
+	// list's), so in his code every creature eased ONE level whatever its chance. Here the creature's own
+	// listed chance is used, as the roll that learned the set uses it -- recorded in DECISIONS.
+	_prepareArmorSkills() {
+		var tmpworn = this._getWornArmor();
+		var tmpraw = { skills: 0, defense: 0, initiative: 0, speed: 0 };
+		for (const tmpitem of tmpworn) {
+			var tmppen = tmpitem.system.penalties ?? {};
+			tmpraw.skills     += parseInt(tmppen.skills) || 0;
+			tmpraw.defense    += parseInt(tmppen.defense) || 0;
+			tmpraw.initiative += parseInt(tmppen.initiative) || 0;
+			tmpraw.speed      += parseInt(tmppen.speed) || 0;
+		}
+		var tmpset = getEquippedArmorSet(tmpworn);
+		var tmpknowon = isConfigLearned(tmpset, this.combat.armorKnowList);
+		var tmploreon = isConfigLearned(tmpset, this.combat.armorLoreList);
+		this.combat.armorKnowOn = tmpknowon;
+		this.combat.armorLoreOn = tmploreon;
+		this.combat.armorSkillsLine = "";
+		if (!tmpknowon && !tmploreon) { return; }
+		var tmpeased = applyArmorSkills(tmpraw, { know: tmpknowon,
+			knowChance: this._getCreatureSkillChance("Armor Knowledge"), lore: tmploreon });
+		this.combat.initiativeMod   += tmpeased.initiative - tmpraw.initiative;
+		this.combat.defensiveAdjust += tmpeased.defense - tmpraw.defense;
+		this.combat.weaponSpeedMod  += tmpeased.speed - tmpraw.speed;
+		this.combat.armorSkillPenalty = tmpeased.skills;
+		this.combat.armorSkillsLine = describeArmorSkillsLine(tmpknowon, tmploreon, tmpeased.levels);
 	}
 
 	// This is the function which reads one skill's chance off the creature's stat block, 0 if it has

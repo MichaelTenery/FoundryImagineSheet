@@ -1,0 +1,262 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG combat panel and soldiering test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:760px}</style>
+<pre id="out">running...</pre>
+<h3>The Combat panel, a Soldiering Intermediate fighter with a Lore chart</h3>
+<div id="panel" class="render imagine"></div>
+<h3>The panel with nothing earned</h3>
+<div id="panel2" class="render imagine"></div>
+<h3>The Select Soldiering Weapon window</h3>
+<div id="window" class="render imagine soldiering"></div>
+<script type="module">
+// Tests for his COMBAT panel (module/combat-panel-view.mjs, templates/actor/combat-panel.hbs) and for the
+// Soldiering skill (module/soldiering-rules.mjs, templates/apps/soldiering.hbs): bug reports 0.25.1:8 and
+// 0.25.1:9 of 2026-10-27.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/combat-panel-test.html
+globalThis.foundry = {
+	abstract: { TypeDataModel: class { constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
+const V = await import("../module/combat-panel-view.mjs");
+const S = await import("../module/soldiering-rules.mjs");
+const R = await import("../module/combat/combat-rules.mjs");
+const W = await import("../module/weapon-custom-rules.mjs");
+const RC = await import("../module/combat/racial-combat-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// A real derived character, as derive-test builds one. items are stand-ins for the owning actor's items.
+function makeCharacter(ratings, items = [], combat = {}, tempMods = {}, physical = {}, race = null) {
+	const attributes = {};
+	for (const k of ["str","agl","vit","int","wis","knw","app","chm","soc","aur","pty","wil"]) {
+		attributes[k] = { rating: ratings[k] ?? 10, permMod: 0, tempMod: tempMods[k] ?? 0 };
+	}
+	const characteristic = () => ({ titleBonus: 0, raceMod: 0, permMod: 0, tempMod: 0 });
+	const resistance = () => ({ misc: 0, immune: false });
+	const c = new ImagineCharacterData({
+		identity: { title: 5 },
+		attributes,
+		characteristics: { endurance: characteristic(), perception: characteristic(), affinity: characteristic(), fortune: characteristic() },
+		resistances: { magic: resistance(), illusion: resistance(), control: resistance(), poison: resistance(), disease: resistance() },
+		body: { bodyType: "Humanoid", areas: [], armorDamage: {} },
+		combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
+		          weaponLoreList: "", missileLoreList: "", projectileLoreList: "", secondWeaponKnowList: "", secondWeaponLoreList: "",
+		          situation: { kind: "", selected: [], weaponId: "" }, soldieringWeapon: "", ...combat },
+		physical: { weight: 0, handedness: "", famorian: {}, ...physical },
+		languages: [],
+		skillSlotMoves: { racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0, racialSacrificed: 0, socialSacrificed: 0 },
+		movement: { walk: { hourly: 0, tenSec: 0, oneSec: 0 }, jog: { hourly: 0, tenSec: 0, oneSec: 0 },
+			run: { hourly: 0, tenSec: 0, oneSec: 0 }, special: { hourly: 0, tenSec: 0, oneSec: 0 },
+			specialName: "", travelHours: 0, restHours: 0, jumpStand: 0, jumpUp: 0 }
+	});
+	c.parent = { items: race ? [...items, race] : items };
+	c.prepareBaseData();
+	c.prepareDerivedData();
+	return c;
+}
+const skill = (name, chance = 50) => ({ type: "skill", name, system: { totalChance: chance } });
+
+// --- Soldiering: who holds it ------------------------------------------------------------------------
+const soldier = makeCharacter({ str: 19, agl: 17 }, [skill("Soldiering")], { soldieringWeapon: "Spear" });
+const civilian = makeCharacter({ str: 19, agl: 17 }, [skill("Brewing")], { soldieringWeapon: "Spear" });
+check("a character with the skill holds it; one without does not", [soldier.combat.hasSoldiering, civilian.combat.hasSoldiering], [true, false]);
+
+// --- Soldiering: the bonus, his rules (handlePhysicalAttacks 64398-64407) and the report's ------------
+const base = { held: true, soldieringWeapon: "Spear", weaponName: "Spear", magicBonus: 0, listingTags: [], lored: false };
+const mods = (over) => { const m = S.getSoldieringModifiers({ ...base, ...over }); return [m.toHit, m.damage, m.reason]; };
+check("the named weapon is +1 to hit and +1 damage", mods({}), [1, 1, ""]);
+check("another weapon in hand gets nothing", mods({ weaponName: "Long Sword" }), [0, 0, "another weapon"]);
+check("a customised name is read by its simplified name, as his lists are", mods({ weaponName: "[Good]{Spear}" }), [1, 1, ""]);
+check("no weapon named, nothing", mods({ soldieringWeapon: "" }), [0, 0, "no weapon chosen"]);
+check("without the skill, nothing even if a weapon is named", mods({ held: false }), [0, 0, "not held"]);
+check("a magical weapon overrides it, not stacks", mods({ magicBonus: 1 }), [0, 0, "magical weapon"]);
+check("a Master weapon overrides it, not stacks", mods({ listingTags: ["Master"] }), [0, 0, "master weapon"]);
+check("Weapon Lore on the blow overrides it (his modWL branch, 64760)", mods({ lored: true }), [0, 0, "weapon lore"]);
+check("a Good-quality weapon is not Master, so the bonus stands", mods({ listingTags: ["Good"] }), [1, 1, ""]);
+check("a Master weapon really carries the tag the rule reads",
+	W.getWeaponListingTags({ quality: "Master", custom: {} }).includes("Master"), true);
+check("a magical plus of 0 is not magical", mods({ magicBonus: "0" }), [1, 1, ""]);
+
+// --- the Specific Combat Modifiers line, his words (82487-82490) --------------------------------------
+check("the line names the weapon", S.describeSoldiering("Spear"), "Soldiering[Spear](To Hit/Damage):+1");
+check("...or says to choose one, as his does", S.describeSoldiering(""), "Soldiering[select weapon in updater](To Hit/Damage):+1");
+
+// --- choosing: his roll's refusals and replacement message ---------------------------------------------
+check("no weapon: nothing done", S.checkSoldieringChoice(true, "", "", "Brom"),
+	{ ok: false, replaced: false, message: "Brom selected no weapon for Soldiering bonuses. Nothing done." });
+check("no Soldiering: nothing done", S.checkSoldieringChoice(false, "", "Spear", "Brom"),
+	{ ok: false, replaced: false, message: "Brom does not have Soldiering as a Social Skill. Nothing done." });
+check("first choice", S.checkSoldieringChoice(true, "", "Spear", "Brom"),
+	{ ok: true, replaced: false, message: "Brom selected Spear as the weapon for Soldiering bonuses." });
+check("a replacement says what it replaces", S.checkSoldieringChoice(true, "Spear", "Dagger", "Brom").message,
+	"Brom is replacing Spear with Dagger as the weapon for Soldiering bonuses.");
+
+// --- the window's view -----------------------------------------------------------------------------------
+const sv = S.buildSoldieringView(true, "Spear", ["Spear", "[Poor]{Dagger}", "Spear"], ["Spear", "Cutlass", "Dagger", "Falchion"]);
+check("the dropdown: carried weapons first, then the rest, each name once and sorted",
+	sv.groups.map(g => [g.label, g.options.map(o => o.name)]),
+	[["Carried", ["Dagger", "Spear"]], ["All weapons", ["Cutlass", "Falchion"]]]);
+check("the chosen weapon is the selected one", sv.groups[0].options.filter(o => o.selected).map(o => o.name), ["Spear"]);
+
+// --- the attack chart boards, his table (attackSkillValuesDetails) ---------------------------------------
+const inter = V.buildAttackBoard("Intermediate");
+check("Intermediate: the rings of his screenshot (6-7 / 13 / 3-5 12 15+ 14 8-10 / 11 / 1-2, called 18)",
+	[inter.missHigh, inter.hitHigh, inter.missLeft, inter.hitLeft, inter.hitCenter, inter.hitRight, inter.missRight, inter.hitLow, inter.missLow, inter.called],
+	["6-7", "13", "3-5", "12", "15+", "14", "8-10", "11", "1-2", "18"]);
+check("Intermediate has no Short box (a Beginner's alone)", inter.missShort, "-");
+check("a Beginner has one: 1-2", V.buildAttackBoard("Beginner").missShort, "1-2");
+check("no chart yet is all dashes, as the Lore board reads before Lore", Object.values(V.buildAttackBoard("")).filter(v => v == "-").length, 11);
+check("...and its skill reads None", V.buildAttackBoard("").skill, "None");
+
+// --- the modifiers table against the real derivation -----------------------------------------------------
+const view = V.buildCombatPanelView(soldier);
+const row = (name) => view.rows.find(r => r.label == name);
+const attrs = soldier.attributes;
+check("Damage: STR column is his table for STR 19, total with Other", [row("Damage").str, row("Damage").total, row("Damage").weight],
+	[`${attrs.str.mods.meleeDamage}`, `${soldier.combat.meleeDamage + soldier.combat.damageMisc}`, "-"]);
+// --- the body-weight term (his getWeightDamageAdj; Player's Guide p.179) ----------------------------------------
+const midfolk = makeCharacter({ str: 19, agl: 17 }, [], {}, {}, { weight: 60 });
+const ogre = makeCharacter({ str: 19, agl: 17 }, [], {}, {}, { weight: 400 });
+check("a 60 lb character's damage carries -2 for weight, signed (a character keeps the negative)", midfolk.combat.weightDamage, -2);
+check("a heavy one hits harder", ogre.combat.weightDamage > 0, true);
+const mrow = V.buildCombatPanelView(midfolk).rows.find(r => r.label == "Damage");
+check("the Weight column shows it and the Damage total includes it", [mrow.weight, mrow.total],
+	["-2", `${midfolk.combat.meleeDamage - 2}`]);
+check("weightless (0 lb, not entered) is no term and a '-', as his", [soldier.combat.weightDamage, row("Damage").weight], [0, "-"]);
+check("Defensive total is the character's own defence (what attackers' rolls take)", row("Defensive").total, `${soldier.combat.defensiveAdjust}`);
+// His initiative takes the BETTER of Agility's and Intelligence's adjustment, not both (getInitiativeModifier),
+// so his two columns show both figures and the total follows the lower.
+const iniRow = row("Initiative");
+check("Initiative total is the initiative the roll uses: the better of AGL and INT, then armour and Other",
+	[iniRow.total, Math.min(parseInt(iniRow.agl), parseInt(iniRow.int)) + parseInt(iniRow.armor) + parseInt(iniRow.other)],
+	[`${soldier.combat.initiativeMod}`, soldier.combat.initiativeMod]);
+check("Weapon Speed total is the speed modifier every swing adds; its parts add up to it",
+	[row("Weapon Speed").total, ["str", "agl", "armor", "other"].reduce((n, k) => n + (parseInt(row("Weapon Speed")[k]) || 0), 0)],
+	[`${soldier.combat.weaponSpeedMod}`, soldier.combat.weaponSpeedMod]);
+check("Melee and Missile totals are what an attack adds (attribute plus the misc field)",
+	[row("Melee").total, row("Missile").total],
+	[`${soldier.combat.meleeAttack + soldier.combat.meleeMisc}`, `${soldier.combat.missileAttack + soldier.combat.missileMisc}`]);
+check("the off-hand column: AGL 17 is -1 melee, -2 damage, -10% skills, and Missile reads as Melee does",
+	[row("Melee").offhand, row("Missile").offhand, row("Damage").offhand, row("Skills").offhand], ["-1", "-1", "-2", "-10%"]);
+check("an Ambidextrous character has none", V.buildCombatPanelView({ ...soldier, physical: { handedness: "Ambidextrous" } }).rows.find(r => r.label == "Melee").offhand, "0");
+
+// A temporary modifier written to the fields the derivation reads shows in the panel, with no other change.
+const hasted = makeCharacter({ str: 19, agl: 17 }, [skill("Soldiering")], { soldieringWeapon: "Spear", meleeMisc: 2, skillMisc: -5 });
+const hv = V.buildCombatPanelView(hasted);
+check("a temporary +2 melee and -5% skills land in the Other column and the Total",
+	[hv.rows.find(r => r.label == "Melee").other, hv.rows.find(r => r.label == "Melee").total, hv.rows.find(r => r.label == "Skills").total],
+	["2", `${hasted.combat.meleeAttack + 2}`, "-5%"]);
+const strong = makeCharacter({ str: 19, agl: 17 }, [skill("Soldiering")], { soldieringWeapon: "Spear" }, { str: 1 });
+check("a temporary +1 to STR (the attribute's own tempMod) moves the STR column and the total",
+	V.buildCombatPanelView(strong).rows.find(r => r.label == "Melee").str != view.rows.find(r => r.label == "Melee").str
+	|| strong.attributes.str.value == soldier.attributes.str.value, true);
+
+// --- the Specific list ---------------------------------------------------------------------------------------
+check("the Soldiering line is listed for a Soldiering character", view.specific, ["Soldiering[Spear](To Hit/Damage):+1"]);
+check("nothing listed reads None", V.buildCombatPanelView(civilian).specificNone, true);
+check("Weapon Lore lines carry his figures, general and specific",
+	V.buildSpecificModifiers({ hasWeaponLore: true, weaponLoreNames: ["Sabre"] }),
+	["Weapon Lore[All Melee Weapons](Melee):+2 (Damage):+4 (Weapon Speed):-1 (Skills):+10%",
+	 "Weapon Lore[Sabre](Melee):+3 (Damage):+6 (Weapon Speed):-2 (Skills):+20%"]);
+check("his order and words for the rest: 2nd Weapon Lore seconds, Projectile Lore, the multi-missile combinations",
+	V.buildSpecificModifiers({ hasSecondWeaponLore: true, secondWeaponLoreNames: ["Dagger"], secondWeaponLoreChance: 45,
+		hasProjectileLore: true, projectileLoreNames: ["Arrow"], multiMissileKnowList: "Long Bow/Arrow", multiMissileKnowChance: 50 },
+		{ physical: { handedness: "Right" } }),
+	["2nd Weapon Lore[Dagger](Offhand Seconds): +2 (Offhand Melee):0 (Offhand Missile):0 (Offhand Damage):0 (Offhand Skills):0%",
+	 "Projectile Lore[All Projectiles](Damage):+1 per die", "Projectile Lore[Arrow](Damage):+2 per die",
+	 "Multiple Missile Knowledge[Long Bow/Arrow](Missile):+2 (Damage):+4"]);
+check("2nd Weapon Know: the off hand's penalties at the Knowledge tier (AGL 17, 40% = two levels back)",
+	V.buildSpecificModifiers({ hasSecondWeaponKnowledge: true, secondWeaponKnowNames: ["Dagger"], secondWeaponKnowChance: 40 },
+		{ physical: { handedness: "Right" }, attributes: { agl: { value: 17 } } }),
+	["2nd Weapon Know[Dagger](Offhand Melee):0 (Offhand Missile):0 (Offhand Damage):0 (Offhand Skills):0%"]);
+
+// --- the race's eyes, tendrils and metabolism (his setCombatModifierValues 82205-82262) --------------------------
+check("Compound Eyes overrides any other sight", RC.getRacialCombatMods(["Farsight"], ["Compound Eyes"]).missile, -4);
+check("Farsight before Exceptional Sight", RC.getRacialCombatMods(["Exceptional Sight", "Farsight"], []).lines, ["Farsight(Missile):+2"]);
+check("lost tendrils: deaf, four figures", (m => [m.melee, m.missile, m.damage, m.defense])(RC.getRacialCombatMods([], ["Both sense tendrils lost"])), [-1, -1, -1, 1]);
+check("the four metabolisms, his figures", ["Metabolism,Very Slow", "Metabolism,Slow", "Metabolism,High", "Metabolism,Very High"]
+	.map(a => RC.getRacialCombatMods([a], []).initiative), [2, 1, -1, -3]);
+check("a Famorian's metabolism evoke counts as the ability", RC.getRacialCombatMods([], [], ["metabolism_very_high"]).initiative, -3);
+// A real race with Farsight (Kenku), given a high metabolism as well -- no race in the data has one outright; a
+// Famorian takes it as an evoke, and his tests read the ability text either way.
+const kenkuDoc = (await (await fetch("../src/packs/documents/races.json", { cache: "no-store" })).json()).find(r => r.name == "Kenku");
+const hawk = { type: "race", name: "Kenku", system: { ...kenkuDoc.system,
+	abilities: [...kenkuDoc.system.abilities.filter(a => !/Metabolism/.test(a)), "Metabolism,High"] } };
+const hawkChar = makeCharacter({ str: 19, agl: 17 }, [], {}, {}, {}, hawk);
+const hv2 = V.buildCombatPanelView(hawkChar);
+// Measured against the same race with the two abilities taken away, since the race's own attribute modifiers move
+// AGL and INT as well.
+const plainKenku = makeCharacter({ str: 19, agl: 17 }, [], {}, {}, {}, { type: "race", name: "Kenku",
+	system: { ...kenkuDoc.system, abilities: kenkuDoc.system.abilities.filter(a => !/Farsight|Metabolism/.test(a)) } });
+check("a race's Farsight reaches the missile figure and shows under Other",
+	[hawkChar.combat.missileAttack - plainKenku.combat.missileAttack, hv2.rows.find(r => r.label == "Missile").other], [2, "2"]);
+check("...its metabolism the initiative, under Other",
+	[hawkChar.combat.initiativeMod - plainKenku.combat.initiativeMod, hv2.rows.find(r => r.label == "Initiative").other], [-1, "-1"]);
+check("...and both are listed in his words", hv2.specific, ["Farsight(Missile):+2", "High Metabolism(Initiative):-1"]);
+
+// --- fatigue goes under Other, not STR ------------------------------------------------------------------------------
+const tired = makeCharacter({ str: 19, agl: 17 }, [], {}, {});
+tired.combat.fatigue = { melee: -2, missile: -2, damage: -3, weaponSpeed: 2, skills: -20 };
+tired.combat.meleeAttack = soldier.combat.meleeAttack - 2;
+const trow = V.buildCombatPanelView(tired).rows.find(r => r.label == "Melee");
+check("fatigue's -2 melee is Other; STR stays the attribute's own", [trow.str, trow.other, trow.total],
+	[`${attrs.str.mods.meleeAttack}`, "-2", `${soldier.combat.meleeAttack - 2}`]);
+
+// --- the off hand reads the current Agility ---------------------------------------------------------------------------
+const nimble = makeCharacter({ str: 19, agl: 17 }, [], {}, { agl: 3 });
+check("a temporary +3 AGL (17 to 20) clears the off-hand penalties, which read the current AGL (his values.agility, 82176)",
+	[nimble.attributes.agl.value, V.buildCombatPanelView(nimble).rows.find(r => r.label == "Melee").offhand], [20, "0"]);
+
+// --- proficiencies ---------------------------------------------------------------------------------------------
+check("a tenth of Weapon Knowledge's chance, whole (his setWeaponProfTotals)",
+	[V.buildCombatPanelView(soldier, 37).profs.total, V.buildCombatPanelView(soldier, 100).profs.total], [3, 10]);
+check("no Weapon Knowledge, no bar", V.buildCombatPanelView(soldier, null).profs.held, false);
+
+// --- the templates, rendered against the same views --------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+const panelSource = await (await fetch("../templates/actor/combat-panel.hbs", { cache: "no-store" })).text();
+const loredView = V.buildCombatPanelView({ ...soldier, combat: { ...soldier.combat, attackSkill: "Intermediate", loreAttackSkill: "Advanced", hasWeaponLore: true, weaponLoreNames: ["Spear"] } }, 40);
+document.getElementById("panel").innerHTML = Handlebars.compile(panelSource)(loredView);
+const panelText = document.getElementById("panel").textContent;
+check("the panel renders: both bars, both boards, the table's headings, the Specific list, the proficiencies",
+	["Attack skill:", "Lore attack skill: Advanced", "Attack chart: Intermediate", "Lore attack chart: Advanced", "15+", "13+",
+	 "Off Hand", "Weight", "Soldiering[Spear](To Hit/Damage):+1", "Total weapon proficiencies: 4"].map(t => panelText.includes(t)),
+	[true, true, true, true, true, true, true, true, true, true]);
+// The headless runner has no element tree, so the markup is counted as a string.
+const panelHtml = document.getElementById("panel").innerHTML;
+check("...a dartboard per chart, seven rows of the table", [panelHtml.split("cp-dart\"").length - 1, panelHtml.split("<tr>").length - 1 - 1], [2, 7]);
+document.getElementById("panel2").innerHTML = Handlebars.compile(panelSource)(V.buildCombatPanelView(makeCharacter({}, [])));
+const noneText = document.getElementById("panel2").textContent;
+check("an unclassed character: attack skill None, the Specific list None, no proficiency bar",
+	[noneText.includes("Attack skill: None"), noneText.includes("None"), noneText.includes("proficiencies")], [true, true, false]);
+
+const windowSource = await (await fetch("../templates/apps/soldiering.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(windowSource)({ actor: { name: "Brom" }, ...sv });
+const windowText = document.getElementById("window").textContent;
+check("the window: the explanation, the dropdown, the line, Select/Clear/Done",
+	["+1 to hit and +1 damage", "Soldiering weapon", "Soldiering[Spear](To Hit/Damage):+1", "Select", "Clear", "Done"].map(t => windowText.includes(t)),
+	[true, true, true, true, true, true]);
+check("...Select is live for a Soldier", (h => h.includes("data-action=\"select\"") && !h.includes("data-action=\"select\" disabled"))(document.getElementById("window").innerHTML), true);
+document.getElementById("window").innerHTML = Handlebars.compile(windowSource)({ actor: { name: "Brom" }, ...S.buildSoldieringView(false, "", [], []) });
+check("a character without Soldiering is told so and cannot select",
+	[document.getElementById("window").textContent.includes("does not have Soldiering as a Social Skill"),
+	 document.getElementById("window").innerHTML.includes("data-action=\"select\" disabled")], [true, true]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

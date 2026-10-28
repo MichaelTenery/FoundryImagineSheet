@@ -1685,6 +1685,42 @@ input.source-unknown {
 .imagine.brawling .brawl-foot button.primary { background: var(--imagine-accent); color: var(--imagine-on-accent, #fff); border-color: var(--imagine-accent); }
 .imagine-chat.brawling-card .skill-line { font-size: 11px; margin-bottom: 2px; }
 
+/* ---- Grappling: the window beside the combat tab's Grappling bar (the Brawling window's own look) -- */
+.imagine.grappling .grappling-window { display: flex; flex-direction: column; gap: 6px; }
+.imagine.grappling .grapple-head label { display: flex; align-items: center; gap: 8px; }
+.imagine.grappling .grapple-head select { flex: 1; }
+.imagine.grappling .grapple-figures {
+	display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px;
+	padding: 4px 8px; border: 1px solid var(--imagine-line); border-radius: 3px;
+}
+.imagine.grappling .grapple-figures label { font-weight: 600; margin-right: 2px; }
+.imagine.grappling .hint { margin: 0 2px; font-size: 11px; color: var(--imagine-muted); }
+.imagine.grappling .hint.alarm { color: var(--imagine-alarm); }
+.imagine.grappling .grapple-body { display: flex; flex-direction: column; gap: 4px; }
+.imagine.grappling .form-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+.imagine.grappling .form-group > label { flex: 0 0 150px; font-weight: 600; }
+.imagine.grappling .form-group > input[type="number"] { width: 5em; flex: none; }
+.imagine.grappling .form-group > .hint { flex-basis: 100%; margin: 0 0 0 158px; }
+.imagine.grappling .empty { color: var(--imagine-muted); padding: 10px; }
+.imagine.grappling .grapple-foot { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.imagine.grappling .grapple-foot button { width: auto; }
+.imagine.grappling .grapple-foot button.primary { background: var(--imagine-accent); color: var(--imagine-on-accent, #fff); border-color: var(--imagine-accent); }
+.imagine-chat.grappling-card .grapple-line { font-size: 12px; margin: 2px 0; }
+
+/* ---- GM Tools: Randoms/Extras (module/apps/gm-randoms.mjs) ----------------------------------- */
+.imagine.gm-randoms .gm-randoms-window { display: flex; flex-direction: column; }
+.imagine.gm-randoms .random-panel { padding: 6px 4px; border-bottom: 2px solid var(--imagine-line); font-size: 12px; }
+.imagine.gm-randoms .random-panel h3 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; }
+.imagine.gm-randoms .random-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+.imagine.gm-randoms .random-row > label { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.imagine.gm-randoms .random-row > label.check { font-weight: 400; }
+.imagine.gm-randoms .random-row button { width: auto; }
+.imagine.gm-randoms .random-row.answer > label { flex: 0 0 auto; }
+.imagine.gm-randoms .random-answer { flex: 1 1 200px; background: var(--imagine-field-bg, rgba(0,0,0,.05)); }
+.imagine.gm-randoms textarea.random-answer { flex-basis: 100%; resize: vertical; }
+.imagine-chat.gm-randoms-card h3 { margin: 0 0 2px; font-size: 12px; }
+.imagine-chat.gm-randoms-card p { margin: 0; }
+
 
 /* @MARKER MAGIC AND LORE TAB ---------------------------------------------------------------------
    His Magic/Lore tab: consumables, lores, spells, invocations (templates/actor/tab-magic.hbs).
@@ -1985,3 +2021,85 @@ input.source-unknown {
 .imagine.sheet .modifier-table input[type="number"] { width: 4.5em; text-align: center; }
 .imagine.sheet .creature-note { display: block; margin: 4px 0; font-size: 11px; color: var(--imagine-muted); }
 .imagine.sheet .creature-note input, .imagine.sheet .creature-note textarea { display: block; width: 100%; box-sizing: border-box; }
+
+/* The Character Updater: his "What do you want to do?" dropdown. */
+.imagine.updater .updater-window { display: flex; flex-direction: column; gap: 8px; }
+.imagine.updater .updater-pick { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.imagine.updater .updater-panel { border-top: 2px solid currentColor; padding-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.imagine.updater .updater-panel h3 { margin: 0; }
+.imagine.updater .updater-closed { font-style: italic; }
+.imagine.updater .updater-foot { display: flex; justify-content: flex-end; }
+
+/* @MARKER ARMOR KNOWLEDGE WINDOW */
+.imagine.armor-know .armor-know-window { display: flex; flex-direction: column; gap: 6px; }
+.imagine.armor-know .armor-know-head label { display: flex; align-items: center; gap: 8px; }
+.imagine.armor-know .armor-know-head select { flex: 1; }
+.imagine.armor-know .armor-know-roll button { min-width: 64px; margin: 2px 6px 2px 0; }
+.imagine.armor-know .armor-know-refusal { font-style: italic; }
+
+/* @MARKER COMBAT PANEL -- his COMBAT panel on the Combat tab: two dartboards, the modifiers table, the specific list. */
+.imagine .combat-panel { border: 2px solid var(--imagine-border, #444); margin-bottom: 8px; }
+.imagine .combat-panel .cp-bar { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 6px; padding: 3px 6px; font-weight: bold; background: rgba(160,120,60,.35); }
+.imagine .combat-panel .cp-body { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px; align-items: flex-start; justify-content: center; }
+.imagine .combat-panel .cp-board { flex: 0 0 210px; }
+.imagine .combat-panel .cp-board-title { text-align: center; font-weight: bold; font-size: 85%; }
+.imagine .combat-panel .cp-dart { position: relative; width: 200px; height: 200px; border-radius: 50%; border: 2px solid #333; background: rgba(255,240,200,.8); margin: 0 auto; }
+.imagine .combat-panel .cp-ring { position: absolute; inset: 0; }
+.imagine .combat-panel .cp-hit-ring { inset: 38px; border-radius: 50%; border: 2px solid #333; background: rgba(250,225,180,.9); }
+.imagine .combat-panel .cp-label { position: absolute; font-size: 70%; font-weight: bold; }
+.imagine .combat-panel .cp-miss-ring > .cp-label { top: 30px; left: 22px; }
+.imagine .combat-panel .cp-hit-ring > .cp-label { top: 28px; left: 8px; }
+.imagine .combat-panel .cp-box { position: absolute; min-width: 32px; padding: 0 2px; text-align: center; border: 2px solid #000; background: #fff; color: #000; font-weight: bold; font-size: 80%; line-height: 18px; }
+.imagine .combat-panel .cp-mh { top: 4px; left: 84px; } .imagine .combat-panel .cp-mlow { bottom: 4px; left: 84px; }
+.imagine .combat-panel .cp-ml { top: 91px; left: 2px; } .imagine .combat-panel .cp-mr { top: 91px; right: 2px; }
+.imagine .combat-panel .cp-hit-ring .cp-hh { top: 4px; left: 42px; } .imagine .combat-panel .cp-hit-ring .cp-hlow { bottom: 4px; left: 42px; }
+.imagine .combat-panel .cp-hit-ring .cp-hl { top: 53px; left: 2px; } .imagine .combat-panel .cp-hit-ring .cp-hr { top: 53px; right: 2px; }
+.imagine .combat-panel .cp-hit-ring .cp-hc { top: 53px; left: 42px; background: #d9b27c; }
+.imagine .combat-panel .cp-foot { display: flex; justify-content: space-between; font-size: 80%; padding: 2px 6px; }
+.imagine .combat-panel .cp-foot .cp-box { position: static; display: inline-block; }
+.imagine .combat-panel .cp-mods { flex: 1 1 320px; min-width: 300px; }
+.imagine .combat-panel .cp-table { width: 100%; border-collapse: collapse; font-size: 85%; text-align: center; }
+.imagine .combat-panel .cp-table th { text-align: left; font-weight: bold; }
+.imagine .combat-panel .cp-table thead th { text-align: center; border-bottom: 2px solid #333; }
+.imagine .combat-panel .cp-table .cp-total { font-weight: bold; }
+.imagine .combat-panel .cp-specific { margin-top: 6px; font-size: 80%; border: 1px solid #888; padding: 2px 6px; min-height: 48px; max-height: 84px; overflow: auto; }
+.imagine .combat-panel .cp-specific ul { margin: 2px 0; padding-left: 16px; }
+
+/* @MARKER TEMPORARY MODIFIERS WINDOW (module/apps/temp-modifiers.mjs) */
+.imagine.temp-modifiers .temp-mods-window { display: flex; flex-direction: column; gap: 8px; padding: 4px; overflow-y: auto; height: 100%; }
+.imagine.temp-modifiers .tm-section { border: 1px solid #888; padding: 4px 8px 6px; margin: 0; }
+.imagine.temp-modifiers .tm-section legend { font-weight: bold; text-transform: uppercase; padding: 0 4px; }
+.imagine.temp-modifiers .tm-scroll { overflow-x: auto; }
+.imagine.temp-modifiers .tm-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; }
+.imagine.temp-modifiers .tm-table th { text-align: left; font-style: italic; font-weight: normal; white-space: nowrap; }
+.imagine.temp-modifiers .tm-table thead th { text-align: center; font-style: normal; font-weight: bold; }
+.imagine.temp-modifiers .tm-table td { padding: 1px 3px; }
+.imagine.temp-modifiers .tm-box { width: 4.5em; text-align: center; }
+.imagine.temp-modifiers .tm-line, .imagine.temp-modifiers .tm-add, .imagine.temp-modifiers .tm-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 3px 0; }
+.imagine.temp-modifiers .tm-buttons button, .imagine.temp-modifiers .tm-add button, .imagine.temp-modifiers .tm-footer button { width: auto; flex: 0 0 auto; }
+.imagine.temp-modifiers .tm-chip { display: inline-block; border: 1px solid #888; border-radius: 8px; padding: 0 6px; margin: 0 3px; }
+.imagine.temp-modifiers .tm-fatigue-table .tm-current { font-weight: bold; background: rgba(0, 0, 0, 0.12); }
+.imagine.temp-modifiers .tm-footer { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+
+/* Armor Knowledge / Lore: the learned sets with their Remove buttons, and the Combat tab's read-only line. */
+.imagine.armor-know .armor-know-sets { margin: 0 0 4px 0; padding-left: 18px; }
+.imagine.armor-know .armor-know-sets li { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.imagine.armor-know .armor-know-remove { flex: 0 0 auto; width: auto; font-size: 11px; padding: 0 6px; }
+.imagine .armor-skills-line { margin: 4px 0; font-size: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.imagine .armor-skills-line button { width: auto; flex: 0 0 auto; }
+
+/* The Weapon Choices window: weapon proficiency and the weapons named for each lore. */
+.imagine.weapon-choices .weapon-choices-window { display: flex; flex-direction: column; gap: 6px; }
+.imagine.weapon-choices .wc-totals { display: flex; gap: 16px; flex-wrap: wrap; }
+.imagine.weapon-choices .form-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.imagine.weapon-choices .wc-remove { border-top: 1px solid currentColor; padding-top: 4px; }
+
+/* The shape-change window: a Changeling's form and a Formless's host. */
+.imagine.shape-change .shape-change-window { display: flex; flex-direction: column; gap: 6px; }
+.imagine.shape-change .shape-pick { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.imagine.shape-change .shape-body { display: flex; flex-direction: column; gap: 4px; border-top: 2px solid currentColor; padding-top: 6px; }
+.imagine.shape-change .shape-body label { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.imagine.shape-change .shape-body h4 { margin: 6px 0 0; }
+.imagine.shape-change input.short { width: 4em; }
+.imagine.shape-change .shape-blocked { font-style: italic; }
+.imagine.shape-change .shape-foot { display: flex; justify-content: flex-end; }

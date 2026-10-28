@@ -128,7 +128,9 @@ export async function rollBrawlingAttack(tmpactor, tmpoptions, tmptarget) {
 		tmprolls.push(tmpd20);
 		tmpresult = resolveAttack({
 			natural: tmpd20.total, mods: tmpmods.total, skill: tmpsys.combat.attackSkill,
-			calledShot: !!tmpo.calledShot, calledShotMod: tmpo.calledShotMod, fumbleMod: tmpo.fumbleMod
+			calledShot: !!tmpo.calledShot,
+			calledShotMod: (parseInt(tmpo.calledShotMod) || 0) + (parseInt(tmpsys.combat.calledShotRangeMod) || 0),
+			fumbleMod: (parseInt(tmpo.fumbleMod) || 0) + (parseInt(tmpsys.combat.fumbleRangeMod) || 0)
 		});
 	}
 
@@ -162,7 +164,7 @@ export async function rollBrawlingAttack(tmpactor, tmpoptions, tmptarget) {
 		// modifier beside them, as every other attack reads it.
 		var tmpstr = getWeaponMartialStrength(tmpsys.combat.meleeDamage, "smash", tmpmartial.damage.strength, false);
 		var tmpweight = getWeightDamageAdjust(tmpsys.physical?.weight, tmpactor.type == "creature");
-		var tmpmisc = parseInt(tmpsys.combat.damageMisc) || 0;
+		var tmpmisc = (parseInt(tmpsys.combat.damageMisc) || 0) + (parseInt(tmpsys.combat.fatigue?.damage) || 0);
 		var tmpmultipliers = [];
 		if (tmpsitmods.multi != 1) { tmpmultipliers.push(tmpsitmods.multi); }
 		if (tmpmartial.damage.multiplier != 1) { tmpmultipliers.push(tmpmartial.damage.multiplier); }

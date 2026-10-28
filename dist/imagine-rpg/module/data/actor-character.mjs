@@ -20,9 +20,12 @@ import {
 	getInitiativeModifier, getAreaArmor, getAreaShield, getNextAttackSkill, hasLore, parseLoreList,
 	getMovementBase, resolveMovementRate, resolveSpecialMovement, specialMovementReplacesOther,
 	getOffhandSecondsCap, getBetterAttackSkill, resolveEncumbrance, resolveLoadedMovement,
-	getSecondWeaponSlots, resolveSituationalMods, getShockBar
+	getSecondWeaponSlots, resolveSituationalMods, getShockBar, getEncumbranceBand, getWeightDamageAdjust
 } from "../combat/combat-rules.mjs";
 import { getSlotAllowance } from "../skills-rules.mjs";
+import { getTempEffects, resolveTempSpecialMovement } from "../temp-mods-rules.mjs";
+import { isChangelingRace, getChangelingFormMods, applyChangelingForm, getFormlessControl,
+         CHANGELING_NATURAL } from "../shape-change-rules.mjs";
 import { combineHalfRace, getHalfRaceName, isClassBlockedForRaces, canRacesBreed,
 	readFormlessPair, combineFormless, resolvePhysiqueLock, getStartingEnduranceMod } from "../race-rules.mjs";
 import { applyFamorianEvokes, checkEvokeBudget, describeEvokes } from "../famorian-rules.mjs";
@@ -33,7 +36,11 @@ import { getNextGoalExp, getExpCap, checkArchMortalQualification } from "../adva
 import { MARTIAL_DISCIPLINE_NAMES, getStanceSkillBonus, deriveMartialArts } from "../combat/martial-arts.mjs";
 import { getAuraControl, getAuraPool, getAuraRegen, getPietyControl } from "../casting-rules.mjs";
 import { getSkillStanding } from "../lore-rules.mjs";
+import { getWeaponProfTotals, getChoiceSlots } from "../weapon-choices-rules.mjs";
+import { getEquippedArmorSet, isConfigLearned, applyArmorSkills, ARMOR_KNOWLEDGE_BASE,
+         ARMOR_PENALTY_SKILLS, describeArmorSkillsLine } from "../armor-know-rules.mjs";
 import { CASTING_SKILLS } from "../lore-tables.mjs";
+import { getRacialCombatMods } from "../combat/racial-combat-rules.mjs";
 
 const fields = foundry.data.fields;
 
@@ -128,13 +135,41 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				// whether it has been met. Everything else on that screen is derived.
 				archSpecialMet: new fields.BooleanField({ required: true, initial: false }),
 
-				// @MARKER FORMLESS BODIES (STOPGAP)
-				// Free text: the bodies a Formless has inhabited, and which one it is wearing. His
-				// sheet tracks these properly -- a list of bodies and a choice of the active one --
-				// and that is to be built; until it is, this is where the table keeps the record.
-				// Shown only for a Formless. Pinned by the user on 2026-09-22 to be revisited once
-				// the rest of the core is done; see PROGRESS.md.
-				formlessBodies: new fields.StringField({ required: true, initial: "" })
+				// @MARKER FORMLESS BODIES (OLD RECORD)
+				// Free text the table kept before host changes were built (the 2026-09-22 stopgap). Kept,
+				// not dropped, so nothing typed into it is lost: the Description tab shows it, read-only,
+				// beside the record below, and only when something was ever written in it.
+				formlessBodies: new fields.StringField({ required: true, initial: "" }),
+
+				// @MARKER FORMLESS HOST
+				// What his sheet keeps about the body a Formless wears (formless_current_host,
+				// formless_host_type, formless_periods_occupied, formless_max_periods,
+				// formless_period_type, temp_will_formless_free_psyche; sheet-worker.js:128133, 128300).
+				// The host itself is the second race item, as at creation; these say how long it has
+				// been held and how long it may be. hostHistory is the port's own: every body possessed,
+				// oldest first, comma-separated -- his sheet keeps only the current one.
+				formless: new fields.SchemaField({
+					currentHost:     new fields.StringField({ required: true, blank: true, initial: "" }),
+					hostType:        new fields.StringField({ required: true, blank: true, initial: "" }),
+					periodType:      new fields.StringField({ required: true, blank: true, initial: "" }),
+					periodsOccupied: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+					maxPeriods:      new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+					freePsycheWill:  new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+					hostHistory:     new fields.StringField({ required: true, blank: true, initial: "" })
+				}),
+
+				// @MARKER CHANGELING FORM
+				// The form a Changeling wears (his race "Changeling[<form>]", sheet-worker.js:127309), the
+				// form it was made in (orig_changeling_race), whether it has taken Slight Physique, and the
+				// height it was made with (orig_height_*), which bounds every later form. "Natural Form" is
+				// his own name for the Changeling's own body. The form's attribute changes are worked out
+				// on every prepare (module/shape-change-rules.mjs), not written into the ratings.
+				changeling: new fields.SchemaField({
+					form:             new fields.StringField({ required: true, blank: true, initial: "" }),
+					originalForm:     new fields.StringField({ required: true, blank: true, initial: "Natural Form" }),
+					slight:           new fields.BooleanField({ required: true, initial: false }),
+					origHeightInches: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
+				})
 				// DERIVED: titleName (from classtitledict), nextGoalExp, archMortal (the
 				//          qualification screen), and the per-race attribute caps.
 			}),
@@ -372,6 +407,17 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				// than the Long Bow that fires it. Only six of his 92 classes ever acquire it.
 				projectileLoreList: new fields.StringField({ required: true, initial: "" }),
 
+				// @MARKER WEAPON PROFICIENCIES
+				// The weapons this character is proficient with, by simplified name -- his weapon_prof_list. One
+				// for every whole 10% of Weapon Knowledge; a weapon not on it is at a penalty to hit, once the list
+				// has been started (module/weapon-choices-rules.mjs). Ammunition is never on it: an arrow is
+				// proficient through its bow.
+				weaponProfList: new fields.StringField({ required: true, initial: "" }),
+
+				// The projectiles learned with Projectile Knowledge, his proj_know_list: each one's medium range
+				// is pushed out 20% for every 20% of the skill (getProjectileKnowledgeRanges).
+				projectileKnowList: new fields.StringField({ required: true, initial: "" }),
+
 				// The launcher/missile combinations learned for firing more than one missile at a
 				// time. These are NOT a list of weapons singled out for a larger bonus, the way
 				// the three lists above are -- both multi-missile skills are learned one
@@ -392,11 +438,30 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				secondWeaponKnowList: new fields.StringField({ required: true, initial: "" }),
 				secondWeaponLoreList: new fields.StringField({ required: true, initial: "" }),
 
+				// @MARKER ARMOR KNOWLEDGE AND LORE
+				// The armour configurations learned, as his armor_know_list / armor_lore_list: the pieces
+				// of one set joined with "|", the sets with ",". Wearing a learned set eases the armour's
+				// penalties (_prepareArmorSkills; module/armor-know-rules.mjs).
+				armorKnowList: new fields.StringField({ required: true, blank: true, initial: "" }),
+				armorLoreList: new fields.StringField({ required: true, blank: true, initial: "" }),
+
 				// @MARKER BRAWLING
 				// What the Brawling window has chosen to brawl with -- his all_brawling_weapons, a
 				// name off the Brawling Weapons Table (module/combat/brawling-rules.mjs), or "". Stored
 				// as his sheet stores it, so the window opens on the last thing used.
 				brawlingWeapon: new fields.StringField({ required: true, blank: true, initial: "" }),
+
+				// @MARKER GRAPPLING
+				// The move the Grappling window has chosen -- his all_grapple_moves, a name off his
+				// grappling table (module/combat/grappling-rules.mjs), or "".
+				grapplingMove: new fields.StringField({ required: true, blank: true, initial: "" }),
+
+				// @MARKER SOLDIERING WEAPON
+				// The one weapon the social skill Soldiering makes +1 to hit and +1 damage -- his
+				// combat_soldiering_weapon_name, a simplified weapon name, "" until one is chosen in the
+				// Updater (module/apps/soldiering.mjs). Whether the skill is held is derived
+				// (combat.hasSoldiering); the rules are module/soldiering-rules.mjs.
+				soldieringWeapon: new fields.StringField({ required: true, blank: true, initial: "" }),
 
 				// @MARKER SITUATION MODS
 				// What the Situation Mods window has ticked, which every attack of that kind reads
@@ -412,6 +477,73 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 					// is made with -- his sit_weapon_slot_melee / sit_weapon_slot_missile.
 					weaponId: new fields.StringField({ required: true, initial: "" })
 				})
+			}),
+
+			// @MARKER TEMPORARY MODIFIERS
+			// What his "Add/Remove Temporary Modifiers" panel holds that has no slot of its own elsewhere
+			// (module/temp-mods-rules.mjs has the table of where every modifier lives; module/apps/
+			// temp-modifiers.mjs is the window). The rest of his rows reuse fields that already exist --
+			// attributes.<k>.tempMod, characteristics.<k>.tempMod, resistances.<k>.misc and the combat
+			// *Misc fields -- so nothing is held twice.
+			tempMods: new fields.SchemaField({
+				// The MAGIC half of an attribute modifier (tempMod above is the mundane half). Held to the
+				// attribute's magical maximum rather than its natural one, as his tmp_mod_<attr>_magic is.
+				magicAttr: new fields.SchemaField({
+					str: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					agl: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					vit: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					int: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					wis: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					knw: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					app: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					chm: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					soc: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					aur: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					pty: new fields.NumberField({ required: true, integer: true, initial: 0 }),
+					wil: new fields.NumberField({ required: true, integer: true, initial: 0 })
+				}),
+
+				// Movement. Walk, jog, run and the special rate each take ONE figure that becomes three: hourly,
+				// x10 for ten seconds, x1 for one second (his tmp_walk_mod and the rest).
+				walk:      new fields.NumberField({ required: true, initial: 0 }),   // tmp_walk_mod
+				jog:       new fields.NumberField({ required: true, initial: 0 }),   // tmp_jog_mod
+				run:       new fields.NumberField({ required: true, initial: 0 }),   // tmp_run_mod
+				special:   new fields.NumberField({ required: true, initial: 0 }),   // tmp_move_special_mod
+				dailyMove: new fields.NumberField({ required: true, initial: 0 }),   // tmp_move_daily_move_mod
+				dailyRest: new fields.NumberField({ required: true, initial: 0 }),   // tmp_move_daily_rest_mod
+				standJump: new fields.NumberField({ required: true, initial: 0 }),   // tmp_move_stand_jump_mod
+				upJump:    new fields.NumberField({ required: true, initial: 0 }),   // tmp_move_up_jump_mod
+				// A temporary multiplier that replaces the racial one; 1 is none (tmp_multi_mod).
+				moveMulti: new fields.NumberField({ required: true, initial: 1 }),
+				// The special movement type that replaces the race's ("" = the race's own), and its speed
+				// multiplier (temp_special_move, temp_special_speed_mod).
+				specialType:  new fields.StringField({ required: true, blank: true, initial: "" }),
+				specialSpeed: new fields.NumberField({ required: true, initial: 1 }),
+
+				// Combat figures with no field of their own.
+				weaponSpeed: new fields.NumberField({ required: true, integer: true, initial: 0 }),   // tmp_weapon_speed_mod
+				extraDice:   new fields.NumberField({ required: true, integer: true, initial: 0 }),   // tmp_extra_dice
+				extraPerDie: new fields.NumberField({ required: true, integer: true, initial: 0 }),   // tmp_extra_per_die
+				fumble:      new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),   // tmp_fumble_mod
+				calledShot:  new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),   // tmp_calledshot_mod
+				ambidextrous: new fields.BooleanField({ required: true, initial: false }),   // tmp_ambidextrous
+				shockImmune:  new fields.BooleanField({ required: true, initial: false }),   // tmp_mod_shock_immunity
+
+				// Equipment: multipliers on what is carried and on what may be (tmp_equip_weight_mod,
+				// tmp_equip_capacity_mod). 2 is x2, .5 is x1/2; 1 is none.
+				weightMulti:   new fields.NumberField({ required: true, initial: 1 }),
+				capacityMulti: new fields.NumberField({ required: true, initial: 1 }),
+
+				// Fatigue and mental fatigue (tmp_fatigue_level, tmp_mental_fatigue_level and their immunities).
+				fatigue: new fields.SchemaField({
+					level:        new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 10 }),
+					immune:       new fields.BooleanField({ required: true, initial: false }),
+					mentalLevel:  new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 10 }),
+					mentalImmune: new fields.BooleanField({ required: true, initial: false })
+				}),
+
+				// Where the BERSERK / AFTER / CLEAR buttons have got to: "", "berserk" or "after".
+				berserk: new fields.StringField({ required: true, blank: true, initial: "" })
 			}),
 
 			// @MARKER MARTIAL ARTS
@@ -475,6 +607,29 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 				effectList:       new fields.StringField({ required: true, blank: true, initial: "" })          // tmp_effect_list
 			}),
 
+			// @MARKER GM EXPERIENCE TOOLS
+			// What the Game Master has set on his Character Sheet Config tab for valuing this character in
+			// experience (module/gm-exp-rules.mjs): whether the value is shown at the bottom of the main
+			// tab (show_experience_value), and his Experience Bonuses ticks (exp_poison_type, exp_slaying,
+			// exp_character_class, exp_caster, exp_damage_touch, exp_drain_touch, exp_breath_attk,
+			// exp_convert, exp_gaze_attk, exp_chameleon, exp_mind_control, exp_invisibility). The value
+			// itself is worked out from the character each time it is shown, not stored.
+			gmExp: new fields.SchemaField({
+				show:           new fields.BooleanField({ required: true, initial: false }),
+				poisonType:     new fields.StringField({ required: true, blank: true, initial: "" }),
+				slaying:        new fields.BooleanField({ required: true, initial: false }),
+				characterClass: new fields.BooleanField({ required: true, initial: false }),
+				caster:         new fields.BooleanField({ required: true, initial: false }),
+				damageTouch:    new fields.BooleanField({ required: true, initial: false }),
+				drainTouch:     new fields.BooleanField({ required: true, initial: false }),
+				breath:         new fields.BooleanField({ required: true, initial: false }),
+				convert:        new fields.BooleanField({ required: true, initial: false }),
+				gaze:           new fields.BooleanField({ required: true, initial: false }),
+				chameleon:      new fields.BooleanField({ required: true, initial: false }),
+				mindControl:    new fields.BooleanField({ required: true, initial: false }),
+				invisibility:   new fields.BooleanField({ required: true, initial: false })
+			}),
+
 			// @MARKER NOTES
 			biography: new fields.HTMLField({ required: true, initial: "" })
 		};
@@ -531,6 +686,21 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			var tmpracemod = (tmpracemods && tmpracemods[tmpkey]) ? tmpracemods[tmpkey] : 0;
 			tmpattrib.raceMod = tmpracemod;
 			tmpattrib.value = tmpattrib.rating + tmpracemod + tmpattrib.permMod + tmpattrib.tempMod;
+		}
+
+		// @MARKER CHANGELING FORM
+		// A Changeling's form moves STR, AGL, VIT and APP as his updateChangelingAttributes did
+		// (sheet-worker.js:127358), but worked out here every time rather than written into the
+		// ratings, so switching back and forth cannot drift. Before effects, as a race's modifiers are.
+		if (isChangelingRace(this.raceItems.map(tmprace => tmprace.name)) && this.identity.changeling?.form) {
+			var tmpformmods = getChangelingFormMods(this.identity.changeling.form, this.identity.changeling.originalForm);
+			var tmpbefore = {};
+			for (const tmpkey of Object.keys(tmpformmods)) { tmpbefore[tmpkey] = this.attributes[tmpkey].value; }
+			var tmpafter = applyChangelingForm(tmpbefore, tmpformmods, this.raceItem?.system?.attributeLimits);
+			for (const tmpkey of Object.keys(tmpformmods)) {
+				this.attributes[tmpkey].formMod = tmpafter[tmpkey] - tmpbefore[tmpkey];
+				this.attributes[tmpkey].value = tmpafter[tmpkey];
+			}
 		}
 	}
 
@@ -682,6 +852,13 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 	prepareDerivedData() {
 		super.prepareDerivedData();
 
+		// @MARKER TEMPORARY AMBIDEXTERITY
+		// His Temporary Ambidexterity tick (tmp_ambidextrous, checkTemporaryHandedness). Handedness is read in
+		// a dozen places, so it is overridden here, first of all, and the stored value is kept beside it for the
+		// one dropdown that writes it back (storedHandedness).
+		this.physical.storedHandedness = this.physical.handedness;
+		if (this.tempMods?.ambidextrous) { this.physical.handedness = "Ambidextrous"; }
+
 		// Attributes first: the dual-class requirement check in _prepareIdentity compares against
 		// them, and _prepareAttributes is where a rating above its racial cap gets clamped down.
 		// Nothing in _prepareAttributes reads anything _prepareIdentity derives -- the title it
@@ -700,6 +877,9 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this._prepareSkillSlots();
 		this._prepareSkills();
 		this._prepareSkillSlotStatus();
+		// A learned armour configuration eases what the armour costs; after the skills, whose chance
+		// (Armor Knowledge's) it reads, and before everything that reads the figures it changes.
+		this._prepareArmorSkills();
 		// Martial arts after the skills, whose chances it reads, and before both the off-hand
 		// skills and the Situation Mods: a held stance adds to skills (the Drunken stance's
 		// "+10% to combat skills" reaches Second Weapon Knowledge, which is typed Combat), and the
@@ -844,6 +1024,19 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.combat.hasProjectileLore = tmpprojlore.reached;
 		this.combat.projectileLoreNames = parseLoreList(this.combat.projectileLoreList);
 
+		// The title each lore class was reached at, kept for the slots the Weapon Choices window shows: one
+		// per title held in the skill, less those already named (getChoiceSlots, weapon-choices-rules.mjs).
+		this.combat.weaponLoreSlots = getChoiceSlots(tmpweaponlore.title, tmpweaponlore.when, this.combat.weaponLoreList);
+		this.combat.missileLoreSlots = getChoiceSlots(tmpmissilelore.title, tmpmissilelore.when, this.combat.missileLoreList);
+		this.combat.projectileLoreSlots = getChoiceSlots(tmpprojlore.title, tmpprojlore.when, this.combat.projectileLoreList);
+		this.combat.weaponLoreReachedTitle = tmpweaponlore.title;
+		this.combat.missileLoreReachedTitle = tmpmissilelore.title;
+		this.combat.projectileLoreReachedTitle = tmpprojlore.title;
+		this.combat.secondWeaponKnowReachedTitle = this._getBestClassTitle("secondWeaponKnowTitle").title;
+		this.combat.secondWeaponLoreReachedTitle = this._getBestClassTitle("secondWeaponLoreTitle").title;
+		this.combat.weaponProfNames = parseLoreList(this.combat.weaponProfList);
+		this.combat.projectileKnowNames = parseLoreList(this.combat.projectileKnowList);
+
 		// Eligibility for the two off-hand fighting disciplines. This is title eligibility only
 		// -- whether the class has reached the title that makes the skill available at all -- not
 		// whether the character actually has the skill. The skill's own chance is read once
@@ -872,13 +1065,25 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.combat.multiMissileLoreTitle = tmpmmlore.when;
 		this.combat.hasMultiMissileLore = tmpmmlore.reached;
 
+		// @MARKER RACIAL COMBAT MODIFIERS
+		// The race's eyes, sense tendrils and metabolism -- his "Other" column (setCombatModifierValues,
+		// sheet-worker.js:82205-82262). Melee and missile are folded in below with fatigue; initiative and
+		// defence here; the damage is added by the attack (module/combat/attack.mjs), as fatigue's is.
+		var tmpracial = getRacialCombatMods(this.identity.race?.abilities, this.identity.race?.disabilities,
+			this.physical?.famorian?.evokes);
+		this.combat.racialCombat = tmpracial;
+
+		// The signed body-weight damage term (his getWeightDamageAdj, sheet-worker.js:83270; combat_mod_dam_weight
+		// at 82287). Signed for a character, as his is; melee only, which the attack decides (64621-64626).
+		this.combat.weightDamage = getWeightDamageAdjust(this.physical?.weight, false);
+
 		this.combat.initiativeMod = getInitiativeModifier(
 			tmpaglmods.initiativeAdjust, tmpintmods.initiativeAdjust,
-			tmparmorinit + (parseInt(this.combat.initiativeMisc) || 0));
+			tmparmorinit + (parseInt(this.combat.initiativeMisc) || 0) + tmpracial.initiative);
 
 		// Added to anyone's attack roll against this character. Lower is better for them.
 		this.combat.defensiveAdjust = (parseInt(tmpaglmods.defensiveAdjust) || 0)
-		                            + tmparmordef + (parseInt(this.combat.defenseMisc) || 0);
+		                            + tmparmordef + (parseInt(this.combat.defenseMisc) || 0) + tmpracial.defense;
 
 		// Added to every weapon's speed: Strength, Agility, then armour.
 		this.combat.weaponSpeedMod = (parseInt(tmpstrmods.weaponSpeed) || 0)
@@ -888,6 +1093,92 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.combat.meleeDamage   = parseInt(tmpstrmods.meleeDamage) || 0;
 		this.combat.missileAttack = parseInt(tmpaglmods.missileAttack) || 0;
 		this.combat.armorSkillPenalty = tmparmorskills;
+		// The armour's share of each standing figure on its own, for the Combat tab's modifiers table
+		// (module/combat-panel-view.mjs), which shows his STR / AGL / INT / Armor columns apart. Already
+		// inside initiativeMod, defensiveAdjust and weaponSpeedMod above; nothing reads these but the panel.
+		this.combat.armorInitiative = tmparmorinit;
+		this.combat.armorDefense = tmparmordef;
+		this.combat.armorSpeed = tmparmorspeed;
+
+		// @MARKER TEMPORARY MODIFIERS: FATIGUE AND SPEED
+		// What fatigue takes off, and the Weapon Speed box, folded into the figures above so every attack and
+		// the Combat tab's table already read them. Kept apart as combat.fatigue as well, because meleeAttack
+		// is no longer Strength alone: a table that wants Strength's own share reads attributes.str.mods instead
+		// (the Combat panel does). The race's eyes, tendrils and metabolism are folded in the same way below.
+		// Damage is NOT folded into meleeDamage (the Strength bonus doubles two-handed; fatigue does not): the
+		// attacks add combat.fatigue.damage themselves. The skills figure goes on every skill, in _prepareSkills.
+		var tmpeffects = getTempEffects(this.tempMods);
+		this.combat.fatigue = tmpeffects;
+		this.combat.meleeAttack   = this.combat.meleeAttack + tmpeffects.melee + tmpracial.melee;
+		this.combat.missileAttack = this.combat.missileAttack + tmpeffects.missile + tmpracial.missile;
+		this.combat.weaponSpeedMod = this.combat.weaponSpeedMod + tmpeffects.weaponSpeed;
+		this.combat.tempSkillMod = tmpeffects.skills + (parseInt(this.combat.skillMisc) || 0);
+		// Fumble range and called-shot range, in points on the d20 (his tmp_fumble_mod, tmp_calledshot_mod).
+		this.combat.fumbleRangeMod = parseInt(this.tempMods?.fumble) || 0;
+		this.combat.calledShotRangeMod = parseInt(this.tempMods?.calledShot) || 0;
+		this.combat.extraDice = parseInt(this.tempMods?.extraDice) || 0;
+		this.combat.extraPerDie = parseInt(this.tempMods?.extraPerDie) || 0;
+	}
+
+	// @MARKER ARMOR KNOWLEDGE AND LORE
+	// This is the function which eases the armour's penalties when the set worn is one the character has
+	// learned -- his setArmorKnowModifiers and setArmorLoreModifiers (sheet-worker.js:118539, 118608), run
+	// after _prepareCombat has totalled the penalties raw. Armor Knowledge lowers each by levels of its
+	// chance; Armor Lore, which wins, removes them (module/armor-know-rules.mjs). Everything it changes is
+	// additive, so the figures _prepareCombat made are corrected in place rather than made again.
+	//
+	// Sets armorKnowOn / armorLoreOn -- his armor_know_check / armor_lore_check boxes -- for the sheet.
+	_prepareArmorSkills() {
+		var tmpworn = this._getWornArmor();
+		var tmpraw = { skills: 0, defense: 0, initiative: 0, speed: 0 };
+		for (const tmpitem of tmpworn) {
+			var tmppen = tmpitem.system.penalties ?? {};
+			tmpraw.skills     += parseInt(tmppen.skills) || 0;
+			tmpraw.defense    += parseInt(tmppen.defense) || 0;
+			tmpraw.initiative += parseInt(tmppen.initiative) || 0;
+			tmpraw.speed      += parseInt(tmppen.speed) || 0;
+		}
+		var tmpset = getEquippedArmorSet(tmpworn);
+		var tmpknowon = isConfigLearned(tmpset, this.combat.armorKnowList);
+		var tmploreon = isConfigLearned(tmpset, this.combat.armorLoreList);
+		this.combat.armorKnowOn = tmpknowon;
+		this.combat.armorLoreOn = tmploreon;
+		this.combat.armorSkillsLine = "";
+		if (tmpknowon || tmploreon) {
+			// Armor Knowledge's chance: the skill as held, or the common footing it may be tried on.
+			var tmptitle = parseInt(this.identity.title) || 0;
+			var tmpstanding = getSkillStanding((this.parent?.items ?? []).filter(tmpitem => tmpitem.type == "skill"),
+				"Armor Knowledge", tmptitle);
+			var tmpchance = tmpstanding.held ? tmpstanding.chance
+				: this.getCommonSkillChance(ARMOR_KNOWLEDGE_BASE.attr1, ARMOR_KNOWLEDGE_BASE.attr2, ARMOR_KNOWLEDGE_BASE.rating);
+			var tmpeased = applyArmorSkills(tmpraw, { know: tmpknowon, knowChance: tmpchance, lore: tmploreon });
+
+			this.combat.initiativeMod   += tmpeased.initiative - tmpraw.initiative;
+			this.combat.defensiveAdjust += tmpeased.defense - tmpraw.defense;
+			this.combat.weaponSpeedMod  += tmpeased.speed - tmpraw.speed;
+			this.combat.armorSkillPenalty = tmpeased.skills;
+			// The Combat tab's modifiers table shows the armour's share apart (combat-panel-view.mjs); it is
+			// the eased share once a set is learned, as his combat table reads armor_*_penalty after the setters.
+			this.combat.armorInitiative = tmpeased.initiative;
+			this.combat.armorDefense = tmpeased.defense;
+			this.combat.armorSpeed = tmpeased.speed;
+			this.combat.armorSkillsLine = describeArmorSkillsLine(tmpknowon, tmploreon, tmpeased.levels);
+		}
+
+		// @MARKER ARMOR SKILL PENALTY ON SKILLS
+		// The armour's skills penalty -- eased or not -- on the two skills his rolls charge it to, Shield Parry
+		// and Body Parry (ARMOR_PENALTY_SKILLS, sheet-worker.js:70736, 70979: "Armor: N%"). Added to their
+		// totals here rather than at the roll so the Skills tab shows the chance actually rolled.
+		var tmpskillpen = parseInt(this.combat.armorSkillPenalty) || 0;
+		this.combat.armorSkillApplied = [];
+		if (tmpskillpen != 0) {
+			for (const tmpitem of (this.parent?.items ?? [])) {
+				if (tmpitem.type != "skill" || !ARMOR_PENALTY_SKILLS.includes(tmpitem.name)) { continue; }
+				tmpitem.system.armorPenalty = tmpskillpen;
+				tmpitem.system.totalChance = (parseInt(tmpitem.system.totalChance) || 0) + tmpskillpen;
+				this.combat.armorSkillApplied.push(tmpitem.name);
+			}
+		}
 	}
 
 	// This is the function which lays out the character's body: every area of their body chart,
@@ -958,7 +1249,8 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.body.areas = tmpareas;
 		// The areas' wounds, and whatever has been done to overall Endurance besides (a poison's).
 		this.body.totalWounds = tmptotal + (parseInt(this.body.overallWounds) || 0);
-		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock);
+		this.body.inShock = (this.body.shock != 0) && (this.body.totalWounds > this.body.shock)
+		                 && !this.tempMods?.shockImmune;   // Shock Immunity, from the Temporary Modifiers panel
 		// What a token's resource bar draws, Shock less the total wounds -- the same "body.shockBar" a
 		// creature carries (getShockBar in combat-rules.mjs; CONFIG.Actor.trackableAttributes in
 		// imagine-rpg.mjs). Added 2026-09-23 with the creature's, so both actor types have a bar.
@@ -976,6 +1268,25 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		var tmpinches = ((parseInt(tmpphys.heightFeet) || 0) * 12) + (parseInt(tmpphys.heightInches) || 0);
 		this.encumbrance = resolveEncumbrance(this.parent?.items,
 			this.attributes.str.mods.loadLimit, tmpphys.weight, tmpinches);
+
+		// @MARKER TEMPORARY WEIGHT AND CAPACITY
+		// His Equipment modifiers (tmp_equip_weight_mod, tmp_equip_capacity_mod): a multiplier on what is
+		// carried and one on what may be. 2 is x2, .5 is x1/2. The bands move with capacity and the status is
+		// read again against them, so the label and the speed factor follow.
+		var tmpweighmulti = parseFloat(this.tempMods?.weightMulti) || 1;
+		var tmpcapmulti = parseFloat(this.tempMods?.capacityMulti) || 1;
+		if (tmpweighmulti != 1 || tmpcapmulti != 1) {
+			var tmpenc = this.encumbrance;
+			tmpenc.carried = parseFloat((tmpenc.carried * tmpweighmulti).toFixed(1));
+			for (const tmpband of ["maxLoad", "none", "slight", "moderate", "heavy"]) {
+				tmpenc[tmpband] = parseFloat((tmpenc[tmpband] * tmpcapmulti).toFixed(1));
+			}
+			var tmpread = getEncumbranceBand(tmpenc.carried, tmpenc);
+			tmpenc.status = tmpread.status;
+			tmpenc.speedFactor = tmpread.speedFactor;
+			tmpenc.canRun = tmpread.canRun;
+			tmpenc.penalty = tmpread.penalty;
+		}
 	}
 
 	// This is the function which fills in the identity values that come from the class items.
@@ -991,6 +1302,11 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.identity.formlessIssue = this._formlessIssue ?? "";
 
 		this.identity.raceName  = this.raceItem ? this.raceItem.name : "";
+		// A Changeling is named for the form it wears, as his race field is ("Changeling[Kenku]").
+		this.identity.isChangeling = isChangelingRace(this.raceItems.map(tmprace => tmprace.name));
+		if (this.identity.isChangeling && this.identity.changeling?.form && this.identity.changeling.form != CHANGELING_NATURAL) {
+			this.identity.raceName = `Changeling[${this.identity.changeling.form}]`;
+		}
 		// His race_type values; only these two are implemented in his sheet.
 		// A Formless and its host are two race items and are NOT a Half Race: his race_type for
 		// one is still One Race, the second item being a body rather than a parent.
@@ -1341,6 +1657,13 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			if (tmpattrib.value > tmpcap) { tmpattrib.value = tmpcap; }
 			if (tmpattrib.value < 0) { tmpattrib.value = 0; }
 
+			// @MARKER TEMPORARY MAGIC MODIFIER
+			// The magic half of a temporary modifier goes on AFTER the natural cap, and is held to the magical
+			// one instead -- his setSTRAttributeModifiers: mundane to _max, then magic to _magic_max.
+			var tmpmagicmod = parseInt(this.tempMods?.magicAttr?.[tmpkey]) || 0;
+			tmpattrib.magicMod = tmpmagicmod;
+			if (tmpmagicmod) { tmpattrib.value = Math.min(tmpmagicalcap, Math.max(0, tmpattrib.value + tmpmagicmod)); }
+
 			tmpattrib.save = ImagineCharacterData.getAttribSave(tmpattrib.value);
 
 			// The table modifiers are irregular lookup values, not formulas -- see
@@ -1453,6 +1776,12 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		               + (tmpmods.int.controlResistAdjust || 0)
 		               + (tmpmods.wis.controlResistAdjust || 0);
 		this._setResistance("control", tmpcontrol);
+
+		// @MARKER FORMLESS CONTROL
+		// A Formless is immune to control, yet rolls a "special Control Resistance" to take, keep or do
+		// without a host: the resistance it would have were it not immune (setFormlessSpecialControl-
+		// Resistance, sheet-worker.js:128175). Read by the shape-change window.
+		this.identity.formlessControl = getFormlessControl(this.resistances.control);
 	}
 
 	// This is the function which finalises one resistance track.
@@ -1523,6 +1852,17 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		var tmpbase     = getMovementBase(this.attributes.agl.value);
 		var tmpmulti    = tmpracemove.speedMultiplier;
 
+		// @MARKER TEMPORARY MOVEMENT
+		// His Movement modifiers (calcMovement, sheet-worker.js:30856): a temporary multiplier REPLACES the
+		// racial one when it is not 1 ("temporarily overrides racial multiplier"), and fatigue slows the rates by
+		// its table's fraction. His code lets fatigue overwrite the multiplier as well; here it multiplies it, so
+		// a fast race that tires is slowed rather than made average -- the book's table is a fraction OF the rate.
+		var tmptemp = this.tempMods ?? {};
+		var tmptempmulti = parseFloat(tmptemp.moveMulti) || 1;
+		var tmpracial = (parseFloat(tmpmulti) || 0) > 0 ? parseFloat(tmpmulti) : 1;
+		var tmpfatigue = getTempEffects(tmptemp).movement;
+		tmpmulti = ((tmptempmulti != 1) ? tmptempmulti : tmpracial) * tmpfatigue;
+
 		// The race's figures are MODIFIERS on the Agility base, not finished rates -- see the
 		// movement block in combat-rules.mjs. A race carrying 0/0/0 has no modifier and moves at
 		// the full base; it is not a race that cannot move.
@@ -1539,8 +1879,23 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 
 		// Jumping is the same shape -- an Agility base plus the race's modifier -- but has no
 		// speed multiplier and no published floor, so a penalty is allowed to take it to zero.
-		this.movement.jumpStand = Math.max(0, tmpbase.jumpStand + (parseFloat(tmpracemove.jumpStand) || 0));
-		this.movement.jumpUp    = Math.max(0, tmpbase.jumpUp    + (parseFloat(tmpracemove.jumpUp)    || 0));
+		this.movement.jumpStand = Math.max(0, tmpbase.jumpStand + (parseFloat(tmpracemove.jumpStand) || 0)
+		                                      + (parseFloat(tmptemp.standJump) || 0));
+		this.movement.jumpUp    = Math.max(0, tmpbase.jumpUp    + (parseFloat(tmpracemove.jumpUp)    || 0)
+		                                      + (parseFloat(tmptemp.upJump) || 0));
+
+		// The temporary walk, jog and run modifiers: one figure, hourly as given, x10 for ten seconds, x1 for
+		// one second (his tmp_walk_mod * 10). Added after the multiplier, as he adds them to the finished rate.
+		for (const tmpmode of ["walk", "jog", "run"]) {
+			var tmpflat = parseFloat(tmptemp[tmpmode]) || 0;
+			if (!tmpflat) { continue; }
+			this.movement[tmpmode].hourly = Math.max(0, this.movement[tmpmode].hourly + tmpflat);
+			this.movement[tmpmode].tenSec = Math.max(0, this.movement[tmpmode].tenSec + (tmpflat * 10));
+			this.movement[tmpmode].oneSec = Math.max(0, this.movement[tmpmode].oneSec + tmpflat);
+		}
+		// Daily travel and rest hours have no figure in the port to add to; the modifiers are kept for display.
+		this.movement.dailyMoveMod = parseFloat(tmptemp.dailyMove) || 0;
+		this.movement.dailyRestMod = parseFloat(tmptemp.dailyRest) || 0;
 
 		// "None:" is his sentinel for a race with no special rate, not the name of one -- it is
 		// carried by exactly the 79 races whose special base rate is empty. It is dropped here so
@@ -1554,6 +1909,22 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		this.movement.special.hourly = tmpspecial.hourly;
 		this.movement.special.tenSec = tmpspecial.tenSec;
 		this.movement.special.oneSec = tmpspecial.oneSec;
+
+		// The temporary special modifier on the race's own special rate, and a temporary special TYPE which
+		// replaces it altogether (his "Replace Special Movement Type", worked out from the finished walk and run).
+		var tmpspecialmod = parseFloat(tmptemp.special) || 0;
+		if (tmptemp.specialType) {
+			var tmpreplaced = resolveTempSpecialMovement(tmptemp.specialType, this.movement,
+				tmptemp.specialSpeed, tmpracial, this.attributes.int.value, tmpspecialmod);
+			this.movement.specialName = tmptemp.specialType;
+			this.movement.special.hourly = tmpreplaced.hourly;
+			this.movement.special.tenSec = tmpreplaced.tenSec;
+			this.movement.special.oneSec = tmpreplaced.oneSec;
+		} else if (tmpspecialmod && this.movement.specialName) {
+			this.movement.special.hourly = Math.max(0, this.movement.special.hourly + tmpspecialmod);
+			this.movement.special.tenSec = Math.max(0, this.movement.special.tenSec + (tmpspecialmod * 10));
+			this.movement.special.oneSec = Math.max(0, this.movement.special.oneSec + tmpspecialmod);
+		}
 
 		// A second special rate, for the one race the books give two of: a Nixie swims AND flies
 		// (Legends p.33), and his row has room for only the flight -- the swim is his Formless copy
@@ -1685,13 +2056,17 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 			tmpskill.usableByTitle = tmpgate.usable;
 			tmpskill.titleGateReason = tmpgate.reason;
 
+			// @MARKER TEMPORARY SKILLS MODIFIER
+			// The Skills box of the Temporary Modifiers panel, fatigue and mental fatigue: a percentage on every
+			// skill (combat.tempSkillMod, worked out in _prepareCombat).
+			var tmptempskill = parseInt(this.combat.tempSkillMod) || 0;
 			if (tmpskill.isCommon) {
-				tmpskill.totalChance = tmpskill.baseChance + tmpskill.misc;
+				tmpskill.totalChance = tmpskill.baseChance + tmpskill.misc + tmptempskill;
 			} else {
 				tmpskill.totalChance = tmpskill.baseChance
 				                     + tmpskill.startingBonus
 				                     + tmpskill.abilityBonus
-				                     + tmpskill.misc;
+				                     + tmpskill.misc + tmptempskill;
 				if (tmpskill.category == "class")  { this.skillSlots.classUsed++; }
 				if (tmpskill.category == "racial") { this.skillSlots.racialUsed++; }
 				if (tmpskill.category == "social") { this.skillSlots.socialUsed++; }
@@ -1745,6 +2120,26 @@ export default class ImagineCharacterData extends foundry.abstract.TypeDataModel
 		// in his sheet at all -- holding the skill is the whole of it -- so this is read straight
 		// off the actor with no eligibility test in front of it.
 		this.combat.multiMissileKnowChance = this._getSkillChance("Multiple Missile Knowledge");
+
+		// Weapon proficiencies (his setWeaponProfValues, 83126): total, used and available, and the penalty
+		// to hit with a weapon not proficient in, all from Weapon Knowledge's own chance. And the three
+		// chances the Weapon Choices window rolls against that are not read above.
+		this.combat.weaponKnowChance = this._getSkillChance("Weapon Knowledge");
+		var tmpprofs = getWeaponProfTotals(this.combat.weaponKnowChance, this.combat.weaponProfList);
+		this.combat.weaponProfTotal = tmpprofs.total;
+		this.combat.weaponProfUsed = tmpprofs.used;
+		this.combat.weaponProfAvailable = tmpprofs.available;
+		this.combat.nonProfPenalty = tmpprofs.penalty;
+		this.combat.nonProfSkillsPenalty = tmpprofs.skillsPenalty;
+		this.combat.weaponLoreChance = this._getSkillChance("Weapon Lore");
+		this.combat.missileLoreChance = this._getSkillChance("Missile Lore");
+		this.combat.projectileKnowChance = this._getSkillChance("Projectile Knowledge");
+		this.combat.projectileLoreChance = this._getSkillChance("Projectile Lore");
+		this.combat.hasProjectileKnowledge = !!this.parent?.items?.some(tmpitem => tmpitem.type == "skill" && tmpitem.name == "Projectile Knowledge");
+
+		// Soldiering, a social skill: held when the character has the skill item. It names one weapon
+		// (combat.soldieringWeapon) that is +1 to hit and damage; see module/soldiering-rules.mjs.
+		this.combat.hasSoldiering = !!this.parent?.items?.some(tmpitem => tmpitem.type == "skill" && tmpitem.name == "Soldiering");
 
 		// How many of the round's ten seconds may go to off-hand actions. This is the allowance; what
 		// a round has spent of it is on the combatant's round clock (module/combat/round-rules.mjs),

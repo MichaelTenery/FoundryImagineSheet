@@ -1,0 +1,47 @@
+{{!--
+	The GM Tools window: his Character Sheet Config "Calc/Show Experience Value" and "Split Experience",
+	for GMCs and GMEs. One root element, as the framework requires. Everything here comes from
+	buildGmToolsView (module/gm-tools-view.mjs).
+--}}
+<div class="gm-tools-window">
+	{{#unless isCreature}}
+	<h3>Experience value</h3>
+	<p class="hint"><em>For GMCs and GMEs.</em></p>
+	<div class="form-group"><label><input type="checkbox" data-bonus="show" {{#if showExp}}checked{{/if}}>
+		Show experience?</label> <span class="hint">(bottom of the main tab, Game Masters only)</span></div>
+
+	<h4>Experience bonuses</h4>
+	<div class="form-group"><label>Poison type</label>
+		<select name="poisonType" data-bonus="poisonType">
+			{{#each poisonTypes as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.value}}</option>{{/each}}
+		</select></div>
+	<div class="exp-ticks">
+		{{#each ticks as |t|}}<label class="exp-tick"><input type="checkbox" data-bonus="{{t.key}}" {{#if t.checked}}checked{{/if}}> {{t.label}}</label>{{/each}}
+	</div>
+	<div class="form-group"><button type="button" data-action="calcExp">Calc</button> <em>Calculate experience value</em></div>
+	<p class="exp-value"><strong>Experience value:</strong> <span class="value">{{value}}</span></p>
+	{{#if parts.length}}<ul class="exp-parts">{{#each parts as |p|}}<li>{{p.label}}: {{p.value}}</li>{{/each}}</ul>{{/if}}
+	{{else}}
+	<p class="exp-value"><strong>Experience value (from the creature's sheet):</strong> <span class="value">{{value}}</span></p>
+	{{/unless}}
+
+	<h3>Split experience</h3>
+	<div class="form-group"><label>EXP to split</label>
+		<input type="number" name="amount" data-working="amount" value="{{amount}}">
+		<label><input type="checkbox" name="fill" data-working="fill" {{#if fill}}checked{{/if}}> Fill with {{#if isCreature}}creature{{else}}GMC/GME{{/if}} EXP value?</label></div>
+	<div class="form-group"><label>Split number #</label>
+		<input type="number" name="people" data-working="people" min="0" step="1" value="{{people}}">
+		<span class="hint">Number to receive EXP (whole number)</span></div>
+	<div class="form-group"><label>Difficulty?</label>
+		<select name="difficulty" data-working="difficulty">
+			{{#each difficulties as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}
+		</select> <span class="hint">Below 100% lowers EXP to split.</span></div>
+	<div class="form-group"><button type="button" data-action="splitExp">Split</button> <em>Calculate the shares</em></div>
+	{{#if split}}
+	<p class="split-result"><strong>EXP per person:</strong> <span class="per-person">{{split.perPerson}}</span>
+		&nbsp; <strong>EXP remainder:</strong> <span class="remainder">{{split.remainder}}</span>
+		<span class="hint">(of {{split.total}})</span></p>
+	{{/if}}
+
+	<footer class="form-footer"><button type="button" data-action="done">Done</button></footer>
+</div>

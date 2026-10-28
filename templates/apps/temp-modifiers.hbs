@@ -1,0 +1,202 @@
+{{!--
+	The Temporary Modifiers window: his "Add/Remove Temporary Modifiers" panel. One root element, as the framework
+	requires. Everything here comes from buildTempModsView (module/temp-mods-view.mjs). A box with data-sec and
+	data-field is read by that section's SET button; nothing is written until a button is pressed.
+--}}
+<div class="temp-mods-window">
+
+	<p class="hint">Type a figure to <strong>replace</strong> that row's modifier; leave a box empty to leave it as it is; type
+	0 to take one modifier off by itself. Only the two Extra Damage boxes add to what is there.</p>
+
+	{{!-- EFFECT NAMES -- display only --}}
+	<fieldset class="tm-section" data-section="effects">
+		<legend>Effect names</legend>
+		<p class="tm-line"><b>Effects:</b> {{#if hasEffects}}{{#each effects as |e|}}<span class="tm-chip">{{e}}</span>{{/each}}{{else}}None{{/if}}</p>
+		<div class="tm-add"><label>New Effect (Open) <input type="text" name="openEffect" placeholder="No commas"></label>
+			<button type="button" data-action="addEffect" data-kind="open">Add</button></div>
+		<div class="tm-add"><label>New Magical Effect
+			<select name="spellEffect"><option value=""></option>{{#each spellNames as |s|}}<option value="{{s.name}}">{{s.name}}</option>{{/each}}</select></label>
+			<button type="button" data-action="addEffect" data-kind="spell">Add</button></div>
+		<div class="tm-add"><label>New Divine Effect
+			<select name="divineEffect"><option value=""></option>{{#each invocationNames as |s|}}<option value="{{s.name}}">{{s.name}}</option>{{/each}}</select></label>
+			<button type="button" data-action="addEffect" data-kind="invoke">Add</button></div>
+		<div class="tm-add"><label>Remove effect
+			<select name="removeEffect"><option value=""></option>{{#each removable as |s|}}<option value="{{s.name}}">{{s.name}}</option>{{/each}}</select></label>
+			<button type="button" data-action="removeEffect">Remove</button></div>
+		<p class="hint">Effects are for display (also set and clear the matching modifiers below).</p>
+	</fieldset>
+
+	{{!-- ATTRIBUTES --}}
+	<fieldset class="tm-section" data-section="attributes">
+		<legend>Attributes</legend>
+		<div class="tm-scroll">
+		<table class="tm-table">
+			<thead><tr><th></th>{{#each attributes as |a|}}<th>{{a.label}}</th>{{/each}}</tr></thead>
+			<tbody>
+				<tr><th>Current Rating</th>{{#each attributes as |a|}}<td>{{a.current}}</td>{{/each}}</tr>
+				<tr><th>Input Mundane</th>{{#each attributes as |a|}}<td><input type="number" class="tm-box" data-sec="attributes" data-field="{{a.key}}Mundane"></td>{{/each}}</tr>
+				<tr><th>Mundane Modifiers</th>{{#each attributes as |a|}}<td>{{a.mundaneMod}}</td>{{/each}}</tr>
+				<tr><th>Natural Maximum</th>{{#each attributes as |a|}}<td>{{a.max}}</td>{{/each}}</tr>
+				<tr><th>Input Magic</th>{{#each attributes as |a|}}<td><input type="number" class="tm-box" data-sec="attributes" data-field="{{a.key}}Magic"></td>{{/each}}</tr>
+				<tr><th>Magic Modifiers</th>{{#each attributes as |a|}}<td>{{a.magicMod}}</td>{{/each}}</tr>
+				<tr><th>Magical Maximum</th>{{#each attributes as |a|}}<td>{{a.magicalMax}}</td>{{/each}}</tr>
+			</tbody>
+		</table>
+		</div>
+		<div class="tm-buttons"><button type="button" data-action="setSection" data-section="attributes">SET</button>
+			<button type="button" data-action="clearSection" data-section="attributes">CLEAR</button>
+			<span class="hint">set or clear ALL attribute modifiers</span></div>
+	</fieldset>
+
+	{{!-- CHARACTERISTICS --}}
+	<fieldset class="tm-section" data-section="characteristics">
+		<legend>Characteristics</legend>
+		<table class="tm-table">
+			<thead><tr><th></th>{{#each characteristics as |c|}}<th>{{c.label}}</th>{{/each}}</tr></thead>
+			<tbody>
+				<tr><th>Current Values</th>{{#each characteristics as |c|}}<td>{{c.current}}</td>{{/each}}</tr>
+				<tr><th>Input Modifier</th>{{#each characteristics as |c|}}<td><input type="number" class="tm-box" data-sec="characteristics" data-field="{{c.key}}"></td>{{/each}}</tr>
+				<tr><th>Modifiers</th>{{#each characteristics as |c|}}<td>{{c.mod}}</td>{{/each}}</tr>
+			</tbody>
+		</table>
+		<div class="tm-buttons"><button type="button" data-action="setSection" data-section="characteristics">SET</button>
+			<button type="button" data-action="clearSection" data-section="characteristics">CLEAR</button></div>
+	</fieldset>
+
+	{{!-- RESISTANCES --}}
+	<fieldset class="tm-section" data-section="resistances">
+		<legend>Resistances</legend>
+		<table class="tm-table">
+			<thead><tr><th></th>{{#each resistances as |r|}}<th>{{r.label}}</th>{{/each}}</tr></thead>
+			<tbody>
+				<tr><th>Current Values</th>{{#each resistances as |r|}}<td>{{r.current}}</td>{{/each}}</tr>
+				<tr><th>Input Modifier</th>{{#each resistances as |r|}}<td><input type="number" class="tm-box" data-sec="resistances" data-field="{{r.key}}"></td>{{/each}}</tr>
+				<tr><th>Modifiers</th>{{#each resistances as |r|}}<td>{{r.mod}}</td>{{/each}}</tr>
+				<tr><th>Immune?</th>{{#each resistances as |r|}}<td><input type="checkbox" data-sec="resistances" data-field="{{r.key}}Immune" {{#if r.immune}}checked{{/if}}></td>{{/each}}</tr>
+			</tbody>
+		</table>
+		<div class="tm-buttons"><button type="button" data-action="setSection" data-section="resistances">SET</button>
+			<button type="button" data-action="clearSection" data-section="resistances">CLEAR</button></div>
+	</fieldset>
+
+	{{!-- MOVEMENT --}}
+	<fieldset class="tm-section" data-section="movement">
+		<legend>Movement</legend>
+		<table class="tm-table">
+			<thead><tr><th></th><th>Current <small>(hour/10 sec/1 sec)</small></th><th>Input</th><th>Modifier</th></tr></thead>
+			<tbody>
+				{{#each movement.rows as |m|}}
+				<tr><th>{{m.label}}</th><td>{{m.current}}</td>
+					<td><input type="number" class="tm-box" data-sec="movement" data-field="{{m.field}}"></td><td>{{m.mod}}</td></tr>
+				{{/each}}
+			</tbody>
+		</table>
+		<p class="hint">Movement modifiers are a single modifier that turns into several: 2 becomes (2/20/2), 3 becomes (3/30/3).</p>
+		<div class="tm-line"><label><b>Movement Multiplier Modifier</b> <input type="number" step="any" class="tm-box" data-sec="movement" data-field="moveMulti"></label>
+			Modifier: {{movement.moveMulti}} <span class="hint">temporarily overrides the racial multiplier: 2 = x2, .5 = x1/2</span></div>
+		<div class="tm-line"><label><b>Replace Special Movement Type</b>
+			<select data-sec="movement" data-field="specialType">{{#each movement.specialTypes as |t|}}<option value="{{t.value}}" {{#if t.selected}}selected{{/if}}>{{t.label}}</option>{{/each}}</select></label>
+			Temp Special Movement: {{movement.specialType}}
+			<label>Speed Multiplier <input type="number" step="any" class="tm-box" data-sec="movement" data-field="specialSpeed"></label> now {{movement.specialSpeed}}</div>
+		<div class="tm-buttons"><button type="button" data-action="setSection" data-section="movement">SET</button>
+			<button type="button" data-action="clearSection" data-section="movement">CLEAR</button></div>
+	</fieldset>
+
+	{{!-- COMBAT --}}
+	<fieldset class="tm-section" data-section="combat">
+		<legend>Combat</legend>
+		<table class="tm-table">
+			<thead><tr><th></th>{{#each combat.rows as |r|}}<th>{{r.label}}</th>{{/each}}</tr></thead>
+			<tbody>
+				<tr><th>Current Values</th>{{#each combat.rows as |r|}}<td>{{lookup ../combat.current r.field}}</td>{{/each}}</tr>
+				<tr><th>Input Modifier</th>{{#each combat.rows as |r|}}<td><input type="number" class="tm-box" data-sec="combat" data-field="{{r.field}}"></td>{{/each}}</tr>
+				<tr><th>Modifiers</th>{{#each combat.rows as |r|}}<td>{{r.mod}}</td>{{/each}}</tr>
+			</tbody>
+		</table>
+		<div class="tm-line"><label>Extra Dice Damage: {{combat.extraDice}} <input type="number" class="tm-box" data-sec="combat" data-field="extraDice"></label>
+			<label>Extra Damage per Die: {{combat.extraPerDie}} <input type="number" class="tm-box" data-sec="combat" data-field="extraPerDie"></label></div>
+		<div class="tm-line"><label><b>Temporary Ambidexterity?</b> <input type="checkbox" data-sec="combat" data-field="ambidextrous" {{#if combat.ambidextrous}}checked{{/if}}></label>
+			<label><b>Shock Immunity?</b> <input type="checkbox" data-sec="combat" data-field="shockImmune" {{#if combat.shockImmune}}checked{{/if}}></label></div>
+		<div class="tm-line"><label><b>Speed Seconds</b>
+			<select data-sec="combat" data-field="speedSeconds">{{#each combat.speedOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label></div>
+		{{#each combat.singles as |s|}}
+		<div class="tm-line"><label><b>{{s.label}}</b> <input type="number" class="tm-box" data-sec="combat" data-field="{{s.field}}"></label> Modifier: {{s.mod}}</div>
+		{{/each}}
+		<p class="hint">Force/Spiritual Armor, Outer Kinetic Armor and Damage Absorption effects on armor pieces are already accounted for.
+			Pain Threshold reduces or adds to all incoming damage (-/+). A point of fumble or called shot range adds 1 (on a d20) to the chance:
+			a called shot increase of 2 means called shots now occur on a natural 20, 19 or 18 (for a beginner). Hide and the four armours cannot be less than 1.</p>
+		<div class="tm-buttons"><button type="button" data-action="setSection" data-section="combat">SET</button>
+			<button type="button" data-action="clearSection" data-section="combat">CLEAR</button></div>
+	</fieldset>
+
+	{{!-- EQUIPMENT --}}
+	<fieldset class="tm-section" data-section="equipment">
+		<legend>Equipment</legend>
+		<div class="tm-line"><label><b>Weight Modifier</b> <input type="number" step="any" class="tm-box" data-sec="equipment" data-field="weightMulti"></label>
+			Modifier: {{equipment.weightMulti}} <span class="hint">multiplies the weight of everything carried: 2 = x2, .5 = x1/2</span></div>
+		<div class="tm-line"><label><b>Capacity Modifier</b> <input type="number" step="any" class="tm-box" data-sec="equipment" data-field="capacityMulti"></label>
+			Modifier: {{equipment.capacityMulti}} <span class="hint">multiplies what the character can carry</span></div>
+		<div class="tm-buttons"><button type="button" data-action="setSection" data-section="equipment">SET</button>
+			<button type="button" data-action="clearSection" data-section="equipment">CLEAR</button></div>
+	</fieldset>
+
+	{{!-- FATIGUE --}}
+	<fieldset class="tm-section" data-section="fatigue">
+		<legend>Fatigue</legend>
+		<table class="tm-table">
+			<thead><tr><th></th><th>Combat Skill</th><th>Melee</th><th>Missile</th><th>Damage</th><th>Movement</th><th>Weapon Speed</th><th>Faint</th></tr></thead>
+			<tbody>
+				<tr><th>Modifiers (now)</th><td>{{fatigue.now.skill}}</td><td>{{fatigue.now.melee}}</td><td>{{fatigue.now.missile}}</td>
+					<td>{{fatigue.now.damage}}</td><td>{{fatigue.now.movement}}</td><td>{{fatigue.now.weaponSpeed}}</td><td>{{fatigue.now.faint}}</td></tr>
+			</tbody>
+		</table>
+		<div class="tm-line"><label><b>Fatigue Level</b>
+			<select data-sec="fatigue" data-field="level">{{#each fatigue.levelOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+			Value: {{fatigue.level}}
+			<label><b>Fatigue Immunity?</b> <input type="checkbox" data-sec="fatigue" data-field="immune" {{#if fatigue.immune}}checked{{/if}}></label></div>
+		<table class="tm-table tm-fatigue-table">
+			<thead><tr><th>Fatigue Level</th><th>Combat Skill</th><th>Melee</th><th>Missile</th><th>Damage</th><th>Movement</th><th>Weapon Speed</th><th>Faint</th></tr></thead>
+			<tbody>
+				{{#each fatigue.table as |r|}}
+				<tr class="{{#if r.current}}tm-current{{/if}}"><th>{{r.level}}</th><td>{{r.skill}}</td><td>{{r.melee}}</td><td>{{r.missile}}</td>
+					<td>{{r.damage}}</td><td>{{r.movement}}</td><td>{{r.weaponSpeed}}</td><td>{{r.faint}}</td></tr>
+				{{/each}}
+			</tbody>
+		</table>
+		<div class="tm-line"><label><b>Mental Fatigue Level</b>
+			<select data-sec="fatigue" data-field="mentalLevel">{{#each fatigue.mentalOptions as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>{{/each}}</select></label>
+			Value: {{fatigue.mentalLevel}} Modifier: {{fatigue.mentalValue}}% <span class="hint">(-5% to all skills per level)</span>
+			<label><b>Mental Fatigue Immunity?</b> <input type="checkbox" data-sec="fatigue" data-field="mentalImmune" {{#if fatigue.mentalImmune}}checked{{/if}}></label></div>
+		<div class="tm-buttons"><button type="button" data-action="setSection" data-section="fatigue">SET</button>
+			<button type="button" data-action="clearSection" data-section="fatigue">CLEAR</button></div>
+	</fieldset>
+
+	{{!-- BERSERKING --}}
+	<fieldset class="tm-section" data-section="berserk">
+		<legend>Berserking <small>({{berserk.label}})</small></legend>
+		<div class="tm-buttons"><button type="button" data-action="berserk" data-what="berserk">BERSERK</button>
+			<span class="hint">set berserk modifiers (after a successful skill roll)</span></div>
+		<div class="tm-buttons"><button type="button" data-action="berserk" data-what="after">AFTER</button>
+			<span class="hint">set after-berserk modifiers (after the Berserking skill or Berserker Root wears off)</span></div>
+		<div class="tm-buttons"><button type="button" data-action="berserk" data-what="clear">CLEAR</button>
+			<span class="hint">clear after-berserk modifiers</span></div>
+	</fieldset>
+
+	{{!-- NON-SKILL EVOKE --}}
+	<fieldset class="tm-section" data-section="evoke">
+		<legend>Non-skill evoke</legend>
+		<div class="tm-add"><label>Magical Evoke
+			<select name="evokeName"><option value=""></option>{{#each evokeNames as |s|}}<option value="{{s.name}}">{{s.name}}</option>{{/each}}</select></label>
+			<button type="button" data-action="evoke">EVOKE</button>
+			<span class="hint">set the selected magical evoke (automatic, no skill roll)</span></div>
+		<div class="tm-buttons"><button type="button" data-action="clearEvokes">CLEAR</button>
+			<span class="hint">clear ALL active evokes</span></div>
+		<p class="hint">An evoke goes on the effects list and its description to chat. The figures a body-changing evoke alters
+			(wings, extra limbs and the rest) are not worked out for you: set them in the sections above.</p>
+	</fieldset>
+
+	<div class="tm-footer">
+		<button type="button" data-action="clearAll">CLEAR ALL</button> <span class="hint">clear ALL modifiers</span>
+		<button type="button" data-action="done">CLOSE</button>
+	</div>
+</div>

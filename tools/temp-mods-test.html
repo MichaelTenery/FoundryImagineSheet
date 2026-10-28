@@ -1,0 +1,328 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG temporary modifiers test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .p{color:#0a0}.f{color:#c00;font-weight:bold}
+.render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:720px}</style>
+<pre id="out">running...</pre>
+<h3>The window, rendered against a real derived character</h3>
+<div id="window" class="render imagine temp-modifiers"></div>
+<script type="module">
+// Tests for the Temporary Modifiers panel: module/temp-mods-rules.mjs (his setters, clearers, fatigue table, berserking,
+// temporary special movement, extra dice), what the data model does with the figures (actor-character.mjs,
+// @MARKER TEMPORARY MODIFIERS), module/temp-mods-view.mjs and the window's template compiled and rendered.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/temp-mods-test.html
+//
+// The character is built the way derive-test.html builds one: a plain data object driven through the model's own
+// prepare methods. A SET is tested by taking what resolveSetUpdate returns, writing it into the data by its path
+// (an actor update does exactly that), and deriving again.
+globalThis.foundry = {
+	abstract: { TypeDataModel: class { constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
+const R = await import("../module/temp-mods-rules.mjs");
+const V = await import("../module/temp-mods-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+	return ok;
+}
+
+// --- a character --------------------------------------------------------------------------------------------
+const KEYS = ["str","agl","vit","int","wis","knw","app","chm","soc","aur","pty","wil"];
+function makeRace() {
+	return { type: "race", name: "Testfolk", system: {
+		attributeMods: Object.fromEntries(KEYS.map(k => [k, 0])),
+		attributeLimits: Object.fromEntries(KEYS.map(k => [k, 18])),
+		endurance: { startFormula: "", startMod: 0, titleFormula: "", titleDice: "", titleMax: 0, titleMod: 0 },
+		characteristicMods: { perception: 0, affinity: 0, fortune: 0 },
+		resistanceMods: { magic: 0, illusion: 0, control: 0, poison: 0, disease: 0 },
+		movement: { speedMultiplier: 1,
+			walk: { hourly: 0, tenSec: 0, oneSec: 0 }, jog: { hourly: 0, tenSec: 0, oneSec: 0 }, run: { hourly: 0, tenSec: 0, oneSec: 0 },
+			specialName: "", special: {}, jumpStand: 0, jumpUp: 0 },
+		formless: false, canSwim: true } };
+}
+function makeData() {
+	const attributes = {};
+	for (const k of KEYS) { attributes[k] = { rating: 14, permMod: 0, tempMod: 0 }; }
+	const characteristic = () => ({ titleBonus: 0, raceMod: 0, permMod: 0, tempMod: 0 });
+	const resistance = () => ({ misc: 0, immune: false });
+	return {
+		identity: { title: 5 }, attributes,
+		characteristics: { endurance: characteristic(), perception: characteristic(), affinity: characteristic(), fortune: characteristic() },
+		resistances: { magic: resistance(), illusion: resistance(), control: resistance(), poison: resistance(), disease: resistance() },
+		body: { bodyType: "Humanoid", areas: [], armorDamage: {}, hide: 0 },
+		combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0, speedSeconds: 0,
+			painThreshold: 0, damageAbsorb: 0, spiritArmor: 0, forceArmor: 0, outerKinetic: 0,
+			weaponLoreList: "", missileLoreList: "", projectileLoreList: "", secondWeaponKnowList: "", secondWeaponLoreList: "",
+			situation: { kind: "", selected: [], weaponId: "" } },
+		physical: { weight: 180, heightFeet: 6, heightInches: 0, handedness: "Right", famorian: {} },
+		languages: [],
+		skillSlotMoves: { racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0, racialSacrificed: 0, socialSacrificed: 0 },
+		movement: { walk: { hourly: 0, tenSec: 0, oneSec: 0 }, jog: { hourly: 0, tenSec: 0, oneSec: 0 }, run: { hourly: 0, tenSec: 0, oneSec: 0 },
+			special: { hourly: 0, tenSec: 0, oneSec: 0 }, specialName: "", travelHours: 0, restHours: 0, jumpStand: 0, jumpUp: 0 },
+		magic: { effectList: "" },
+		tempMods: {
+			magicAttr: Object.fromEntries(KEYS.map(k => [k, 0])),
+			walk: 0, jog: 0, run: 0, special: 0, dailyMove: 0, dailyRest: 0, standJump: 0, upJump: 0, moveMulti: 1,
+			specialType: "", specialSpeed: 1, weaponSpeed: 0, extraDice: 0, extraPerDie: 0, fumble: 0, calledShot: 0,
+			ambidextrous: false, shockImmune: false, weightMulti: 1, capacityMulti: 1,
+			fatigue: { level: 0, immune: false, mentalLevel: 0, mentalImmune: false }, berserk: "" }
+	};
+}
+const SKILL = { type: "skill", name: "Climb", system: { attr1: "str", attr2: "agl", skillRating: 3, misc: 0, startingBonus: 0,
+	abilityBonus: 0, isCommon: false, category: "class", acquiredAtTitle: 0 } };
+const GEAR = { type: "equipment", name: "Pack", system: { weight: 40, quantity: 1, location: "carried", magicBonus: 0 } };
+
+// Derive a fresh model from the raw data, as the actor does after an update.
+function derive(data) {
+	const c = new ImagineCharacterData(structuredClone(data));
+	c.parent = { items: [makeRace(), structuredClone(SKILL), structuredClone(GEAR)] };
+	c.prepareBaseData();
+	c.prepareDerivedData();
+	return c;
+}
+// Write an update's paths into the raw data: "system.a.b" sets data.a.b.
+function apply(data, update) {
+	for (const [path, value] of Object.entries(update)) {
+		const parts = path.replace(/^system\./, "").split(".");
+		let at = data;
+		for (const p of parts.slice(0, -1)) { at[p] = at[p] ?? {}; at = at[p]; }
+		at[parts.at(-1)] = value;
+	}
+	return data;
+}
+const SET = (data, section, inputs) => apply(data, R.resolveSetUpdate(section, derive(data), inputs));
+const CLEAR = (data, section) => apply(data, R.resolveClearUpdate(section, derive(data)));
+
+const data0 = makeData();
+const base = derive(data0);
+check("fixture: STR 14, natural max 18, magical max above it",
+	[base.attributes.str.value, base.attributes.str.max, base.attributes.str.magicalMax > 18], [14, 18, true]);
+
+// --- the fatigue table: the sheet's and the book's (p.199), not his code's ------------------------------------
+check("fatigue 0 is nothing", R.getFatigueLevelValues(0), { level: 0, skill: 0, melee: 0, missile: 0, damage: 0, movement: 1, weaponSpeed: 0, faint: "None" });
+check("fatigue 4: -20%, -2 to hit, -3 damage, half speed, +2 seconds, VIT save",
+	R.getFatigueLevelValues(4), { level: 4, skill: -20, melee: -2, missile: -2, damage: -3, movement: 0.5, weaponSpeed: 2, faint: "VIT Save" });
+check("fatigue 10: -50%, -8, -9, quarter speed, +5, VIT Save-30%",
+	R.getFatigueLevelValues(10), { level: 10, skill: -50, melee: -8, missile: -8, damage: -9, movement: 0.25, weaponSpeed: 5, faint: "VIT Save-30%" });
+check("a level outside 0-10 is held to it", [R.getFatigueLevelValues(-3).level, R.getFatigueLevelValues(14).level], [0, 10]);
+check("movement only ever slows as fatigue rises",
+	Object.values(R.FATIGUE_TABLE).every((row, i, rows) => i == 0 || row[4] <= rows[i - 1][4]), true);
+
+// --- attributes: his setSTRAttributeModifiers -----------------------------------------------------------------
+check("mundane +3 on 14 is held to the natural maximum 18, so the modifier is +3 only up to 18",
+	R.resolveAttributeMods({ original: 14, max: 18, magicalMax: 25, mundaneMod: 0, magicMod: 0, mundaneInput: "6", magicInput: "" }),
+	{ mundane: 4, magic: 0 });
+check("magic goes past the natural maximum, to the magical one",
+	R.resolveAttributeMods({ original: 14, max: 18, magicalMax: 25, mundaneMod: 0, magicMod: 0, mundaneInput: "", magicInput: "20" }),
+	{ mundane: 0, magic: 11 });
+check("neither goes below 0", R.resolveAttributeMods({ original: 3, max: 18, magicalMax: 25, mundaneMod: 0, magicMod: 0, mundaneInput: "-9", magicInput: "" }),
+	{ mundane: -3, magic: 0 });
+check("a blank box leaves the held modifier; a typed 0 takes it off",
+	[R.resolveAttributeMods({ original: 14, max: 18, magicalMax: 25, mundaneMod: 2, magicMod: 1, mundaneInput: "", magicInput: "" }),
+	 R.resolveAttributeMods({ original: 14, max: 18, magicalMax: 25, mundaneMod: 2, magicMod: 1, mundaneInput: "0", magicInput: "0" })],
+	[{ mundane: 2, magic: 1 }, { mundane: 0, magic: 0 }]);
+check("typing again REPLACES: +2 twice is +2", R.resolveAttributeMods({ original: 14, max: 18, magicalMax: 25, mundaneMod: 2, magicMod: 0, mundaneInput: "2", magicInput: "" }),
+	{ mundane: 2, magic: 0 });
+
+let d = makeData();
+SET(d, "attributes", { strMundane: "2", aglMagic: "7" });
+let c = derive(d);
+check("SET: STR 14 -> 16 mundane", c.attributes.str.value, 16);
+check("SET: AGL 14 -> 21 magic (past the natural 18)", c.attributes.agl.value, 21);
+check("SET: the attribute's table figures follow the new value (STR 16 reads as STR 16 does)", c.attributes.str.mods.meleeDamage,
+	derive(Object.assign(makeData(), { attributes: Object.fromEntries(KEYS.map(k => [k, { rating: k == "str" ? 16 : 14, permMod: 0, tempMod: 0 }])) })).attributes.str.mods.meleeDamage);
+SET(d, "attributes", { strMundane: "9" });
+check("SET again: mundane is held to the natural maximum", derive(d).attributes.str.value, 18);
+CLEAR(d, "attributes");
+check("CLEAR: back to 14 and 14", [derive(d).attributes.str.value, derive(d).attributes.agl.value], [14, 14]);
+
+// --- characteristics ---------------------------------------------------------------------------------------
+d = makeData();
+const endBase = derive(d).characteristics.endurance.value;
+SET(d, "characteristics", { endurance: "5", fortune: "-99" });
+c = derive(d);
+check("SET: Endurance +5", c.characteristics.endurance.value, endBase + 5);
+check("SET: shock follows Endurance (x3)", c.body.shock, (endBase + 5) * 3);
+check("SET: a modifier cannot take a characteristic below 0", c.characteristics.fortune.value, 0);
+CLEAR(d, "characteristics");
+check("CLEAR: Endurance and Fortune restored", [derive(d).characteristics.endurance.value, derive(d).characteristics.fortune.value],
+	[endBase, base.characteristics.fortune.value]);
+
+// --- resistances -------------------------------------------------------------------------------------------
+d = makeData();
+const magicBase = derive(d).resistances.magic.value;
+SET(d, "resistances", { magic: "10", poisonImmune: true });
+c = derive(d);
+check("SET: Magic +10", c.resistances.magic.value, magicBase + 10);
+check("SET: Poison immune reads as no figure", c.resistances.poison.value, null);
+CLEAR(d, "resistances");
+check("CLEAR: both restored", [derive(d).resistances.magic.value, derive(d).resistances.poison.value], [magicBase, base.resistances.poison.value]);
+
+// --- movement ----------------------------------------------------------------------------------------------
+d = makeData();
+const walk0 = derive(d).movement.walk;
+SET(d, "movement", { walk: "2", standJump: "1" });
+c = derive(d);
+check("SET: walk +2 is +2 an hour, +20 per ten seconds, +2 per second",
+	[c.movement.walk.hourly - walk0.hourly, c.movement.walk.tenSec - walk0.tenSec, c.movement.walk.oneSec - walk0.oneSec], [2, 20, 2]);
+check("SET: the standing jump", c.movement.jumpStand - base.movement.jumpStand, 1);
+SET(d, "movement", { moveMulti: "2" });
+check("SET: a temporary multiplier of 2 doubles the walk (before the flat modifier)",
+	derive(d).movement.walk.tenSec, Math.round(derive(Object.assign(makeData())).movement.walk.tenSec * 2 * 10) / 10 + 20);
+SET(d, "movement", { specialType: "Swim:", specialSpeed: "" });
+c = derive(d);
+check("SET: Replace Special Movement Type gives the character a Swim rate off its walk", [c.movement.specialName, c.movement.special.oneSec > 0], ["Swim:", true]);
+CLEAR(d, "movement");
+c = derive(d);
+check("CLEAR: movement restored", [c.movement.walk.tenSec, c.movement.specialName, c.movement.jumpStand], [walk0.tenSec, "", base.movement.jumpStand]);
+check("his temporary special rates", [
+	R.resolveTempSpecialMovement("Swim:", { walk: { hourly: 4, tenSec: 40, oneSec: 4 }, run: {} }, 1, 1, 12, 0),
+	R.resolveTempSpecialMovement("Fly(S):", { walk: {}, run: {} }, 1, 1, 12, 0),
+	R.resolveTempSpecialMovement("Sprint:", { walk: {}, run: {} }, 2, 1, 12, 3)],
+	[{ hourly: 2, tenSec: 20, oneSec: 2 }, { hourly: 36, tenSec: 360, oneSec: 36 }, { hourly: 6, tenSec: 60, oneSec: 6 }]);
+
+// --- combat: the seven columns and what they reach -----------------------------------------------------------
+d = makeData();
+const cb = derive(d);
+SET(d, "combat", { melee: "2", missile: "-1", damage: "3", defensive: "1", initiative: "-2", weaponSpeed: "1", skills: "10" });
+c = derive(d);
+check("SET: melee and missile sit in the Misc fields the attacks read", [c.combat.meleeMisc, c.combat.missileMisc, c.combat.damageMisc], [2, -1, 3]);
+check("SET: initiative and defence", [c.combat.initiativeMod - cb.combat.initiativeMod, c.combat.defensiveAdjust - cb.combat.defensiveAdjust], [-2, 1]);
+check("SET: weapon speed +1", c.combat.weaponSpeedMod - cb.combat.weaponSpeedMod, 1);
+check("SET: skills +10% reaches a skill's chance", c.parent.items.length > 0 && c.combat.tempSkillMod, 10);
+check("SET: a skill's total chance carries it",
+	derive(d).parent.items.find(i => i.type == "skill").system.totalChance - derive(makeData()).parent.items.find(i => i.type == "skill").system.totalChance, 10);
+SET(d, "combat", { extraDice: "1", extraPerDie: "2" });
+SET(d, "combat", { extraDice: "1" });
+check("SET: the two extra damage boxes ADD (1 then 1 more is 2 dice; per die stays 2)", [derive(d).combat.extraDice, derive(d).combat.extraPerDie], [2, 2]);
+SET(d, "combat", { hide: "4", forceArmor: "0", spiritArmor: "3", outerKinetic: "-5", damageAbsorb: "6", painThreshold: "-2", speedSeconds: "3", fumble: "2", calledShot: "1" });
+c = derive(d);
+check("SET: hide, spirit armour and absorption reach the fields the damage code reads",
+	[c.body.hide, c.combat.spiritArmor, c.combat.damageAbsorb, c.combat.painThreshold, c.combat.speedSeconds], [4, 3, 6, -2, 3]);
+check("SET: an armour under 1 is held at 0 (his 'cannot be less than 1')", [c.combat.outerKinetic, c.combat.forceArmor], [0, 0]);
+check("SET: fumble and called-shot range increases", [c.combat.fumbleRangeMod, c.combat.calledShotRangeMod], [2, 1]);
+SET(d, "combat", { ambidextrous: true, shockImmune: true });
+c = derive(d);
+check("SET: temporary ambidexterity overrides handedness and keeps the stored one", [c.physical.handedness, c.physical.storedHandedness], ["Ambidextrous", "Right"]);
+d.body.areas = []; d.body.overallWounds = 0;
+check("SET: shock immunity", derive(d).body.inShock, false);
+CLEAR(d, "combat");
+c = derive(d);
+check("CLEAR: every combat modifier back",
+	[c.combat.meleeMisc, c.combat.damageMisc, c.combat.tempSkillMod, c.combat.extraDice, c.body.hide, c.combat.spiritArmor,
+	 c.combat.speedSeconds, c.combat.fumbleRangeMod, c.physical.handedness, c.combat.weaponSpeedMod === cb.combat.weaponSpeedMod],
+	[0, 0, 0, 0, 0, 0, 0, 0, "Right", true]);
+
+// --- the extra dice his way -----------------------------------------------------------------------------------
+check("2d6 with 1 extra die and 2 per die: 3d6 and +6", R.applyExtraDice("2d6", 1, 2), { dice: "3d6", flat: 6 });
+check("1d8+1 keeps its flat part", R.applyExtraDice("1d8+1", 2, 0), { dice: "3d8+1", flat: 0 });
+check("a flat weapon damage takes neither", R.applyExtraDice("3", 2, 2), { dice: "3", flat: 0 });
+
+// --- equipment ---------------------------------------------------------------------------------------------
+d = makeData();
+const enc0 = derive(d).encumbrance;
+SET(d, "equipment", { weightMulti: "2", capacityMulti: "3" });
+c = derive(d);
+check("SET: carried x2, every band x3", [c.encumbrance.carried, c.encumbrance.maxLoad], [Math.round(enc0.carried * 2 * 10) / 10, Math.round(enc0.maxLoad * 3 * 10) / 10]);
+SET(d, "equipment", { weightMulti: "0" });
+check("a multiplier of 0 or less is 'none' (1)", derive(d).tempMods.weightMulti, 1);
+CLEAR(d, "equipment");
+check("CLEAR: equipment restored", [derive(d).encumbrance.carried, derive(d).encumbrance.maxLoad], [enc0.carried, enc0.maxLoad]);
+
+// --- fatigue -----------------------------------------------------------------------------------------------
+d = makeData();
+SET(d, "fatigue", { level: "4", mentalLevel: "2" });
+c = derive(d);
+check("SET: fatigue 4 takes 2 off a melee roll, 3 off damage, 2 seconds on a swing",
+	[c.combat.meleeAttack - cb.combat.meleeAttack, c.combat.fatigue.damage, c.combat.weaponSpeedMod - cb.combat.weaponSpeedMod], [-2, -3, 2]);
+check("SET: -20% fatigue and -10% mental fatigue are -30% on every skill", c.combat.tempSkillMod, -30);
+check("SET: movement at half", c.movement.walk.tenSec, Math.round(derive(makeData()).movement.walk.tenSec * 0.5 * 10) / 10);
+SET(d, "fatigue", { level: "9", immune: true, mentalLevel: "3", mentalImmune: true });
+c = derive(d);
+check("SET: immunity forces the level to 0 and takes mental fatigue off too", [c.tempMods.fatigue.level, c.tempMods.fatigue.mentalLevel, c.combat.tempSkillMod], [0, 0, 0]);
+CLEAR(d, "fatigue");
+check("CLEAR: fatigue gone", [derive(d).combat.tempSkillMod, derive(d).combat.fatigue.movement], [0, 1]);
+
+// --- berserking: his three buttons ---------------------------------------------------------------------------
+d = makeData();
+let r = R.resolveBerserk("after", derive(d));
+check("AFTER is refused when not berserk", r.ok, false);
+r = R.resolveBerserk("berserk", derive(d));
+apply(d, r.update);
+c = derive(d);
+check("BERSERK: STR/AGL/VIT/WIL +2, INT/WIS/KNW lose half, shock immunity, Berserking listed",
+	[c.attributes.str.value, c.attributes.wil.value, c.attributes.int.value, c.attributes.wis.value, c.body.inShock, c.magic.effectList],
+	[16, 16, 7, 7, false, "Berserking"]);
+check("BERSERK: Endurance +half", c.characteristics.endurance.tempMod, Math.floor(derive(makeData()).characteristics.endurance.value * 0.5));
+check("BERSERK again is refused", R.resolveBerserk("berserk", derive(d)).ok, false);
+apply(d, R.resolveBerserk("after", derive(d)).update);
+c = derive(d);
+check("AFTER: STR/AGL/VIT a net -2, mental attributes back, Endurance back, effect renamed",
+	[c.attributes.str.value, c.attributes.int.value, c.characteristics.endurance.tempMod, c.magic.effectList, c.tempMods.berserk],
+	[12, 14, 0, "Berserking(after effects)", "after"]);
+check("BERSERK from the after state is refused", R.resolveBerserk("berserk", derive(d)).ok, false);
+apply(d, R.resolveBerserk("clear", derive(d)).update);
+c = derive(d);
+check("CLEAR: back to 14 and no effect", [c.attributes.str.value, c.magic.effectList, c.tempMods.berserk], [14, "", ""]);
+
+// --- effect names and CLEAR ALL -------------------------------------------------------------------------------
+check("effects add once and without commas", R.addEffect(R.addEffect("Spell: Fly", "Spell: Fly"), "Open, one"), "Spell: Fly, Open one");
+check("remove takes the named one", R.removeEffects("A, B, C", e => e == "B"), "A, C");
+d = makeData();
+SET(d, "attributes", { strMundane: "2" }); SET(d, "characteristics", { endurance: "3" }); SET(d, "combat", { melee: "1", hide: "2" });
+SET(d, "fatigue", { level: "3" }); SET(d, "equipment", { weightMulti: "2" });
+apply(d, R.resolveBerserk("berserk", derive(d)).update);
+d.magic.effectList = "Spell: Fly, Evoke: Wings, Berserking";
+CLEAR(d, null);
+c = derive(d);
+check("CLEAR ALL: everything back to the plain character, spells kept, evokes and berserking off",
+	[c.attributes.str.value, c.characteristics.endurance.value, c.combat.meleeMisc, c.body.hide, c.combat.tempSkillMod,
+	 c.encumbrance.carried, c.tempMods.berserk, c.magic.effectList],
+	[14, base.characteristics.endurance.value, 0, 0, 0, base.encumbrance.carried, "", "Spell: Fly"]);
+
+// --- the view and the window's template ----------------------------------------------------------------------
+d = makeData();
+SET(d, "attributes", { strMundane: "2", aglMagic: "7" });
+SET(d, "fatigue", { level: "4" });
+SET(d, "combat", { melee: "2", painThreshold: "-1" });
+d.magic.effectList = "Spell: Fly";
+const sys = derive(d);
+const view = V.buildTempModsView(sys, { spells: ["Chill", "Fly"], invocations: ["Bless"], evokes: ["Wings"] });
+check("view: twelve attribute columns with their ceilings", [view.attributes.length, view.attributes[0].current, view.attributes[0].mundaneMod, view.attributes[1].magicMod],
+	[12, 16, 2, 7]);
+check("view: the fatigue table has 11 rows and marks the held one", [view.fatigue.table.length, view.fatigue.table.filter(r => r.current).map(r => r.level)], [11, [4]]);
+check("view: combat rows, singles, effects", [view.combat.rows.length, view.combat.singles.length, view.effects], [7, 8, ["Spell: Fly"]]);
+check("view: the special movement dropdown starts at None and lists his eight",
+	[view.movement.specialTypes.length, view.movement.specialTypes[0].selected], [9, true]);
+
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+const source = await (await fetch("../templates/apps/temp-modifiers.hbs", { cache: "no-store" })).text();
+const html = Handlebars.compile(source)(view);
+document.getElementById("window").innerHTML = html;
+const text = document.getElementById("window").textContent;
+check("the window names every section he has",
+	["Effect names", "Attributes", "Characteristics", "Resistances", "Movement", "Combat", "Equipment", "Fatigue", "Berserking", "Non-skill evoke"].every(s => text.includes(s)), true);
+check("the window shows his labels", ["Input Mundane", "Magical Maximum", "Mental Fatigue Level", "Replace Special Movement Type", "Temporary Ambidexterity?",
+	"Pain Threshold", "CLEAR ALL", "CLOSE", "VIT Save-30%"].every(s => text.includes(s)), true);
+check("the window has a SET and a CLEAR per section and one box per attribute and column",
+	[(html.match(/data-action="setSection"/g) || []).length, (html.match(/data-action="clearSection"/g) || []).length,
+	 (html.match(/data-field="\w+(Mundane|Magic)"/g) || []).length], [7, 7, 24]);
+
+const passed = results.filter(r => r.startsWith("PASS")).length;
+const failed = results.length - passed;
+document.getElementById("out").innerHTML =
+	results.map(r => `<span class="${r.startsWith("PASS") ? "p" : "f"}">${r}</span>`).join("\n")
+	+ `\n\n${passed} passed, ${failed} failed`;
+</script>

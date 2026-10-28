@@ -1,0 +1,60 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG updater test</title>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the Character Updater's list and the GME attack-skill change: module/updater-rules.mjs.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/updater-test.html
+const U = await import("../module/updater-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- the list ---------------------------------------------------------------------------------------
+const ids = U.UPDATER_ENTRIES.map(r => r[0]);
+check("every row has a unique id", new Set(ids).size, ids.length);
+check("every row is one of the four kinds", U.UPDATER_ENTRIES.filter(r => !["open", "inline", "where", "later"].includes(r[3])).map(r => r[0]), []);
+check("every 'open' row names a window", U.UPDATER_ENTRIES.filter(r => r[3] == "open" && !r[4]).map(r => r[0]), []);
+check("every 'where' row says where", U.UPDATER_ENTRIES.filter(r => r[3] == "where" && !r[6]).map(r => r[0]), []);
+
+// --- who may use what -------------------------------------------------------------------------------
+const player = U.buildUpdaterChoices({ isGME: false, isGM: false });
+const gme = U.buildUpdaterChoices({ isGME: true, isGM: false });
+const gm = U.buildUpdaterChoices({ isGME: false, isGM: true });
+const row = (list, id) => list.find(r => r.id == id);
+check("a player cannot change a GME attack skill", row(player, "gmeAttack").usable, false);
+check("...and is told why", row(player, "gmeAttack").why.includes("GME"), true);
+check("a GME can", row(gme, "gmeAttack").usable, true);
+check("only a Game Master gets the experience tools", [row(player, "gmTools").usable, row(gm, "gmTools").usable], [false, true]);
+// A row not built yet stays listed but closed -- whichever row that is today (another may since have been built).
+const laterRow = player.find(r => r.kind == "later");
+if (laterRow) { check("a row not built yet stays listed but closed", [laterRow.usable, laterRow.why], [false, "Not built yet."]); }
+check("weapon proficiency opens the Weapon Choices window", [row(player, "weaponProf").usable, row(player, "weaponProf").call, row(player, "weaponProf").args], [true, "weaponChoices", ["proficiency"]]);
+check("each of his six lore/know pickers is its own row on the same window",
+	["weaponLore", "missileLore", "secondKnow", "secondLore", "projectileKnow", "projectileLore"].map(id => row(player, id)?.call + ":" + row(player, id)?.args[0]),
+	["weaponChoices:weaponLore", "weaponChoices:missileLore", "weaponChoices:secondKnow", "weaponChoices:secondLore", "weaponChoices:projectileKnow", "weaponChoices:projectileLore"]);
+check("a soldiering window is open to anyone", row(player, "soldiering").usable, true);
+check("armour knowledge and lore open the same window with different arguments",
+	[row(player, "armorKnow").call, row(player, "armorKnow").args, row(player, "armorLore").call, row(player, "armorLore").args],
+	["armorKnowledge", ["know"], "armorKnowledge", ["lore"]]);
+
+// --- the GME's attack skill -------------------------------------------------------------------------
+check("six charts", U.GME_ATTACK_SKILLS.length, 6);
+check("a non-GME is refused", U.resolveGmeAttackChange(false, "Beginner", "Master").ok, false);
+check("a GME may move up", U.resolveGmeAttackChange(true, "Beginner", "Intermediate"), { ok: true, skill: "Intermediate", message: "Attack skill is now Intermediate." });
+check("a GME may move down", U.resolveGmeAttackChange(true, "Master", "Novice").ok, true);
+check("the same chart is no change", U.resolveGmeAttackChange(true, "Novice", "Novice").ok, false);
+check("a made-up chart is refused", U.resolveGmeAttackChange(true, "Novice", "Godlike").ok, false);
+check("a blank choice is refused", U.resolveGmeAttackChange(true, "Novice", "").message, "Choose an attack skill.");
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

@@ -1,0 +1,57 @@
+{{!--
+	The Weapon Choices window: his seven Updater panels for weapon proficiency and the weapons named for each lore.
+	One root element, as the framework requires. Everything here comes from buildWeaponChoicesView
+	(module/weapon-choices-view.mjs).
+--}}
+<div class="weapon-choices-window">
+	<div class="form-group"><label>What do you want to do?
+		<select name="kind">
+			{{#each kinds as |k|}}<option value="{{k.value}}" {{#if k.selected}}selected{{/if}}>{{k.label}}</option>{{/each}}
+		</select></label></div>
+
+	<h3>{{label}}</h3>
+
+	{{#if blocked}}
+	<p class="hint alarm">{{blocked}}</p>
+	{{else}}
+
+	{{#if isProficiency}}
+	<div class="wc-totals">
+		<span><strong>Total weapon proficiencies:</strong> {{profTotal}}</span>
+		<span><strong>Used:</strong> {{profUsed}}</span>
+		<span><strong>Available:</strong> {{profAvailable}}</span>
+	</div>
+	<p class="hint">One for every whole 10% of Weapon Knowledge ({{chance}}%). A weapon not proficient in is at <strong>{{nonProfPenalty}}</strong> to hit.
+	{{#if profUntracked}} No proficiencies are recorded for this character yet, so no weapon is penalised; the first one added starts the list.{{/if}}</p>
+	<p><strong>Current weapon proficiencies:</strong> {{currentLine}}</p>
+	{{else}}
+	{{#if hasSlots}}<p><strong>{{skill}} slots:</strong> {{slots}} &nbsp; <strong>Chance:</strong> {{chance}}%</p>
+	{{else}}<p><strong>Chance:</strong> {{chance}}%</p>{{/if}}
+	<p><strong>Current:</strong> {{currentLine}}</p>
+	{{#if needsProficiency}}<p class="hint">Only a weapon the character is proficient in can be chosen.</p>{{/if}}
+	{{/if}}
+
+	<div class="form-group"><label>{{#if (eq thing "projectile")}}Projectile{{else}}Weapon{{/if}}
+		<select name="weapon">
+			<option value=""></option>
+			{{#each options as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}}</option>{{/each}}
+		</select></label></div>
+	{{#unless hasOptions}}<p class="hint">Nothing to choose from.</p>{{/unless}}
+
+	<p><button type="button" data-action="add">Add</button> <span class="hint">{{addNote}}</span></p>
+	{{#if initialOffered}}
+	<p><button type="button" data-action="addInitial">Add initial</button> <span class="hint">click here to add selected weapon as an initial weapon already proficient in.</span></p>
+	{{/if}}
+
+	{{#if isGM}}
+	<div class="form-group wc-remove"><label>Remove (GM)
+		<select name="remove">
+			<option value=""></option>
+			{{#each current as |c|}}<option value="{{c}}">{{c}}</option>{{/each}}
+		</select></label>
+		<button type="button" data-action="remove">Remove</button></div>
+	{{/if}}
+	{{/if}}
+
+	<div class="form-footer"><button type="button" data-action="done">Done</button></div>
+</div>

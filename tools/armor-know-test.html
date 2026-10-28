@@ -1,0 +1,252 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG armor knowledge test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:560px}</style>
+<pre id="out">running...</pre>
+<h3>Armor Knowledge, acquired, a set learned and one worn</h3>
+<div id="window" class="render imagine armor-know"></div>
+<h3>Armor Lore, not yet acquired</h3>
+<div id="window2" class="render imagine armor-know"></div>
+<script type="module">
+// Tests for armor knowledge and lore: module/armor-know-rules.mjs (the set, the slots, the roll, what a learned
+// set does), module/armor-know-view.mjs, the window's template rendered against the view, and the character
+// model's _prepareArmorSkills driven end to end against a worn scale suit.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/armor-know-test.html
+globalThis.foundry = {
+	abstract: { TypeDataModel: class { constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+
+const R = await import("../module/armor-know-rules.mjs");
+const V = await import("../module/armor-know-view.mjs");
+const { default: ImagineCharacterData } = await import("../module/data/actor-character.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- the set worn: shields and clothing are not part of it (his includes("Shield") / "Clothing" test) ------
+const piece = (name, extra = {}) => ({ name, system: { isShield: false, flexibility: "Flexible", ...extra } });
+const worn = [piece("Arm Bracer(Plate)"), piece("Large Shield", { isShield: true }), piece("Tunic", { flexibility: "Clothing" }),
+              piece("Gauntlets(Chain)")];
+check("the set worn leaves out the shield and the clothing", R.getEquippedArmorSet(worn), ["Arm Bracer(Plate)", "Gauntlets(Chain)"]);
+check("nothing worn is an empty set", R.getEquippedArmorSet([]), []);
+
+// --- his two strings ---------------------------------------------------------------------------------
+check("a list reads into sets: pieces by '|', sets by ','",
+	R.parseConfigList("A|B,C|D"), [["A", "B"], ["C", "D"]]);
+check("blank, undefined and the word 'undefined' are no sets", [R.parseConfigList(""), R.parseConfigList(undefined), R.parseConfigList("undefined")], [[], [], []]);
+check("a set is written back the way it was read", R.formatConfigList(R.parseConfigList("A|B,C|D")), "A|B,C|D");
+check("adding a set appends with ','", R.addConfig("A|B", ["C", "D"]), "A|B,C|D");
+check("...to nothing, with no leading comma", R.addConfig("", ["C", "D"]), "C|D");
+
+// --- already learned: any learned set holding every piece worn --------------------------------------------
+check("the exact set is learned", R.isConfigLearned(["A", "B"], "A|B"), true);
+check("a LARGER learned set covers a smaller one worn (his every-piece-found test)", R.isConfigLearned(["A"], "A|B"), true);
+check("a piece not in the set means not learned", R.isConfigLearned(["A", "X"], "A|B"), false);
+check("found in the second set of two", R.isConfigLearned(["C"], "A|B,C|D"), true);
+check("nothing worn is never learned; nothing learned is never learned", [R.isConfigLearned([], "A|B"), R.isConfigLearned(["A"], "")], [false, false]);
+check("a piece must EQUAL one of the set's (his substring match would have said true)",
+	R.isConfigLearned(["Headgear(Chain)"], "Headgear(Chain Mail)"), false);
+
+// --- slots: practitioner title less the sets learned (89334) -----------------------------------------------
+check("title 5 with two sets learned leaves 3", R.getConfigSlots(5, "A,B"), 3);
+check("none learned: all of them", R.getConfigSlots(4, ""), 4);
+check("a class that has them used up goes to 0, and a title of 0 reads below it", [R.getConfigSlots(2, "A,B"), R.getConfigSlots(0, "A")], [0, -1]);
+
+// --- which of his three panels -------------------------------------------------------------------------------
+const held = { held: true, reached: true, footing: "held", chance: 60, practitionerTitle: 4 };
+const heldLater = { held: true, reached: false, footing: "held", chance: 0, practitionerTitle: 0 };
+const unheld = { held: false, reached: true, footing: "", chance: 0, practitionerTitle: 0 };
+const common = { held: false, reached: true, footing: "nonAcquired", chance: 30, practitionerTitle: 3 };
+check("Armor Knowledge held and reached: the panel", R.getArmorSkillPanel(held, false, false), "ok");
+check("Armor Knowledge held at a later title: 'has not acquired'", R.getArmorSkillPanel(heldLater, false, false), "notYet");
+check("Armor Knowledge not held but tryable on a non-acquired footing: usable (the report: Knowledge can be used)",
+	R.getArmorSkillPanel(common, false, false), "ok");
+check("Armor Knowledge not held and not tryable: the class never acquires it", R.getArmorSkillPanel(unheld, false, false), "never");
+check("Armor Lore held: the panel", R.getArmorSkillPanel(held, true, false), "ok");
+check("Armor Lore not held, though the class will give it: cannot be used until acquired", R.getArmorSkillPanel(unheld, true, true), "notYet");
+check("Armor Lore not held and never given: never", R.getArmorSkillPanel(unheld, true, false), "never");
+check("Armor Lore never rides a common footing, even if one is passed", R.getArmorSkillPanel(common, true, false), "never");
+check("his refusal, as he words it (screenshot 0.25.2, Thomas Brightberry)",
+	R.describeArmorPanel("notYet", "Armor Lore", "Thomas Brightberry", "Fighter"),
+	"Thomas Brightberry has not acquired Armor Lore. Cannot select armor configuration to remove penalties for, yet.");
+check("...the Knowledge one lowers", R.describeArmorPanel("notYet", "Armor Knowledge", "Brom", "Fighter").includes("to lower penalties for, yet"), true);
+check("...and the 'never' one names the class", R.describeArmorPanel("never", "Armor Lore", "Brom", "Fighter"),
+	"Brom's class (Fighter) does not ever acquire Armor Lore. Cannot select armor configuration to remove penalties for.");
+check("an acquired panel has no refusal", R.describeArmorPanel("ok", "Armor Lore", "Brom", "Fighter"), "");
+
+// --- the roll: his order of refusals, then a d100 not over the chance (89341) -----------------------------
+const base = { held: true, alreadyLearned: false, slotsOpen: 2, chance: 50, modifier: 0 };
+check("rolled equal to the chance passes (his total>chance fails)", R.resolveArmorConfigRoll(base, 50).outcome, "success");
+check("one over fails", R.resolveArmorConfigRoll(base, 51).outcome, "failure");
+check("no natural-100 rule: his armor roll has none", R.resolveArmorConfigRoll({ ...base, chance: 100 }, 100).outcome, "success");
+check("the MOD button's modifier is added: 45 + 20 = 65", R.resolveArmorConfigRoll({ ...base, chance: 45, modifier: 20 }, 65), { outcome: "success", roll: 65, total: 65 });
+check("no skill is refused first, before the set or the slots",
+	R.resolveArmorConfigRoll({ ...base, held: false, alreadyLearned: true, slotsOpen: 0 }, 1).outcome, "noSkill");
+check("then 'already learned', before the slots", R.resolveArmorConfigRoll({ ...base, alreadyLearned: true, slotsOpen: 0 }, 1).outcome, "alreadyLearned");
+check("then no open slots", R.resolveArmorConfigRoll({ ...base, slotsOpen: 0 }, 1).outcome, "noSlots");
+check("a refusal rolls nothing", R.resolveArmorConfigRoll({ ...base, slotsOpen: 0 }, 1).roll, null);
+check("his override 'automatic' succeeds without the die", R.resolveArmorConfigRoll({ ...base, automatic: true }, 99).outcome, "automatic");
+check("his chat line for a pass", R.describeArmorConfigRoll({ outcome: "success", roll: 40, total: 50 }, "Armor Knowledge", "Brom"),
+	"Brom attempted to learn this armor configuration with Armor Knowledge. Rolled a 40% against a 50% chance. Succeeded? = true");
+check("his chat line for no slots", R.describeArmorConfigRoll({ outcome: "noSlots" }, "Armor Lore", "Brom"), "Brom has no open Armor Lore slots. Nothing done.");
+
+// --- what a learned set does (118565-118640) ------------------------------------------------------------
+check("levels: 0-24% is still one (his || 1), 25 one, 50 two, 100 four", [0, 20, 25, 50, 100].map(R.getKnowledgeLevels), [1, 1, 1, 2, 4]);
+const raw = { skills: -20, defense: 3, initiative: 1, speed: 2 };
+check("no learned set: the penalties stand", R.applyArmorSkills(raw, { know: false, lore: false }),
+	{ skills: -20, defense: 3, initiative: 1, speed: 2, levels: 0, source: "none" });
+check("Knowledge at 60% (two levels): skills +10, defence -2, initiative and speed clamp at 0",
+	R.applyArmorSkills(raw, { know: true, knowChance: 60 }), { skills: -10, defense: 1, initiative: 0, speed: 0, levels: 2, source: "knowledge" });
+check("Knowledge never makes a penalty into a bonus: 4 levels on -5 skills is 0, not +15",
+	R.applyArmorSkills({ skills: -5, defense: 0, initiative: 0, speed: 0 }, { know: true, knowChance: 100 }).skills, 0);
+check("Knowledge leaves a bonus alone (a negative defence stays)", R.applyArmorSkills({ skills: 0, defense: -2, initiative: 0, speed: 0 },
+	{ know: true, knowChance: 50 }).defense, -2);
+check("Lore removes every penalty", R.applyArmorSkills(raw, { know: true, knowChance: 60, lore: true }),
+	{ skills: 0, defense: 0, initiative: 0, speed: 0, levels: 0, source: "lore" });
+
+// --- the view -----------------------------------------------------------------------------------------------
+const view = V.buildArmorKnowView("know", { characterName: "Brom", className: "Fighter", wornNames: ["Arm Bracer(Plate)", "Gauntlets(Chain)"],
+	list: "Arm Bracer(Plate)|Gauntlets(Chain),Great Helm(Plate)", panel: "ok", practitionerTitle: 4, chance: 55 });
+check("the view: slots 4 less 2 sets, the worn set as his span shows it, learned, the heading",
+	[view.slots, view.wornText, view.wornLearned, view.heading, view.sets.length],
+	[2, "Arm Bracer(Plate), Gauntlets(Chain)", true, "ARMOR KNOWLEDGE CONFIGURATION SELECTION:", 2]);
+check("the view: a refusal when not acquired", V.buildArmorKnowView("lore", { characterName: "Thomas Brightberry", className: "Fighter", panel: "notYet" })
+	.refusal.startsWith("Thomas Brightberry has not acquired Armor Lore"), true);
+
+// --- the template, rendered against the view ----------------------------------------------------------------
+const source = await (await fetch("../templates/apps/armor-knowledge.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(source)(view);
+const text = document.getElementById("window").textContent;
+check("the window renders his panel: worn set, slots, sets learned, the two buttons and their notes",
+	["Current equipped armor configuration (shields/clothing not included):", "Arm Bracer(Plate), Gauntlets(Chain)", "Armor Knowledge Slots:",
+	 "Current Armor Knowledge set(s):", "Great Helm(Plate)", "to lower armor penalties", "+5% per 2 points of armor magic +"].map(t => text.includes(t)),
+	[true, true, true, true, true, true, true]);
+check("...ROLL and MOD live", [!!document.querySelector("#window [data-action='rollConfig']"), !!document.querySelector("#window [data-action='rollConfigMod']")], [true, true]);
+document.getElementById("window2").innerHTML = Handlebars.compile(source)(V.buildArmorKnowView("lore", { characterName: "Thomas Brightberry", className: "Fighter", panel: "notYet" }));
+const text2 = document.getElementById("window2").textContent;
+check("not acquired: his one line, and no ROLL button",
+	[text2.includes("Thomas Brightberry has not acquired Armor Lore. Cannot select armor configuration to remove penalties for, yet."),
+	 !!document.querySelector("#window2 [data-action='rollConfig']")], [true, false]);
+
+// --- the character model: a learned set eases the worn suit's penalties ------------------------------------
+function makeFighter(extraCombat, items) {
+	const attributes = {};
+	for (const k of ["str","agl","vit","int","wis","knw","app","chm","soc","aur","pty","wil"]) {
+		attributes[k] = { rating: k == "str" ? 19 : k == "agl" ? 18 : 12, permMod: 0, tempMod: 0 };
+	}
+	const characteristic = () => ({ titleBonus: 0, raceMod: 0, permMod: 0, tempMod: 0 });
+	const resistance = () => ({ misc: 0, immune: false });
+	const c = new ImagineCharacterData({
+		identity: { title: 5 }, attributes,
+		characteristics: { endurance: characteristic(), perception: characteristic(), affinity: characteristic(), fortune: characteristic() },
+		resistances: { magic: resistance(), illusion: resistance(), control: resistance(), poison: resistance(), disease: resistance() },
+		body: { bodyType: "Humanoid", areas: [], armorDamage: {} },
+		combat: { meleeMisc: 0, missileMisc: 0, damageMisc: 0, defenseMisc: 0, initiativeMisc: 0, skillMisc: 0,
+		          weaponLoreList: "", missileLoreList: "", projectileLoreList: "", secondWeaponKnowList: "", secondWeaponLoreList: "",
+		          situation: { kind: "", selected: [], weaponId: "" }, ...extraCombat },
+		physical: { weight: 0, handedness: "", famorian: {} }, languages: [],
+		skillSlotMoves: { racialToClass: 0, racialToSocial: 0, socialToRacial: 0, socialToClass: 0, racialSacrificed: 0, socialSacrificed: 0 },
+		movement: { walk: { hourly: 0, tenSec: 0, oneSec: 0 }, jog: { hourly: 0, tenSec: 0, oneSec: 0 }, run: { hourly: 0, tenSec: 0, oneSec: 0 },
+		            special: { hourly: 0, tenSec: 0, oneSec: 0 }, specialName: "", travelHours: 0, restHours: 0, jumpStand: 0, jumpUp: 0 }
+	});
+	c.parent = { items };
+	c.prepareBaseData();
+	c.prepareDerivedData();
+	return c;
+}
+const zeroCover = { head: 0, neck: 0, shoulderLeft: 0, shoulderRight: 0, torsoUpper: 0, torsoMid: 0, torsoLower: 0, armLeft: 0, armRight: 0,
+	forearmLeft: 0, forearmRight: 0, handLeft: 0, handRight: 0, thighLeft: 0, thighRight: 0, shinLeft: 0, shinRight: 0, footLeft: 0, footRight: 0 };
+const suit = { type: "armor", name: "Body Suit(Heavy Scale)", system: { location: "equipped", material: "Heavy Scale", weight: 30, quantity: 1,
+	isShield: false, flexibility: "Rigid", penalties: { skills: -20, defense: 3, initiative: 1, speed: 2 }, coverage: zeroCover } };
+// The model works each skill's chance itself (STR/AGL against the rating, plus the starting bonus), so the
+// fixtures give it those and the expected figures below follow from what it made.
+const armorKnow = { type: "skill", name: "Armor Knowledge", system: { attr1: "STR", attr2: "AGL", skillRating: 14, startingBonus: 20,
+	abilityBonus: 0, misc: 0, category: "class", acquiredAtTitle: 1 } };
+const armorLore = { type: "skill", name: "Armor Lore", system: { attr1: "AGL", attr2: "KNW", skillRating: 18, startingBonus: 5,
+	abilityBonus: 0, misc: 0, category: "class", acquiredAtTitle: 1 } };
+const unlearned = makeFighter({}, [suit, armorKnow]);
+const knowing   = makeFighter({ armorKnowList: "Body Suit(Heavy Scale)" }, [suit, armorKnow]);
+const loring    = makeFighter({ armorKnowList: "Body Suit(Heavy Scale)", armorLoreList: "Body Suit(Heavy Scale)" }, [suit, armorKnow, armorLore]);
+const otherset  = makeFighter({ armorKnowList: "Great Helm(Plate)" }, [suit, armorKnow]);
+const knowLevels = R.getKnowledgeLevels(armorKnow.system.totalChance);
+check("no set learned: the checkboxes are off and nothing is eased", [unlearned.combat.armorKnowOn, unlearned.combat.armorLoreOn, unlearned.combat.armorSkillPenalty], [false, false, -20]);
+check("Knowledge: initiative -1 (clamped at 0 from +1), defence and speed down by the levels (3 and 2 raw), skills up 5 a level",
+	[knowing.combat.initiativeMod - unlearned.combat.initiativeMod, knowing.combat.defensiveAdjust - unlearned.combat.defensiveAdjust,
+	 knowing.combat.weaponSpeedMod - unlearned.combat.weaponSpeedMod, knowing.combat.armorSkillPenalty],
+	[-1, -Math.min(3, knowLevels), -Math.min(2, knowLevels), Math.min(0, -20 + knowLevels * 5)]);
+check("...and the armour Knowledge box is on", [knowing.combat.armorKnowOn, knowing.combat.armorLoreOn], [true, false]);
+check("Lore removes the whole suit's penalties: initiative -1, defence -3, speed -2, skills 0",
+	[loring.combat.initiativeMod - unlearned.combat.initiativeMod, loring.combat.defensiveAdjust - unlearned.combat.defensiveAdjust,
+	 loring.combat.weaponSpeedMod - unlearned.combat.weaponSpeedMod, loring.combat.armorSkillPenalty], [-1, -3, -2, 0]);
+check("a different set learned does nothing to this one", [otherset.combat.armorKnowOn, otherset.combat.armorSkillPenalty], [false, -20]);
+
+// --- forgetting a set (the port's own; his sheet only ever adds, 89392 / 89535) -----------------------------
+check("removing the first set", R.removeConfig("A|B,C|D", 0), "C|D");
+check("removing the last set", R.removeConfig("A|B,C|D", 1), "A|B");
+check("removing the only set leaves nothing", R.removeConfig("A|B", 0), "");
+check("a place out of range changes nothing", [R.removeConfig("A|B,C|D", 5), R.removeConfig("A|B,C|D", -1), R.removeConfig("A|B", "x")], ["A|B,C|D", "A|B,C|D", "A|B"]);
+check("a slot opens again once a set is forgotten", R.getConfigSlots(3, R.removeConfig("A|B,C|D", 0)), 2);
+const removable = V.buildArmorKnowView("know", { characterName: "Brom", panel: "ok", practitionerTitle: 4, chance: 55,
+	wornNames: ["A"], list: "A|B,C|D", canRemove: true });
+check("the view numbers each set for its Remove button", removable.sets, [{ index: 0, pieces: "A, B" }, { index: 1, pieces: "C, D" }]);
+document.getElementById("window").innerHTML = Handlebars.compile(source)(removable);
+check("...and the window shows a Remove button when the user may", !!document.querySelector("#window [data-action='removeConfig']"), true);
+document.getElementById("window").innerHTML = Handlebars.compile(source)({ ...removable, canRemove: false });
+check("...and none when the user may not", !!document.querySelector("#window [data-action='removeConfig']"), false);
+
+// --- the armour skills penalty on Shield Parry and Body Parry (70736, 70979), and nothing else -------------
+const parry = { type: "skill", name: "Shield Parry", system: { attr1: "AGL", attr2: "STR", skillRating: 14, startingBonus: 10,
+	abilityBonus: 0, misc: 0, category: "class", acquiredAtTitle: 1 } };
+const climb = { type: "skill", name: "Climb", system: { attr1: "STR", attr2: "AGL", skillRating: 14, startingBonus: 10,
+	abilityBonus: 0, misc: 0, category: "racial", acquiredAtTitle: 0 } };
+const bare      = makeFighter({}, [armorKnow, parry, climb]);
+const parryBare = parry.system.totalChance, climbBare = climb.system.totalChance;
+makeFighter({}, [suit, armorKnow, parry, climb]);
+check("unlearned suit: Shield Parry pays the full -20; Climb pays nothing", [parry.system.totalChance - parryBare, climb.system.totalChance - climbBare], [-20, 0]);
+makeFighter({ armorKnowList: "Body Suit(Heavy Scale)" }, [suit, armorKnow, parry, climb]);
+check("Knowledge eases it on Shield Parry by 5 a level", parry.system.totalChance - parryBare, Math.min(0, -20 + knowLevels * 5));
+makeFighter({ armorKnowList: "Body Suit(Heavy Scale)", armorLoreList: "Body Suit(Heavy Scale)" }, [suit, armorKnow, armorLore, parry, climb]);
+check("Lore removes it from Shield Parry", parry.system.totalChance - parryBare, 0);
+check("the list of skills that pay it is his two", R.ARMOR_PENALTY_SKILLS, ["Shield Parry", "Body Parry"]);
+check("the Combat tab line: Lore, Knowledge, nothing",
+	[R.describeArmorSkillsLine(false, true, 0).startsWith("Armor Lore"), R.describeArmorSkillsLine(true, false, 2).includes("+10% skills"), R.describeArmorSkillsLine(false, false, 0)],
+	[true, true, ""]);
+check("the model sets that line once a set is worn", [knowing.combat.armorSkillsLine.startsWith("Armor Knowledge"), unlearned.combat.armorSkillsLine], [true, ""]);
+check("...and the panel's armour columns show the eased share", [loring.combat.armorDefense, loring.combat.armorSpeed, loring.combat.armorInitiative], [0, 0, 0]);
+
+// --- creatures: the stat block's Armor Knowledge, both skills (his creature branch, 89290 / 89436) ----------
+check("a creature with no Armor Knowledge entry is refused", R.getCreatureArmorStanding(0, 6), { held: false, reached: false, chance: 0, practitionerTitle: 0, panel: "never" });
+check("a creature with it: its chance, and as many slots as its level", R.getCreatureArmorStanding(45, 6), { held: true, reached: true, chance: 45, practitionerTitle: 6, panel: "ok" });
+const { default: ImagineCreatureData } = await import("../module/data/actor-creature.mjs");
+const fakeCreature = (lists, chance) => {
+	const c = { combat: { initiativeMod: 3, defensiveAdjust: 5, weaponSpeedMod: 4, armorSkillPenalty: -20, ...lists },
+		_getWornArmor: () => [suit], _getCreatureSkillChance: (n) => n == "Armor Knowledge" ? chance : 0 };
+	ImagineCreatureData.prototype._prepareArmorSkills.call(c);
+	return c.combat;
+};
+check("creature, nothing learned: untouched", fakeCreature({ armorKnowList: "", armorLoreList: "" }, 60), { initiativeMod: 3, defensiveAdjust: 5, weaponSpeedMod: 4, armorSkillPenalty: -20, armorKnowList: "", armorLoreList: "", armorKnowOn: false, armorLoreOn: false, armorSkillsLine: "" });
+const ck = fakeCreature({ armorKnowList: "Body Suit(Heavy Scale)", armorLoreList: "" }, 60);
+check("creature Knowledge at 60% (two levels) eases from the stat block's chance", [ck.initiativeMod, ck.defensiveAdjust, ck.weaponSpeedMod, ck.armorSkillPenalty, ck.armorKnowOn], [2, 3, 2, -10, true]);
+const cl = fakeCreature({ armorKnowList: "", armorLoreList: "Body Suit(Heavy Scale)" }, 60);
+check("creature Lore removes them all", [cl.initiativeMod, cl.defensiveAdjust, cl.weaponSpeedMod, cl.armorSkillPenalty, cl.armorLoreOn], [2, 2, 2, 0, true]);
+const creatureView = V.buildArmorKnowView("know", { characterName: "Ogre", className: "creature", panel: "ok", practitionerTitle: 6, chance: 45,
+	wornNames: ["Body Suit(Heavy Scale)"], list: "", isCreature: true, automatic: true });
+document.getElementById("window").innerHTML = Handlebars.compile(source)(creatureView);
+check("a creature's window has his Automatic tick, ticked", [document.getElementById("window").textContent.includes("Makes chance automatic (for creatures only)"),
+	!!document.querySelector("#window [name='automatic']")], [true, true]);
+check("an automatic creature roll succeeds without a die", R.resolveArmorConfigRoll({ held: true, alreadyLearned: false, slotsOpen: 6, chance: 45, modifier: 0, automatic: true }, null).outcome, "automatic");
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

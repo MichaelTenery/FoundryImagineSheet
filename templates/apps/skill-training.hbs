@@ -1,0 +1,96 @@
+{{!--
+	The Add Skill and Train Up Skill windows: his Character Updater panels, stood up. One root element, as
+	the framework requires. Everything here comes from buildAddView / buildTrainView
+	(module/skill-training-view.mjs).
+--}}
+<div class="skill-training-body">
+
+{{#if isAdd}}
+	<h3>{{title}}</h3>
+	{{#unless hasSlots}}
+	{{!-- His "no_racial_skill_slots" panel: the one line. --}}
+	<p class="hint no-slots">{{noSlotsMessage}}</p>
+	{{else}}
+	<div class="form-group"><label>Select Skill to Learn</label>
+		<select name="skill">
+			<option value=""></option>
+			{{#each options as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}}</option>{{/each}}
+		</select>
+		<button type="button" data-action="selectSkill">SELECT</button>
+		<span class="hint">click here to select a {{kindLabel}} Skill to learn.</span></div>
+	<p class="hint">Cannot select a {{kindLabel}} Skill already known. Training is recorded for all skills.
+		{{openSlots}} open {{kindLabel}} slot{{#unless (eq openSlots 1)}}s{{/unless}}.</p>
+
+	{{#if hasChosen}}
+	<hr>
+	<p><strong>Skill to Learn:</strong> {{chosen}} &nbsp; <strong>Base Learn Chance:</strong> {{baseChance}}%</p>
+	{{#if blocked}}<p class="hint alarm">{{blockedMessage}}</p>{{/if}}
+	<p><strong>Starting bonus:</strong> {{startingDice}}{{#if modifierText}} &nbsp; <span class="hint">{{modifierText}}</span>{{/if}}</p>
+	<div class="form-group"><label>Hours Trained (max. {{hoursMax}} per day)</label>
+		<input type="number" name="hours" min="0" value="{{hours}}" data-working="hours"></div>
+	<p><strong>Training Hours Needed:</strong> {{hoursNeeded}}{{#if hoursShort}} <span class="hint">({{hoursShort}} to go)</span>{{/if}}</p>
+	<hr>
+	<p><strong>BASE LEARN CHANCE:</strong> {{baseChance}}%</p>
+	<p><strong>MODIFIERS:</strong></p>
+	<ul class="training-modifiers">
+		<li><label><input type="checkbox" name="book" data-working="book" {{#if book}}checked{{/if}}> <strong>With Book:</strong> {{bookBonus}}</label></li>
+		<li><label><input type="checkbox" name="library" data-working="library" {{#if library}}checked{{/if}}> <strong>With Library:</strong> {{libraryBonus}}</label></li>
+		{{#each modes as |m|}}
+		<li><label><input type="checkbox" name="{{m.key}}" data-working="{{m.key}}" {{#if m.on}}checked{{/if}}> <strong>{{m.label}}:</strong> {{m.bonus}}</label>
+			{{#if m.extra}}<em class="hint">({{m.extra}})</em>{{/if}}</li>
+		{{/each}}
+		<li><strong>Previous Failures:</strong> +{{fails}}&times;(10%) = +{{failBonus}}%</li>
+	</ul>
+	<hr>
+	<p><strong>TOTAL CHANCE:</strong> {{totalChance}}%{{#if chanceParts}} <span class="hint">({{chanceParts}})</span>{{/if}}</p>
+	<p><button type="button" data-action="go" {{#unless canLearn}}disabled{{/unless}}>LEARN</button>
+		<span class="hint">click here to try to learn {{chosen}}.</span></p>
+	{{/if}}
+	{{/unless}}
+{{/if}}
+
+{{#if isTrain}}
+	<h3>{{title}}</h3>
+	{{#unless hasSkills}}
+	<p class="hint no-slots">{{noSkillsMessage}}</p>
+	{{else}}
+	<div class="form-group"><label>Select Skill to Improve</label>
+		<button type="button" data-action="stepLeft" aria-label="Previous skill">&lsaquo;</button>
+		<input type="text" readonly value="{{selectName}}" class="train-pick">
+		<button type="button" data-action="stepRight" aria-label="Next skill">&rsaquo;</button>
+		<strong>Skill Chance:</strong> {{selectChance}}
+		<button type="button" data-action="selectSkill">SELECT</button>
+		<span class="hint">click here to select {{kindLabel}} skill.</span></div>
+	<p><strong>Skill to Train:</strong> {{trainName}} &nbsp; <strong>Skill Chance:</strong> {{trainChance}}</p>
+	<div class="form-group"><label>Hours Trained (max. {{hoursMax}} per day)</label>
+		<input type="number" name="hours" min="0" value="{{hours}}" data-working="hours" {{#unless hasChosen}}disabled{{/unless}}></div>
+	<p><strong>Training Hours Needed:</strong> {{hoursNeeded}}{{#if hoursShort}} <span class="hint">({{hoursShort}} to go)</span>{{/if}}</p>
+	<hr>
+	<p><strong>BASE IMPROVE CHANCE:</strong> {{baseChance}}%</p>
+	<p><strong>MODIFIERS:</strong></p>
+	<ul class="training-modifiers">
+		<li><label><input type="checkbox" name="book" data-working="book" {{#if book}}checked{{/if}} {{#unless hasChosen}}disabled{{/unless}}> <strong>With Book:</strong> {{bookBonus}}</label></li>
+		<li><label><input type="checkbox" name="library" data-working="library" {{#if library}}checked{{/if}} {{#unless hasChosen}}disabled{{/unless}}> <strong>With Library:</strong> {{libraryBonus}}</label></li>
+		{{#each modes as |m|}}
+		<li><label><input type="checkbox" name="{{m.key}}" data-working="{{m.key}}" {{#if m.on}}checked{{/if}} {{#unless ../hasChosen}}disabled{{/unless}}> <strong>{{m.label}}:</strong> {{m.bonus}}</label>
+			{{#if m.asksChance}}
+			&nbsp; <strong>{{m.chanceLabel}}:</strong>
+			<input type="number" name="{{m.chanceName}}" value="{{m.chance}}" data-working="chance" class="chance-box" {{#unless ../hasChosen}}disabled{{/unless}}>
+			<span class="hint">({{m.chanceNote}})</span>
+			{{/if}}
+			{{#if m.extra}}<em class="hint">({{m.extra}})</em>{{/if}}
+			<br><span class="hint">&nbsp;&nbsp;&nbsp;&nbsp;<strong>Improvement:</strong> {{m.improvement}}.</span></li>
+		{{/each}}
+		<li><strong>Previous Improvements:</strong> -{{improves}}&times;(5%) = -{{improvesPenalty}}% <em class="hint">(includes initial learning of skill)</em></li>
+		<li><strong>Previous Failures:</strong> +{{fails}}&times;(10%) = +{{failBonus}}%</li>
+	</ul>
+	{{#if improvementProblem}}<p class="hint alarm">{{improvementProblem}}</p>{{/if}}
+	<hr>
+	<p><strong>TOTAL CHANCE:</strong> {{totalChance}}%{{#if chanceParts}} <span class="hint">({{chanceParts}})</span>{{/if}}</p>
+	<p><button type="button" data-action="go" {{#unless hasChosen}}disabled{{/unless}}>IMPROVE</button>
+		<span class="hint">click here to try to improve {{improveLabel}}.</span></p>
+	{{/unless}}
+{{/if}}
+
+	<footer class="form-footer"><button type="button" data-action="done">Done</button></footer>
+</div>

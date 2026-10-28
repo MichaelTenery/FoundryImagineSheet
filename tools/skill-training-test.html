@@ -1,0 +1,226 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG skill training test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:600px}</style>
+<pre id="out">running...</pre>
+<h3>Add Racial Skill, Climb chosen, taught by a teacher with a book</h3>
+<div id="add" class="render imagine skill-training"></div>
+<h3>Add Racial Skill with no open slot</h3>
+<div id="addNone" class="render imagine skill-training"></div>
+<h3>Train Up Social Skill, Acting chosen, taught by an instructor</h3>
+<div id="train" class="render imagine skill-training"></div>
+<script type="module">
+// Tests for adding and training racial and social skills: module/skill-training-rules.mjs (his learn and
+// improve chances, the dice a teacher earns, the tries and the records) and module/skill-training-view.mjs
+// (what the two windows show) -- and the template, compiled and rendered against the same views.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/skill-training-test.html
+const R = await import("../module/skill-training-rules.mjs");
+const V = await import("../module/skill-training-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- open slots: his checkForOpenRacialSkillSlot / checkForOpenSocialSkillSlot ---------------------------
+check("a free racial slot: allowed, 2 open",
+	(({ allowed, open }) => [allowed, open])(R.getOpenSlots({ racial: 5, racialUsed: 3 }, "racial", "Thomas")), [true, 2]);
+check("no free racial slot: his refusal in his words",
+	R.getOpenSlots({ racial: 4, racialUsed: 4 }, "racial", "Thomas Brightberry").message,
+	"Thomas Brightberry does not have any open slots for a new Racial Skill. Improve Knowledge rating before trying to learn a new Racial Skill.");
+check("the social slot counts separately from the racial one",
+	[R.getOpenSlots({ racial: 4, racialUsed: 4, social: 3, socialUsed: 1 }, "social", "T").allowed,
+	 R.getOpenSlots({ racial: 4, racialUsed: 4, social: 3, socialUsed: 1 }, "racial", "T").allowed], [true, false]);
+check("over-allocated (negative open) reads as none open, not a negative count",
+	R.getOpenSlots({ social: 2, socialUsed: 4 }, "social", "T").open, 0);
+check("a kind that is not one of the two is refused", R.getOpenSlots({}, "class", "T").allowed, false);
+
+// --- learn time: his getRacialSkillLearnTime / getSocialSkillLearnTime ---------------------------------------
+check("the Learn column when the skill has one", R.getLearnHours({ learn: "60", skillRating: 14 }), 60);
+check("otherwise four times the rating", R.getLearnHours({ learn: "", skillRating: 12 }), 48);
+check("a Learn of 0 is a Learn of 0, not blank", R.getLearnHours({ learn: "0", skillRating: 12 }), 0);
+
+// --- the ticks: self / teacher / instructor are one of three ------------------------------------------------------
+check("teacher on turns self off", R.setTeachingMode("self", "teacher", true), "teacher");
+check("instructor on turns teacher off", R.setTeachingMode("teacher", "instructor", true), "instructor");
+check("the one that is on, switched off, puts self-taught back", R.setTeachingMode("teacher", "teacher", false), "self");
+check("switching off one that is NOT on changes nothing", R.setTeachingMode("instructor", "teacher", false), "instructor");
+check("self cannot be switched off into nothing", R.setTeachingMode("self", "self", false), "self");
+
+// --- the chance: his checkAll...Modifiers --------------------------------------------------------------------------
+check("learn: base 20, a book, a teacher, two failures = 20 + 10 + 20 + 20 = 70 (the Player's Guide p.164 example, 10 + 20 + 10 + 10 = 50)",
+	R.getTrainingChance({ base: 20, book: true, mode: "teacher", fails: 2 }).total, 70);
+check("the book's own example: base 10, teacher +20, book +10, one failure +10 = 50",
+	R.getTrainingChance({ base: 10, book: true, mode: "teacher", fails: 1 }).total, 50);
+check("a library is +20 and an instructor +50, on top of each other",
+	R.getTrainingChance({ base: 10, library: true, mode: "instructor" }).total, 80);
+check("self-taught adds nothing", R.getTrainingChance({ base: 33, mode: "self" }), { base: 33, parts: [], total: 33 });
+check("training: -5% for each earlier success, the first learning counting as one",
+	R.getTrainingChance({ base: 40, improves: 1 }).total, 35);
+check("training: three successes and two failures = 40 - 15 + 20", R.getTrainingChance({ base: 40, improves: 3, fails: 2 }).total, 45);
+check("training: a teacher and a book on top", R.getTrainingChance({ base: 40, improves: 2, book: true, mode: "teacher" }).total, 60);
+check("a learn has no success term at all (improves left out)", R.getTrainingChance({ base: 40, fails: 0 }).parts, []);
+check("not floored: many successes can read under 5% (the book's floor is not his; departure 2)",
+	R.getTrainingChance({ base: 10, improves: 6 }).total, -20);
+check("the parts are named for the panel",
+	R.getTrainingChance({ base: 10, book: true, library: true, mode: "teacher", fails: 1, improves: 2 }).parts.map(p => `${p.label} ${p.value}`),
+	["With Book 10", "With Library 20", "Teacher Taught 20", "Previous Improvements -10", "Previous Failures 10"]);
+
+// --- the improvement: what a success adds -------------------------------------------------------------------------
+check("self-taught: 2d4", R.getImprovementDice({ mode: "self", currentChance: 40 }).expr, "2d4");
+check("teacher 25 over: 2 full tens, 4d4", R.getImprovementDice({ mode: "teacher", teacherChance: 65, currentChance: 40 }).expr, "4d4");
+check("teacher exactly 10 over: one ten, 2d4", R.getImprovementDice({ mode: "teacher", teacherChance: 50, currentChance: 40 }).expr, "2d4");
+check("teacher 9 over teaches nothing (must be 10%+ higher)",
+	(({ ok, difference }) => [ok, difference])(R.getImprovementDice({ mode: "teacher", teacherChance: 49, currentChance: 40 })), [false, 0]);
+check("instructor 30 over: (2d4+2) x 3 = 6d4+6", R.getImprovementDice({ mode: "instructor", instructorChance: 70, currentChance: 40 }).expr, "6d4+6");
+check("instructor 10 over: 2d4+2", R.getImprovementDice({ mode: "instructor", instructorChance: 50, currentChance: 40 }).expr, "2d4+2");
+check("an instructor ticked with a blank chance teaches nothing", R.getImprovementDice({ mode: "instructor", instructorChance: "", currentChance: 40 }).ok, false);
+check("a teacher below the student teaches nothing", R.getImprovementDice({ mode: "teacher", teacherChance: 10, currentChance: 40 }).ok, false);
+check("the teacher's chance is not read in instructor mode (his else-if order)",
+	R.getImprovementDice({ mode: "instructor", teacherChance: 90, instructorChance: 50, currentChance: 40 }).expr, "2d4+2");
+const dice = (faces) => { let i = 0; return () => faces[i++]; };
+check("rolling 4d4+4 with the faces 1,2,3,4: 10 + 4", R.rollImprovement("4d4+4", dice([1, 2, 3, 4])), 14);
+check("rolling 2d4 with 4,4", R.rollImprovement("2d4", dice([4, 4])), 8);
+check("a blank expression rolls 0", R.rollImprovement("", dice([])), 0);
+
+// --- what the new skill starts with (his getNew...SkillModifier) ---------------------------------------------------------
+// A character with Acting held as a social skill: it lifts the racial skill Disguise +15 (socialbonustoraceclass).
+check("a racial skill takes what the social skills held give it: Acting gives Disguise +15",
+	R.getLearnStartModifier("racial", "Disguise", { socialSkills: ["Acting"] }).total, 15);
+check("...and nothing from a social skill that gives it nothing",
+	R.getLearnStartModifier("racial", "Disguise", { socialSkills: ["Accounting"] }).total, 0);
+check("a social skill takes what racial and class skills give it: Disguise held gives Acting +15",
+	R.getLearnStartModifier("social", "Acting", { socialSkills: [], racialSkills: ["Disguise"], classSkills: [] }).total, 15);
+check("...and Cosmetics (social) lifts Disguise-the-racial the same +10 it does at creation",
+	R.getLearnStartModifier("racial", "Disguise", { socialSkills: ["Acting", "Cosmetics"] }).total, 25);
+
+// --- the records: his history strings -----------------------------------------------------------------------------------------
+check("a skill with no record starts blank: no hours, no failures", R.getRecord([], "Climb", "learn", 48), { name: "Climb", hours: 0, needed: 48, fails: 0 });
+check("a training record starts with one success on it ('includes initial learning')",
+	R.getRecord([], "Acting", "improve", 60), { name: "Acting", hours: 0, needed: 60, improves: 1, fails: 0 });
+check("an existing record is read back over the blank", R.getRecord([{ name: "Climb", hours: 12, needed: 48, fails: 2 }], "Climb", "learn", 48).fails, 2);
+check("no hours and no record: nothing is created (his tmpHoursTrained!=0)", R.applyHours([], "Climb", "learn", 48, 0), []);
+check("hours typed with no record: one is made", R.applyHours([], "Climb", "learn", 48, 12), [{ name: "Climb", hours: 12, needed: 48, fails: 0 }]);
+check("hours on an existing record update it, even to 0",
+	R.applyHours([{ name: "Climb", hours: 12, needed: 48, fails: 1 }], "Climb", "learn", 48, 0), [{ name: "Climb", hours: 0, needed: 48, fails: 1 }]);
+check("negative hours are not kept", R.applyHours([], "Climb", "learn", 48, -4), []);
+check("setRecord replaces rather than duplicates",
+	R.setRecord([{ name: "A", hours: 1 }, { name: "B", hours: 2 }], { name: "A", hours: 9 }).map(r => `${r.name}${r.hours}`).sort(), ["A9", "B2"]);
+
+// --- the learn try: his handleRacialSkillLearnTry, in his order ------------------------------------------------------
+check("nothing picked: nothing done", R.resolveLearnTry({ name: "", hours: 50, needed: 48, chance: 50, roll: null }).outcome, "none");
+check("not enough hours: told how many more, and no die is rolled",
+	(({ outcome, hoursShort, needsRoll }) => [outcome, hoursShort, needsRoll])(R.resolveLearnTry({ name: "Climb", hours: 40, needed: 48, chance: 50, roll: null })), ["hours", 8, false]);
+check("enough hours, not yet rolled: ready for the die", R.resolveLearnTry({ name: "Climb", hours: 48, needed: 48, chance: 50, roll: null }).needsRoll, true);
+check("rolled over the chance: failed", R.resolveLearnTry({ name: "Climb", hours: 48, needed: 48, chance: 50, roll: 51 }).outcome, "failed");
+check("rolled exactly the chance: learned (his total>chance fails, so equal succeeds)", R.resolveLearnTry({ name: "Climb", hours: 48, needed: 48, chance: 50, roll: 50 }).outcome, "learned");
+check("hours beyond need are fine", R.resolveLearnTry({ name: "Climb", hours: 99, needed: 48, chance: 50, roll: 3 }).outcome, "learned");
+
+// --- the training try: his handleRacialSkillImproveTry ------------------------------------------------------------------
+const base = { name: "Acting", hours: 60, needed: 60, chance: 50, mode: "self", currentChance: 40 };
+check("training: not enough hours first", R.resolveImproveTry({ ...base, hours: 10, roll: null }).outcome, "hours");
+check("training: a teacher with nothing to teach is refused before the roll",
+	R.resolveImproveTry({ ...base, mode: "teacher", teacherChance: 45, roll: null }).outcome, "noTeacher");
+check("training: an instructor with nothing to teach is refused before the roll",
+	R.resolveImproveTry({ ...base, mode: "instructor", instructorChance: 40, roll: null }).outcome, "noInstructor");
+check("training: ready, then failed, then improved",
+	[R.resolveImproveTry({ ...base, roll: null }).outcome, R.resolveImproveTry({ ...base, roll: 80 }).outcome, R.resolveImproveTry({ ...base, roll: 20 }).outcome],
+	["ready", "failed", "improved"]);
+check("the hours check comes before the teacher check (his order)",
+	R.resolveImproveTry({ ...base, hours: 1, mode: "teacher", teacherChance: 0, roll: null }).outcome, "hours");
+
+// --- the records after a try ------------------------------------------------------------------------------------------------
+check("a failed learn: hours cleared, one more failure", R.recordAfterLearnFailure({ name: "Climb", hours: 48, needed: 48, fails: 1 }),
+	{ name: "Climb", hours: 0, needed: 48, fails: 2 });
+check("a failed training: hours cleared, one more failure, and NOT another success on record (departure 1)",
+	R.recordAfterImproveFailure({ name: "Acting", hours: 60, needed: 60, improves: 2, fails: 0 }),
+	{ name: "Acting", hours: 0, needed: 60, improves: 2, fails: 1 });
+check("a successful training: hours cleared, one more success, failures reset",
+	R.recordAfterImproveSuccess({ name: "Acting", hours: 60, needed: 60, improves: 2, fails: 3 }),
+	{ name: "Acting", hours: 0, needed: 60, improves: 3, fails: 0 });
+
+// --- his words ------------------------------------------------------------------------------------------------------------------
+check("learn: failed, in his words",
+	R.describeLearnTry("Thomas", { outcome: "failed" }, { kindLabel: "Racial", skill: "Climb", roll: 77, chance: 50 }),
+	"Thomas rolled a 77 and needed a 50 and did not learn Climb. Train more to try again.");
+check("learn: needs hours", R.describeLearnTry("Thomas", { outcome: "hours", hoursShort: 8 }, { kindLabel: "Racial", skill: "Climb" }),
+	"Thomas needs 8 more hours trained to try to learn Climb.");
+check("learn: succeeded with skill modifiers",
+	R.describeLearnTry("Thomas", { outcome: "learned" }, { kindLabel: "Social", skill: "Acting", roll: 12, dice: "4d10%", startingBonus: 22, modifier: 15 }),
+	"Thomas rolled a 12 and succeeded, learning Acting with a starting bonus of (4d10%)=22 and skill modifiers of 15 totaling 37. Added to the Social Skills.");
+check("training: succeeded, in his words",
+	R.describeImproveTry("Thomas", { outcome: "improved", dice: { expr: "4d4" } }, { kindLabel: "Racial", skill: "Climb", roll: 9, improvement: 11 }),
+	"Thomas rolled a 9 and succeeded, improving Climb by (4d4)=11.");
+check("training: a useless teacher, in his words",
+	R.describeImproveTry("Thomas", { outcome: "noTeacher", dice: R.getImprovementDice({ mode: "teacher", teacherChance: 0, currentChance: 40 }) }, { kindLabel: "Racial", skill: "Climb" }),
+	"Thomas's teacher does not have enough skill to teach anything. Nothing done.");
+
+// --- the views ------------------------------------------------------------------------------------------------------------------------
+const noSlots = V.buildAddView({ characterName: "Thomas Brightberry", kind: "racial", skillSlots: { racial: 3, racialUsed: 3 } });
+check("add view, no slot: the one line, no list", [noSlots.hasSlots, noSlots.noSlotsMessage.startsWith("Thomas Brightberry does not have any open slots"), noSlots.options], [false, true, undefined]);
+const addFacts = { characterName: "Thomas Brightberry", kind: "racial", skillSlots: { racial: 5, racialUsed: 3 },
+	options: ["Acrobatics", "Climb", "Hearing"], dropdown: "Climb", chosen: "Climb",
+	details: { base: 20, hoursNeeded: 48, startingDice: "2d6%", modifier: { total: 15, parts: [{ label: "Acting", percent: 15 }] } },
+	record: { hours: 24, fails: 1 }, working: { book: true, library: false, mode: "teacher" } };
+const add = V.buildAddView(addFacts);
+check("add view: the list with the pick marked, the open slots", [add.options.map(o => o.selected), add.openSlots], [[false, true, false], 2]);
+check("add view: base 20 + book 10 + teacher 20 + one failure 10 = 60, with the parts named",
+	[add.totalChance, add.chanceParts], [60, "With Book +10%, Teacher Taught +20%, Previous Failures +10%"]);
+check("add view: the hours so far, what is needed, how many to go", [add.hours, add.hoursNeeded, add.hoursShort], [24, 48, 24]);
+check("add view: the three modes with teacher on", add.modes.map(m => [m.key, m.on]), [["self", false], ["teacher", true], ["instructor", false]]);
+check("add view: the skills held that lift the new one are said", add.modifierText.includes("+15% from skills held (Acting +15%)"), true);
+check("add view: a BLOCKED social skill cannot be learned",
+	V.buildAddView({ ...addFacts, kind: "social", skillSlots: { social: 4, socialUsed: 1 }, details: { ...addFacts.details, blocked: true, raceName: "Orc" } }).canLearn, false);
+check("add view: nothing chosen shows only the list", V.buildAddView({ ...addFacts, chosen: "", dropdown: "" }).hasChosen, false);
+
+const held = [{ name: "Acting", chance: 40 }, { name: "Etiquette", chance: 25 }];
+const trainFacts = { characterName: "Thomas Brightberry", kind: "social", held, index: 0, chosen: "Acting", base: 25, hoursNeeded: 60, currentChance: 40,
+	record: { hours: 0, improves: 2, fails: 1 }, working: { book: false, library: true, mode: "instructor", teacherChance: "", instructorChance: 70 } };
+const train = V.buildTrainView(trainFacts);
+check("train view: the arrows' skill and its chance", [train.selectName, train.selectChance, train.count], ["Acting", 40, 2]);
+check("train view: base 25 + library 20 + instructor 50 - 2x5 + 1x10 = 95", train.totalChance, 95);
+check("train view: 30 over, the instructor earns 6d4+6%", train.improvement, "6d4+6%");
+check("train view: previous improvements and failures laid out as his panel has them",
+	[train.improves, train.improvesPenalty, train.fails, train.failBonus], [2, 10, 1, 10]);
+check("train view: nothing chosen reads 'None' and a total of 0", (({ trainName, totalChance, hasChosen }) => [trainName, totalChance, hasChosen])(V.buildTrainView({ ...trainFacts, chosen: "" })), ["None", 0, false]);
+check("train view: the arrows wrap their index into range", V.buildTrainView({ ...trainFacts, index: 9 }).selectName, "Etiquette");
+check("train view: an instructor with too little skill is said",
+	V.buildTrainView({ ...trainFacts, working: { ...trainFacts.working, instructorChance: 45 } }).improvementProblem.includes("needs a skill chance 10%+ higher than 40%"), true);
+check("train view: no skills of the kind is said, with no arrows", (({ hasSkills, noSkillsMessage }) => [hasSkills, noSkillsMessage])(V.buildTrainView({ ...trainFacts, held: [] })),
+	[false, "Thomas Brightberry has no social skills to train."]);
+
+// --- the template, rendered against the views -----------------------------------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+const source = await (await fetch("../templates/apps/skill-training.hbs", { cache: "no-store" })).text();
+const template = Handlebars.compile(source);
+document.getElementById("add").innerHTML = template(add);
+const addText = document.getElementById("add").textContent;
+check("the add window renders: his headings, the list, SELECT, hours, the three circumstances and the total",
+	["Learn New Racial Skill", "Select Skill to Learn", "Base Learn Chance", "Hours Trained (max. 8 per day)", "Training Hours Needed: 48",
+	 "With Book", "With Library", "Self Taught", "Teacher Taught", "Instructor Taught", "must make Instruction roll", "TOTAL CHANCE: 60%"].map(t => addText.includes(t)),
+	Array(12).fill(true));
+check("...with LEARN live and the pick selected", [!!document.querySelector("#add [data-action='go']"), document.getElementById("add").innerHTML.includes("<option value=\"Climb\" selected>")], [true, true]);
+document.getElementById("addNone").innerHTML = template(noSlots);
+check("no slot: his sentence and no list", [document.getElementById("addNone").textContent.includes("does not have any open slots for a new Racial Skill"),
+	document.getElementById("addNone").textContent.includes("Select Skill to Learn")], [true, false]);
+document.getElementById("train").innerHTML = template(train);
+const trainText = document.getElementById("train").textContent;
+check("the train window renders: his headings, both arrows, the teacher and instructor chances, the previous improvements, IMPROVE",
+	["Improve Social Skill", "Select Skill to Improve", "Skill to Train: Acting", "Teacher's Skill Chance", "Instructor's Skill Chance",
+	 "must be 10%+ higher", "Previous Improvements: -2", "includes initial learning of skill", "Previous Failures: +1", "TOTAL CHANCE: 95%", "(2d4+2)".slice(0, 0)].map(t => trainText.includes(t)),
+	Array(11).fill(true));
+check("...with both arrows, SELECT and IMPROVE live, and the instructor's chance in its box",
+	[!!document.querySelector("#train [data-action='stepLeft']"), !!document.querySelector("#train [data-action='stepRight']"),
+	 !!document.querySelector("#train [data-action='selectSkill']"), !!document.querySelector("#train [data-action='go']"),
+	 document.getElementById("train").innerHTML.includes("name=\"instructorChance\" value=\"70\"")], [true, true, true, true, true]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

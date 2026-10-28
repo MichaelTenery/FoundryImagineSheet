@@ -153,7 +153,7 @@ export async function rollCreatureAttack(tmpactor, tmpattackitem) {
 	// Knowledge or Lore item flags to buy the penalty down, so it always resolves to the plain
 	// Agility-banded tier once it applies. See combat.offhandHandedness in actor-creature.mjs.
 	var tmpoffhand = tmpa.hand
-		? resolveOffhandPenalties(tmpa, tmpsys.attributes.agl.rating, tmpsys.combat.offhandHandedness, 0)
+		? resolveOffhandPenalties(tmpa, tmpsys.attributes.agl.value ?? tmpsys.attributes.agl.rating, tmpsys.combat.offhandHandedness, 0)
 		: { offhand: false, tier: "none", melee: 0, damage: 0, skill: 0 };
 
 	// To hit. Weapon or Missile Lore's +2, by the attack's kind, for anything but a Touch -- whose roll

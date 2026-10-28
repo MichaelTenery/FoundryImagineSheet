@@ -662,6 +662,18 @@ export default class ImagineCharacterGenerator extends HandlebarsApplicationMixi
 			ui.notifications.warn(tmpderived.cart.issues[0] + " Go back to the Equipment step to remove it or buy fewer.");
 			return;
 		}
+		// @MARKER PHYSIQUE
+		// No character is made without a height and a weight. Encumbrance is worked out from the
+		// body's own weight (resolveEncumbrance, combat-rules.mjs), so a character left at 0 lb could
+		// not move at all once play began -- a table bug report, 2026-10-22. The Details step can be
+		// skipped past, and a race with no frame table rolls no weight, so it is checked here, last.
+		var tmpweightnow = parseFloat(this.#state.weight) || 0;
+		var tmpinchesnow = ((parseInt(this.#state.heightFeet) || 0) * 12) + (parseInt(this.#state.heightInches) || 0);
+		if (tmpweightnow <= 0 || tmpinchesnow <= 0) {
+			ui.notifications.warn("This character has no " + (tmpinchesnow <= 0 ? "height" : "weight")
+				+ " yet. Go back to the Details step and roll height, frame and weight, or enter them by hand.");
+			return;
+		}
 		var tmpassembled = assembleCharacter(choicesFromState(this.#state, tmpderived), this.#content, ImagineCharacterGenerator.#die);
 		try {
 			// The starting money's record, so the sheet's own "Roll starting money" (for characters the

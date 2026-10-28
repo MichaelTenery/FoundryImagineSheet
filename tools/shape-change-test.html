@@ -1,0 +1,170 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG shape change test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:560px}</style>
+<pre id="out">running...</pre>
+<h3>Changeling switch</h3>
+<div id="w1" class="render imagine shape-change"></div>
+<h3>Formless new host</h3>
+<div id="w2" class="render imagine shape-change"></div>
+<h3>Formless retention</h3>
+<div id="w3" class="render imagine shape-change"></div>
+<h3>Free psyche</h3>
+<div id="w4" class="render imagine shape-change"></div>
+<script type="module">
+// Tests for the shape-change window: module/shape-change-rules.mjs (his Changeling form table and switch, the
+// Formless possession, retention and free-psyche rolls) and module/shape-change-view.mjs (his four panels and
+// their refusals) -- with the template rendered against the same views, and the form table checked against the
+// REAL race documents in src/packs/documents/.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/shape-change-test.html
+const R = await import("../module/shape-change-rules.mjs");
+const V = await import("../module/shape-change-view.mjs");
+const U = await import("../module/updater-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+const races = await (await fetch("../src/packs/documents/races.json", { cache: "no-store" })).json();
+const raceByName = (n) => races.find(r => r.name == n);
+
+// --- the Changeling's forms -----------------------------------------------------------------------------
+check("41 options in his dropdown: the natural form, then 40 forms", [R.CHANGELING_FORMS.length, R.CHANGELING_FORMS[0][0]], [41, "Natural Form"]);
+check("every form but the natural one is a race document (for its body chart)",
+	R.CHANGELING_FORMS.slice(1).map(f => f[0]).filter(n => !raceByName(n)), []);
+check("every dropdown form with mods is in his table, Civilized Humans aside",
+	R.CHANGELING_FORMS.slice(1).map(f => f[0]).filter(n => !R.CHANGELING_FORM_MODS[n] && !n.startsWith("Human(Civilized")), []);
+// His table and the race documents agree on what a form gives, except where they don't -- reported, not hidden.
+const disagree = Object.entries(R.CHANGELING_FORM_MODS).filter(([n]) => raceByName(n)).filter(([n, m]) => {
+	const a = raceByName(n).system.attributeMods; return [a.str, a.agl, a.vit, a.app].join() != m.join(); }).map(([n]) => n);
+check("his form table matches the race documents' STR/AGL/VIT/APP for every form he lists (disagreements listed)", disagree, disagree);
+results.push(`INFO  forms whose table row differs from the race document: ${disagree.join(", ") || "none"}`);
+
+check("Kenku: STR -1, AGL +2, VIT -2", R.getChangelingFormMods("Kenku"), { str: -1, agl: 2, vit: -2, app: 0 });
+check("the natural form and the original form give nothing",
+	[R.getChangelingFormMods("Natural Form"), R.getChangelingFormMods("Kenku", "Kenku"), R.getChangelingFormMods("")],
+	[{ str: 0, agl: 0, vit: 0, app: 0 }, { str: 0, agl: 0, vit: 0, app: 0 }, { str: 0, agl: 0, vit: 0, app: 0 }]);
+check("a Civilized Human form changes nothing", R.getChangelingFormMods("Human(Civilized:City)"), { str: 0, agl: 0, vit: 0, app: 0 });
+check("applied: held at 5 going down, and at the race's limit going up",
+	R.applyChangelingForm({ str: 5, agl: 18, vit: 12, app: 9 }, R.getChangelingFormMods("Kenku"), { str: 18, agl: 19, vit: 18, app: 20 }),
+	{ str: 5, agl: 19, vit: 10, app: 9 });
+check("applied: a value already over its limit is not dragged down by a +",
+	R.applyChangelingForm({ str: 10, agl: 21, vit: 10, app: 10 }, { str: 0, agl: 2, vit: 0, app: 0 }, { agl: 19 }).agl, 21);
+check("switching back and forth leaves nothing behind (worked out, not written)",
+	R.applyChangelingForm({ str: 12, agl: 12, vit: 12, app: 12 }, R.getChangelingFormMods("Natural Form"), {}), { str: 12, agl: 12, vit: 12, app: 12 });
+
+// --- the switch -----------------------------------------------------------------------------------------
+check("is a Changeling: by name, as his test is", [R.isChangelingRace(["Changeling"]), R.isChangelingRace(["Elf(Sea)"])], [true, false]);
+const base = { name: "Pip", isChangeling: true, form: "Natural Form", slight: false, currentHeightInches: 66 };
+check("a non-Changeling is refused in his words",
+	R.resolveChangelingSwitch({ name: "Pip", raceName: "Elf(Sea)", isChangeling: false }, { form: "Kenku" }).message,
+	"Pip is Elf(Sea) and not a Changeling. Cannot change race.");
+check("height within 18 inches and weight 50-300 is allowed", R.resolveChangelingSwitch(base, { form: "Kenku", heightFeet: 6, heightInches: 0, weight: 160 }).ok, true);
+check("more than 18 inches off is refused in his words",
+	R.resolveChangelingSwitch(base, { form: "Kenku", heightFeet: 7, heightInches: 1, weight: 160 }).message,
+	"Pip's new height and/or weight is out of range for changeling forms. Nothing done.");
+check("a weight outside 50-300 is refused", R.resolveChangelingSwitch(base, { form: "Kenku", heightFeet: 5, heightInches: 6, weight: 40 }).ok, false);
+check("blank height and weight changes the form and keeps the body", R.resolveChangelingSwitch(base, { form: "Kenku" }).ok, true);
+check("the bound is the ORIGINAL height once one is kept",
+	R.resolveChangelingSwitch({ ...base, origHeightInches: 48, currentHeightInches: 66 }, { form: "Kenku", heightFeet: 5, heightInches: 7, weight: 120 }).ok, false);
+const sw = R.resolveChangelingSwitch(base, { form: "Kenku", slight: true });
+check("his message, the race name and Slight Physique newly taken",
+	[sw.message, sw.raceName, sw.slightShift], ["Pip is switching Changeling race from Changeling[Natural Form] to Changeling[Kenku]", "Changeling[Kenku]", 1]);
+check("Slight Physique given up shifts back", R.resolveChangelingSwitch({ ...base, slight: true }, { form: "Kenku", slight: false }).slightShift, -1);
+check("a made-up form is refused", R.resolveChangelingSwitch(base, { form: "Dragon" }).ok, false);
+check("wings fly, the rest of his switch too, and a plain body has none",
+	["Kenku", "Avian(Dark)", "Centaur", "Se’eth", "Djinn", "Elf(Sea)"].map(R.getShapeSpecialMovement), ["Fly:", "Fly:", "Gallop:", "Slither:", "", ""]);
+
+// --- Formless: possession -------------------------------------------------------------------------------
+const fstate = { name: "Wisp", isFormless: true, control: 60, wil: 14 };
+const host = { name: "Elf(Sea)", attributeLimits: raceByName("Elf(Sea)").system.attributeLimits, attributeMods: raceByName("Elf(Sea)").system.attributeMods,
+	features: raceByName("Elf(Sea)").system.features };
+const form = { host: "Elf(Sea)", hostType: "Humanoid Corpse", gender: "female", heightFeet: 5, heightInches: 4, frame: "Light", weight: 110,
+	hair: "Aqua", eyes: "Green", skin: "Pale",
+	hoursDead: 2, attributes: { str: 3, agl: 25, vit: 12, app: 14, soc: 10 } };
+check("a non-Formless is refused in his words",
+	R.resolveFormlessPossession(10, { name: "Pip", raceName: "Elf(Sea)", isFormless: false }, form, host).message,
+	"Pip is Elf(Sea) and not a Formless. Cannot possess a new host.");
+check("an unfinished form is refused in his words", R.resolveFormlessPossession(10, fstate, { ...form, frame: "" }, host).message,
+	"Wisp's didn`t fill all needed Formless attributes and features. Nothing done.");
+const won = R.resolveFormlessPossession(50, fstate, form, host);
+check("two hours dead: 60 - 10 = 50, and a 50 succeeds", [won.ok, won.success, won.chance], [true, true, 50]);
+check("a 51 fails, and may not try this host again",
+	R.resolveFormlessPossession(51, fstate, form, host).message,
+	"Wisp's rolled a 51, failing the special Control Resistance of 50% to possess this host and may not try to possess this host again.");
+check("a mindless husk ignores the hours dead", R.resolveFormlessPossession(60, fstate, { ...form, hostType: "Mindless Husk" }, host).success, true);
+// Elf(Sea): STR -1 AGL +2 VIT -1 APP +1; limits STR 17 AGL 20 VIT 17 APP 19 SOC 18.
+check("the five attributes: held 5..limit, stored less the host's racial modifier",
+	won.ratings, { str: 6, agl: 18, vit: 13, app: 13, soc: 10 });
+check("the new host's record: periods by host type, maximum by Will Force",
+	won.state, { currentHost: "Elf(Sea)", hostType: "Humanoid Corpse", periodsOccupied: 0, maxPeriods: 14, periodType: "Day" });
+check("periods: Mindless Husk weeks, Humanoid Corpse days, Animal Corpse hours",
+	["Mindless Husk", "Humanoid Corpse", "Animal Corpse"].map(R.getFormlessPeriodType), ["Week", "Day", "Hour"]);
+check("an Elf(Sea) host needs hair, eyes and skin; a Saurian no hair",
+	[R.getHostFeatureNeeds(host.features), R.getHostFeatureNeeds(raceByName("Saurian").system.features).hair], [{ hair: true, bodyCovering: false, eyes: true, skin: true }, false]);
+check("a missing feature the host has is refused", R.resolveFormlessPossession(10, fstate, { ...form, skin: "" }, host).ok, false);
+check("special control: base + race + misc", R.getFormlessControl({ base: 40, raceMod: 5, misc: 10 }), 55);
+
+// --- Formless: retention --------------------------------------------------------------------------------
+const rstate = { name: "Wisp", isFormless: true, hasHost: true, host: "Elf(Sea)", periodsOccupied: 2, maxPeriods: 14, control: 60 };
+check("a roll plus 5 per period held, at or under the resistance, keeps it",
+	(({ retained, total, periodsOccupied }) => [retained, total, periodsOccupied])(R.resolveFormlessRetention(50, rstate)), [true, 60, 3]);
+check("over it, and the psyche is ejected", R.resolveFormlessRetention(51, rstate).ejected, true);
+check("out of periods, ejected whatever the roll", R.resolveFormlessRetention(1, { ...rstate, periodsOccupied: 14 }).ejected, true);
+check("no host to retain is refused", R.resolveFormlessRetention(1, { ...rstate, hasHost: false }).ok, false);
+
+// --- Formless: free psyche ------------------------------------------------------------------------------
+const pstate = { name: "Wisp", isFormless: true, hasHost: false, will: 5, control: 60, wilSave: 70 };
+check("passed: nothing lost", (({ will, dead }) => [will, dead])(R.resolveFreePsyche(60, 99, pstate)), [5, false]);
+check("failed, save made: 1 Will Force lost, sane", (({ will, insane }) => [will, insane])(R.resolveFreePsyche(61, 70, pstate)), [4, false]);
+check("failed, save missed: insane", R.resolveFreePsyche(61, 71, pstate).insane, true);
+check("failed at 1 Will Force: dead, a New Ghost", (({ will, dead }) => [will, dead])(R.resolveFreePsyche(99, 1, { ...pstate, will: 1 })), [0, true]);
+check("a hosted Formless has no free psyche, in his words", R.resolveFreePsyche(1, 1, { ...pstate, hasHost: true }).message,
+	"Wisp is a Formless but has a current host. No free psyche to check.");
+
+// --- the views and the template -------------------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+const src = await (await fetch("../templates/apps/shape-change.hbs", { cache: "no-store" })).text();
+const tpl = Handlebars.compile(src);
+const render = (id, view) => { document.getElementById(id).innerHTML = tpl(view); return document.getElementById(id).textContent; };
+const v1 = V.buildShapeChangeView("changeling", { name: "Pip", raceName: "Changeling", isChangeling: true,
+	changeling: { form: "", originalForm: "Natural Form", slight: false, origHeightInches: 0 }, heightFeet: 5, heightInches: 6 }, { form: "Kenku" });
+const t1 = render("w1", v1);
+check("changeling panel: his labels, the form's changes, the original height",
+	["Changeling appears as race", "STR -1, AGL +2, VIT -2", "5' 6\"", "May only change forms twice per day", "Update"].map(s => t1.includes(s)), [true, true, true, true, true]);
+const v2 = V.buildShapeChangeView("formlessHost", { name: "Wisp", raceName: "Formless", isFormless: true, control: 55,
+	formlessHosts: ["Elf(Sea)", "Saurian"], hostLimits: host.attributeLimits }, { host: "Elf(Sea)" });
+const t2 = render("w2", v2);
+check("host panel: the hosts, his two host types, the max boxes, the resistance",
+	[v2.hosts.length, v2.hostTypes.map(t => t.value), t2.includes("STR max 17"), t2.includes("55%"), t2.includes("Possess")],
+	[2, ["Mindless Husk", "Humanoid Corpse"], true, true, true]);
+const v3 = V.buildShapeChangeView("formlessRetention", { name: "Wisp", raceName: "Formless[Elf(Sea)]", isFormless: true, hasHost: true, control: 60,
+	formless: { currentHost: "Elf(Sea)", hostType: "Humanoid Corpse", periodsOccupied: 2, maxPeriods: 14, periodType: "Day" } });
+const t3 = render("w3", v3);
+check("retention panel: his lines", ["Occupied For: 2 Day(s)", "Can Occupy For: 14 Day(s)", "-5% chance per Day occupied"].map(s => t3.includes(s)), [true, true, true]);
+const v4 = V.buildShapeChangeView("formlessPsyche", { name: "Wisp", raceName: "Formless", isFormless: true, hasHost: false, control: 60, wilSave: 70,
+	formless: { maxPeriods: 14, freePsycheWill: 9 } });
+const t4 = render("w4", v4);
+check("psyche panel: his lines", ["After 14 hours", "Current Will Force: 9", "Will Force Save: 70%"].map(s => t4.includes(s)), [true, true, true]);
+check("each Formless panel refuses a non-Formless in his words",
+	["formlessHost", "formlessRetention", "formlessPsyche"].map(k => V.buildShapeChangeView(k, { name: "Pip", raceName: "Elf(Sea)" }).blocked),
+	["Pip is Elf(Sea) and not a Formless. Cannot possess a new host.", "Pip is Elf(Sea) and not a Formless. Is not possessing a host.",
+	 "Pip is Elf(Sea) and not a Formless. No free psyche to check."]);
+check("the changeling panel refuses a non-Changeling in his words",
+	V.buildShapeChangeView("changeling", { name: "Pip", raceName: "Elf(Sea)" }).blocked, "Pip is Elf(Sea) and not a Changeling. Cannot change race.");
+
+// --- the Updater's rows ---------------------------------------------------------------------------------
+const rows = U.buildUpdaterChoices({ isGME: false, isGM: false }).filter(r => r.call == "shapeChange");
+check("four Updater rows open this window, one per panel", rows.map(r => [r.args[0], r.usable]),
+	[["changeling", true], ["formlessHost", true], ["formlessRetention", true], ["formlessPsyche", true]]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+const passed = results.filter(r => r.startsWith("PASS")).length;
+document.getElementById("out").textContent = `${passed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

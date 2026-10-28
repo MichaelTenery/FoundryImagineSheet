@@ -142,7 +142,7 @@ export default class ImagineSituationalMods extends HandlebarsApplicationMixin(A
 				secondWeaponKnowList: tmpcombat.secondWeaponKnowNames,
 				secondWeaponLoreList: tmpcombat.secondWeaponLoreNames
 			});
-			var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond }, tmpactor.system.attributes.agl.rating,
+			var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond }, (tmpactor.system.attributes.agl.value ?? tmpactor.system.attributes.agl.rating),
 				tmpactor.system.physical?.handedness, tmpcombat.secondWeaponKnowChance);
 			// His sit_weapon_skills_melee/_missile: the weapon's own skills modifier, the off hand's
 			// penalty and the lore's bonus, added (setTotalWeaponSkillMod, sheet-worker.js:98621).

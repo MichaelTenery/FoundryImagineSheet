@@ -31,6 +31,7 @@ import { isOffhandWeapon } from "../combat/combat-rules.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
 import { describeBrawlingChoice } from "../brawling-view.mjs";
+import { describeGrapplingChoice } from "../combat/grappling-rules.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import { resolveSkillRoll, describeSkillResult, resolveAttributeSave } from "../skills-rules.mjs";
 import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLoreValue,
@@ -113,6 +114,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			openSituation: ImagineCreatureSheet.#onOpenSituation,
 			clearSituation: ImagineCreatureSheet.#onClearSituation,
 			openBrawling: ImagineCreatureSheet.#onOpenBrawling,
+			openGmRandoms: ImagineCreatureSheet.#onOpenGmRandoms,
+			openArmorKnowledge: ImagineCreatureSheet.#onOpenArmorKnowledge,
+			openGrappling: ImagineCreatureSheet.#onOpenGrappling,
 			// Authoring in play, all in the @MARKER AUTHORING block below: the creature's own items,
 			// its skill and movement lists, its body chart and the modifiers panel.
 			// (openItem and deleteItem, above, open and remove what these create.)
@@ -200,6 +204,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 
 		tmpcontext.actor = this.document;
 		tmpcontext.system = this.document.system;
+		tmpcontext.isGM = !!game.user?.isGM;
 		// @MARKER ALIGNMENT
 		// Every alignment and tendency, his and the Game Master's custom ones, with None and N/A, offered
 		// under the two free-text fields (module/alignment-rules.mjs getCreatureAlignmentSuggestions).
@@ -242,6 +247,9 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
 		// The Brawling bar: what is chosen to brawl with, as his BRAWLER row shows it.
 		tmpcontext.brawlingLine = describeBrawlingChoice(this.document.system.combat.brawlingWeapon,
+			this.document.system.combat.weaponSpeedMod);
+		// The Grappling bar: the move chosen, as his GRAPPLING row shows it.
+		tmpcontext.grapplingLine = describeGrapplingChoice(this.document.system.combat.grapplingMove,
 			this.document.system.combat.weaponSpeedMod);
 
 		// The martial arts panel, the same partial and view the character's Combat tab uses.
@@ -598,6 +606,27 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	static async #onOpenBrawling(event, target) {
 		event.preventDefault();
 		game.imagine?.brawling(this.document);
+	}
+
+	// This is the function which opens the Grappling window from the Combat tab's bar -- his GRAPPLING
+	// row, which his creature page carries too. module/apps/grappling.mjs.
+	static async #onOpenGrappling(event, target) {
+		event.preventDefault();
+		game.imagine?.grappling(this.document);
+	}
+
+	// This is the function which opens the Game Master's Randoms/Extras window -- his creature
+	// GM tools. module/apps/gm-randoms.mjs.
+	static async #onOpenGmRandoms(event, target) {
+		event.preventDefault();
+		game.imagine?.gmRandoms(this.document);
+	}
+
+	// This is the function which opens the Armor Knowledge / Lore configuration window -- his creature
+	// Updater's "Select Armor Know. Config." and "Select Armor Lore Config." (HTML 87798, 87828).
+	static async #onOpenArmorKnowledge(event, target) {
+		event.preventDefault();
+		game.imagine?.armorKnowledge(this.document);
 	}
 
 	// This is the function which clears every Situation Mod -- his "Clear all modifiers".

@@ -1,0 +1,93 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG powers and abilities test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:560px}</style>
+<pre id="out">running...</pre>
+<h3>The window with three entries held</h3>
+<div id="window" class="render imagine powers"></div>
+<h3>The window with none</h3>
+<div id="window2" class="render imagine powers"></div>
+<script type="module">
+// Tests for module/powers-rules.mjs and module/powers-view.mjs -- his Updater's Add/Remove Powers/
+// Abilities step -- and the window's template rendered against the same view.
+//
+//     node tools/run-tests.mjs powers
+// or served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/powers-test.html
+const R = await import("../module/powers-rules.mjs");
+const V = await import("../module/powers-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- getRealUsage: his table (sheet-worker.js:174615) --------------------------------------------
+check("By Title across the ladder: 0=1, 3=1, 4=1, 7=2, 10=3, 13=4, 16=5, 19=5, 20=Infinite",
+	[0, 3, 4, 7, 10, 13, 16, 19, 20].map(t => R.getRealUsage("(By Title)", t)), [1, 1, 1, 2, 3, 4, 5, 5, "Infinite"]);
+check("title 6 is still 1 a day, title 9 is 2 a day, title 12 is 3, title 15 is 4",
+	[6, 9, 12, 15].map(t => R.getRealUsage("(By Title)", t)), [1, 2, 3, 4]);
+check("At Will and Constant are Infinite", [R.getRealUsage("(At Will)", 0), R.getRealUsage("(Constant)", 0)], ["Infinite", "Infinite"]);
+check("a fixed activation reads its own number: (3x Day) 3, (1x Year) 1, (5x Day) 5",
+	["(3x Day)", "(1x Year)", "(5x Day)"].map(a => R.getRealUsage(a, 0)), [3, 1, 5]);
+check("a title that is not a number is title 0", R.getRealUsage("(By Title)", "x"), 1);
+check("his note in words", [0, 2, 5, 8, 20].map(R.describeTitleUsage), ["1x month", "1x week", "1x day", "2x day", "at will"]);
+check("ten activations in his order, By Title first",
+	[R.POWER_ACTIVATIONS.length, R.POWER_ACTIVATIONS[0], R.POWER_ACTIVATIONS[9]], [10, "(By Title)", "(At Will)"]);
+
+// --- buildPowerEntry ----------------------------------------------------------------------------------
+const open = R.buildPowerEntry("open", "Night Sight", "(By Title)", 7, true);
+check("an open ability is Constant, unlimited, no magic switch",
+	[open.name, open.system.unlimited, open.system.uses, open.system.powerKind, open.system.subsystem], ["Night Sight(Constant)", true, 0, "unknown", "none"]);
+const mp = R.buildPowerEntry("magical", "Fireball", "(By Title)", 7, false);
+check("a magical power at title 7 is two uses a day, a spell, on the Powers switch",
+	[mp.name, mp.system.uses, mp.system.usesMax, mp.system.unlimited, mp.system.powerKind, mp.system.subsystem], ["Fireball(By Title)", 2, 2, false, "spell", "powers"]);
+const dp = R.buildPowerEntry("divine", "Chill", "(At Will)", 0, false);
+check("a divine at-will power is unlimited, an invocation", [dp.name, dp.system.unlimited, dp.system.powerKind], ["Chill(At Will)", true, "invocation"]);
+check("a divine ability ignores any activation given", R.buildPowerEntry("divine", "Chill", "(2x Day)", 0, true).name, "Chill(Constant)");
+check("commas are taken out of a typed name (his list is split on them)", R.buildPowerEntry("open", "Fire, Ice  and Stone", "(1x Day)", 0, false).name, "Fire Ice and Stone(1x Day)");
+check("a blank name, whitespace, or None is no entry", [R.buildPowerEntry("open", "", "(By Title)", 0, false), R.buildPowerEntry("open", "   ", "", 0, true), R.buildPowerEntry("magical", "None", "", 0, false)], [null, null, null]);
+
+// --- the remove selector's arrows: his wrap-round (11725-11783) ----------------------------------------------
+const list = ["A(Constant)", "B(1x Day)", "C(Constant)"];
+check("right from the middle goes on, from the last wraps to the first", [R.stepPowerSelection(list, "B(1x Day)", "right"), R.stepPowerSelection(list, "C(Constant)", "right")], ["C(Constant)", "A(Constant)"]);
+check("left from the middle goes back, from the first wraps to the last", [R.stepPowerSelection(list, "B(1x Day)", "left"), R.stepPowerSelection(list, "A(Constant)", "left")], ["A(Constant)", "C(Constant)"]);
+check("from nothing: right is the first, left is the last", [R.stepPowerSelection(list, "", "right"), R.stepPowerSelection(list, "", "left")], ["A(Constant)", "C(Constant)"]);
+check("an empty list steps to nothing", R.stepPowerSelection([], "", "right"), "");
+check("his text: joined with a comma and space, None when empty", [R.joinPowerText(list), R.joinPowerText([])], ["A(Constant), B(1x Day), C(Constant)", "None"]);
+
+// --- the view ----------------------------------------------------------------------------------------------
+const view = V.buildPowersView(list, { title: 7, spells: ["Fireball", "Fly"], invocations: ["Chill"], selected: "B(1x Day)",
+	working: { magicalPower: "Fly", magicalActivation: "(3x Day)", newAbility: "Keen Ears" } });
+check("the list text, the selection, the title's note", [view.listText, view.selected, view.titleUsage], ["A(Constant), B(1x Day), C(Constant)", "B(1x Day)", "2x day"]);
+check("the magical power dropdown is blank first and keeps the pick", [view.magicalPowers.map(o => o.name), view.magicalPowers.filter(o => o.selected).map(o => o.name)], [["", "Fireball", "Fly"], ["Fly"]]);
+check("an activation select keeps its pick and defaults to By Title",
+	[view.magicalActivations.find(o => o.selected).value, view.openActivations.find(o => o.selected).value], ["(3x Day)", "(By Title)"]);
+check("a selection that is no longer held falls back to the first", V.buildPowersView(list, { selected: "Gone" }).selected, "A(Constant)");
+check("nothing held: 'None', no selection, no entries", (v => [v.listText, v.selected, v.hasEntries])(V.buildPowersView([], {})), ["None", "", false]);
+
+// --- the template, rendered against the view ----------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+const source = await (await fetch("../templates/apps/powers.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(source)(view);
+const text = document.getElementById("window").textContent;
+check("the window renders his headings, the list, both notes and the remove row",
+	["Additional Powers/Abilities", "A(Constant), B(1x Day), C(Constant)", "Add abilities", "Add power", "Magical Powers", "Divine Abilities",
+	 "1-3 = 1x week", "Update Temporary Modifiers", "Remove power/ability"].map(t => text.includes(t)),
+	[true, true, true, true, true, true, true, true, true]);
+const html = document.getElementById("window").innerHTML;
+const count = (needle) => html.split(needle).length - 1;
+check("...six Add buttons for the six ways in, one Remove, one Done",
+	[count("data-action=\"addAbility\"") + count("data-action=\"addPower\""), count("data-action=\"removePower\""), count("data-action=\"done\"")], [6, 1, 1]);
+document.getElementById("window2").innerHTML = Handlebars.compile(source)(V.buildPowersView([], { title: 0 }));
+check("empty: says None and the remove buttons are disabled",
+	[document.getElementById("window2").textContent.includes("None"), document.getElementById("window2").innerHTML.includes("data-action=\"removePower\" disabled")], [true, true]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

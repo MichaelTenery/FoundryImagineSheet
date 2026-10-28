@@ -1,0 +1,121 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG GM tools test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:560px}</style>
+<pre id="out">running...</pre>
+<h3>The window for a GME with a few bonuses ticked</h3>
+<div id="window" class="render imagine gm-tools"></div>
+<h3>The window for a creature</h3>
+<div id="window2" class="render imagine gm-tools"></div>
+<script type="module">
+// Tests for module/gm-exp-rules.mjs and module/gm-tools-view.mjs -- his Character Sheet Config tab's
+// "Calc/Show Experience Value" and "Split Experience" -- and the window's template rendered against the
+// same view. The creature-side arithmetic they reuse is tested in creature-gen-test.html; here is what
+// is the character's own: the inputs read off a character, and the split.
+//
+//     node tools/run-tests.mjs gm-tools
+// or served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/gm-tools-test.html
+const R = await import("../module/gm-exp-rules.mjs");
+const V = await import("../module/gm-tools-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// A title 4 character built to touch every part of the valuation, worked out by hand against his
+// table (row 4: base 500; END over 30, 10 each; attributes over 17, 10 each; resistances over 40,
+// 50 each; skills over 40%, 25 each; 10 per power level).
+function gme(over = {}) {
+	return {
+		type: "character",
+		system: {
+			identity: { title: 4, race: { immunities: ["Fear", "Charm"] } },
+			attributes: { str: { value: 19 }, agl: { value: 10 }, vit: { value: 10 }, int: { value: 10 }, wis: { value: 10 }, knw: { value: 10 },
+				app: { value: 10 }, chm: { value: 10 }, soc: { value: 10 }, aur: { value: 10 }, pty: { value: 10 }, wil: { value: 10 } },
+			characteristics: { endurance: { value: 33 } },
+			resistances: { magic: { value: 45, immune: false }, illusion: { value: 20, immune: false }, control: { value: null, immune: true },
+				poison: { value: 20, immune: false }, disease: { value: 20, immune: false } },
+			body: { hide: 50 },
+			gmExp: { show: true, poisonType: "III", slaying: true, caster: true }
+		},
+		items: [
+			{ type: "skill", system: { totalChance: 60, category: "class" } },
+			{ type: "skill", system: { totalChance: 90, category: "social" } },
+			{ type: "skill", system: { totalChance: 0, category: "class" } },
+			{ type: "weapon", system: {} }
+		],
+		...over
+	};
+}
+
+// --- the inputs, read off the character -------------------------------------------------------------------
+const inputs = R.getCharacterExpInputs(gme(), [3]);
+check("the level is the title; endurance, hide and the immunities are the character's own",
+	[inputs.level, inputs.endurance, inputs.hide, inputs.immunityCount], [4, 33, 50, 2]);
+check("skills: only those held above 0, the social one marked not counted",
+	inputs.skills, [{ chance: 60, counted: true }, { chance: 90, counted: false }]);
+check("an immune resistance is read as immune; the poison type I-XXV as a number; the ticks as booleans",
+	[inputs.resistances.control.immune, inputs.poisonType, inputs.specials.slaying, inputs.specials.caster, inputs.specials.gaze], [true, 3, true, true, false]);
+
+// --- the value, his handleCalcExp (sheet-worker.js:72337) --------------------------------------------------
+const value = R.calcCharacterExp(gme(), [3]);
+check("every part: base 500, attributes 20, endurance 30, resistances 50, skills 25, powers 30",
+	[value.parts.base, value.parts.attributes, value.parts.endurance, value.parts.resistances, value.parts.skills, value.parts.powers],
+	[500, 20, 30, 50, 25, 30]);
+check("the bonuses are Slaying (the base) + Caster (twice it) + Poison III (three times it) = 3000",
+	value.parts.specials, 3000);
+check("hide 50 is (50-20)/10 = 3 times the base; two immunities a fifth of the base each", [value.parts.hide, value.parts.immunities], [1500, 200]);
+check("the total", value.total, 5355);
+const plain = gme(); plain.system.gmExp = { show: false }; plain.system.body.hide = 0; plain.system.identity.race = { immunities: [] };
+check("with no ticks, no hide and no immunities it is the rest alone", R.calcCharacterExp(plain, [3]).total, 655);
+check("a character with no immunities is valued with NONE (not the creature side's one -- UPSTREAM 120)",
+	R.calcCharacterExp(plain, []).parts.immunities, 0);
+check("a power his lookup could not find is level 0 and adds nothing", R.calcCharacterExp(plain, [0]).parts.powers, 0);
+const low = gme(); low.system.identity.title = 0; low.system.attributes.str.value = 16;
+check("title 0 uses the errata's row 0: base 0, attributes over 15 at 1 each", [R.calcCharacterExp(low, []).parts.base, R.calcCharacterExp(low, []).parts.attributes], [0, 1 + 0]);
+
+// --- the split, his handleSplitExp (72668) --------------------------------------------------------------
+check("1000 at 50% among 3: 500 shared, 166 each, 2 over", R.splitExperience(1000, 3, 0.5), { total: 500, perPerson: 166, remainder: 2 });
+check("the difficulty arrives as text from the select and is read as a number", R.splitExperience("1000", "4", ".7"), { total: 700, perPerson: 175, remainder: 0 });
+check("100% (maximum) shares it all", R.splitExperience(5355, 5, 1), { total: 5355, perPerson: 1071, remainder: 0 });
+check("nobody to give it to, or nothing to give, is zero and zero",
+	[R.splitExperience(1000, 0, 1), R.splitExperience(0, 4, 1), R.splitExperience("", "", "")], [{ total: 0, perPerson: 0, remainder: 0 }, { total: 0, perPerson: 0, remainder: 0 }, { total: 0, perPerson: 0, remainder: 0 }]);
+check("fewer than one whole point after the difficulty leaves it all as remainder", R.splitExperience(3, 5, 0.5), { total: 1, perPerson: 0, remainder: 1 });
+check("his difficulty select: ten rows, 10% to 100%, the last 100% (Maximum)",
+	[R.EXP_DIFFICULTIES.length, R.EXP_DIFFICULTIES[0][0], R.EXP_DIFFICULTIES[9][1]], [10, 0.1, "100% (Maximum)"]);
+check("twenty-five poison types, I to XXV, and eleven ticks", [R.POISON_TYPES.length, R.POISON_TYPES[24], R.EXP_BONUS_TICKS.length], [25, "XXV", 11]);
+
+// --- the view -----------------------------------------------------------------------------------------------
+const view = V.buildGmToolsView(gme(), { value, working: { amount: "800", people: "4", difficulty: ".7" }, split: R.splitExperience(800, 4, 0.7) });
+check("the view carries the value, the tick, the poison type and the ticks as set",
+	[view.value, view.showExp, view.poisonTypes.find(o => o.selected).value, view.ticks.filter(t => t.checked).map(t => t.key)],
+	[5355, true, "III", ["slaying", "caster"]]);
+check("the split's boxes keep their answers", [view.amount, view.people, view.difficulties.find(o => o.selected).value], ["800", "4", 0.7]);
+check("Fill puts the value in the amount box", V.buildGmToolsView(gme(), { value, working: { fill: true, amount: "1" } }).amount, 5355);
+const creature = { type: "creature", system: { identity: { expValue: 1200 } } };
+const cview = V.buildGmToolsView(creature, { working: { fill: true } });
+check("a creature fills from its own value and has no bonuses panel", [cview.isCreature, cview.value, cview.amount], [true, 1200, 1200]);
+
+// --- the template, rendered against the view --------------------------------------------------------------------
+const source = await (await fetch("../templates/apps/gm-tools.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(source)(view);
+const text = document.getElementById("window").textContent;
+check("the window renders his headings, the value and its parts, and the split's result",
+	["Experience value", "Show experience?", "Experience bonuses", "Poison type", "Slaying?", "Invisibility?", "5355", "Hide: 1500",
+	 "Split experience", "Fill with GMC/GME EXP value?", "70% (Hard)", "EXP per person:", "140", "EXP remainder:"].map(t => text.includes(t)),
+	[true, true, true, true, true, true, true, true, true, true, true, true, true, true]);
+document.getElementById("window2").innerHTML = Handlebars.compile(source)(cview);
+const ctext = document.getElementById("window2").textContent;
+check("a creature's window has no bonuses or Calc, and fills with the creature's value",
+	[ctext.includes("Experience bonuses"), ctext.includes("Poison type"), ctext.includes("1200"), ctext.includes("Fill with creature EXP value?")], [false, false, true, true]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

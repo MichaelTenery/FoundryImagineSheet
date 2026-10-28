@@ -48,6 +48,17 @@ import { addExperience } from "./advancement.mjs";
 import ImagineLevelUp from "./apps/level-up.mjs";
 import ImagineSituationalMods from "./apps/situational-mods.mjs";
 import ImagineBrawling from "./apps/brawling.mjs";
+import ImagineTempModifiers from "./apps/temp-modifiers.mjs";
+import ImagineSkillTraining from "./apps/skill-training.mjs";
+import ImaginePowers from "./apps/powers.mjs";
+import ImagineGmTools from "./apps/gm-tools.mjs";
+import ImagineGmRandoms from "./apps/gm-randoms.mjs";
+import ImagineArmorKnowledge from "./apps/armor-knowledge.mjs";
+import ImagineSoldiering from "./apps/soldiering.mjs";
+import ImagineWeaponChoices from "./apps/weapon-choices.mjs";
+import ImagineGrappling from "./apps/grappling.mjs";
+import ImagineUpdater from "./apps/updater.mjs";
+import ImagineShapeChange from "./apps/shape-change.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
 import ImagineAlignmentConfig from "./apps/alignment-config.mjs";
 import ImagineCharacterGenerator, { registerCharacterGeneratorButton } from "./apps/character-generator.mjs";
@@ -356,6 +367,55 @@ Hooks.once("init", function () {
 		// a button on the Combat tab of either sheet.
 		//     game.imagine.brawling(actor)
 		brawling: (tmpactor) => ImagineBrawling.open(tmpactor),
+		// @MARKER TEMPORARY MODIFIERS
+		// His "Add/Remove Temporary Modifiers" panel as a window: effect names, attributes, characteristics,
+		// resistances, movement, combat, equipment, fatigue, berserking and non-skill evokes. Also on the Updater.
+		//     game.imagine.tempModifiers(actor)
+		tempModifiers: (tmpactor) => ImagineTempModifiers.open(tmpactor),
+		// @MARKER SKILL TRAINING
+		// His Updater's Add Racial/Social Skill and Train Up Racial/Social Skill panels, one window each.
+		//     game.imagine.addSkill(actor, "racial" | "social")
+		//     game.imagine.trainSkill(actor, "racial" | "social")
+		addSkill: (tmpactor, tmpkind) => ImagineSkillTraining.open(tmpactor, "add", tmpkind),
+		trainSkill: (tmpactor, tmpkind) => ImagineSkillTraining.open(tmpactor, "train", tmpkind),
+		// @MARKER POWERS AND ABILITIES
+		// His Updater's Add/Remove Powers/Abilities step: game.imagine.powers(actor).
+		powers: (tmpactor) => ImaginePowers.open(tmpactor),
+		// @MARKER GM TOOLS
+		// His Character Sheet Config's experience value and split, the Game Master's: game.imagine.gmTools(actor).
+		gmTools: (tmpactor) => ImagineGmTools.open(tmpactor),
+		// @MARKER GM RANDOMS
+		// His creature GM tools' Randoms/Extras (dice, encounter, direction, reflection, insanity, animal,
+		// chaos effect, spells and the rest) as a Game Master window; needs no actor.
+		//     game.imagine.gmRandoms(actor)        or        game.imagine.gmRandoms()
+		gmRandoms: (tmpactor) => ImagineGmRandoms.open(tmpactor ?? null),
+		// @MARKER ARMOR KNOWLEDGE AND LORE
+		// His Updater's "Select Armor Know. Config." and "Select Armor Lore Config.", as one window:
+		//     game.imagine.armorKnowledge(actor)           Armor Knowledge
+		//     game.imagine.armorKnowledge(actor, "lore")   Armor Lore
+		armorKnowledge: (tmpactor, tmpkind) => ImagineArmorKnowledge.open(tmpactor, tmpkind),
+		// @MARKER SOLDIERING
+		// The social skill Soldiering's one weapon, +1 to hit and damage: his Updater's "Select
+		// Soldiering Weapon", as a window.
+		//     game.imagine.soldiering(actor)
+		soldiering: (tmpactor) => ImagineSoldiering.open(tmpactor),
+		// @MARKER WEAPON CHOICES
+		// Weapon proficiency and the weapons named for each lore, his seven Updater options in one window.
+		//     game.imagine.weaponChoices(actor, "proficiency" | "weaponLore" | "missileLore" | "secondKnow" |
+		//                                "secondLore" | "projectileKnow" | "projectileLore")
+		weaponChoices: (tmpactor, tmpkind) => ImagineWeaponChoices.open(tmpactor, tmpkind),
+		// His GRAPPLING row -- the fifteen grapple moves and their roll -- as one window.
+		//     game.imagine.grappling(actor)
+		grappling: (tmpactor) => ImagineGrappling.open(tmpactor),
+		// @MARKER UPDATER
+		// His "What do you want to do?" dropdown: everything a made character can change, as a list that
+		// opens the right window. Also the Updater button in the sheet header.
+		//     game.imagine.updater(actor)
+		updater: (tmpactor) => ImagineUpdater.open(tmpactor),
+		// @MARKER SHAPE CHANGE
+		// A Changeling's form and a Formless's host: his four Updater panels as one window.
+		//     game.imagine.shapeChange(actor, "changeling" | "formlessHost" | "formlessRetention" | "formlessPsyche")
+		shapeChange: (tmpactor, tmpkind) => ImagineShapeChange.open(tmpactor, tmpkind),
 		// @MARKER ROUND CLOCK
 		// The Mr. Initiative window, also the stopwatch at the top of the Combat tracker.
 		roundClock: () => ImagineRoundClock.open(),

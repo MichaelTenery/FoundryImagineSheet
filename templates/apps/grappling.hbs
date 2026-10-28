@@ -1,0 +1,42 @@
+{{!--
+	The Grappling window: his GRAPPLING row stood up. One root element, as the framework requires.
+	Everything here comes from buildGrapplingView (module/grappling-view.mjs), plus the window's own
+	answer (working).
+--}}
+<div class="grappling-window">
+	<p class="hint grapple-weapons">Any weapon 18 inches (1.5 feet) in length or less can be used in a grapple.</p>
+	<div class="grapple-head">
+		<label>Grapple move
+			<select name="name">
+				<option value="" {{#unless name}}selected{{/unless}}></option>
+				{{#each moves as |m|}}<option value="{{m.name}}" {{#if m.selected}}selected{{/if}} {{#if m.disabled}}disabled{{/if}}>{{m.name}} ({{m.figures}})</option>{{/each}}
+			</select></label>
+	</div>
+
+	{{!-- His four boxes: Speed, Min, Mod, Damage. --}}
+	<div class="grapple-figures">
+		<span><label>Speed</label> {{speed}}{{#if hasChoice}}{{#if speedMod}} <span class="muted">({{#if (gt speedMod 0)}}+{{/if}}{{speedMod}} yours)</span>{{/if}}{{/if}}</span>
+		<span><label>Min</label> {{minSpeed}}</span>
+		<span><label>Mod</label> {{mod}}</span>
+		<span><label>Damage</label> {{damage}}</span>
+	</div>
+	<p class="hint grapple-note"><strong>Notes:</strong> {{note}}</p>
+	{{#if noHands}}<p class="hint alarm">All manipulator limbs lost: only Touch and Escape can be made.</p>{{/if}}
+	{{#if blocked}}<p class="hint alarm">{{name}} cannot be made without a manipulator limb. Choose Touch or Escape.</p>{{/if}}
+
+	{{#if hasChoice}}
+	<div class="grapple-body">
+		{{#if situationLine}}<p class="hint situation-summary">Situation Mods (damage): {{situationLine}}. Change them from the Combat tab.</p>{{/if}}
+		<div class="form-group"><label>Modifier</label>
+			<input type="number" name="modifier" value="{{working.modifier}}" data-working="modifier">
+			<p class="hint">His MOD: asked for by his button, and 0 for his plain ROLL.</p></div>
+	</div>
+	{{else}}
+	<p class="empty">Nothing chosen. Pick a move to touch, grab or wrestle with.</p>
+	{{/if}}
+
+	<footer class="grapple-foot">
+		<button type="button" class="primary" data-action="grapple" {{#unless hasChoice}}disabled{{/unless}}><i class="fa-solid fa-hands-holding"></i> Roll</button>
+		<button type="button" data-action="done"><i class="fa-solid fa-check"></i> Done</button>
+	</footer>
+</div>

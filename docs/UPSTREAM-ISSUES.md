@@ -4,7 +4,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 **Reconciled with the code on 2026-10-07, then closed out.** Every issue was checked against what the port does today. Each section's status line carries **Status** (where the question stands with him) and **Port** (what the port does about it); a dated **Update** at the foot of a section says what had gone stale, with the original wording left above it as the record of what was found.
 
-**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 82 of 119 are. They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **37 issues remain active** above it.
+**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 87 of 124 are (re-sorted 2026-10-28). They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **37 issues remain active** above it, **ordered by what is needed from him**: first the five the port cannot act on until he answers (group A), then the thirty-two it has worked around meanwhile (group B).
 
 **Status** (his side): `open` -- not yet answered. `answered` -- he, or his own book or code, has settled it (the date and who are on the line; **Daryl** is the tester at his table, whose answers are taken as the table's but are not the developer's). `withdrawn` -- our misreading. `duplicate` -- see the other item. A fifth value the file once promised, `fixed upstream`, has **no entries: nothing in the repository records him fixing any of these in his sheet.**
 
@@ -14,16 +14,11 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 | | |
 |---|---|
-| Issues | 121 |
+| Issues | 124 |
 | **Active** | **37** |
-| Active: worked around, awaiting him | 28 |
-| Active: feature not built, or nothing to do yet | 9 |
-| Active: open with him / answered | 36 / 1 |
-| **Resolved** | **84** |
-| Resolved: solved in the port | 51 |
-| Resolved: follows his code on purpose | 29 |
-| Resolved: withdrawn | 2 |
-| Resolved: duplicate | 2 |
+| A. Needs your answer before the port can act | 5 |
+| B. Open, worked around meanwhile | 32 |
+| **Resolved** | **87** |
 
 ## Found while reconciling
 
@@ -39,45 +34,74 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 | # | Title | His side | Port | State |
 |---|---|---|---|---|
+| | **A. Needs your answer before the port can act** | | | |
+| 3 | Is this sheet the current ruleset? | Open | Nothing for the port to do | Active |
+| 5 | Data edge cases found while converting 2,814 entries | Open | Not handled (except the Gaunt row, item 2) | Active |
+| 65 | Customizing a whole stack can stop on an undeclared name | Open | Nothing for the port to do | Active |
+| 96 | setCreatureWeaponProfValues splits the skill list with no separator | Open | Not handled yet | Active |
+| 105 | Step 7: a failed confirm resets the wrong step | Open | Nothing for the port to do | Active |
+| | **B. Open: the port works around it meanwhile** | | | |
+| 11 | Four attack paths lose or double-count to-hit modifiers | Open | Solved for the paths ported; the brawling and evoke paths are not ported | Active |
+| 15 | A creature's called shot does not halve its damage | Open | Worked around (creatures' called shots are halved, as characters' are) | Active |
+| 21 | The per-weapon lore bonus reaches the attack, but Missile Lore's damage is dropped | Open | Worked around | Active |
+| 24 | Sea and Ice Elves have a speed multiplier of -10, which makes their movement negative | Open | Worked around | Active |
+| 25 | Magical flight multiplies twice, making the ten-second rate a hundred times the one-second rate | Open | Worked around | Active |
+| 31 | Encumbrance never slows anyone down in your sheet, and two small things in `calcEncumbrance` | Open | Worked around | Active |
+| 32 | Mixed races: Half Race is ported from your code; three questions about the rest | Open | Worked around | Active |
+| 33 | Class paths: two small slips around the choices made when a class is taken | Open | Worked around | Active |
+| 39 | Two slips in the inline race rows | Open | Worked around | Active |
+| 47 | Your Formless copy of each race's physical half has drifted from the race table | Open | Worked around | Active |
+| 50 | Does a Dark Fairy have Animal Shape? | Open | Worked around | Active |
+| 51 | Is `Mixed` flexibility meant to be Semi-Flexible? | Open | Worked around | Active |
+| 56 | Martial arts: where your code and your own martial prose disagree | Open | Worked around; lost limbs are not modelled | Active |
+| 58 | Two names your starting-lore lists draw that your dictionaries do not hold | Open | Worked around | Active |
+| 61 | The round clock: two readings the port had to make | Open | Worked around | Active |
+| 62 | Seven poison types last hours when used, minutes on their row | Open | Worked around | Active |
+| 63 | A rune's damage: the weapon's own dice, or d6? | Open | Worked around | Active |
+| 64 | A Doubling Blade changes nothing on the combat sheet | Open | Worked around | Active |
+| 66 | A positive Gravity rune makes a weapon lighter | Open | Worked around | Active |
+| 69 | The Segmented Worm's body chart names Left and Right Foot12 twice | Open | Worked around | Active |
+| 70 | The starting-kit switches spell Brachara "Bracharia" | Open | Worked around | Active |
+| 83 | `getExtraClassRacialMods` always returns 0: it returns before its `getAttrs` callback runs | Open | Worked around | Active |
+| 85 | The "only add the excess" rule on racial and class skills: three results worth a look | Open | Worked around (case 1); follows his code (2, 3) | Active |
+| 88 | Learning a social skill later reads your social-to-social table backwards | Open | Worked around | Active |
+| 99 | The Standard kit's social 12-13 weapon roll has no breaks | Open | Worked around | Active |
+| 114 | Class skills: slots needed, and the REMOVE button | Open | Worked around | Active |
+| 115 | Two hands: "+2 to hit" in bug report 0.20.10, +2 damage in your code and the book | Answered in part 2026-10-05 | Worked around | Active |
+| 116 | Full Shirt and Long Shirt: Leather and Padding rows look swapped | Open | Worked around | Active |
+| 117 | Common Skills Listing against the books' "Restricted: No" | Open | Worked around | Active |
+| 118 | Off-centre hits: which area "High", "Low", "Left" and "Right" land on | Open | Worked around | Active |
+| 123 | Grappling Throw and Slam add the modifier to the d100 | Open | As written, flagged on the card | Active |
+| 125 | Changeling forms: three rows where your table and your race rows disagree, and Elf(Sea)'s round trip | Open | Worked around | Active |
+| | **Resolved** | | | |
 | 1 | `Monk` class row is one column short — affects the live sheet | Answered 2026-09-16 | Solved in the port | Resolved (solved in the port) |
 | 2 | `"Gaunt"` race carries a live expression where every other race has a literal | Answered 2026-09-23 (by his book) | Solved in the port | Resolved (solved in the port) |
-| 3 | Is this sheet the current ruleset? | Open | Nothing for the port to do | Active |
 | 4 | "Made by half" vs the ±20% critical rule | Answered 2026-09-23 (by his code) | Solved in the port | Resolved (solved in the port) |
-| 5 | Data edge cases found while converting 2,814 entries | Open | Not handled (except the Gaunt row, item 2) | Active |
 | 6 | Bugs found in his combat code | Open | Solved (a, b, d, e); follows his table (f) | Resolved (solved in the port) |
 | 7 | Where the rulebook and his code disagree | Open | Follows his code | Resolved (follows his code on purpose) |
 | 8 | Creature attribute maximums follow a different scale from Character's | Open | Follows his code | Resolved (follows his code on purpose) |
 | 9 | Five insect body charts write a torso multiplier without its "x" | Answered 2026-09-16 | Solved in the port | Resolved (solved in the port) |
 | 10 | Creature abilities never get the mechanical treatment racial abilities do, and the two lists disagree | Answered 2026-09-18 (the conflict list) | Follows his code | Resolved (follows his code on purpose) |
-| 11 | Four attack paths lose or double-count to-hit modifiers | Open | Solved for the paths ported; the brawling and evoke paths are not ported | Active |
 | 12 | `rebuildRepeatingBodyRows` never fetches `creature_type` | Open | Solved in the port | Resolved (solved in the port) |
 | 13 | `divideWithMinAndMax` never applies its maximum | Answered 2026-09-16 | Solved in the port | Resolved (solved in the port) |
 | 14 | A martial-arts damage multiplier is assigned to the wrong variable | Open | Solved in the port | Resolved (solved in the port) |
-| 15 | A creature's called shot does not halve its damage | Open | Worked around (creatures' called shots are halved, as characters' are) | Active |
 | 16 | The arch-mortal attribute maximum: the comment says 25, the code sets 27 | Answered 2026-09-16 | Solved in the port | Resolved (solved in the port) |
 | 17 | The Snake armour map is one position out of step with the Snake(Arms) chart | Open | Solved in the port | Resolved (solved in the port) |
 | 18 | The Centaur armour map has a Mid Torso the Centaur chart does not | Open | Solved in the port | Resolved (solved in the port) |
 | 19 | Seventeen lore title gates are written `=>` instead of `>=`, so they never gate anything | Answered 2026-09-16 | Solved in the port | Resolved (solved in the port) |
 | 20 | "Enduring All" endures nine damage types out of ten | Answered 2026-09-16 | Follows his code | Resolved (follows his code on purpose) |
-| 21 | The per-weapon lore bonus reaches the attack, but Missile Lore's damage is dropped | Open | Worked around | Active |
 | 22 | Five classes have no `classRequirementsAndDetails` row at all | Answered 2026-09-16 | Solved in the port | Resolved (solved in the port) |
-| 23 | Fourteen races cannot move — WITHDRAWN, this was our misreading | Withdrawn | Solved in the port | Resolved (withdrawn) |
-| 24 | Sea and Ice Elves have a speed multiplier of -10, which makes their movement negative | Open | Worked around | Active |
-| 25 | Magical flight multiplies twice, making the ten-second rate a hundred times the one-second rate | Open | Worked around | Active |
+| 23 | ~~Fourteen races cannot move~~ — WITHDRAWN, this was our misreading | withdrawn | Solved in the port | Resolved (solved in the port) |
 | 26 | Five classes have no entry in `getSlotsNeededForClass`, so they read as costing no class skill slots | Answered 2026-09-16 | Solved in the port | Resolved (solved in the port) |
 | 27 | `Beguiler`'s description and class type are swapped | Open | Follows his code | Resolved (follows his code on purpose) |
 | 28 | Double/triple missile fire: the book says roll each attack separately, your sheet rolls once | Open | Follows his code | Resolved (follows his code on purpose) |
 | 29 | Multiple Missile Knowledge's worked example contradicts its own rule | Open | Follows his code | Resolved (follows his code on purpose) |
 | 30 | Two Player's Guide language rules your sheet does not implement | Open | Follows his code | Resolved (follows his code on purpose) |
-| 31 | Encumbrance never slows anyone down in your sheet, and two small things in `calcEncumbrance` | Open | Worked around | Active |
-| 32 | Mixed races: Half Race is ported from your code; three questions about the rest | Open | Worked around | Active |
-| 33 | Class paths: two small slips around the choices made when a class is taken | Open | Worked around | Active |
 | 34 | Eight skills write their starting dice "dl0" instead of "d10" | Open | Solved in the port | Resolved (solved in the port) |
 | 35 | `getExpByGoal` writes `case 30:` twice, so goal 40 answers 0 experience | Open | Solved in the port | Resolved (solved in the port) |
 | 36 | A half race's 11th and 12th title Endurance is worked out from one parent only | Open | Follows his code | Resolved (follows his code on purpose) |
 | 37 | Four races get no height at all: they are missing from `getRaceHeightType` | Withdrawn 2026-10-07 (our misreading) | Solved (the issue itself was wrong) | Resolved (withdrawn) |
 | 38 | Four faerie races can only fly in their slight-physique form — is that intended? | Answered 2026-09-20 (Daryl) | Solved in the port | Resolved (solved in the port) |
-| 39 | Two slips in the inline race rows | Open | Worked around | Active |
 | 40 | The Fortune check for starting money succeeds on a HIGH roll | Answered 2026-09-25 (Daryl) | Solved in the port | Resolved (solved in the port) |
 | 41 | A Dark Fairy has no Iron Aversion and no Night Vision in `raceFeatureAbilities` | Open | Follows his code | Resolved (follows his code on purpose) |
 | 42 | Ten of the wilderness-gear bands have no `break`, so they take the next band's kit | Open | Solved in the port | Resolved (solved in the port) |
@@ -85,30 +109,17 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 44 | Beguiler's classType and description are swapped | Duplicate of 27 | Follows his code | Resolved (duplicate) |
 | 45 | Two race names in `racefertiledict` are malformed | Open | Follows his code | Resolved (follows his code on purpose) |
 | 46 | `setFormlessStartingRace` has `case "Fairy"` twice, and no case for Sporeling | Open | Solved in the port | Resolved (solved in the port) |
-| 47 | Your Formless copy of each race's physical half has drifted from the race table | Open | Worked around | Active |
 | 48 | Every resistance roll on your sheet reports "virtually immune" | Open | Solved in the port | Resolved (solved in the port) |
 | 49 | A Famorian can never take Regeneration(Budding) | Open (needs nothing from him) | Solved in the port | Resolved (solved in the port) |
-| 50 | Does a Dark Fairy have Animal Shape? | Open | Worked around | Active |
-| 51 | Is `Mixed` flexibility meant to be Semi-Flexible? | Open | Worked around | Active |
 | 52 | Does a racial skill's bonus to a Social skill ever actually apply? | Open (answered in the port) | Solved in the port | Resolved (solved in the port) |
 | 53 | "One Eye" in the missile Situation Mods never applies | Open | Solved in the port | Resolved (solved in the port) |
 | 54 | A critically failed Perfect Shot halves damage only when something else multiplies it | Open | Solved in the port | Resolved (solved in the port) |
 | 55 | Three Situation Mods whose label and code disagree, kept as the code has them | Open | Follows his code (1-3); solved (4) | Resolved (follows his code on purpose) |
-| 56 | Martial arts: where your code and your own martial prose disagree | Open | Worked around; lost limbs are not modelled | Active |
 | 57 | Starting lore: Poison Lore held twice gives one recipe, not two | Open | Solved in the port | Resolved (solved in the port) |
-| 58 | Two names your starting-lore lists draw that your dictionaries do not hold | Open | Worked around | Active |
 | 59 | Two slips in the potion code | Open | Solved in the port | Resolved (solved in the port) |
 | 60 | Starting lore counts class skills the character has not reached | Open | Follows his code | Resolved (follows his code on purpose) |
-| 61 | The round clock: two readings the port had to make | Open | Worked around | Active |
-| 62 | Seven poison types last hours when used, minutes on their row | Open | Worked around | Active |
-| 63 | A rune's damage: the weapon's own dice, or d6? | Open | Worked around | Active |
-| 64 | A Doubling Blade changes nothing on the combat sheet | Open | Worked around | Active |
-| 65 | Customizing a whole stack can stop on an undeclared name | Open | Nothing for the port to do | Active |
-| 66 | A positive Gravity rune makes a weapon lighter | Open | Worked around | Active |
 | 67 | Nobles' starting money is never multiplied by 5 or 10 | Open | Solved in the port | Resolved (solved in the port) |
 | 68 | The starting-money Fortune roll uses a Fortune without its race or class bonus | Answered 2026-09-25 (Daryl) | Follows his code | Resolved (follows his code on purpose) |
-| 69 | The Segmented Worm's body chart names Left and Right Foot12 twice | Open | Worked around | Active |
-| 70 | The starting-kit switches spell Brachara "Bracharia" | Open | Worked around | Active |
 | 71 | Spell Lore's +2 Aura Control is counted twice | Open | Follows his code | Resolved (follows his code on purpose) |
 | 72 | Regenerating Aura by hours does nothing at "1/per Hour" | Open | Solved in the port | Resolved (solved in the port) |
 | 73 | Raging and Continuous Chaos never cast a spell of two words | Open | Solved in the port | Resolved (solved in the port) |
@@ -121,12 +132,9 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 80 | Two typos in the price strings: "1O cp" and "3 bp" | Open | Solved in the port | Resolved (solved in the port) |
 | 81 | 45 price rows climb out of order across the seven columns | Open | Follows his code | Resolved (follows his code on purpose) |
 | 82 | Price and value tables disagree on some names, and some price rows are duplicated | Open | Solved (aliases, launcher rows); follows his duplicate rows | Resolved (solved in the port) |
-| 83 | `getExtraClassRacialMods` always returns 0: it returns before its `getAttrs` callback runs | Open | Worked around | Active |
 | 84 | The Loud disability is written to `tmp_tmp_disabilities_loud`, so Surprise Attack's -20 never applies | Open | Solved in the port | Resolved (solved in the port) |
-| 85 | The "only add the excess" rule on racial and class skills: three results worth a look | Open | Worked around (case 1); follows his code (2, 3) | Active |
 | 86 | Four slips in your social-skill tables that stop a bonus working | Open (one question answered 2026-09-30) | Solved in the port | Resolved (solved in the port) |
 | 87 | Only the first race's social-skill modifiers and BLOCKs count for a Half Race | Open | Follows his code | Resolved (follows his code on purpose) |
-| 88 | Learning a social skill later reads your social-to-social table backwards | Open | Not handled yet | Active |
 | 89 | Famorian evokes whose skill bonus is only text, and Instinct(Navigation) frozen at creation | Open | Follows his code | Resolved (follows his code on purpose) |
 | 90 | Should a breath, a gaze or an area attack carry the creature's Strength and weight damage? | Open | Follows his code | Resolved (follows his code on purpose) |
 | 91 | A creature attack with no damage still does its Strength and weight in damage | Open | Solved in the port | Resolved (solved in the port) |
@@ -134,35 +142,34 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 93 | Should a creature's natural attack take a martial move's extra die or damage per die? | Open | Follows his code | Resolved (follows his code on purpose) |
 | 94 | The creature movement rebuild writes the hourly figure into the one-second slot, and re-adds its modifiers | Open | Solved in the port | Resolved (solved in the port) |
 | 95 | The creature Fortune "+mod" roll adds the modifier to the chance as text | Open | Solved in the port | Resolved (solved in the port) |
-| 96 | setCreatureWeaponProfValues splits the skill list with no separator | Open | Not handled yet | Active |
-| 97 | The temporary "Extra Damage per Die": two slips | Open | Not handled yet | Active |
+| 97 | The temporary "Extra Damage per Die": two slips | Open | Solved in the port | Resolved (solved in the port) |
 | 98 | A natural 01 on a skill roll | Open | Follows his code | Resolved (follows his code on purpose) |
-| 99 | The Standard kit's social 12-13 weapon roll has no breaks | Open | Worked around | Active |
 | 100 | Two more rows break the ten-times movement rule: Midfolk(Town) and Testudara | Open | Follows his code | Resolved (follows his code on purpose) |
 | 101 | The Wilder's Aura Control: are all its modifiers halved, or only the +1 a title your sheet gives? | Open | Follows his code | Resolved (follows his code on purpose) |
 | 102 | Piety Control jumps by twice the class figure on the title after a late invoker start | Open | Follows his code | Resolved (follows his code on purpose) |
 | 103 | useSpell's "Reduce N by M" sentence has its subtraction the wrong way round | Open | Solved in the port | Resolved (solved in the port) |
 | 104 | Refill: back to full, or a chosen amount added? | Open | Follows his code | Resolved (follows his code on purpose) |
-| 105 | Step 7: a failed confirm resets the wrong step | Open | Nothing for the port to do | Active |
 | 106 | The Order and Immoral classes lose their default tendency | Open | Solved in the port | Resolved (solved in the port) |
-| 107 | GM Tools "Alignment Color": one option has the wrong value | Open | Nothing for the port to do yet (his GM tool is not ported) | Active |
+| 107 | GM Tools "Alignment Color": one option has the wrong value | Open | Solved in the port | Resolved (solved in the port) |
 | 108 | Alignment dropdowns offer more than their requirement strings say | Open | Follows his code | Resolved (follows his code on purpose) |
 | 109 | Class alignments where the books and the sheet disagree | Open | Follows his code | Resolved (follows his code on purpose) |
 | 110 | Step 6: only some Required social skills are enforced | Open | Solved in the port | Resolved (solved in the port) |
 | 111 | Intercessor's social skill list is never shown | Open | Solved in the port | Resolved (solved in the port) |
 | 112 | Witch Hunter's social skill types are one row out from row 10 | Open | Solved in the port | Resolved (solved in the port) |
 | 113 | Social skill lists: smaller data questions | Open | Follows his code | Resolved (follows his code on purpose) |
-| 114 | Class skills: slots needed, and the REMOVE button | Open | Worked around | Active |
-| 115 | Two hands: "+2 to hit" in bug report 0.20.10, +2 damage in your code and the book | Answered in part 2026-10-05 | Worked around | Active |
-| 116 | Full Shirt and Long Shirt: Leather and Padding rows look swapped | Open | Worked around | Active |
-| 117 | Common Skills Listing against the books' "Restricted: No" | Open | Worked around | Active |
-| 118 | Off-centre hits: which area "High", "Low", "Left" and "Right" land on | Open | Worked around | Active |
 | 119 | Smashing damage between half and full armour: his table says a quarter, the book says half | Answered 2026-10-07 (bug report 0.22.7:1) | Solved in the port | Resolved (solved in the port) |
-| 120 | A failed Force Twist(Small) rolls no damage at all | Open | Solved (the Weapon Twist row of the same size) | Active |
+| 120 | calcCreatureExp counts one immunity on a creature that has none | Open | Solved in the port | Resolved (solved in the port) |
+| 121 | A failed Force Twist(Small) rolls no damage at all | Open | Solved (the Weapon Twist row of the same size) | Resolved (solved in the port) |
+| 124 | Two random tables that cannot reach one of their rows | Open | Solved in the port | Resolved (solved in the port) |
 
 ---
 
 # Active issues
+
+Ordered by what is needed from you: first the questions the port cannot act on until you
+answer, then the open ones the port has worked around, then those answered in part. By number within each.
+
+# A. Needs your answer before the port can act
 
 ## 3. Is this sheet the current ruleset?
 
@@ -192,6 +199,43 @@ The conversion runs 99.75% clean. These seven entries do not convert to a plain 
 - Composite flexibility (`Rigid/Flexible`, `Rigid/Semi-Flexible`, `Rigid/Rigid`, `Mixed`) is the data encoding of the built-in-padding rule, which lets a rigid piece with a flexible inner face sit against the body. `Rigid/Rigid` is legitimate too: "a few suits allow two sections of rigid armor because they do not touch."
 
 **Update 2026-10-07:** Counts are the early ones: "These seven entries" introduces four rows, and "2,814 entries / 99.75%" predates the later packs. The Gaunt row is settled by item 2. A Centaur's `Special` jump modifier still reads as 0 (`to_number`, `build_documents.py`, logged each build), so a Centaur jumps at the full base, not half.
+
+## 65. Customizing a whole stack can stop on an undeclared name
+
+**Status:** open · **Port:** Nothing for the port to do · **Severity:** real, but narrow -- the customize does nothing
+
+In `customizeItem`, the two branches for customizing every item of a stack of more than one
+(`currentitems==tmpitemnumber`, 79102 and 79106) build the new name with
+`...+tmpbasepietytmpnewweaprune+...` -- a missing `+` between `tmpbasepiety` and `tmpnewweaprune`.
+Reading an undeclared name throws, so when that stack is the first weapon in the list the whole
+customize stops there. The `else` half of the same lines has the `+`. The port does not share the
+code; noted for your sheet.
+
+## 96. setCreatureWeaponProfValues splits the skill list with no separator
+
+**Status:** open · **Port:** Not handled yet · **Severity:** a creature's weapon proficiency count can read the wrong number.
+
+`setCreatureWeaponProfValues` (sheet-worker.js:179371) does
+`tmpCreatureSkillsArray=tmpCreatureSkills.split();` (179377). `split()` with no separator returns
+the whole string as one element. The loop then runs once, and `returnFirstNumber` reads the first
+number anywhere in the creature's skill list, not Weapon Knowledge's own chance. "Ambush 45%, Weapon
+Knowledge 60%" gives 45. `split(",")` was surely meant.
+
+**What the port does:** nothing yet. Creatures using weapons (and their proficiency) is not built.
+When it is, the chance is read by skill name.
+
+## 105. Step 7: a failed confirm resets the wrong step
+
+**Status:** open · **Port:** Nothing for the port to do · **Severity:** minor; a failed alignment confirm reopens step 6 instead of step 7
+
+**Where:** sheet-worker.js:7898 and 7906. When the step 7 (alignment) confirm fails, it resets
+`skills_select_done` rather than `align_select_done`.
+
+**What the port does:** nothing to port; the generator's Details step simply refuses to go on.
+
+**Question:** confirm it should be `align_select_done`.
+
+# B. Open: the port works around it meanwhile
 
 ## 11. Four attack paths lose or double-count to-hit modifiers
 
@@ -366,8 +410,6 @@ foes..."). That has the look of the same kind of column slip as item 1, in a dif
 
 **Update 2026-10-07:** The repair was made on book evidence (Legends pp.27-28), not on his word: `RACE_VALUE_REPAIRS` (`column_maps.py:359-369`) moves the -10 to `diseaseResistMod` on every build, and a runtime guard ignores a speed multiplier of 0 or less. So "we have not acted on that reading" and "it ignores a negative speed multiplier" are overtaken. Two stale port comments (`combat-rules.mjs`, the movement floor) were corrected 2026-10-07. The Elemental Dancer template note at the end of this section is misfiled and belongs to item 22; the Beguiler note is item 27.
 
----
-
 ## 25. Magical flight multiplies twice, making the ten-second rate a hundred times the one-second rate
 
 **Status:** open · **Port:** Worked around · **Severity:** two races (Mephyt(Fire), Mephyt(Ice)); the port departs from your
@@ -414,8 +456,6 @@ your code disagreeing with your own data and your own commented-out line. Three 
 it is still your call, and it is one line to put back either way.
 
 **Update 2026-10-07:** The commented lines the issue points at (32366-32368) sit in a different branch (`multiforgroundonly`, "Hooves"). That branch's live code (32363-32365) is a third formula, INT x3 / x30 / x3 with no race multiplier, which neither this issue nor the port mentions.
-
----
 
 ## 31. Encumbrance never slows anyone down in your sheet, and two small things in `calcEncumbrance`
 
@@ -836,17 +876,6 @@ Your Customize panel offers "Doubling Blade(Axe)", value `Doubling Blade`, and `
 `[Double Head]` -- strength x1.2 (89861), a second slower (89911), +20% to skills (90025) -- so a
 Doubling Blade never gets them. The port reads Doubling Blade as Double Blade. Is that what you meant?
 
-## 65. Customizing a whole stack can stop on an undeclared name
-
-**Status:** open · **Port:** Nothing for the port to do · **Severity:** real, but narrow -- the customize does nothing
-
-In `customizeItem`, the two branches for customizing every item of a stack of more than one
-(`currentitems==tmpitemnumber`, 79102 and 79106) build the new name with
-`...+tmpbasepietytmpnewweaprune+...` -- a missing `+` between `tmpbasepiety` and `tmpnewweaprune`.
-Reading an undeclared name throws, so when that stack is the first weapon in the list the whole
-customize stops there. The `else` half of the same lines has the `+`. The port does not share the
-code; noted for your sheet.
-
 ## 66. A positive Gravity rune makes a weapon lighter
 
 **Status:** open · **Port:** Worked around · **Severity:** moderate — the rune does the opposite of what it says below +100%
@@ -930,7 +959,7 @@ bonus on a racial skill. On a class skill it is CORE 30, or 0 (63786).
 
 ## 88. Learning a social skill later reads your social-to-social table backwards
 
-**Status:** open · **Port:** Not handled yet · **Severity:** small
+**Status:** open · **Port:** Worked around · **Severity:** small
 
 `getNewSocialSkillModifier` (125662-125670) looks up the **held** skill's row in
 `socialbonusfromsocial` and matches the **new** skill as the giver. But the table is keyed by the
@@ -945,37 +974,8 @@ Also noted:
 
 The port has no learn flow yet. When it gets one, it will use the creation direction.
 
-## 96. setCreatureWeaponProfValues splits the skill list with no separator
-
-**Status:** open · **Port:** Not handled yet · **Severity:** a creature's weapon proficiency count can read the wrong number.
-
-`setCreatureWeaponProfValues` (sheet-worker.js:179371) does
-`tmpCreatureSkillsArray=tmpCreatureSkills.split();` (179377). `split()` with no separator returns
-the whole string as one element. The loop then runs once, and `returnFirstNumber` reads the first
-number anywhere in the creature's skill list, not Weapon Knowledge's own chance. "Ambush 45%, Weapon
-Knowledge 60%" gives 45. `split(",")` was surely meant.
-
-**What the port does:** nothing yet. Creatures using weapons (and their proficiency) is not built.
-When it is, the chance is read by skill name.
-
-## 97. The temporary "Extra Damage per Die": two slips
-
-**Status:** open · **Port:** Not handled yet · **Severity:** the modifier is set from the wrong box, and on martial attacks is
-scaled by the die's size.
-
-- `setExtraCombatDamageModifiers` (sheet-worker.js:124608) reads the per-die input from the dice
-  box: `tmpNewExtraDamagePerDieModInput=parseFloat(""+values.tmp_extra_dice_input);` (124615), where
-  `tmp_extra_per_die_input` is meant. Typing a figure into "Extra Damage per Die" adds nothing, and
-  typing into "Extra Dice Damage" adds to both.
-- Your martial damage multiplies the per-die figure by the die's SIDES, not the number of dice
-  rolled: `modExtraDamPerDie=parseInt(tmpSides*modExtraDamPerDie);` (66758, and again at 66956). +1
-  per die on 2d6 adds 6 rather than 2. Your weapon and creature paths multiply by the number of dice
-  (for example 179964-179966).
-
-**What the port does:** the port does not have these two temporary modifiers on either actor yet.
-They are logged as a gap, and the slips are noted so they are not reproduced.
-
-**Update 2026-10-07:** The ported Hymn: Courage code does write `tmp_extra_per_die`, but only onto its own cast card ("Damage per die (temporary)"); no attack reads either modifier, so the gap stands.
+**Update 2026-10-27:** it has one now (Add Social Skill, bug report 0.25.1:3), and it uses the creation
+direction, adds the race's modifier and refuses a BLOCKED skill. Still worth your word on which way you meant it.
 
 ## 99. The Standard kit's social 12-13 weapon roll has no breaks
 
@@ -1000,26 +1000,6 @@ any sword".
 **What the port does meanwhile:** reads it as the four-way choice, as it always has (the other
 kits' missing breaks are item 42). Since 2026-09-23 the extractor prints that reading on every run.
 Four `break;` statements would settle it.
-
-## 105. Step 7: a failed confirm resets the wrong step
-
-**Status:** open · **Port:** Nothing for the port to do · **Severity:** minor; a failed alignment confirm reopens step 6 instead of step 7
-
-**Where:** sheet-worker.js:7898 and 7906. When the step 7 (alignment) confirm fails, it resets
-`skills_select_done` rather than `align_select_done`.
-
-**What the port does:** nothing to port; the generator's Details step simply refuses to go on.
-
-**Question:** confirm it should be `align_select_done`.
-
-## 107. GM Tools "Alignment Color": one option has the wrong value
-
-**Status:** open · **Port:** Nothing for the port to do yet (his GM tool is not ported) · **Severity:** minor; a label and its value disagree
-
-**Where:** HTML:92650. The option labelled Fanatical Good (Passive) has the value
-"Fanatical Good (Active)".
-
-**What the port does:** nothing yet; the colour tool is not ported.
 
 ## 114. Class skills: slots needed, and the REMOVE button
 
@@ -1119,74 +1099,36 @@ move it.
 **Question:** is that how you read your own chart at the table? If you have a fixed rule instead
 (a table per body type, or "left means the target's left arm"), the port will follow it.
 
+## 123. Grappling Throw and Slam add the modifier to the d100
+
+**Status:** open · **Port:** As written, flagged on the card · **Severity:** question
+
+In `handleGrappling` (sheet-worker.js:69156) the MOD prompt helps a Touch, Escape, Hold and Pin --
+it is added where a higher number is better -- but on Throw and Slam it is added to the d100 that must
+come in UNDER a save, so a +2 bonus makes the throw harder. Was that meant (a bonus as "more force,
+harder to control"), or should it be subtracted there? The port does what the code does and the card
+shows the sum, so the table can see it. Found 2026-10-27 building the Grappling window (report 0.25.1:1).
+
+## 125. Changeling forms: three rows where your table and your race rows disagree, and Elf(Sea)'s round trip
+
+**Status:** open · **Port:** Worked around · **Severity:** small
+
+Your Changeling switch (`update_changeling_race`) adds one table's modifiers for the new form and
+takes another's away for the old. Two things:
+
+- **Elf(Sea)'s remove row does not undo its add row**, so every switch into Elf(Sea) and back leaves the
+  Changeling 2 Appearance better off. The port keeps ONE table and stores the form, so a round trip is
+  exact.
+- **Three forms where the switch table and the race itself disagree:** Cervara's Strength, Elf(Wild)'s
+  Vitality (sign), Goblin(Plains)'s Agility (sign). The port follows your switch table. Which is right?
+
+Found 2026-10-27 building Changeling Switch Race for the Updater.
+
 ---
 
 # Resolved issues
 
 Withdrawn, duplicate, solved in the port, or followed on purpose. Closed 2026-10-07. Full text kept; numbers are unchanged, so every cross-reference in the repository still lands.
-
-## 119. Smashing damage between half and full armour: his table says a quarter, the book says half
-
-**RESOLVED 2026-10-07 -- Solved in the port.** Answered by his bug report 0.22.7:1 the same day.
-
-**Status:** answered 2026-10-07 (bug report 0.22.7:1) · **Port:** Solved in the port · **Severity:** rules, one cell of a table
-
-**His answer (bug report 0.22.7:1, "damage is being applied incorrectly", classified Blocker):** the book's table governs. *"do a smashing attack that does over half the armor damage but does not exceed the armor value. The damage calculation should be half of the attack damage goes through the armor"* -- his example: 22 smashing against 38 armour (half is 19) *"should do half damage or 11 points"*, where the port put 5 through. He quotes the book's two examples, rounded up. `ARMOR_BLOCKING`'s Smashing row is now the book's, corrected in the generator (`BLOCKING_CORRECTIONS`, `tools/extract/extract_combat_tables.py`) so a regeneration keeps it, and `blockDamage` rounds up as the examples do (a 15-point cut against 20 armour now puts 4 through, not 3). The constriction footnote is still not built.
-
-Your `armorblockingdict` (sheet-worker.js:118817) and the Player's Guide's "Damage Type Versus
-Armor Value" table (p.189) agree on every cell but one. For a Smashing blow that exceeds half
-the armour value but not the full value, the book says **1/2 Damage**, and its own Example 1 works
-it that way (19 points against a 20-point plate helm: "the damage is halved and rounded up for a
-total of 10 points"). Your sheet says **1/4 Damage** -- the same as Cutting, Thrusting and
-Piercing -- so the same blow puts 4 points through. Your errata of 2026-09-21 replaces Example 2
-on that page (the over-full-armour column, where book and sheet agree) and leaves the table and
-Example 1 as printed, so it does not settle this.
-
-Two smaller differences on the same page, for completeness:
-
-- **Rounding.** The book rounds the fraction up ("rounded up", both examples); your code
-  truncates (`parseInt`). The port truncates, as your code does.
-- **Constriction.** The table's footnote halves the armour value each consecutive round of
-  constriction (the boa example: 15, then 8, 4, 2, 1). Nothing in your sheet does this; the port
-  does not either. The Game Master can lower the armour by hand for now.
-
-The port follows your table (`ARMOR_BLOCKING` in `module/combat-tables.mjs`, generated from your
-code): a quarter. **Question:** which do you play -- a quarter, as the sheet has it, or half, as
-the book and its example have it? If half, it is a one-cell change and the port will follow.
-
-## 121. A failed Force Twist(Small) rolls no damage at all
-
-**Status:** open · **Port:** Solved (the Weapon Twist row of the same size) · **Severity:** real bug, one brawling row
-
-When a Force Twist's Force roll fails, `handleBrawling` drops the damage to the Weapon Twist of the
-same size (sheet-worker.js:69818-69826):
-```js
-if (brawlingAttack=="Force Twist") {
-	damString="3d6";
-} else if (!brawlingAttack=="Force Twist(Small)") {
-	damString="2d8";
-} else if (brawlingAttack=="Force Twist(Proj./Knife)") {
-	damString="3d4";
-}
-```
-The second test reads `!brawlingAttack`, which is `false`, and `false=="Force Twist(Small)"` never
-holds, so a failed **Force Twist(Small)** leaves `damString` unset and `rollDiceFromString(undefined)`
-is what is posted. The other two sizes are fine. The intent is plain from the two lines around it
-and from the Weapon Twist rows (2d8 is Weapon Twist(Small)'s own damage), so the port reads the
-Weapon Twist row of the same size for all three (`FORCE_TWIST_FALLBACK`, `module/combat/brawling-rules.mjs`).
-
-Two smaller things on the same path, for completeness, both followed as the weapon path has them
-rather than as this one does:
-
-- **A called shot never halves a brawl.** `handleBrawling` reads the called shot to say "Called
-  Shot:Hit!" or ":Miss" but never sets `damMulti=.5` for it, where `handlePhysicalAttacks` does and
-  the Player's Guide says a called shot does half damage whether or not it lands. The same gap item
-  15 records for creatures; the port halves it.
-- **The worn-magic extras on a hand-to-hand blow** (`getExtraMagicalDamage`, `getSpecialMagic`,
-  `[Spiked]`) read the worn armour's names for its customizations. The port has no customized armour
-  yet, so there is nothing to read and the card does not pretend otherwise; it is in
-  `docs/sonnet/2026-10-07-brawling.md` for when armour gets his Customize panel.
-
 
 ## 1. `Monk` class row is one column short — affects the live sheet
 
@@ -1731,8 +1673,6 @@ transcribed, and is cross-checked against the two copies of it in your own code,
 
 The lesson is recorded in `DECISIONS.md`; the apology for asking you to fix data that was never
 broken is recorded here.
-
----
 
 ## 26. Five classes have no entry in `getSlotsNeededForClass`, so they read as costing no class skill slots
 
@@ -3079,6 +3019,27 @@ to 99. The Affinity "+mod" (24571) reads its chance through `parseInt` and is no
 **What the port does:** adds the modifier as a number, and does not hold the result to 1-99, since
 none of your other characteristic rolls are held there.
 
+## 97. The temporary "Extra Damage per Die": two slips
+
+**RESOLVED 2026-10-27 -- Solved in the port.** The Temporary Modifiers window (bug report 0.25.1:6) reads each box as its label says.
+
+**Status:** open · **Port:** Solved in the port · **Severity:** the modifier is set from the wrong box, and on martial attacks is
+scaled by the die's size.
+
+- `setExtraCombatDamageModifiers` (sheet-worker.js:124608) reads the per-die input from the dice
+  box: `tmpNewExtraDamagePerDieModInput=parseFloat(""+values.tmp_extra_dice_input);` (124615), where
+  `tmp_extra_per_die_input` is meant. Typing a figure into "Extra Damage per Die" adds nothing, and
+  typing into "Extra Dice Damage" adds to both.
+- Your martial damage multiplies the per-die figure by the die's SIDES, not the number of dice
+  rolled: `modExtraDamPerDie=parseInt(tmpSides*modExtraDamPerDie);` (66758, and again at 66956). +1
+  per die on 2d6 adds 6 rather than 2. Your weapon and creature paths multiply by the number of dice
+  (for example 179964-179966).
+
+**What the port does:** the port does not have these two temporary modifiers on either actor yet.
+They are logged as a gap, and the slips are noted so they are not reproduced.
+
+**Update 2026-10-07:** The ported Hymn: Courage code does write `tmp_extra_per_die`, but only onto its own cast card ("Damage per die (temporary)"); no attack reads either modifier, so the gap stands.
+
 ## 98. A natural 01 on a skill roll
 
 **RESOLVED 2026-10-07 -- Follows his code on purpose.** Closed by the user's instruction and kept below as the record; a question to him that this entry carries, if any, stands in the text.
@@ -3199,6 +3160,17 @@ the class changes and the tendency is blank.
 
 **Question:** is the preselected default what you meant?
 
+## 107. GM Tools "Alignment Color": one option has the wrong value
+
+**RESOLVED 2026-10-27 -- Solved in the port.** His GM Tools Randoms/Extras are ported (bug report 0.25.1:11) with the option's value corrected; see also item 124.
+
+**Status:** open · **Port:** Solved in the port · **Severity:** minor; a label and its value disagree
+
+**Where:** HTML:92650. The option labelled Fanatical Good (Passive) has the value
+"Fanatical Good (Active)".
+
+**What the port does:** nothing yet; the colour tool is not ported.
+
 ## 108. Alignment dropdowns offer more than their requirement strings say
 
 **RESOLVED 2026-10-07 -- Follows his code on purpose.** Closed by the user's instruction and kept below as the record; a question to him that this entry carries, if any, stands in the text.
@@ -3301,6 +3273,35 @@ row 16, Weapon Making, has no type. The mods column is off from row 10 too.
 - **Tendency typo:** `getTendencyDescription` (73380/73383/73386) says "tum a chaotic situation"
   for "turn" (PG p.41). Fixed in the port's text.
 
+## 119. Smashing damage between half and full armour: his table says a quarter, the book says half
+
+**RESOLVED 2026-10-07 -- Solved in the port.** Answered by his bug report 0.22.7:1 the same day.
+
+**Status:** answered 2026-10-07 (bug report 0.22.7:1) · **Port:** Solved in the port · **Severity:** rules, one cell of a table
+
+**His answer (bug report 0.22.7:1, "damage is being applied incorrectly", classified Blocker):** the book's table governs. *"do a smashing attack that does over half the armor damage but does not exceed the armor value. The damage calculation should be half of the attack damage goes through the armor"* -- his example: 22 smashing against 38 armour (half is 19) *"should do half damage or 11 points"*, where the port put 5 through. He quotes the book's two examples, rounded up. `ARMOR_BLOCKING`'s Smashing row is now the book's, corrected in the generator (`BLOCKING_CORRECTIONS`, `tools/extract/extract_combat_tables.py`) so a regeneration keeps it, and `blockDamage` rounds up as the examples do (a 15-point cut against 20 armour now puts 4 through, not 3). The constriction footnote is still not built.
+
+Your `armorblockingdict` (sheet-worker.js:118817) and the Player's Guide's "Damage Type Versus
+Armor Value" table (p.189) agree on every cell but one. For a Smashing blow that exceeds half
+the armour value but not the full value, the book says **1/2 Damage**, and its own Example 1 works
+it that way (19 points against a 20-point plate helm: "the damage is halved and rounded up for a
+total of 10 points"). Your sheet says **1/4 Damage** -- the same as Cutting, Thrusting and
+Piercing -- so the same blow puts 4 points through. Your errata of 2026-09-21 replaces Example 2
+on that page (the over-full-armour column, where book and sheet agree) and leaves the table and
+Example 1 as printed, so it does not settle this.
+
+Two smaller differences on the same page, for completeness:
+
+- **Rounding.** The book rounds the fraction up ("rounded up", both examples); your code
+  truncates (`parseInt`). The port truncates, as your code does.
+- **Constriction.** The table's footnote halves the armour value each consecutive round of
+  constriction (the boa example: 15, then 8, 4, 2, 1). Nothing in your sheet does this; the port
+  does not either. The Game Master can lower the armour by hand for now.
+
+The port follows your table (`ARMOR_BLOCKING` in `module/combat-tables.mjs`, generated from your
+code): a quarter. **Question:** which do you play -- a quarter, as the sheet has it, or half, as
+the book and its example have it? If half, it is a one-cell change and the port will follow.
+
 ## 120. calcCreatureExp counts one immunity on a creature that has none
 
 **Status:** open · **Port:** Solved in the port · **Severity:** minor
@@ -3319,3 +3320,49 @@ values with the list empty carries it.
 **What the port does:** the creature generator (`module/creature-gen-rules.mjs`, calcCreatureExp)
 counts the immunities the creature actually has, zero included; the rest of your valuation is kept as
 written. Found 2026-10-07 while porting the function for the Create Creature window.
+
+## 121. A failed Force Twist(Small) rolls no damage at all
+
+**Status:** open · **Port:** Solved (the Weapon Twist row of the same size) · **Severity:** real bug, one brawling row
+
+When a Force Twist's Force roll fails, `handleBrawling` drops the damage to the Weapon Twist of the
+same size (sheet-worker.js:69818-69826):
+```js
+if (brawlingAttack=="Force Twist") {
+	damString="3d6";
+} else if (!brawlingAttack=="Force Twist(Small)") {
+	damString="2d8";
+} else if (brawlingAttack=="Force Twist(Proj./Knife)") {
+	damString="3d4";
+}
+```
+The second test reads `!brawlingAttack`, which is `false`, and `false=="Force Twist(Small)"` never
+holds, so a failed **Force Twist(Small)** leaves `damString` unset and `rollDiceFromString(undefined)`
+is what is posted. The other two sizes are fine. The intent is plain from the two lines around it
+and from the Weapon Twist rows (2d8 is Weapon Twist(Small)'s own damage), so the port reads the
+Weapon Twist row of the same size for all three (`FORCE_TWIST_FALLBACK`, `module/combat/brawling-rules.mjs`).
+
+Two smaller things on the same path, for completeness, both followed as the weapon path has them
+rather than as this one does:
+
+- **A called shot never halves a brawl.** `handleBrawling` reads the called shot to say "Called
+  Shot:Hit!" or ":Miss" but never sets `damMulti=.5` for it, where `handlePhysicalAttacks` does and
+  the Player's Guide says a called shot does half damage whether or not it lands. The same gap item
+  15 records for creatures; the port halves it.
+- **The worn-magic extras on a hand-to-hand blow** (`getExtraMagicalDamage`, `getSpecialMagic`,
+  `[Spiked]`) read the worn armour's names for its customizations. The port has no customized armour
+  yet, so there is nothing to read and the card does not pretend otherwise; it is in
+  `docs/sonnet/2026-10-07-brawling.md` for when armour gets his Customize panel.
+
+## 124. Two random tables that cannot reach one of their rows
+
+**Status:** open · **Port:** Solved in the port · **Severity:** minor
+
+- **Random insanity, neurotic:** the chain tests `<71` twice, so Hypochondria can never be rolled. The
+  port follows the Master's Manual's table: Hypochondria 71-80, Nervous Tic 81-85, Stammering 86-90.
+- **Alignment colour:** the dropdown's "Fanatical Good (Passive)" option carries the value
+  "Fanatical Good (Active)", so Golden Yellow can never be picked. Fixed. Also, the random alignment
+  writes "Good(Active)" where the colour lookup expects "Good (Active)"; the port's lookup ignores the
+  space before the bracket.
+
+Found 2026-10-27 building the creature GM tools (report 0.25.1:11).

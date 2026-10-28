@@ -600,6 +600,11 @@
       ],
       "waitingOn": "the developer",
       "note": "His answers to the module's oddities list."
+    },
+    "His Missing Feature reports 0.25.1": {
+      "dependsOn": [
+        "Character sheet: Updater"
+      ]
     }
   }
 }

@@ -27,12 +27,17 @@ import {
 	getSituationalForAttack, getSituationalNotes, getNumberOfDice, getTwoHandedDamageBonus
 } from "./combat-rules.mjs";
 import { ARMOR_BLOCKING } from "../combat-tables.mjs";
-import { getWeaponAttackExtras, resolveWeaponSpecials, getWeaponDisplayName, getCustomizedWeapon } from "../weapon-custom-rules.mjs";
+import { getWeaponAttackExtras, resolveWeaponSpecials, getWeaponDisplayName, getCustomizedWeapon,
+         getWeaponListingTags } from "../weapon-custom-rules.mjs";
+import { getSoldieringModifiers } from "../soldiering-rules.mjs";
+import { getProficiencyToHit } from "../weapon-choices-rules.mjs";
+import { applyExtraDice } from "../temp-mods-rules.mjs";
 import { getMartialAttackModifiers, addMartialDice, getWeaponMartialStrength } from "./martial-arts.mjs";
 import { getActionHand } from "./round-rules.mjs";
 import { findActorCombatant } from "./combat-document.mjs";
 import { resolveCoatingDelivery, isEnvenomed } from "../lore-rules.mjs";
 import { resolveTouchAttack, getRiderSave } from "./creature-rules.mjs";
+import { getGrappleLanding } from "./grappling-rules.mjs";
 import { buildBodyFigure, getStruckArea, renderBodyMini } from "../body-view.mjs";
 import { resolveAttributeSave } from "../skills-rules.mjs";
 import { resolveResistanceRoll } from "../resistance-rules.mjs";
@@ -315,7 +320,9 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		secondWeaponKnowList: tmpsys.combat.secondWeaponKnowNames,
 		secondWeaponLoreList: tmpsys.combat.secondWeaponLoreNames
 	});
-	var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond }, tmpsys.attributes.agl.rating,
+	// The CURRENT Agility, temporary and magical modifiers included: his setCombatModifierValues reads
+	// values.agility (sheet-worker.js:82176), the attribute as it stands, not the rolled rating.
+	var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond }, tmpsys.attributes.agl.value ?? tmpsys.attributes.agl.rating,
 		tmpsys.physical?.handedness, tmpsys.combat.secondWeaponKnowChance);
 
 	// Firing more than one missile at a time, and what the two multi-missile skills pay back of
@@ -364,6 +371,34 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		tmpmods.total = tmpmods.total + tmpentry.value;
 	}
 
+	// @MARKER SOLDIERING
+	// The Soldiering skill's one weapon: +1 to hit here and +1 damage below, melee or missile, and
+	// nothing when the weapon has a bonus of its own -- a magical plus, a Master weapon, or Weapon
+	// Lore on this blow (module/soldiering-rules.mjs). His handlePhysicalAttacks, 64398-64407.
+	var tmpsoldier = getSoldieringModifiers({
+		held: tmpsys.combat.hasSoldiering,
+		soldieringWeapon: tmpsys.combat.soldieringWeapon,
+		weaponName: tmpweapon.name,
+		magicBonus: tmpw.magicBonus,
+		listingTags: getWeaponListingTags(tmpw),
+		lored: MELEE_MODES.includes(tmpmode) && tmplore.attack != 0
+	});
+	if (tmpsoldier.toHit) {
+		tmpmods.list.push({ label: "Soldiering", value: tmpsoldier.toHit });
+		tmpmods.total = tmpmods.total + tmpsoldier.toHit;
+	}
+
+	// @MARKER WEAPON PROFICIENCY
+	// A weapon not proficient in is at his non-proficiency penalty to hit (handlePhysicalAttacks, 64549-64551;
+	// ammunition through its launcher, 64648). Characters only -- a creature has no list -- and only once the
+	// character's list has been started (getProficiencyToHit, module/weapon-choices-rules.mjs).
+	var tmpnonprof = (tmpactor.type == "character")
+		? getProficiencyToHit(tmpweapon.name, tmpsys.combat.weaponProfList, tmpsys.combat.weaponKnowChance) : 0;
+	if (tmpnonprof) {
+		tmpmods.list.push({ label: "Not Proficient", value: tmpnonprof });
+		tmpmods.total = tmpmods.total + tmpnonprof;
+	}
+
 	// The chart: the Lore chart, one step better, whenever the weapon is lored -- his code's
 	// modWL/modML branch (sheet-worker.js:64872) -- and the ordinary one otherwise. loreAttackSkill
 	// is "" until the class reaches its Lore attack title, so the ordinary chart stands until then.
@@ -376,8 +411,9 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		isLore: tmpislore,
 		calledShot: tmpoptions.calledShot,
 		// The two dials his code carries that no dialog offered until 2026-10-07.
-		calledShotMod: tmpoptions.calledShotMod,
-		fumbleMod: tmpoptions.fumbleMod
+		// The dialog's figure plus the Temporary Modifiers panel's called shot and fumble range increases.
+		calledShotMod: (parseInt(tmpoptions.calledShotMod) || 0) + (parseInt(tmpsys.combat.calledShotRangeMod) || 0),
+		fumbleMod: (parseInt(tmpoptions.fumbleMod) || 0) + (parseInt(tmpsys.combat.fumbleRangeMod) || 0)
 	});
 
 	// @MARKER TOUCH ATTACK
@@ -457,6 +493,11 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// A martial move or stance can add whole dice (a Jump, the Drunken stance), which then count
 		// for everything worked out per die below. A flat-damage weapon takes none -- see addMartialDice.
 		var tmpdice = addMartialDice(getWeaponDamageDice(tmpw, tmpmode), tmpmartial.damage.extraDice);
+		// The Temporary Modifiers panel's extra damage dice and extra damage per die (his tmp_extra_dice and
+		// tmp_extra_per_die): more of this weapon's own die, and a figure on every die rolled, counted after
+		// the extra dice. The per-die figure goes into the misc line below.
+		var tmpextra = applyExtraDice(tmpdice, tmpsys.combat.extraDice, tmpsys.combat.extraPerDie);
+		tmpdice = tmpextra.dice;
 		// Held in both hands is what doubles a Strength bonus, and that is now read off the weapon's
 		// hand rather than a separate twoHanded boolean which could contradict it. A martial move can
 		// change that -- Tension doubles it (triples it two-handed) -- and with no move made this is
@@ -466,7 +507,20 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// The martial damage: flat, and per die of what this attack actually rolls.
 		var tmpmartialdamage = tmpmartial.damage.flat + (tmpmartial.damage.perDie * getNumberOfDice(tmpdice));
 		var tmpmagic = parseInt(tmpw.magicBonus) || 0;
-		var tmpmisc = MELEE_MODES.includes(tmpmode) ? (parseInt(tmpsys.combat.damageMisc) || 0) : 0;
+		// The race's own damage (lost sense tendrils, -1: his tempdeafdammod, sheet-worker.js:82248) goes in
+		// with the Game Master's and fatigue's, melee only, as they do. A creature has none (racialCombat is
+		// the character's), so it reads 0.
+		var tmpmisc = MELEE_MODES.includes(tmpmode)
+			? (parseInt(tmpsys.combat.damageMisc) || 0) + (parseInt(tmpsys.combat.fatigue?.damage) || 0)
+			  + (parseInt(tmpsys.combat.racialCombat?.damage) || 0) : 0;
+		// @MARKER BODY WEIGHT ON DAMAGE
+		// The signed body-weight term: a light character hits softer, a heavy one harder (Player's Guide p.179,
+		// his getWeightDamageAdj). MELEE ONLY -- his character path zeroes it for a missile (sheet-worker.js:
+		// 64621-64626, 65030-65033). The character's figure is derived (combat.weightDamage); a creature's weight
+		// is already in its own damage modifiers, so it is not added here (creature-rules.mjs, D2).
+		var tmpweightdamage = (tmpactor.type != "creature" && MELEE_MODES.includes(tmpmode))
+			? (parseInt(tmpsys.combat.weightDamage) || 0) : 0;
+		tmpmisc = tmpmisc + tmpextra.flat;   // the extra per die, any kind of attack
 		// The Rule of 2's flat +2 for both hands, his DamMod2Hand -- missing until bug report 0.20.10:1.
 		var tmptwohand = getTwoHandedDamageBonus(tmpmode, tmpw.hand == "both");
 
@@ -489,10 +543,11 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// temporary effect's flat figure.
 		var tmpcustomdamage = tmpcustom.damage.reduce((tmpsum, tmpentry) => tmpsum + tmpentry.value, 0);
 		var tmpdmgroll = await new Roll(
-			`${tmpdice}${tmpcustom.runeDice ? " + " + tmpcustom.runeDice : ""} + @str + @twohand + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial + @custom`,
-			{ str: tmpstrmod, twohand: tmptwohand, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
+			`${tmpdice}${tmpcustom.runeDice ? " + " + tmpcustom.runeDice : ""} + @str + @weight + @twohand + @magic + @misc + @lore + @projlore + @offhand + @missiles + @situation + @martial + @custom + @soldier`,
+			{ str: tmpstrmod, weight: tmpweightdamage, twohand: tmptwohand, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
 			  projlore: tmpprojlore.damage, offhand: tmpoffhand.damage,
-			  missiles: tmpmissiles.damage, situation: tmpsitdamage, martial: tmpmartialdamage, custom: tmpcustomdamage })
+			  missiles: tmpmissiles.damage, situation: tmpsitdamage, martial: tmpmartialdamage, custom: tmpcustomdamage,
+			  soldier: tmpsoldier.damage })
 			.evaluate({ maximize: tmpsitmods.maxDamage });
 		tmprolls.push(tmpdmgroll);
 
@@ -530,7 +585,7 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		var tmptotal = tmpmissiles.repeats ? (tmpeach * tmpmissiles.shots) : tmpeach;
 
 		tmpdamage = {
-			dice: tmpdice, str: tmpstrmod, twoHanded: tmptwohand, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
+			dice: tmpdice, str: tmpstrmod, weight: tmpweightdamage, twoHanded: tmptwohand, magic: tmpmagic, misc: tmpmisc, lore: tmplore.damage,
 			loreSpecific: tmplore.specific,
 			projectileLore: tmpprojlore.damage, projectileLorePerDie: tmpprojlore.perDie,
 			multiMissile: tmpmissiles.damage, multiMissileTier: tmpmissiles.tier,
@@ -538,7 +593,7 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 			situation: tmpsitdamage, maximized: tmpsitmods.maxDamage,
 			situationMulti: tmpsitmods.multi, halfDamage: tmpsitmods.halfDamage,
 			martial: tmpmartialdamage, martialMulti: tmpmartial.damage.multiplier,
-			runeDice: tmpcustom.runeDice, custom: tmpcustomdamage, special: tmpspecials.extraDamage,
+			runeDice: tmpcustom.runeDice, custom: tmpcustomdamage, soldiering: tmpsoldier.damage, special: tmpspecials.extraDamage,
 			specialDoubles: tmpspecials.doubles,
 			shots: tmpmissiles.shots, perShot: tmpeach,
 			rolled: tmpdmgroll.total + tmpspecials.extraDamage, multiplier: tmpmulti, total: tmptotal,
@@ -656,6 +711,17 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 		// figure, and the landing read from it and the zone (wireLandingPicker). The torso is the
 		// natural first guess; the head was only ever the first area in the list (his report of
 		// 2026-10-08, "always being applied to the head").
+		// A grapple card whose landing could not be read at the roll -- no token was targeted then --
+		// reads it now, off this target's body: the random area rolled, or the ear, eye or neck found
+		// (getGrappleLanding, grappling-rules.mjs). Not found, the aim is asked for as usual.
+		if (tmpattack.grappleMove && !tmpattack.landing?.area) {
+			var tmpgrapple = getGrappleLanding(tmpattack.grappleMove, tmpareas,
+				(tmpsides) => Math.ceil(CONFIG.Dice.randomUniform() * tmpsides) || 1);
+			if (tmpgrapple) {
+				tmpattack = { ...tmpattack, aim: tmpgrapple.how == "fixed" ? tmpgrapple.area : "",
+					landing: { area: tmpgrapple.area, how: tmpgrapple.how == "random" ? "random" : "aimed", text: tmpgrapple.text } };
+			}
+		}
 		var tmprandom = tmpattack.landing?.how == "random";
 		var tmpneedsaim = !tmprandom && !tmpareas.some(a => a.name == tmpattack.aim);
 		var tmpaim = tmpneedsaim
@@ -709,7 +775,9 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 					</select></div>
 				<div class="form-group"><label>Bypasses armour</label><input type="checkbox" name="bypass" ${tmpattack.damage.bypass ? "checked" : ""}>
 					<p class="hint">For a called shot that goes through a gap, or damage armour cannot stop.${tmpattack.damage.bypass
-						? " Ticked already: a twisted weapon is inside the armour (brawling-attack.mjs)." : ""}</p></div>
+						? (tmpattack.grappleMove
+							? ` Ticked already: ${esc(tmpattack.grappleMove)} is a called shot or a choke made in the clinch (grappling-rules.mjs).`
+							: " Ticked already: a twisted weapon is inside the armour (brawling-attack.mjs).") : ""}</p></div>
 			</div>`;
 
 		return await foundry.applications.api.DialogV2.prompt({

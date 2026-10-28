@@ -28,6 +28,7 @@ import { getWeaponSpeed, getLoreModifiers, resolveOffhandPenalties,
 import { applySheetTheme } from "../sheet-theme.mjs";
 import { describeSituationalTotals } from "../situational-view.mjs";
 import { describeBrawlingChoice } from "../brawling-view.mjs";
+import { describeGrapplingChoice } from "../combat/grappling-rules.mjs";
 import { resolveResistanceRoll, describeResistanceRoll } from "../resistance-rules.mjs";
 import ImagineItemPicker from "../apps/item-picker.mjs";
 import { buildMagicPanel } from "../magic-view.mjs";
@@ -44,10 +45,12 @@ import { rollMartialAttack, rollMartialSubskill, rollMartialMove, rollMartialLor
 import { parseMartialList } from "../combat/martial-arts.mjs";
 import { buildMartialPanel } from "../martial-view.mjs";
 import { buildBodyFigure, loadBodyTemplates, adjustBodyWound, healBodyArea } from "../body-view.mjs";
+import { buildCombatPanelView, loadCombatPanelTemplates } from "../combat-panel-view.mjs";
 import { grantClassSkills } from "../class-advancement.mjs";
 import { getActorSheetClock } from "../apps/round-clock.mjs";
 import { askRollModifier, describeModifier } from "../roll-modifier.mjs";
 import { getNonAcquiredLookup } from "../non-acquired.mjs";
+import { valueCharacter } from "../gm-exp-actions.mjs";
 import { describeFooting } from "../skills-rules.mjs";
 import { itemStacks } from "../shop-rules.mjs";
 import {
@@ -127,9 +130,11 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			rollNonAcquiredSkill: ImagineCharacterSheet.#onRollNonAcquiredSkill,
 			stepClassTitle: ImagineCharacterSheet.#onStepClassTitle,
 			openLevelUp: ImagineCharacterSheet.#onOpenLevelUp,
+			openUpdater: ImagineCharacterSheet.#onOpenUpdater,
 			openSituation: ImagineCharacterSheet.#onOpenSituation,
 			clearSituation: ImagineCharacterSheet.#onClearSituation,
 			openBrawling: ImagineCharacterSheet.#onOpenBrawling,
+			openGrappling: ImagineCharacterSheet.#onOpenGrappling,
 			transferSlot: ImagineCharacterSheet.#onTransferSlot,
 			sacrificeSlot: ImagineCharacterSheet.#onSacrificeSlot,
 			addLanguage: ImagineCharacterSheet.#onAddLanguage,
@@ -223,10 +228,13 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		// so the dropdown is built only when it will actually be shown -- see the @MARKER
 		// HANDEDNESS note in imagine-rpg.mjs for why rolling is the default.
 		tmpcontext.handednessSelectable = game.settings.get("imagine-rpg", "handednessSelectable");
+		// The STORED handedness, not the one in effect: a Temporary Ambidexterity tick (Temporary Modifiers
+		// panel) makes physical.handedness read Ambidextrous, and the dropdown must not write that back.
+		var tmpstoredhand = this.document.system.physical.storedHandedness ?? this.document.system.physical.handedness;
 		tmpcontext.handednessChoices =
-			ImagineCharacterSheet.#buildHandednessChoices(this.document.system.physical.handedness);
+			ImagineCharacterSheet.#buildHandednessChoices(tmpstoredhand);
 		tmpcontext.handednessLabel = ImagineCharacterSheet.#buildHandednessChoices(
-			this.document.system.physical.handedness).find(tmpchoice => tmpchoice.selected)?.label ?? "Right (default)";
+			tmpstoredhand).find(tmpchoice => tmpchoice.selected)?.label ?? "Right (default)";
 		// @MARKER ALIGNMENT
 		// The header's alignment dropdown and the Description tab's tendency dropdown, from the class or
 		// classes the character holds (module/alignment-rules.mjs; a dual class is offered what both allow)
@@ -257,10 +265,21 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		tmpcontext.magic = buildMagicPanel(this.document, game.imagine?.getAvailabilityRules?.() ?? null, game.user?.isGM,
 			this._nonAcquired);
 		tmpcontext.lore = ImagineCharacterSheet.#buildLorePanel(this.document.system);
+		// @MARKER ADDITIONAL POWERS AND ABILITIES -- his "powers" text, shown on the Magic & Lore tab;
+		// added and removed from the Updater (module/apps/powers.mjs). Power items are the store.
+		tmpcontext.additionalPowers = this.document.items.filter(tmpitem => tmpitem.type == "power")
+			.map(tmpitem => ({ name: tmpitem.name, id: tmpitem.id }));
+		// @MARKER GM EXPERIENCE VALUE -- his exp_value_shown, at the bottom of the main tab, for a Game
+		// Master and only once the "Show Experience?" tick on the GM Tools window is set.
+		tmpcontext.gmExpOn = !!(game.user?.isGM && this.document.system.gmExp?.show);
+		tmpcontext.gmExpShown = tmpcontext.gmExpOn ? (await valueCharacter(this.document)).total : 0;
 		// The Situation Mods bar, one line, as his combat page shows it.
 		tmpcontext.situationLine = describeSituationalTotals(this.document.system.combat.situational);
 		// The Brawling bar: what is chosen to brawl with, as his BRAWLER row shows it.
 		tmpcontext.brawlingLine = describeBrawlingChoice(this.document.system.combat.brawlingWeapon,
+			this.document.system.combat.weaponSpeedMod);
+		// The Grappling bar: the move chosen, as his GRAPPLING row shows it.
+		tmpcontext.grapplingLine = describeGrapplingChoice(this.document.system.combat.grapplingMove,
 			this.document.system.combat.weaponSpeedMod);
 		tmpcontext.languages = ImagineCharacterSheet.#buildLanguageRows(this.document.system);
 		// @MARKER WEALTH -- his Loose Equipment money panel, on the Equipment tab. module/wealth-rules.mjs.
@@ -292,6 +311,14 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			effects: tmpcontext.magic?.effects ?? []
 		});
 		await loadBodyTemplates();
+		// @MARKER COMBAT PANEL
+		// His COMBAT panel at the head of the Combat tab: the attack charts, the modifiers table and the
+		// specific modifiers (module/combat-panel-view.mjs). Weapon Knowledge's chance gives his weapon
+		// proficiency total.
+		var tmpweaponknow = this.document.items.find(tmpitem => tmpitem.type == "skill" && tmpitem.name == "Weapon Knowledge");
+		tmpcontext.combatPanel = buildCombatPanelView(this.document.system,
+			tmpweaponknow ? (parseInt(tmpweaponknow.system.totalChance) || 0) : null);
+		await loadCombatPanelTemplates();
 
 		// @MARKER ROUND CLOCK
 		// The round clock beside the Off-Hand Seconds box, read-only: "3 of 5 left this round" and
@@ -600,7 +627,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 				secondWeaponLoreList: tmpcombat.secondWeaponLoreNames
 			});
 			var tmpoffhand = resolveOffhandPenalties({ ...tmpw, ...tmpsecond },
-				tmpactor.system.attributes?.agl?.rating, tmpactor.system.physical?.handedness,
+				(tmpactor.system.attributes?.agl?.value ?? tmpactor.system.attributes?.agl?.rating), tmpactor.system.physical?.handedness,
 				tmpcombat.secondWeaponKnowChance);
 
 			tmprows.push({
@@ -1343,6 +1370,12 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		game.imagine.levelUp(this.document);
 	}
 
+	// This is the function which opens the Character Updater, his "What do you want to do?" list.
+	static async #onOpenUpdater(event, target) {
+		event.preventDefault();
+		game.imagine.updater(this.document);
+	}
+
 	// This is the function which opens the Situation Mods window from the Combat tab's bar.
 	static async #onOpenSituation(event, target) {
 		event.preventDefault();
@@ -1360,6 +1393,13 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 	static async #onOpenBrawling(event, target) {
 		event.preventDefault();
 		game.imagine.brawling(this.document);
+	}
+
+	// This is the function which opens the Grappling window from the Combat tab's bar -- his GRAPPLING
+	// row. module/apps/grappling.mjs.
+	static async #onOpenGrappling(event, target) {
+		event.preventDefault();
+		game.imagine.grappling(this.document);
 	}
 
 	// This is the function which advances or steps back one class's own title.

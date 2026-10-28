@@ -288,6 +288,14 @@
 	</div>
 	{{/if}}
 
+	{{!-- His "Additional Powers/Abilities" text: read-only here, added and removed from the Updater. --}}
+	{{#if additionalPowers.length}}
+	<div class="additional-powers">
+		<label>Additional Powers/Abilities:</label>
+		{{#each additionalPowers as |p|}}<span class="chip">{{p.name}}</span>{{/each}}
+	</div>
+	{{/if}}
+
 	{{#if magic.nothingYet}}
 	<p class="muted">This character holds no lore skill and carries nothing magical yet.
 		{{#if magic.isGM}}"Provide starting lore" gives what his character creation would have.{{/if}}</p>

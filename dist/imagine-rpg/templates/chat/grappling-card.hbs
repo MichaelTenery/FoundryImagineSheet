@@ -1,0 +1,21 @@
+{{!--
+	Grappling chat card: who tried which move, the sentence his sheet printed for it, and the damage
+	line when the move did any. Damage is applied with the same Apply Damage button as every other
+	card (applyAttackDamage, module/combat/attack.mjs), landing where getGrappleLanding says --
+	"1 random area", the ear, an eye, the neck -- which the dialog lets the Game Master move.
+--}}
+<div class="imagine-chat attack-card grappling-card">
+	<header>
+		<strong>{{actorName}}</strong> — {{move}} <span class="muted">(grappling)</span>
+		{{#if targetName}}<span class="muted">against {{targetName}}</span>{{/if}}
+	</header>
+	{{#each lines as |l|}}<p class="grapple-line">{{l}}</p>{{/each}}
+	<div class="zone zone-{{#if success}}hit{{else}}miss{{/if}}">{{#if success}}Succeeded{{else}}Failed{{/if}}</div>
+	{{#if damage}}
+	<div class="damage"><span class="total">{{damage}}</span> {{damageType}} damage{{#if bypass}}, <strong>bypassing armour</strong>{{/if}} <span class="breakdown">({{damageText}})</span></div>
+	{{#if landing}}<p class="grapple-landing">{{landing.text}}</p>{{/if}}
+	<footer>
+		<button type="button" data-imagine-action="applyDamage"><i class="fa-solid fa-droplet"></i> Apply damage</button>
+	</footer>
+	{{/if}}
+</div>

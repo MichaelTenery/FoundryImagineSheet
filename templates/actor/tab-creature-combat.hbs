@@ -92,6 +92,23 @@
 		<button type="button" data-action="openBrawling"><i class="fa-solid fa-hand-fist"></i> Brawl</button>
 	</div>
 
+	{{!-- His creature GM tools, Randoms/Extras (module/apps/gm-randoms.mjs): dice, encounters, random
+	      animals, insanity, chaos effects, spells. Game Master only, as his creature page's tools are. --}}
+	{{#if isGM}}
+	<div class="situation-bar gm-tools-bar">
+		<strong>GM Tools:</strong>
+		<span class="muted">dice, encounters, random animal, insanity, chaos effect, spell</span>
+		<button type="button" data-action="openGmRandoms"><i class="fa-solid fa-dice"></i> Randoms/Extras</button>
+	</div>
+	{{/if}}
+
+	{{!-- His GRAPPLING row, which his creature combat page carries too (module/apps/grappling.mjs). --}}
+	<div class="situation-bar grappling-bar">
+		<strong>Grappling:</strong>
+		{{#if grapplingLine}}<span class="situation-line">{{grapplingLine}}</span>{{else}}<span class="muted">nothing chosen</span>{{/if}}
+		<button type="button" data-action="openGrappling"><i class="fa-solid fa-hands-holding"></i> Grapple</button>
+	</div>
+
 	{{!-- Everything here comes off a blow BEFORE any worn armour blocks it, in his order. Each is
 	      the best of what worn magic items grant and the Game Master's modifier, not a sum, and
 	      the items that grant them belong to the deferred magic subsystems -- so for now they are
@@ -277,6 +294,10 @@
 	{{/if}}
 	{{!-- @MARKER BODY FIGURE -- the clickable body, a partial shared with the other Combat tab. --}}
 	{{> imagine-body-figure}}
+	{{!-- His armor_know_check / armor_lore_check boxes, read-only: whether the armour worn is a configuration
+	      learned with Armor Knowledge or Armor Lore, and what that eases (module/armor-know-rules.mjs). --}}
+	<p class="armor-skills-line">{{#if system.combat.armorSkillsLine}}<i class="fa-solid fa-shield-halved"></i> {{system.combat.armorSkillsLine}}{{else}}<span class="muted">Armor Knowledge / Lore: the armour worn is not a learned configuration.</span>{{/if}}
+		<button type="button" data-action="openArmorKnowledge">Armor Know./Lore Config.</button></p>
 	<table class="body-table">
 		<thead>
 			<tr>

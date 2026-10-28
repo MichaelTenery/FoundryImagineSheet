@@ -107,4 +107,10 @@
 			</ul>
 		</div>
 	</div>
+
+	{{!-- His exp_value_shown: a GMC's or GME's experience value, at the bottom of the main tab, for a Game
+	      Master once Show Experience is ticked in the GM Tools window. --}}
+	{{#if gmExpOn}}
+	<div class="panel gm-exp-value"><h3>Experience Value</h3><p><strong>{{gmExpShown}}</strong></p></div>
+	{{/if}}
 </section>

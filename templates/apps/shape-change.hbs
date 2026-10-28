@@ -1,0 +1,102 @@
+{{!--
+	The shape-change window: his four Updater panels for a Changeling's form and a Formless's host. One root
+	element, as the framework requires. Everything comes from buildShapeChangeView (module/shape-change-view.mjs).
+--}}
+<div class="shape-change-window">
+	<label class="shape-pick">What do you want to do?
+		<select name="kind">
+			{{#each kinds as |k|}}<option value="{{k.value}}" {{#if k.selected}}selected{{/if}}>{{k.label}}</option>{{/each}}
+		</select></label>
+
+	<h3>{{title}}</h3>
+
+	{{#if blocked}}
+	<p class="hint shape-blocked">{{blocked}}</p>
+	{{/if}}
+
+	{{#if isChangeling}}
+	<div class="shape-body">
+		<p>Now: <b>{{currentForm}}</b></p>
+		<label>Changeling appears as race
+			<select name="form" data-working>
+				{{#each forms as |f|}}<option value="{{f.value}}" {{#if f.selected}}selected{{/if}}>{{f.label}}</option>{{/each}}
+			</select></label>
+		<p class="hint">STR, AGL, VIT, APP may change based on race changes. This form: {{formMods}}.</p>
+		<h4>Update race features</h4>
+		<label>New Gender <input type="text" name="gender" data-working value="{{working.gender}}"></label>
+		<label><input type="checkbox" name="slight" data-working {{#if slight}}checked{{/if}}> Slight Physique (+1 AGL / -1 STR, etc.)</label>
+		<label>Height <input type="number" name="heightFeet" data-working value="{{working.heightFeet}}" class="short">'
+			<input type="number" name="heightInches" data-working value="{{working.heightInches}}" class="short">"</label>
+		<p class="hint">Height must be within 1 and 1/2 feet of their original height of {{origHeight}}. Leave height and weight blank to keep the body as it is.</p>
+		<label>Frame <select name="frame" data-working><option value=""></option>
+			{{#each frames as |f|}}<option value="{{f.value}}" {{#if f.selected}}selected{{/if}}>{{f.value}}</option>{{/each}}</select></label>
+		<label>Weight <input type="number" name="weight" data-working value="{{working.weight}}" class="short"> lb.</label>
+		<label>Hair <input type="text" name="hair" data-working value="{{working.hair}}"></label>
+		<label>Body Hair <input type="text" name="bodyCovering" data-working value="{{working.bodyCovering}}"></label>
+		<label>Eyes <input type="text" name="eyes" data-working value="{{working.eyes}}"></label>
+		<label>Skin <input type="text" name="skin" data-working value="{{working.skin}}"></label>
+		<div><button type="button" data-action="changeling">Update</button> click here to update Changeling Race.</div>
+		<p class="hint">May only change forms twice per day.</p>
+	</div>
+	{{/if}}
+
+	{{#if isFormlessHost}}
+	<div class="shape-body">
+		<label>New Formless Host
+			<select name="host" data-working><option value=""></option>
+				{{#each hosts as |h|}}<option value="{{h.value}}" {{#if h.selected}}selected{{/if}}>{{h.value}}</option>{{/each}}
+			</select></label>
+		<label>Host Type
+			<select name="hostType" data-working><option value=""></option>
+				{{#each hostTypes as |t|}}<option value="{{t.value}}" {{#if t.selected}}selected{{/if}}>{{t.value}}</option>{{/each}}
+			</select></label>
+		<label>Hours Dead (if corpse) <input type="number" name="hoursDead" data-working value="{{working.hoursDead}}" class="short"></label>
+		<p class="hint">-5% Control Resistance to possess per full hour dead (not used for mindless husks).</p>
+		<h4>New Formless host attributes</h4>
+		{{#each attributes as |a|}}
+		<label>New {{a.label}} <input type="number" name="attr-{{a.key}}" data-working value="{{a.value}}" class="short">
+			{{#if a.max}}<span class="muted">{{a.label}} max {{a.max}}</span>{{/if}}</label>
+		{{/each}}
+		<h4>New Formless host features</h4>
+		<label>New Gender <input type="text" name="gender" data-working value="{{working.gender}}"></label>
+		<label>Height <input type="number" name="heightFeet" data-working value="{{working.heightFeet}}" class="short">'
+			<input type="number" name="heightInches" data-working value="{{working.heightInches}}" class="short">"</label>
+		<label>Frame <select name="frame" data-working><option value=""></option>
+			{{#each frames as |f|}}<option value="{{f.value}}" {{#if f.selected}}selected{{/if}}>{{f.value}}</option>{{/each}}</select></label>
+		<label>Weight <input type="number" name="weight" data-working value="{{working.weight}}" class="short"> lb.</label>
+		<label>Hair <input type="text" name="hair" data-working value="{{working.hair}}"></label>
+		<label>Body Hair <input type="text" name="bodyCovering" data-working value="{{working.bodyCovering}}"></label>
+		<label>Eyes <input type="text" name="eyes" data-working value="{{working.eyes}}"></label>
+		<label>Skin <input type="text" name="skin" data-working value="{{working.skin}}"></label>
+		<div><button type="button" data-action="possess">Possess</button> click here to roll a special Control Resist to possess a new host.</div>
+		<p class="hint"><b>Notes:</b> Formless are immune to control but do require a special Control Resistance to possess the new host.</p>
+		<p><b>Special Formless Control Resistance:</b> {{control}}%</p>
+	</div>
+	{{/if}}
+
+	{{#if isRetention}}
+	<div class="shape-body">
+		<p><b>Current Host:</b> {{currentHost}}</p>
+		<p><b>Host Type:</b> {{hostType}}</p>
+		<p><b>Occupied For:</b> {{periodsOccupied}} {{periodType}}(s)</p>
+		<p><b>Can Occupy For:</b> {{maxPeriods}} {{periodType}}(s)</p>
+		<p><b>Special Formless Control Resistance:</b> {{control}}%</p>
+		<p><b>Retention Modifier:</b> -{{retainPenalty}}% chance per {{periodType}} occupied.</p>
+		<div><button type="button" data-action="retain">Retain</button> click here to roll a special Control Resist to retain current host.</div>
+		<p class="hint"><b>Notes:</b> Formless are immune to control but do require a special Control Resistance to retain a host at the end of each period.</p>
+	</div>
+	{{/if}}
+
+	{{#if isPsyche}}
+	<div class="shape-body">
+		<p>After {{maxPeriods}} hours the free psyche must be checked for 1 point Will Force loss and insanity each hour.</p>
+		<p><b>Current Will Force:</b> {{will}}</p>
+		<p><b>Special Formless Control Resistance:</b> {{control}}%</p>
+		<p><b>Will Force Save:</b> {{wilSave}}%</p>
+		<div><button type="button" data-action="psyche">Resist</button> click here to roll a special Control Resist to avoid Will Force loss.</div>
+		<p class="hint"><b>Notes:</b> A Will Force save will be rolled to avoid insanity if the Control Resistance fails.</p>
+	</div>
+	{{/if}}
+
+	<footer class="shape-foot"><button type="button" data-action="done">Close</button></footer>
+</div>

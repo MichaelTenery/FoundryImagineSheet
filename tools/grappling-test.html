@@ -1,0 +1,171 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG grappling test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:560px}</style>
+<pre id="out">running...</pre>
+<h3>The window, rendered with Grapple chosen</h3>
+<div id="window" class="render imagine grappling"></div>
+<h3>The window with nothing chosen</h3>
+<div id="window2" class="render imagine grappling"></div>
+<h3>A grappling card: a Throw that landed</h3>
+<div id="card" class="render"></div>
+<script type="module">
+// Tests for grappling: module/combat/grappling-rules.mjs (his table, speed, touch and every move's
+// roll) and module/grappling-view.mjs (what the window shows) -- and the window's template and the
+// card's, compiled and rendered against the same view.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/grappling-test.html
+const R = await import("../module/combat/grappling-rules.mjs");
+const V = await import("../module/grappling-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- his table (sheet-worker.js:100851) ---------------------------------------------------------------
+check("fifteen moves, in his order", R.GRAPPLING_MOVES.map(r => r[0]),
+	["Touch", "Grapple", "Strangle", "Claw", "Bite", "Escape", "Ear Rip", "Eye Gouge", "Hold", "Knee/Elbow", "Pin", "Punch", "Tackle", "Throw", "Slam"]);
+check("every name reads back as itself", R.GRAPPLING_MOVES.every(r => R.getGrapplingValues(r[0])?.name == r[0]), true);
+check("Strangle: 3s, min 3, mod -10, 2d4",
+	(({ speed, minSpeed, mod, damage }) => [speed, minSpeed, mod, damage])(R.getGrapplingValues("Strangle")), [3, 3, "-10", "2d4"]);
+check("Touch: 1s, min 1, mod AGL", (({ speed, minSpeed, mod }) => [speed, minSpeed, mod])(R.getGrapplingValues("Touch")), [1, 1, "AGL"]);
+check("Slam keeps his spelling in the box: '1d4 x2 per 10%'", R.getGrapplingValues("Slam").damage, "1d4 x2 per 10%");
+check("a name not on the table is null, and blank is null", [R.getGrapplingValues("Suplex"), R.getGrapplingValues("")], [null, null]);
+
+// --- speed: his handleGrappleMoveChange ----------------------------------------------------------------
+check("Touch at +3 weapon speed: 1 -> 4", R.getGrapplingSpeed("Touch", 3), 4);
+check("...never under the minimum: Grapple 2 - 1 = 1, floored at 2", R.getGrapplingSpeed("Grapple", -1), 2);
+check("no move, no seconds", R.getGrapplingSpeed("", 0), 0);
+
+// --- the limbs lost -----------------------------------------------------------------------------------
+check("all manipulator limbs lost: Touch and Escape only", ["Touch", "Escape", "Grapple", "Punch"].map(n => R.canMakeMove(n, true)), [true, true, false, false]);
+check("with limbs, any move on the table; none off it", [R.canMakeMove("Slam", false), R.canMakeMove("Suplex", false)], [true, false]);
+
+// --- the touch: his handleTouchAttack ------------------------------------------------------------------
+check("a natural 1 is always a miss", R.isTouch(1, 20), false);
+check("10 is enough", R.isTouch(10, 0), true);
+check("9 is not", R.isTouch(9, 0), false);
+check("the AGL modifier is added: 8 + 2 = 10", R.isTouch(8, 2), true);
+check("...and can take it away: 12 - 3 = 9", R.isTouch(12, -3), false);
+
+// --- extra dice ----------------------------------------------------------------------------------------
+check("an extra die and +1 a die on 1d2: 2d2 and 2", R.applyExtraDice("1d2", 1, 1), { dice: "2d2", perDie: 2 });
+check("nothing extra changes nothing", R.applyExtraDice("2d4", 0, 0), { dice: "2d4", perDie: 0 });
+
+// --- the moves ------------------------------------------------------------------------------------------
+const roller = (n) => (f) => n;
+const base = { d20: 12, d100: 40, mod: 0, aglMod: 0, strSave: 60, aglSave: 45, calledShot: 18, damMods: 2, extraDice: 0, extraPerDie: 0, rollDice: roller(5) };
+const mv = (move, over) => R.resolveGrappleMove({ ...base, move, ...over });
+
+check("a name off the table resolves to null", mv("Suplex"), null);
+check("Touch: 12 is contact", [mv("Touch").touch, mv("Touch").success], [true, true]);
+check("Touch: the typed modifier counts, -3 makes 9 a miss", mv("Touch", { mod: -3 }).success, false);
+check("Touch's line is his sentence", mv("Touch").lines[0], "attempted grapple move Touch. Rolled a 12, needing a 10+ to contact. Succeeded? = true");
+
+const grab = mv("Grapple");
+check("Grapple: touch, then 40% under a 60% STR Save, made by 20", [grab.success, grab.madeBy], [true, 20]);
+check("...and says the margin goes to the opponent's AGL Save", grab.lines[0].includes("Made by 20% to be added to the opponent's AGL Save"), true);
+check("Grapple: a 70% roll fails the save", mv("Grapple", { d100: 70 }).success, false);
+check("Grapple: a natural 1 misses and no save is spoken of", [mv("Grapple", { d20: 1 }).success, mv("Grapple", { d20: 1 }).lines[0].includes("STR Save")], [false, false]);
+check("Tackle: the same contact and save, and both go prone", [mv("Tackle").success, mv("Tackle").lines[0].includes("both are in grapple and prone")], [true, true]);
+
+const strangle = mv("Strangle", { d100: 45 });
+check("Strangle: 45 + his 10 = 55, under 60: made, damage 2d4 (5) + 2 = 7",
+	[strangle.success, strangle.damage, strangle.damageText, strangle.madeBy], [true, 7, "2d4+2=7", 15]);
+check("Strangle: 55 + 10 = 65 is over 60 -- failed, and no damage rolled", [mv("Strangle", { d100: 55 }).success, mv("Strangle", { d100: 55 }).damage], [false, null]);
+
+check("Punch: a flat 1 takes no dice: 1 + 3 = 4, and rollDice is never called",
+	(() => { let called = false; const r = mv("Punch", { damMods: 3, rollDice: () => { called = true; return 99; } }); return [r.damage, called]; })(), [4, false]);
+check("Claw: 1d2 rolled (5, by the stub) + 2 = 7", [mv("Claw").damage, mv("Claw").damageText], [7, "1d2+2=7"]);
+check("Claw with an extra die and +1 a die: 2d2 (3) + 0 + 2 = 5, the per-die counted once (his Claw counted it twice)",
+	(({ damage, damageDice }) => [damage, damageDice])(mv("Claw", { damMods: 0, extraDice: 1, extraPerDie: 1, rollDice: roller(3) })), [5, "2d2"]);
+check("Bite that misses does no damage", [mv("Bite", { d20: 3 }).success, mv("Bite", { d20: 3 }).damage], [false, null]);
+check("Knee/Elbow is a 1d2 touch", mv("Knee/Elbow").damageDice, "1d2");
+
+check("Ear Rip: 17 + 1 reaches the called shot 18", [mv("Ear Rip", { d20: 17, mod: 1 }).success, mv("Ear Rip", { d20: 17, mod: 1 }).damage], [true, 7]);
+check("Eye Gouge: 16 does not", mv("Eye Gouge", { d20: 16 }).success, false);
+check("the called shot move needs no touch roll: a 1 + 17 still rips", mv("Ear Rip", { d20: 1, mod: 17 }).success, true);
+
+check("Escape: 50 less a +10 modifier is 40, under a 45 AGL Save: made by 5", (({ success, madeBy }) => [success, madeBy])(mv("Escape", { d100: 50, mod: 10 })), [true, 5]);
+check("Hold: his own 10 comes off the roll too: 50 -> 40, exactly a 40 save", (({ success, madeBy }) => [success, madeBy])(mv("Hold", { d100: 50, aglSave: 40 })), [true, 0]);
+check("Pin: 80 over 45 fails", mv("Pin", { d100: 80 }).success, false);
+check("Pin's win says escapes are at half chance", mv("Pin", { d100: 30 }).lines[0].includes("half chance"), true);
+
+const throwIt = mv("Throw", { d100: 30, strSave: 70, damMods: 1, rollDice: roller(10) });
+check("Throw: made by 40 -> four feet, 4d4 (10) + 1 = 11", [throwIt.success, throwIt.levels, throwIt.damageDice, throwIt.damage], [true, 4, "4d4", 11]);
+check("Slam: the same, doubled: (4d4+1)x2 = 22", (({ damage, damageText }) => [damage, damageText])(mv("Slam", { d100: 30, strSave: 70, damMods: 1, rollDice: roller(10) })), [22, "(4d4+1)x2=22"]);
+check("Throw: made by 5 is still one die, never none", mv("Throw", { d100: 65, strSave: 70 }).levels, 1);
+check("Throw: his oddity kept -- the modifier is ADDED to the d100: 65 + 10 = 75 over 70", mv("Throw", { d100: 65, strSave: 70, mod: 10 }).success, false);
+
+// --- where the damage lands ------------------------------------------------------------------------------
+const humanoid = "Head,Neck,Left Shoulder,Right Shoulder,Upper Torso,Left Arm".split(",").map(name => ({ name }));
+const sides = []; const die = (n) => { sides.push(n); return 3; };
+const thrown = R.getGrappleLanding("Throw", humanoid, die);
+check("Throw: his '1 random area' -- one area of the target's body, the die sized to the chart",
+	[thrown.how, thrown.area, sides[0], thrown.type, thrown.bypass], ["random", "Left Shoulder", 6, "Smashing", false]);
+check("...and the text says what was rolled", thrown.text, "1 random area: rolled 3 of 6, the Left Shoulder.");
+check("Claw, Bite, Knee/Elbow, Punch and Slam land at random too, with their own damage types",
+	["Claw", "Bite", "Knee/Elbow", "Punch", "Slam"].map(m => { const l = R.getGrappleLanding(m, humanoid, () => 1); return [l.how, l.area, l.type]; }),
+	[["random", "Head", "Cutting"], ["random", "Head", "Thrusting"], ["random", "Head", "Smashing"], ["random", "Head", "Smashing"], ["random", "Head", "Smashing"]]);
+check("a die out of range is held to the chart", [R.getGrappleLanding("Punch", humanoid, () => 99).area, R.getGrappleLanding("Punch", humanoid, () => 0).area], ["Left Arm", "Head"]);
+check("no target yet: the random area is left to the damage dialog, and no die is rolled",
+	(() => { let rolled = false; const l = R.getGrappleLanding("Throw", [], () => { rolled = true; return 1; }); return [l.area, rolled, l.text.includes("when the damage is applied")]; })(), ["", false, true]);
+const ear = R.getGrappleLanding("Ear Rip", humanoid, () => 1);
+check("Ear Rip on a body with no ear: the Head, said so, armour bypassed", [ear.how, ear.area, ear.bypass, ear.type, ear.text.includes("no area of its own")], ["fixed", "Head", true, "Cutting", true]);
+check("Ear Rip on a body with antennae goes to them", R.getGrappleLanding("Ear Rip", [{ name: "Head" }, { name: "Antenna" }], () => 1).area, "Antenna");
+check("Eye Gouge goes to the Eye area where a chart has one", R.getGrappleLanding("Eye Gouge", [{ name: "Head" }, { name: "Eye" }], () => 1).area, "Eye");
+check("Eye Gouge finds a numbered head", R.getGrappleLanding("Eye Gouge", [{ name: "Head (2)" }], () => 1).area, "Head (2)");
+const choke = R.getGrappleLanding("Strangle", humanoid, () => 1);
+check("Strangle: the neck, constricting, past armour, with his rigid-armour note", [choke.area, choke.type, choke.bypass, choke.text.includes("Rigid armour blocks")], ["Neck", "Constricting", true, true]);
+check("Strangle on a body with no neck: nothing found, so the dialog asks", (({ area, text }) => [area, text.includes("Pick where it lands")])(R.getGrappleLanding("Strangle", [{ name: "Body" }], () => 1)), ["", true]);
+check("moves that do no damage have no landing", ["Touch", "Grapple", "Escape", "Hold", "Pin", "Tackle", "Nonsense"].map(m => R.getGrappleLanding(m, humanoid, () => 1)), [null, null, null, null, null, null, null]);
+check("every move that can do damage has a landing", R.GRAPPLING_MOVES.filter(r => r[4] != "0" && !R.getGrappleLanding(r[0], humanoid, () => 1)).map(r => r[0]), []);
+
+// --- the view -------------------------------------------------------------------------------------------
+const view = V.buildGrapplingView("Grapple", { weaponSpeedMod: -1, noHands: false, situationLine: "For Melee attacks · Damage +2" });
+check("the view: his four boxes, the speed floored at 2", [view.speed, view.minSpeed, view.mod, view.damage, view.speedMod], [2, 2, "0", "0", -1]);
+check("the view: fifteen moves with Grapple chosen", [view.moves.length, view.moves.find(m => m.selected)?.name, view.hasChoice], [15, "Grapple", true]);
+check("the view: nothing chosen shows his dashes", (({ hasChoice, speed, mod, damage }) => [hasChoice, speed, mod, damage])(V.buildGrapplingView("", {})), [false, "-", "-", "-"]);
+const nohands = V.buildGrapplingView("Punch", { noHands: true });
+check("the view: Punch with no hands is blocked, and only Touch and Escape are offered",
+	[nohands.blocked, nohands.hasChoice, nohands.moves.filter(m => !m.disabled).map(m => m.name)], [true, false, ["Touch", "Escape"]]);
+check("the bar line: 'Grapple: 2s, 0' and nothing for nothing", [R.describeGrapplingChoice("Grapple", 0), R.describeGrapplingChoice("", 0)], ["Grapple: 2s, 0", ""]);
+
+// --- the templates, rendered against the view ------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+Handlebars.registerHelper("gt", (a, b) => a > b);
+const windowSource = await (await fetch("../templates/apps/grappling.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(windowSource)({ ...view, working: { modifier: 0 } });
+const windowText = document.getElementById("window").textContent;
+check("the window renders: his weapon note, the dropdown, his four boxes, the move's note, the Situation line, the modifier",
+	["18 inches", "Grapple move", "Speed", "Min", "Damage", "STR Save vs opponent's AGL Save", "Damage +2", "Modifier"].map(t => windowText.includes(t)),
+	[true, true, true, true, true, true, true, true]);
+check("...with the move selected and the Roll button live",
+	[document.getElementById("window").innerHTML.includes("value=\"Grapple\" selected"), !document.getElementById("window").innerHTML.includes("data-action=\"grapple\" disabled")], [true, true]);
+document.getElementById("window2").innerHTML = Handlebars.compile(windowSource)({ ...V.buildGrapplingView("", {}), working: {} });
+check("nothing chosen: the empty line, no modifier box, Roll disabled",
+	[document.getElementById("window2").textContent.includes("Nothing chosen"), document.getElementById("window2").textContent.includes("Modifier"),
+	 document.getElementById("window2").innerHTML.includes("data-action=\"grapple\" disabled")], [true, false, true]);
+
+const cardSource = await (await fetch("../templates/chat/grappling-card.hbs", { cache: "no-store" })).text();
+const throwLanding = R.getGrappleLanding("Throw", humanoid, () => 5);
+document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({ actorName: "Brom", ...throwIt,
+	landing: throwLanding, damageType: throwLanding.type, bypass: throwLanding.bypass, targetName: "Ogre" });
+const cardText = document.getElementById("card").textContent;
+check("the card: who, the move, his sentence, succeeded, the damage, its type and parts, where it lands, the target",
+	["Brom", "Throw", "STR Save to throw", "thrown 4 feet", "Succeeded", "11 Smashing damage", "4d4+1=11", "the Upper Torso", "against Ogre"].map(t => cardText.includes(t)),
+	[true, true, true, true, true, true, true, true, true]);
+check("...with the Apply Damage button", document.getElementById("card").innerHTML.includes("data-imagine-action=\"applyDamage\""), true);
+document.getElementById("card").innerHTML = Handlebars.compile(cardSource)({ actorName: "Brom", ...mv("Touch", { d20: 15 }) });
+check("a move that did no damage has no Apply Damage button", document.getElementById("card").innerHTML.includes("applyDamage"), false);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length} checks, ${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

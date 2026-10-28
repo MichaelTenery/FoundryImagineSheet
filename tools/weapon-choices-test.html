@@ -1,0 +1,149 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG weapon choices test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:760px}</style>
+<pre id="out">running...</pre>
+<h3>Add Weapon Proficiency, a character with no experience yet</h3>
+<div id="window" class="render imagine weapon-choices"></div>
+<script type="module">
+// Tests for weapon proficiency and the lore weapon pickers: module/weapon-choices-rules.mjs,
+// module/weapon-choices-view.mjs and templates/apps/weapon-choices.hbs -- his seven Updater options
+// update_weapon_prof, update_weapon_lore_weapons, update_missile_lore_weapons, update_second_weap_know_weapons,
+// update_second_weap_lore_weapons, update_proj_know_proj and update_proj_lore_proj.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/weapon-choices-test.html
+globalThis.foundry = {
+	abstract: { TypeDataModel: class { constructor(data) { Object.assign(this, data); } prepareBaseData() {} prepareDerivedData() {} } },
+	data: { fields: new Proxy({}, { get: () => class { constructor() {} } }) }
+};
+globalThis.game = { imagine: { getAvailabilityRules: () => null } };
+const R = await import("../module/weapon-choices-rules.mjs");
+const V = await import("../module/weapon-choices-view.mjs");
+const U = await import("../module/updater-rules.mjs");
+const CP = await import("../module/combat-panel-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- the non-proficiency penalty, his getWeaponProfPenalty (83390) ---------------------------------------
+check("his bands at their edges", [0, 10, 11, 20, 21, 50, 51, 90, 91, 100, 101, 199, 200].map(R.getNonProficiencyPenalty),
+	[-11, -11, -10, -10, -9, -7, -6, -3, -2, -2, -1, -1, 0]);
+
+// --- the totals, his setWeaponProfTotals (83369) ---------------------------------------------------------
+check("a proficiency per whole 10%, used from the list, available the rest, skills penalty five times",
+	R.getWeaponProfTotals(47, "Long Sword,Dagger"), { total: 4, used: 2, available: 2, penalty: -7, skillsPenalty: -35 });
+check("blanks and spaces on the list do not count", R.getWeaponProfTotals(30, " Spear , ,").used, 1);
+
+// --- proficient with --------------------------------------------------------------------------------------
+check("a weapon by its simplified name", R.isProficientWith("[Magical +1]{Long Sword}", "Long Sword"), true);
+check("whole names only: Crossbow is not Crossbow(Heavy)", R.isProficientWith("Crossbow(Heavy)", "Crossbow"), false);
+check("an arrow through its bow", R.isProficientWith("Arrow(Long Bow/Far Flight)", "Bow(Long)"), true);
+check("...not through another bow", R.isProficientWith("Arrow(Long Bow/Normal)", "Bow(Short)"), false);
+check("a bolt through any crossbow of its family", R.isProficientWith("Bolt(Hand Crossbow/Normal)", "Crossbow(Hand/Repeating)"), true);
+check("a sling bullet through the sling", R.isProficientWith("Bullet(Sling)", "Sling"), true);
+check("a fairy arrow is not a long bow's", R.isProficientWith("Arrow(Fairy Long Bow/Normal)", "Bow(Long)"), false);
+
+// --- the penalty on an attack, and the port's ruling on an empty list ------------------------------------
+check("an empty list is not tracked: no penalty", R.getProficiencyToHit("Long Sword", "", 25), 0);
+check("once started, a weapon not on it takes the penalty", R.getProficiencyToHit("Long Sword", "Dagger", 25), -9);
+check("...a weapon on it does not", R.getProficiencyToHit("Dagger", "Dagger", 25), 0);
+check("...nor ammunition fired from a bow on it", R.getProficiencyToHit("Arrow(Short Bow/Normal)", "Bow(Short)", 25), 0);
+
+// --- standing and slots -----------------------------------------------------------------------------------
+check("never / not yet / acquired", [R.getChoiceStanding("weaponLore", { when: 0, title: 5 }), R.getChoiceStanding("weaponLore", { when: 4, title: 3 }),
+	R.getChoiceStanding("weaponLore", { when: 4, title: 4 })], ["never", "notYet", "acquired"]);
+check("proficiency is always open; Projectile Knowledge when the skill is held",
+	[R.getChoiceStanding("proficiency", {}), R.getChoiceStanding("projectileKnow", { held: false }), R.getChoiceStanding("projectileKnow", { held: true })],
+	["acquired", "never", "acquired"]);
+check("slots: one per title held, less those named (his Missile Lore order, not Weapon Lore's slip)",
+	[R.getChoiceSlots(4, 4, ""), R.getChoiceSlots(6, 4, "Spear"), R.getChoiceSlots(3, 4, ""), R.getChoiceSlots(9, 0, "")], [1, 2, 0, 0]);
+
+// --- proficiency, rolled and initial -------------------------------------------------------------------
+const prof = (extra) => R.resolveWeaponChoice({ kind: "proficiency", name: "Long Sword", characterName: "Brom", list: "Dagger",
+	chance: 40, available: 2, standing: "acquired", isMelee: true, isMissile: false, roll: 50, roll2: 99, roll3: 99, ...extra });
+check("a roll under Weapon Knowledge adds it", [prof({ roll: 40 }).added, prof({ roll: 40 }).newList], [true, "Dagger,Long Sword"]);
+check("over it, with no lore, fails and writes nothing", [prof({}).ok, prof({}).added, prof({}).newList], [true, false, null]);
+check("Weapon Lore is a second chance on a melee weapon", prof({ weaponLoreChance: 60, roll2: 55 }).added, true);
+check("...but not on a weapon that is only thrown", prof({ weaponLoreChance: 60, roll2: 55, isMelee: false, isMissile: true }).added, false);
+check("Missile Lore is the chance on a missile weapon", prof({ missileLoreChance: 60, roll3: 10, isMelee: false, isMissile: true }).added, true);
+check("already proficient", prof({ name: "Dagger" }).message, "Brom is already proficient with Dagger. Nothing done.");
+check("no slots left", prof({ available: 0 }).ok, false);
+check("nothing chosen", prof({ name: "" }).message, "Brom did not select a weapon to be proficient with. Nothing done.");
+check("never ammunition", prof({ name: "Arrow(Long Bow/Normal)" }).message, "Brom cannot be proficient in projectiles (only launchers). Nothing done.");
+check("the initial proficiency takes no roll", [prof({ initial: true, roll: 100 }).added, prof({ initial: true }).rolled], [true, false]);
+check("...but still needs a slot", prof({ initial: true, available: 0 }).ok, false);
+
+// --- the lore lists ------------------------------------------------------------------------------------
+const lore = (extra) => R.resolveWeaponChoice({ kind: "weaponLore", name: "Long Sword", characterName: "Brom", list: "",
+	profList: "Long Sword,Dagger", chance: 30, slots: 1, standing: "acquired", roll: 50, ...extra });
+check("the first is automatic", [lore({}).added, lore({}).rolled, lore({}).newList], [true, false, "Long Sword"]);
+check("never acquired", lore({ standing: "never" }).message, "Brom's class does not ever acquire Weapon Lore. Nothing done.");
+check("not yet", lore({ standing: "notYet" }).ok, false);
+check("not proficient in it", lore({ name: "Spear" }).message, "Brom is not proficient in Spear and so cannot take Weapon Lore with it. Nothing done.");
+check("already named", lore({ name: "Dagger", list: "Dagger" }).ok, false);
+check("a second needs a slot", lore({ name: "Dagger", list: "Long Sword", slots: 0 }).message, "Brom has no Weapon Lore slots available. Nothing done.");
+check("a second needs a chance", lore({ name: "Dagger", list: "Long Sword", chance: 0 }).ok, false);
+check("a second is rolled", [lore({ name: "Dagger", list: "Long Sword", roll: 30 }).added, lore({ name: "Dagger", list: "Long Sword", roll: 31 }).added], [true, false]);
+check("+10% for every unspent slot past the first (Weapon Lore)", [lore({ name: "Dagger", list: "Long Sword", slots: 3, roll: 50 }).added,
+	lore({ name: "Dagger", list: "Long Sword", slots: 3, roll: 51 }).added], [true, false]);
+check("...not for Second Weapon Knowledge", R.resolveWeaponChoice({ kind: "secondKnow", name: "Dagger", characterName: "Brom", list: "Long Sword",
+	profList: "Long Sword,Dagger", chance: 30, slots: 3, standing: "acquired", roll: 50 }).added, false);
+check("Projectile Lore needs no proficiency (his roll does not ask)", R.resolveWeaponChoice({ kind: "projectileLore", name: "Arrow(Long Bow/Normal)",
+	characterName: "Brom", list: "", profList: "", chance: 20, slots: 1, standing: "acquired", roll: 90 }).added, true);
+const pk = (roll) => R.resolveWeaponChoice({ kind: "projectileKnow", name: "Arrow(Long Bow/Normal)", characterName: "Brom", list: "",
+	chance: 40, standing: "acquired", roll });
+check("Projectile Knowledge is always rolled, and a failure adds nothing (his failed branch added it)", [pk(40).newList, pk(41).newList], ["Arrow(Long Bow/Normal)", null]);
+
+// --- Projectile Knowledge's ranges, his checkEquippedWeaponsAgainstProjectileKnowledgeList (90931) -------
+check("medium out 20% per 20% of the skill, taken from long", R.getProjectileKnowledgeRanges({ medium: 100, long: 200, extreme: 300 }, 45),
+	{ medium: 140, long: 200, extreme: 300, percent: 40 });
+check("past long, into extreme", R.getProjectileKnowledgeRanges({ medium: 100, long: 110, extreme: 300 }, 40),
+	{ medium: 140, long: 0, extreme: 300, percent: 40 });
+check("past extreme, medium takes it all", R.getProjectileKnowledgeRanges({ medium: 100, long: 110, extreme: 120 }, 100),
+	{ medium: 120, long: 0, extreme: 0, percent: 100 });
+
+// --- the view -------------------------------------------------------------------------------------------
+const sys = { identity: { exp: 0 }, combat: { weaponKnowChance: 42, weaponProfList: "Dagger", weaponProfTotal: 4, weaponProfUsed: 1,
+	weaponProfAvailable: 3, nonProfPenalty: -7, weaponLoreTitle: 4, weaponLoreReachedTitle: 2, weaponLoreChance: 0,
+	weaponLoreSlots: 0, weaponLoreList: "", missileLoreTitle: 2, missileLoreReachedTitle: 3, missileLoreChance: 30, missileLoreSlots: 2,
+	missileLoreList: "", hasProjectileKnowledge: false } };
+const weapons = [ { name: "Dagger", melee: true, missile: true }, { name: "Long Sword", melee: true, missile: false },
+	{ name: "Bow(Long)", melee: false, missile: true }, { name: "Arrow(Long Bow/Normal)", melee: false, missile: true }, { name: "Dagger", melee: true, missile: true } ];
+const pv = V.buildWeaponChoicesView("proficiency", V.getWeaponChoiceFacts(sys, "proficiency"), weapons, "", "Brom");
+check("proficiency: totals, the initial ADD at 0 experience, the dropdown without ammunition or what is held",
+	[pv.profTotal, pv.profUsed, pv.profAvailable, pv.initialOffered, pv.options.map(o => o.name)], [4, 1, 3, true, ["Bow(Long)", "Long Sword"]]);
+check("Weapon Lore not yet reached shows his refusal", V.buildWeaponChoicesView("weaponLore", V.getWeaponChoiceFacts(sys, "weaponLore"), weapons, "", "Brom").blocked,
+	"Brom has not acquired Weapon Lore. Cannot select a Weapon Lore weapon, yet.");
+const mv = V.buildWeaponChoicesView("missileLore", V.getWeaponChoiceFacts(sys, "missileLore"), weapons, "", "Brom");
+check("Missile Lore offers only proficient weapons that can be thrown or fired", [mv.open, mv.slots, mv.options.map(o => o.name)], [true, 2, ["Dagger"]]);
+check("Projectile Knowledge not held is never", V.buildWeaponChoicesView("projectileKnow", V.getWeaponChoiceFacts(sys, "projectileKnow"), weapons, "", "Brom").standing, "never");
+
+// --- the Updater and the combat panel -------------------------------------------------------------------
+check("the Updater opens this window for all seven", ["weaponProf", "weaponLore", "missileLore", "secondKnow", "secondLore", "projectileKnow", "projectileLore"]
+	.map(id => U.buildUpdaterChoices({}).find(r => r.id == id)?.call), Array(7).fill("weaponChoices"));
+const panel = CP.buildCombatPanelView({ combat: { weaponProfList: "Dagger,Spear", weaponProfUsed: 2 }, attributes: {}, physical: {} }, 45);
+check("the combat panel's proficiency bar: total, used, available", [panel.profs.total, panel.profs.used, panel.profs.available, panel.profs.list], [4, 2, 2, "Dagger, Spear"]);
+
+// --- the template ----------------------------------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+const source = await (await fetch("../templates/apps/weapon-choices.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(source)({ isGM: true, ...pv });
+const text = document.getElementById("window").textContent;
+check("the window: the kinds, the totals, the penalty, the list, Add and Add initial, the GM's Remove",
+	["Add Weapon Proficiency", "Total weapon proficiencies: 4", "Used: 1", "Available: 3", "-7", "Current weapon proficiencies: Dagger",
+	 "Add initial", "Remove (GM)", "Select Projectile Lore Projectile"].map(t => text.includes(t)), Array(9).fill(true));
+document.getElementById("window").innerHTML = Handlebars.compile(source)({ isGM: false, ...V.buildWeaponChoicesView("weaponLore", V.getWeaponChoiceFacts(sys, "weaponLore"), weapons, "", "Brom") });
+check("a refused panel shows his sentence and no Add", [document.getElementById("window").textContent.includes("has not acquired Weapon Lore"),
+	document.getElementById("window").innerHTML.includes("data-action=\"add\"")], [true, false]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

@@ -90,6 +90,9 @@ Handlebars.registerHelper("gte", (a, b) => a >= b);
 Handlebars.registerPartial("imagine-martial-panel", await (await fetch("../templates/actor/martial-panel.hbs")).text());
 // The body figure, likewise (loadBodyTemplates in module/body-view.mjs).
 Handlebars.registerPartial("imagine-body-figure", await (await fetch("../templates/actor/body-figure.hbs")).text());
+// The Combat tab's COMBAT panel, likewise (loadCombatPanelTemplates in module/combat-panel-view.mjs).
+Handlebars.registerPartial("imagine-combat-panel", await (await fetch("../templates/actor/combat-panel.hbs")).text());
+const CPV = await import("../module/combat-panel-view.mjs");
 const BV = await import("../module/body-view.mjs");
 const TH = await import("../module/sheet-theme.mjs");
 Handlebars.registerHelper("localize", (k) => {
@@ -406,6 +409,7 @@ document.querySelectorAll(".tabstrip button").forEach(btn => {
 tabs.addEventListener("click", async (ev) => {
 	const hit = ev.target.closest("[data-action='selectBodyArea']");
 	if (!hit) return;
+	ctx.combatPanel = CPV.buildCombatPanelView(character);
 	ctx.bodyFigure = BV.buildBodyFigure(character.body.areas, { bodyType: character.body.type,
 		selected: ctx.bodyFigure.selected?.name == hit.dataset.area ? "" : hit.dataset.area,
 		vitality: character.attributes.vit.value, effects: ["Spell: Fly"] });

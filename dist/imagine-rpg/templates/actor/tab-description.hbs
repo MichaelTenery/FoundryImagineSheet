@@ -61,15 +61,25 @@
 	</div>
 	{{/with}}
 
-	{{!-- A stopgap until the body list his sheet keeps is built: see the FORMLESS BODIES marker in
-	      actor-character.mjs. The host chosen at creation is the second race item and still drives
-	      the numbers; this is only the record of the others. --}}
+	{{!-- The body a Formless wears and how long it may keep it (FORMLESS HOST in actor-character.mjs).
+	      Changed through the Updater's Formless options (game.imagine.shapeChange). The old free-text
+	      record from before that existed is shown read-only, and only if anything was written in it. --}}
 	{{#if system.identity.isFormless}}
 	<div class="panel">
-		<h3>Formless: Bodies</h3>
-		<p class="muted">Bodies this Formless has inhabited, and which it wears now. Changing body is
-			not automated yet -- to switch, replace the host race item and note it here.</p>
-		<textarea name="system.identity.formlessBodies" rows="3">{{system.identity.formlessBodies}}</textarea>
+		<h3>Formless: Host</h3>
+		{{#with system.identity.formless as |f|}}
+		<ul class="band-list">
+			<li><label>Current host</label> {{#if f.currentHost}}{{f.currentHost}}{{else}}<span class="muted">none recorded</span>{{/if}}</li>
+			{{#if f.hostType}}<li><label>Host type</label> {{f.hostType}}</li>
+			<li><label>Occupied</label> {{f.periodsOccupied}} of {{f.maxPeriods}} {{f.periodType}}(s)</li>{{/if}}
+			{{#unless f.currentHost}}{{#if f.freePsycheWill}}<li><label>Free psyche Will Force</label> {{f.freePsycheWill}}</li>{{/if}}{{/unless}}
+			{{#if f.hostHistory}}<li><label>Bodies possessed</label> {{f.hostHistory}}</li>{{/if}}
+		</ul>
+		{{/with}}
+		{{#if system.identity.formlessBodies}}
+		<p class="muted">Earlier notes (kept from before host changes were built):</p>
+		<p class="readout">{{system.identity.formlessBodies}}</p>
+		{{/if}}
 	</div>
 	{{/if}}
 

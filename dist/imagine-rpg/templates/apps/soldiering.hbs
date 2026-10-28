@@ -1,0 +1,29 @@
+{{!--
+	The Select Soldiering Weapon window: his Updater option update_soldiering_weapon. One root element, as the
+	framework requires. Everything here comes from buildSoldieringView (module/soldiering-rules.mjs).
+--}}
+<div class="soldiering-window">
+	{{#unless held}}
+	<p class="hint alarm"><strong>{{actor.name}} does not have Soldiering as a Social Skill.</strong> Nothing can be selected until the skill is acquired.</p>
+	{{/unless}}
+
+	<p>Soldiering makes <strong>one</strong> weapon +1 to hit and +1 damage. A magical weapon, a Master weapon, or a weapon with Weapon Lore takes its own bonus instead &mdash; the two never stack.</p>
+
+	<div class="form-group"><label>Soldiering weapon
+		<select name="weapon" {{#unless held}}disabled{{/unless}}>
+			<option value="" {{#unless current}}selected{{/unless}}></option>
+			{{#each groups as |g|}}
+			<optgroup label="{{g.label}}">
+				{{#each g.options as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}}</option>{{/each}}
+			</optgroup>
+			{{/each}}
+		</select></label></div>
+
+	<p class="hint">Now: <strong>{{line}}</strong></p>
+
+	<div class="form-footer">
+		<button type="button" data-action="select" {{#unless held}}disabled{{/unless}}>Select</button>
+		<button type="button" data-action="clear" {{#unless current}}disabled{{/unless}}>Clear</button>
+		<button type="button" data-action="done">Done</button>
+	</div>
+</div>

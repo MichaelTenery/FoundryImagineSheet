@@ -1,0 +1,49 @@
+{{!--
+	The Armor Knowledge / Armor Lore window: his two Updater panels ("Select Armor Know. Config." and
+	"Select Armor Lore Config.") in one window. One root element, as the framework requires.
+	Everything here comes from buildArmorKnowView (module/armor-know-view.mjs).
+--}}
+<div class="armor-know-window">
+	<div class="armor-know-head">
+		<label>Configuration for
+			<select name="kind">
+				<option value="know" {{#unless isLore}}selected{{/unless}}>Armor Knowledge</option>
+				<option value="lore" {{#if isLore}}selected{{/if}}>Armor Lore</option>
+			</select></label>
+	</div>
+
+	<h3>{{heading}}</h3>
+
+	{{#unless acquired}}
+	{{!-- His two refusals: the class never acquires it, or has not yet. --}}
+	<p class="armor-know-refusal">{{refusal}}</p>
+	{{else}}
+	<p><strong>Current equipped armor configuration (shields/clothing not included):</strong>
+		{{#if hasWorn}}{{wornText}}{{else}}<span class="muted">no armour worn</span>{{/if}}</p>
+	<p><strong>{{skillName}} Slots:</strong> {{slots}}
+		<span class="muted">({{chance}}%)</span><br>
+		<strong>Current {{skillName}} set(s):</strong>
+		{{#unless hasSets}}<span class="muted">none</span>{{/unless}}</p>
+	{{!-- One row per learned set. Remove is the port's own: his sheet could never forget one. --}}
+	{{#if hasSets}}
+	<ul class="armor-know-sets">
+		{{#each sets as |s|}}
+		<li><span>{{s.pieces}}</span>
+			{{#if ../canRemove}}<button type="button" class="armor-know-remove" data-action="removeConfig" data-index="{{s.index}}">Remove</button>{{/if}}</li>
+		{{/each}}
+	</ul>
+	{{/if}}
+	{{#if isCreature}}
+	<label class="armor-know-auto"><input type="checkbox" name="automatic" {{#if automatic}}checked{{/if}}>
+		<b>Automatic</b> <i>Makes chance automatic (for creatures only)</i></label>
+	{{/if}}
+	{{#if wornLearned}}<p class="hint">The configuration worn is already learned.</p>{{/if}}
+
+	<div class="armor-know-roll">
+		<button type="button" data-action="rollConfig">ROLL</button> {{rollNote}}<br>
+		<button type="button" data-action="rollConfigMod">MOD</button> {{modNote}}
+	</div>
+	{{/unless}}
+
+	<footer class="form-footer"><button type="button" data-action="done">Done</button></footer>
+</div>

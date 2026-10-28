@@ -6957,3 +6957,67 @@ Architecture only; the content stays in the private module (`C:\Users\samwy\imag
   is V13; RollTable/TableResult/JournalEntry have the same shape in V14, but a pass is a pass against V13.
 - **Transcribe the scan's errors away, never the author's.** OCR slips are fixed; his own contradictions and
   typos are kept as printed and collected in the module's `docs/ODDITIES.md` for him to rule on.
+
+## His Missing Feature reports 0.25.1:1-11, and the Character Updater (2026-10-28)
+
+Eleven Blocker reports of 10/27, each a panel of his Roll20 sheet missing from the port. Nine of them are
+options of one dropdown, his Character Updater (`attr_update_what`, HTML 45926), so the answer is one
+**Updater** window (`module/updater-rules.mjs`, `module/apps/updater.mjs`) that LISTS his options and
+opens a window per option, rather than one window with every panel inside it. The port already had
+most panels as windows (Level Up, Brawling, Situation Mods), and windows can be tested and opened from
+a macro on their own. Rows not built stay in the list, greyed, with the reason; his sheet hid them.
+Built the same day, with the first pass's gaps closed on the user's word ("lets fix this and implement
+what can be done"). Shipped 0.26.0. Every window follows the Brawling window's split: a pure rules
+module, a view builder, a template, and a headless suite.
+
+Rulings (port choices, each also noted in its module's header):
+
+- **Grappling** (`combat/grappling-rules.mjs`, his `handleGrappling` 69156). Not ported: `[Spiked]`
+  armour damage (no customized armour), his missing `break` (an empty move fell into Touch), and his
+  double extra-per-die on Claw/Bite. His odd MOD on Throw/Slam, added to a d100 that must come in under
+  a save, is kept and shown on the card (UPSTREAM 123). His handler never applies damage, so where it
+  lands is ours: "1 random area" means an equal chance at each area of the target's chart. Claw, Bite,
+  Knee/Elbow and Punch also land at random. Ear Rip goes to an Ear/Antenna area, else the Head; Eye
+  Gouge to an Eye area, else the Head; both bypass armour. Strangle goes to the Neck, constricting.
+  Damage types are our reading.
+- **Armor Knowledge/Lore** (`armor-know-rules.mjs`). Knowledge is usable unheld at the non-acquired
+  base chance (the report's "Armor Knowledge can"; his sheet refuses); Lore needs the skill held and
+  reached. "Already learned" matches pieces exactly, not his substring test. Removing a set is ours:
+  he has none (only adds, 89392/89535). His `armor_skill_penalty` is read only by Shield Parry and Body
+  Parry (70736, 70979), so only those two take it. On a creature, his Lore branch reads the Knowledge
+  chance (89438): kept and flagged. The easing level uses the creature's listed chance, not the class
+  skill a creature never has.
+- **Skills** (`skill-training-rules.mjs`). A failed training roll is not counted as an improvement
+  (his history counts it, against his own comment and the book). The book's 5% floor and teacher cap
+  are in neither his sheet nor ours. Learning a social skill uses the creation direction of his
+  social-to-social table and refuses BLOCKED skills (UPSTREAM 88). Training history is kept in actor
+  flags (`imagine-rpg.skillTraining`), not the schema.
+- **Powers/Abilities** are `power` items, not his text field, because the Arch Mortal count and
+  invulnerability already read power items. Typed-in ones get `subsystem: "none"`.
+- **Temporary Modifiers** (`temp-mods-rules.mjs`). The fatigue table is the Player's Guide's (p.199);
+  his code inverts movement and says "WIL Save". His SET replaces rather than adds: a blank box leaves
+  a modifier alone and a typed 0 clears it; the window says so. His extra-per-die setter read the wrong
+  box (UPSTREAM 97, now resolved). Temporary Ambidexterity overrides handedness in memory only.
+- **Combat panel.** The right-hand dartboard in his screenshot is the Lore attack chart, not an
+  off-hand one. Off-hand penalties now read the CURRENT Agility (his `values.agility`, 82176),
+  everywhere they are worked out. Fatigue and racial figures show under Other. Blindness gives its −8
+  but not its No Defense.
+- **Soldiering.** Not stacking is the report's ruling: magical plus, quality "Master" or Weapon Lore
+  (melee) replaces it; his code only zeroes it on Weapon Lore.
+- **Weapon proficiency** (`weapon-choices-rules.mjs`). No non-proficiency penalty applies until a first
+  proficiency is recorded, or every existing character would lose up to 11 to hit at once. A GM-only
+  Remove is ours. Not carried over: Weapon Lore's slot count one too high, a failed Projectile
+  Knowledge roll still adding the projectile, "Crossbow" matching inside "Crossbow(Heavy)". Creatures
+  are refused: their attack items read no weapon lists.
+- **Changeling/Formless** (`shape-change-rules.mjs`). The Changeling form is stored and applied in
+  base data from one table, rather than written into ratings by his add/remove pair (Elf(Sea)'s remove
+  row gains 2 APP per round trip, UPSTREAM 125). Possession costs 5% per hour dead, as his panel's note
+  says and his handler forgets. Free psyche at Will Force 1 or less is death (his `== 1`). The stopgap
+  `formlessBodies` text is kept and shown read-only beside the new host record.
+- **GM tools.** Experience value is worked out live (his CALC only on click), with `calcCreatureExp`
+  and title as level; only class and racial skills count. Random insanity follows the Master's Manual
+  where his chain cannot reach Hypochondria; the aura colour option value is fixed (UPSTREAM 107/124).
+  The random race/class/skill lists are his own hard-coded arrays, as his sheet never reads content.
+
+**Not verified in a running Foundry V14:** every new window's render and clicks, the chat cards, and
+the item and flag writes. The headless suites stub Foundry: 40 suites, 4,143 checks.

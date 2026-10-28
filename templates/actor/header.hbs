@@ -92,6 +92,9 @@
 				<span class="readout">{{system.identity.nextGoalExp}}</span></span>
 			<button type="button" class="level-up-open {{#if system.identity.levelUpPending}}alarm{{/if}}"
 				data-action="openLevelUp">{{#if system.identity.levelUpPending}}Level up waiting{{else}}Experience &amp; levels{{/if}}</button>
+			{{!-- His "What do you want to do?" list: soldiering weapon, armour config, new and trained skills,
+			      powers, temporary modifiers. --}}
+			<button type="button" class="updater-open" data-action="openUpdater">Updater</button>
 		</div>
 	</div>
 

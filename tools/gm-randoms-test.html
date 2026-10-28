@@ -1,0 +1,170 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG GM randoms test</title>
+<link rel="stylesheet" href="../styles/imagine-rpg.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6} .render{font-family:"Segoe UI",sans-serif;border:1px solid #cfc7b8;margin:12px 0;padding:8px;max-width:520px}</style>
+<pre id="out">running...</pre>
+<h3>The window, rendered with a few things rolled</h3>
+<div id="window" class="render imagine gm-randoms"></div>
+<script type="module">
+// Tests for the Game Master's Randoms/Extras tool: module/random-tables.mjs (his tables),
+// module/random-rules.mjs (the rolls) and module/random-view.mjs (the panels) -- and the window's
+// template, compiled and rendered against the same view.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/gm-randoms-test.html
+const T = await import("../module/random-tables.mjs");
+const R = await import("../module/random-rules.mjs");
+const V = await import("../module/random-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// A die that gives a fixed run of numbers (clamped to the sides asked for), then 1s.
+const fixed = (...tmpvalues) => { let tmpi = 0; return (tmpsides) => Math.min(tmpvalues[tmpi++] ?? 1, tmpsides); };
+// A seeded die, for the sweeps below.
+const seeded = (tmpseed) => () => 0; // placeholder replaced below
+let tmpstate = 12345;
+const lcg = (tmpsides) => { tmpstate = (tmpstate * 1103515245 + 12345) % 2147483648; return 1 + Math.floor(tmpstate / 2147483648 * tmpsides); };
+
+// --- every d100 table covers 1-100, no gap and no overlap ------------------------------------------------
+const d100Tables = { INSANITY_TYPES: T.INSANITY_TYPES, DEPRESSIVE_DISORDERS: T.DEPRESSIVE_DISORDERS,
+	NEUROTIC_DISORDERS: T.NEUROTIC_DISORDERS, AMNESIA_LOSSES: T.AMNESIA_LOSSES, PSYCHOTIC_DISORDERS: T.PSYCHOTIC_DISORDERS,
+	SCHIZOPHRENIAS: T.SCHIZOPHRENIAS, MULTIPLE_PERSONALITIES: T.MULTIPLE_PERSONALITIES,
+	INSANITY_DURATIONS: T.INSANITY_DURATIONS, CHAOS_EFFECTS: T.CHAOS_EFFECTS, REFLECTION_RESULTS: T.REFLECTION_RESULTS };
+for (const [tmpname, tmprows] of Object.entries(d100Tables)) {
+	let tmpnext = 1, tmpgood = true;
+	for (const tmprow of tmprows) { if (tmprow[0] !== tmpnext || tmprow[1] < tmprow[0]) { tmpgood = false; } tmpnext = tmprow[1] + 1; }
+	check(`${tmpname}: rows run 1 to 100 with no gap and no overlap`, [tmpgood, tmpnext], [true, 101]);
+	let tmpfound = true;
+	for (let tmproll = 1; tmproll <= 100; tmproll++) { if (!R.findRow(tmprows, tmproll)) { tmpfound = false; } }
+	check(`${tmpname}: every roll 1-100 lands a row`, tmpfound, true);
+}
+
+// --- the lists are the size his sheet's are -------------------------------------------------------------
+check("lists: animals 125, skills 471, social skills 201, races 106, classes 91, alignments 16, planes 22, subjects 15",
+	[T.RANDOM_ANIMALS.length, T.RANDOM_SKILLS.length, T.RANDOM_SOCIAL_SKILLS.length, T.RANDOM_RACES.length,
+	 T.RANDOM_CLASSES.length, T.RANDOM_ALIGNMENTS.length, T.RANDOM_PLANES.length, T.RANDOM_SUBJECTS.length],
+	[125, 471, 201, 106, 91, 16, 22, 15]);
+check("lists: elements 7, substances 4, directions 8, spells at 36 Aura levels",
+	[T.RANDOM_ELEMENTS.length, T.RANDOM_SUBSTANCES.length, T.RANDOM_DIRECTIONS.length, Object.keys(T.RANDOM_SPELLS_BY_AURA).length],
+	[7, 4, 8, 36]);
+check("spells: levels 1-30, then 35, 40, 50, 100, 500 and 1000",
+	Object.keys(T.RANDOM_SPELLS_BY_AURA).map(Number).filter(n => n > 30), [35, 40, 50, 100, 500, 1000]);
+check("no list holds an empty name",
+	[T.RANDOM_ANIMALS, T.RANDOM_SKILLS, T.RANDOM_SOCIAL_SKILLS, T.RANDOM_RACES, T.RANDOM_CLASSES, T.RANDOM_PLANES,
+	 ...Object.values(T.RANDOM_SPELLS_BY_AURA)].every(l => l.every(n => n.length > 0)), true);
+
+// --- his dice strings ---------------------------------------------------------------------------------
+check("3d4+2 rolls three four-sided dice and adds two", R.rollDiceString("3d4+2", fixed(4, 4, 4)), 14);
+check("1d3 rolls one", R.rollDiceString("1d3", fixed(2)), 2);
+check("a string with no d is nothing, as his box shows", [R.rollDiceString("", fixed(3)), R.rollDiceString("12", fixed(3)), R.rollDiceString("dd", fixed(3))], [0, 0, 0]);
+check("Get Maximum Value: 4d6 is 24, 3d4+2 is 14, junk is 0", [R.getMaxDiceString("4d6"), R.getMaxDiceString("3d4+2"), R.getMaxDiceString("x")], [24, 14, 0]);
+check("the dice tool takes the maximum when ticked", [R.rollDiceTool("4d6", true, fixed(1, 1, 1, 1)), R.rollDiceTool("4d6", false, fixed(1, 1, 1, 1))], [24, 4]);
+check("a minus modifier is read too", R.rollDiceString("2d6-1", fixed(3, 3)), 5);
+check("a runaway count is held to a thousand dice", R.getMaxDiceString("99999d1"), 1000);
+
+// --- encounter, direction, reflection ----------------------------------------------------------------
+check("encounter: a 1 on the chosen die is an encounter", [R.rollEncounter(6, fixed(1)), R.rollEncounter("6", fixed(2))], ["Encounter Occurs!", "No Encounter."]);
+check("encounter: the die has as many sides as the chance says", (() => { let s = 0; R.rollEncounter(20, (n) => { s = n; return 1; }); return s; })(), 20);
+check("direction: d8 clockwise from north", [1, 2, 3, 4, 5, 6, 7, 8].map(n => R.getRandomDirection(fixed(n))),
+	["North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"]);
+check("reflection 1-30: loses speed", R.getReflectionResult(fixed(30, 5, 1)).startsWith("Spell or weapon loses speed"), true);
+check("reflection 31-50: the distance and a direction", R.getReflectionResult(fixed(31, 12, 1, 3)), "Spell or weapon reflects off 12` East.");
+check("reflection 51-75: a 1 on the d2 affects the opponent, a 2 the caster",
+	[R.getReflectionResult(fixed(60, 1, 1)).endsWith("(the caster`s opponent is affected)."), R.getReflectionResult(fixed(60, 1, 2)).endsWith("(the caster is affected).")], [true, true]);
+check("reflection 76-95 and 96-100: full and double effect",
+	[R.getReflectionResult(fixed(80)).includes("full effect"), R.getReflectionResult(fixed(100)).includes("double effect")], [true, true]);
+
+// --- insanity -----------------------------------------------------------------------------------------
+check("insanity: 1-20 depressive, and its own d100", [R.getRandomInsanity(fixed(10, 50)), R.getRandomInsanity(fixed(20, 80)), R.getRandomInsanity(fixed(1, 95))],
+	["Depression", "Fugue State", "Manic Depressive"]);
+check("insanity: neurotic runs Phobia 1-50 to Stammering 86-90 (Hypochondria 71-80 per the book)",
+	[1, 50, 51, 61, 71, 80, 81, 85, 86, 90].map(n => R.getRandomInsanity(fixed(50, n))),
+	["Phobia (choose as appropriate)", "Phobia (choose as appropriate)", "Insomnia", "Sleepwalking", "Hypochondria", "Hypochondria", "Nervous Tic", "Nervous Tic", "Stammering", "Stammering"]);
+check("insanity: amnesia closes its own bracket, with dice where it has them",
+	[R.getRandomInsanity(fixed(50, 91, 10)), R.getRandomInsanity(fixed(50, 91, 30, 3)), R.getRandomInsanity(fixed(50, 91, 45, 2, 5)), R.getRandomInsanity(fixed(50, 91, 100))],
+	["Amnesia (forgets stressful event that caused the insanity)", "Amnesia (forgets last 3 hour(s))", "Amnesia (forgets last 7 hour(s))", "Amnesia (forgets everything, animal instincts remain)"]);
+check("insanity: psychotic, the schizophrenias and the multiple personalities",
+	[R.getRandomInsanity(fixed(90, 10, 50)), R.getRandomInsanity(fixed(90, 10, 70)), R.getRandomInsanity(fixed(90, 10, 95)),
+	 R.getRandomInsanity(fixed(90, 30)), R.getRandomInsanity(fixed(90, 50)), R.getRandomInsanity(fixed(90, 60)), R.getRandomInsanity(fixed(90, 80)),
+	 R.getRandomInsanity(fixed(90, 90, 50)), R.getRandomInsanity(fixed(90, 90, 78)), R.getRandomInsanity(fixed(90, 90, 96, 3)), R.getRandomInsanity(fixed(90, 90, 100, 12))],
+	["Schizophrenia(Simple)", "Schizophrenia(Paranoid)", "Schizophrenia(Catatonic)", "Depressive Personality", "Antisocial Personality",
+	 "Borderline Personality", "Conversion Reaction", "Multiple Personality(2, Any Align)", "Multiple Personality(2, 1 Opposed)",
+	 "Multiple Personality(7, Any Align)", "Multiple Personality(20, Any Align)"]);
+check("insanity duration: minutes by 10d4, hours, weeks, permanent",
+	[R.getInsanityDuration(fixed(10, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4)), R.getInsanityDuration(fixed(20, 3)), R.getInsanityDuration(fixed(50, 2)), R.getInsanityDuration(fixed(100))],
+	[", lasts 40 minute(s).", ", lasts 3 hour(s).", ", lasts 2 week(s).", ", lasts permanently."]);
+check("the insanity tool writes the disorder then the duration", R.rollInsanityTool(fixed(10, 50, 20, 2)), "Depression, lasts 2 hour(s).");
+
+// --- the list draws -----------------------------------------------------------------------------------
+check("a plain draw is a die as big as the list", (() => { let s = 0; R.getRandomPlane((n) => { s = n; return 1; }); return s; })(), 22);
+check("animal: a bare Horse, Insect, Snake or Spider is drawn again from its own list",
+	[T.RANDOM_ANIMALS.indexOf("Horse") + 1, T.RANDOM_ANIMALS.indexOf("Insect") + 1, T.RANDOM_ANIMALS.indexOf("Snake") + 1, T.RANDOM_ANIMALS.indexOf("Spider") + 1]
+		.map((n, i) => R.getRandomAnimal(fixed(n, 1)) == [T.RANDOM_HORSES, T.RANDOM_INSECTS, T.RANDOM_SNAKES, T.RANDOM_SPIDERS][i][0]), [true, true, true, true]);
+check("animal: any other row is itself", R.getRandomAnimal(fixed(1)), "Addax");
+check("subject: Skill, Social Skill and Spell name a random one inside their bracket",
+	[R.getRandomSubject(fixed(2, 1)), R.getRandomSubject(fixed(3, 1)), R.getRandomSubject(fixed(4, 1, 1))],
+	["Skill(Abasement)", "Social Skill(Accounting)", "Spell(Chill)"]);
+check("subject: History is just History", R.getRandomSubject(fixed(1)), "History");
+
+// --- aura colour --------------------------------------------------------------------------------------
+check("aura colour: every dropdown alignment has its own colour, and Golden Yellow is reachable",
+	[...Object.keys(T.AURA_COLORS)].every(a => R.getAuraColor(a, fixed(1)) == T.AURA_COLORS[a]) && R.getAuraColor("Fanatical Good (Passive)", fixed(1)) == "Golden Yellow", true);
+check("aura colour: a rolled alignment (his 'Good(Active)' spelling) finds its colour", R.getAuraColor("Good(Active)", fixed(1)), "Light Blue");
+check("aura colour: blank rolls a d3 among yellow, red and blue",
+	[1, 2, 3].map(n => R.getAuraColor("", fixed(n))), T.AURA_COLORS_UNALIGNED);
+check("aura colour: an alignment he has no colour for is Translucent", R.getAuraColor("Chaotic", fixed(1)), "Translucent");
+check("every alignment the random roll can give has a colour",
+	T.RANDOM_ALIGNMENTS.every(a => R.getAuraColor(a, fixed(1)) != "Translucent"), true);
+
+// --- chaos and spells ---------------------------------------------------------------------------------
+check("chaos: 1-9 Aura Reveal, 95 Warp Spell, 100 Wish Maker",
+	[R.getRandomChaosEffect(fixed(9)).startsWith("Aura Reveal"), R.getRandomChaosEffect(fixed(95)).startsWith("Warp Spell"), R.getRandomChaosEffect(fixed(100)).startsWith("Wish Maker")], [true, true, true]);
+check("spell: a d20 for the level, then a draw from that level's list", R.getRandomSpell(fixed(3, 2)), T.RANDOM_SPELLS_BY_AURA[3][1]);
+check("spell by level: any level with a list", [R.getRandomSpellByLevel(40, fixed(2)), R.getRandomSpellByLevel(1000, fixed(2))], ["Finger of All", "Universal Genesis"]);
+check("spell by level: a level with no list gives nothing, as his switch does", R.getRandomSpellByLevel(31, fixed(1)), "");
+check("spell by level tool: blank is blank, junk is level 1, a number is that level",
+	[R.rollSpellByLevelTool("", fixed(1)), R.rollSpellByLevelTool("abc", fixed(1)), R.rollSpellByLevelTool("20", fixed(1))], ["", "Chill", "Corrupt"]);
+
+// --- every panel rolls something, a thousand times over ------------------------------------------------
+let tmpempty = [];
+for (const tmprow of V.RANDOM_SECTIONS) {
+	const tmpkey = tmprow[0];
+	for (let tmpi = 0; tmpi < 1000; tmpi++) {
+		const tmpout = V.RANDOM_ROLLERS[tmpkey](lcg, { dice: "2d6", chance: 6, align: "", level: "12" });
+		if (typeof tmpout != "string" || tmpout === "" || /undefined|NaN|bnullb|%/.test(tmpout)) { tmpempty.push(`${tmpkey}: ${JSON.stringify(tmpout)}`); break; }
+	}
+}
+check("all nineteen panels give a clean answer on a thousand rolls each (no undefined, NaN or stray %)", tmpempty, []);
+check("nineteen panels, each with a roller", [V.RANDOM_SECTIONS.length, V.RANDOM_SECTIONS.every(r => typeof V.RANDOM_ROLLERS[r[0]] == "function")], [19, true]);
+check("dice panel through the view: 3d4+2 maxed", V.RANDOM_ROLLERS.dice(lcg, { dice: "3d4+2", max: true }), "14");
+
+// --- the view and its template ------------------------------------------------------------------------
+const view = V.buildRandomsView({ direction: "North", insanity: "Depression, lasts 2 hour(s)." }, { dice: "3d4+2", max: true, chance: 10, level: "7", align: "True Neutral" });
+check("the view: nineteen sections in his order, the answers put back, the chosen chance selected",
+	[view.sections.length, view.sections[0].key, view.sections[2].result, view.sections[4].result, view.chances.find(c => c.selected).value, view.aligns.find(c => c.selected).value, view.dice, view.max],
+	[19, "dice", "North", "Depression, lasts 2 hour(s).", 10, "True Neutral", "3d4+2", true]);
+Handlebars.registerHelper("eq", (a, b) => a === b);
+const windowSource = await (await fetch("../templates/apps/gm-randoms.hbs", { cache: "no-store" })).text();
+document.getElementById("window").innerHTML = Handlebars.compile(windowSource)(view);
+const windowText = document.getElementById("window").textContent;
+check("the window: every panel's title, its button caption and its answer label",
+	["Dice", "Random Encounter", "Random Direction", "Double Reflection", "Random Insanity", "Random Animal", "Random Substance",
+	 "Random Element", "Random Plane", "Random Subject", "Random Skill", "Random Social Skill", "Random Race", "Random Class",
+	 "Random Alignment", "Alignment Color", "Magic Chaos Effect", "Random Spell (1-20)", "Random Spell (by level)",
+	 "Get Maximum Value", "Roll for encounter", "Get Aura color", "Roll random spell (by Aura level)", "Dice Result", "Aura Color?", "Chaos Effect?"].map(t => windowText.includes(t)),
+	Array(26).fill(true));
+const windowHtml = document.getElementById("window").innerHTML;
+check("the window: nineteen roll buttons, and the answers are read-only",
+	[(windowHtml.match(/data-action="roll"/g) || []).length, windowHtml.includes("readonly"), windowText.includes("Depression, lasts 2 hour(s).")], [19, true, true]);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

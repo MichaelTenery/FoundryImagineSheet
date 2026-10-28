@@ -1,0 +1,40 @@
+{{!--
+	The Character Updater: his "What do you want to do?" dropdown. One root element, as the framework
+	requires. The rows come from buildUpdaterChoices (module/updater-rules.mjs).
+--}}
+<div class="updater-window">
+	<label class="updater-pick">What do you want to do?
+		<select name="what">
+			<option value="" {{#unless chosen}}selected{{/unless}}></option>
+			{{#each choices as |c|}}
+			<option value="{{c.id}}" {{#if c.selected}}selected{{/if}}>{{c.label}}{{#unless c.usable}} ({{#if (eq c.kind "later")}}not built yet{{else}}closed{{/if}}){{/unless}}</option>
+			{{/each}}
+		</select>
+	</label>
+
+	{{#if chosen}}
+	<div class="updater-panel">
+		<h3>{{chosen.label}}</h3>
+		{{#unless chosen.usable}}
+		<p class="hint updater-closed">{{chosen.why}}</p>
+		{{else}}
+			{{#if isGmeAttack}}
+			<p>Attack skill now: <b>{{attackSkill}}</b></p>
+			<label>Attack Skill
+				<select name="gmeAttackSkill">
+					{{#each attackSkills as |s|}}<option value="{{s.value}}" {{#if s.selected}}selected{{/if}}>{{s.label}}</option>{{/each}}
+				</select></label>
+			<button type="button" data-action="changeGme">Change</button>
+			<span class="hint">Change to the new attack skill (GME only).</span>
+			{{else if (eq chosen.kind "open")}}
+			{{#if chosen.note}}<p class="hint">{{chosen.note}}</p>{{/if}}
+			<button type="button" data-action="openAction">Open</button>
+			{{else}}
+			<p>{{chosen.note}}</p>
+			{{/if}}
+		{{/unless}}
+	</div>
+	{{/if}}
+
+	<footer class="updater-foot"><button type="button" data-action="done">Close</button></footer>
+</div>

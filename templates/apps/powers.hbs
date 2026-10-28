@@ -1,0 +1,62 @@
+{{!--
+	The Add/Remove Powers/Abilities window: his updater step of that name, stood up. One root element, as
+	the framework requires. Everything here comes from buildPowersView (module/powers-view.mjs).
+--}}
+<div class="powers-window">
+	<h3>Additional Powers/Abilities</h3>
+	<p class="power-list">{{listText}}</p>
+
+	<h3>Add abilities</h3>
+	<div class="form-group"><label>New Ability (Open)</label>
+		<input type="text" name="newAbility" data-working="newAbility" value="{{newAbility}}"> <span class="hint">(No commas!)</span>
+		<button type="button" data-action="addAbility" data-kind="open">Add</button></div>
+	<div class="form-group"><label>Magical Abilities</label>
+		<select name="magicalAbility" data-working="magicalAbility">
+			{{#each magicalAbilities as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}}</option>{{/each}}
+		</select>
+		<button type="button" data-action="addAbility" data-kind="magical">Add</button></div>
+	<div class="form-group"><label>Divine Abilities</label>
+		<select name="divineAbility" data-working="divineAbility">
+			{{#each divineAbilities as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}}</option>{{/each}}
+		</select>
+		<button type="button" data-action="addAbility" data-kind="divine">Add</button></div>
+	{{#unless hasSpells}}<p class="hint">The spell compendium is empty or switched off, so there are no magical entries to pick.</p>{{/unless}}
+
+	<h3>Add power</h3>
+	<div class="form-group"><label>New Power (Open)</label>
+		<input type="text" name="newPower" data-working="newPower" value="{{newPower}}"> <span class="hint">(No commas!)</span>
+		<select name="openActivation" data-working="openActivation">
+			{{#each openActivations as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.value}}</option>{{/each}}
+		</select>
+		<button type="button" data-action="addPower" data-kind="open">Add</button></div>
+	<div class="form-group"><label>Magical Powers</label>
+		<select name="magicalPower" data-working="magicalPower">
+			{{#each magicalPowers as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}}</option>{{/each}}
+		</select>
+		<select name="magicalActivation" data-working="magicalActivation">
+			{{#each magicalActivations as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.value}}</option>{{/each}}
+		</select>
+		<button type="button" data-action="addPower" data-kind="magical">Add</button></div>
+	<div class="form-group"><label>Divine Powers</label>
+		<select name="divinePower" data-working="divinePower">
+			{{#each divinePowers as |o|}}<option value="{{o.name}}" {{#if o.selected}}selected{{/if}}>{{o.name}}</option>{{/each}}
+		</select>
+		<select name="divineActivation" data-working="divineActivation">
+			{{#each divineActivations as |o|}}<option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.value}}</option>{{/each}}
+		</select>
+		<button type="button" data-action="addPower" data-kind="divine">Add</button></div>
+
+	<p class="hint"><strong>Notes:</strong> <em>By Title</em> means activation is set by title/level: 0 = 1x month, 1-3 = 1x week, 4-6 = 1x day,
+		7-9 = 2x day, 10-12 = 3x day, 13-15 = 4x day, 16-19 = 5x day, 20+ = at will. (Title {{title}}: {{titleUsage}}.)</p>
+	<p class="hint">Powers and abilities are for display, but when in effect they may need to be set as modifiers in
+		<em>Update Temporary Modifiers</em>.</p>
+
+	<h3>Remove power/ability</h3>
+	<div class="form-group"><label>Power/Ability</label>
+		<button type="button" data-action="stepPower" data-direction="left" {{#unless hasEntries}}disabled{{/unless}}>&lsaquo;</button>
+		<input type="text" readonly name="selected" value="{{selected}}">
+		<button type="button" data-action="stepPower" data-direction="right" {{#unless hasEntries}}disabled{{/unless}}>&rsaquo;</button>
+		<button type="button" data-action="removePower" {{#unless hasEntries}}disabled{{/unless}}>Remove</button></div>
+
+	<footer class="form-footer"><button type="button" data-action="done">Done</button></footer>
+</div>
