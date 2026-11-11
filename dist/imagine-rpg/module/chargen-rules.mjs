@@ -23,7 +23,7 @@ import { buildStartingKit } from "./starting-kit.mjs";
 import { chooseBestArmor } from "./equip-rules.mjs";
 import { itemStacks, normalizeItemName } from "./shop-rules.mjs";
 import { getNaturalWeaponNames, buildNaturalWeaponItems } from "./natural-weapons.mjs";
-import { rollStartingEndurance, needsStartingEnduranceRoll } from "./race-rules.mjs";
+import { rollStartingEndurance, needsStartingEnduranceRoll, getHalfRaceSkillBonus } from "./race-rules.mjs";
 import { buildSkillModContext, getSocialSkillRaceMod, getExtraSocialMods, getExtraClassRacialMods,
 	describeSkillBonusParts } from "./social-skill-rules.mjs";
 import { getEveryClassSkill, isClassSkillForCharacter } from "./class-rules.mjs";
@@ -485,7 +485,7 @@ import { getEveryClassSkill, isClassSkillForCharacter } from "./class-rules.mjs"
 			tmpAddSkill(tmpSkill.name, "class",
 				getClassSkillBonuses(tmpDef, tmpSkill.core, tmpClassMods, tmpRoll, tmpContextFor(tmpSkill.name)), 1);
 		}
-		// A racial skill's bonus is the race's -- for a Half Race, the better of the two where both
+		// A racial skill's bonus is the race's -- for a Half Race, getHalfRaceSkillBonus where both
 		// list the skill. Kept as a number: this used to compare every figure against 0 as well as
 		// against the other race, so a race PENALTY -- a Brok's Tame Animal -10% -- came out as
 		// nothing at all (found 2026-09-23 with the race and cross-skill modifiers).
@@ -494,7 +494,7 @@ import { getEveryClassSkill, isClassSkillForCharacter } from "./class-rules.mjs"
 			for (const tmpSkill of tmpRace.system?.racialSkills ?? []) {
 				var tmpThis = parseInt(("" + (tmpSkill.bonus ?? "")).replace("%", "").replace("+", "")) || 0;
 				tmpRacialBonuses[tmpSkill.name] = (tmpSkill.name in tmpRacialBonuses)
-					? Math.max(tmpRacialBonuses[tmpSkill.name], tmpThis) : tmpThis;
+					? getHalfRaceSkillBonus(tmpRacialBonuses[tmpSkill.name], tmpThis) : tmpThis;
 			}
 		}
 		for (const tmpName of tmpChoices.racialSkillNames ?? []) {

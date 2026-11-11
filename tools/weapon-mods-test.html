@@ -140,7 +140,7 @@ check("taking one off", R.removeWeaponCustomization({ custom: { magicAbilities: 
 	["Sharpness"]);
 
 // --- what a tag does to the weapon's figures (his listing changes) ---------------------------------
-check("his listing changes: 78 tag rows and the +1..+10 ladder", [T.WEAPON_LISTING_CHANGES.length, Object.keys(T.MAGIC_PLUS_LISTING).length], [78, 10]);
+check("his listing changes: 79 tag rows (Double Blade's own, by his ruling) and the +1..+10 ladder", [T.WEAPON_LISTING_CHANGES.length, Object.keys(T.MAGIC_PLUS_LISTING).length], [79, 10]);
 const ls = sword.system;   // Long Sword: 4d6, speed 5 (min 3), 3.5', strength 45, skills +0
 const cw = (sys) => R.getCustomizedWeapon({ ...ls, custom: {}, ...sys });
 const figures = (w) => [w.damage, w.speed, w.minSpeed, w.structuralStrength, w.skillsMod, w.listingToHit];
@@ -159,8 +159,12 @@ check("+10: never quicker than its minimum", cw({ magicBonus: 10 }).speed, 3);
 lw = cw({ custom: { customizations: ["Dulling"] } });
 check("Dulling: a die fewer, and it smashes only", [lw.damage, lw.thrust.available, lw.cut.available, lw.smash], ["3d6", false, false, { available: true, mod: 0 }]);
 const axe = byName("Battle Axe").system;
-check("Doubling Blade (his panel's name) takes his Double Blade rules: +1 second, +20%, x1.2",
-	figures(R.getCustomizedWeapon({ ...axe, custom: { customizations: ["Doubling Blade"] } })), ["6d6", 9, 4, 72, -10 + 20, 0]);
+check("Doubling Blade (his panel's name) is a second FASTER, by his ruling; its minimum stays; +20%, x1.2",
+	figures(R.getCustomizedWeapon({ ...axe, custom: { customizations: ["Doubling Blade"] } })), ["6d6", 7, 4, 72, -10 + 20, 0]);
+check("Double Head stays a second slower", R.getCustomizedWeapon({ ...axe, custom: { customizations: ["Double Head"] } }).speed, 9);
+check("a rune rolls the weapon's own die: 2 on a d8 is +2d8+2 (his ruling)", R.getWeaponAttackExtras({ system: { custom: { runes: [{ name: "Sharpness", level: 2 }] } }, mode: "cut", dice: "1d8", worldTime: 0 }).runeDice, "2d8+2");
+check("...the die of THIS attack's damage, given a second damage", R.getWeaponAttackExtras({ system: { damage: "1d8", custom: { runes: [{ name: "Sharpness", level: 1 }] } }, mode: "cut", dice: "2d4+1", worldTime: 0 }).runeDice, "1d4+1");
+check("...and a weapon with no die takes the flat part only", R.getWeaponAttackExtras({ system: { custom: { runes: [{ name: "Sharpness", level: 2 }] } }, mode: "cut", dice: "1", worldTime: 0 }).runeDice, "2");
 check("Frictionless: +1 a die", cw({ custom: { magicAbilities: ["Frictionless"] } }).damage, "4d6+4");
 check("Fulcrum: a second quicker, and its minimum a second lower", [cw({ custom: { magicAbilities: ["Fulcrum"] } }).speed, cw({ custom: { magicAbilities: ["Fulcrum"] } }).minSpeed], [4, 2]);
 const spear = byName("Spear").system;

@@ -175,8 +175,9 @@ check("add view: base 20 + book 10 + teacher 20 + one failure 10 = 60, with the 
 check("add view: the hours so far, what is needed, how many to go", [add.hours, add.hoursNeeded, add.hoursShort], [24, 48, 24]);
 check("add view: the three modes with teacher on", add.modes.map(m => [m.key, m.on]), [["self", false], ["teacher", true], ["instructor", false]]);
 check("add view: the skills held that lift the new one are said", add.modifierText.includes("+15% from skills held (Acting +15%)"), true);
-check("add view: a BLOCKED social skill cannot be learned",
-	V.buildAddView({ ...addFacts, kind: "social", skillSlots: { social: 4, socialUsed: 1 }, details: { ...addFacts.details, blocked: true, raceName: "Orc" } }).canLearn, false);
+const blockedFacts = { ...addFacts, kind: "social", skillSlots: { social: 4, socialUsed: 1 }, details: { ...addFacts.details, blocked: true, raceName: "Orc" } };
+check("add view: a BLOCKED social skill waits on the Game Master for a player", [V.buildAddView(blockedFacts).canLearn, V.buildAddView(blockedFacts).blockedMessage.includes("Game Master")], [false, true]);
+check("add view: a Game Master may allow it after creation (his ruling)", V.buildAddView({ ...blockedFacts, isGM: true }).canLearn, true);
 check("add view: nothing chosen shows only the list", V.buildAddView({ ...addFacts, chosen: "", dropdown: "" }).hasChosen, false);
 
 const held = [{ name: "Acting", chance: 40 }, { name: "Etiquette", chance: 25 }];

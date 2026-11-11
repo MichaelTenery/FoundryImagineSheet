@@ -2103,3 +2103,14 @@ input.source-unknown {
 .imagine.shape-change input.short { width: 4em; }
 .imagine.shape-change .shape-blocked { font-style: italic; }
 .imagine.shape-change .shape-foot { display: flex; justify-content: flex-end; }
+
+/* His Select Martial Know. Discipline panel. */
+.imagine.martial-know .martial-know-window { display: flex; flex-direction: column; gap: 8px; }
+.imagine.martial-know .mk-pick { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.imagine.martial-know .mk-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.imagine.martial-know .mk-column { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.imagine.martial-know .mk-column h4 { margin: 0 0 2px; }
+.imagine.martial-know .mk-lines { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; margin: 0; }
+.imagine.martial-know .mk-lines dt { font-weight: 600; }
+.imagine.martial-know .mk-lines dd { margin: 0; }
+.imagine.martial-know .mk-foot { display: flex; align-items: center; gap: 8px; }

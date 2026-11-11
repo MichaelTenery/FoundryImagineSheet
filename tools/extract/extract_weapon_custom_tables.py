@@ -237,6 +237,21 @@ LISTING_FIGURES = {
 }
 
 
+# @MARKER HIS RULINGS ON THE LISTING (2026-10-27)
+# "Double blade customization should make the starting speed of a weapon (not it's min) 1 second
+# faster." His code has one row giving Double Head and Double Blade +1, a second SLOWER; Double Head
+# is left as he wrote it.
+def apply_listing_rulings(tmplisting):
+    tmpout = []
+    for tmprow in tmplisting:
+        if tmprow[0] == "getWeaponSpeed" and "Double Blade" in tmprow[1] and tmprow[2] == "speed":
+            tmpout.append([tmprow[0], [t for t in tmprow[1] if t != "Double Blade"], tmprow[2], tmprow[3], tmprow[4]])
+            tmpout.append([tmprow[0], ["Double Blade"], "speed", "add", -1])
+            continue
+        tmpout.append(tmprow)
+    return tmpout
+
+
 def listing_changes():
     tmprows, tmpladder, tmplines, tmpskipped = [], {}, {}, []
     for tmpfunction in LISTING_FUNCTIONS:
@@ -315,6 +330,7 @@ def main():
     if not tmpstrokes or tmpstrokes[-1][0] != 101:
         problems.append("Rebuke's stroke ladder does not end in an else")
     tmplistinglines, tmplisting, tmpplusladder, tmplistingskipped = listing_changes()
+    tmplisting = apply_listing_rulings(tmplisting)
     # A tag his rules test that none of his panel's choices can write never fires in his sheet.
     tmpchoosable = set()
     for tmpselect in ("item_custom_condition", "item_custom_quality", "weapon_customization_select", "item_magic_weapon"):

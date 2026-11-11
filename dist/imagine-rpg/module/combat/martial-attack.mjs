@@ -245,7 +245,12 @@ export async function rollMartialAttack(tmpactor, tmpname) {
 		var tmpfumble = tmpentry.result.isFumble ? await rollMartialFumble(tmpsys.attributes.agl.save) : null;
 		var tmpdamage = null;
 		if (tmpentry.result.isHit) {
-			var tmpdice = addMartialDice(tmprow.damage, tmpmods.damage.extraDice);
+			// With the Temporary Modifiers panel's extra dice and extra damage per die, which his martial
+			// attack reads too (tmp_extra_dice, tmp_extra_per_die, sheet-worker.js:66416-66417). The per-die
+			// figure counts every die rolled (his ruling on UPSTREAM 97, not the die's sides).
+			var tmptempdice = parseInt(tmpsys.combat.extraDice) || 0;
+			var tmptempperdie = parseInt(tmpsys.combat.extraPerDie) || 0;
+			var tmpdice = addMartialDice(tmprow.damage, tmpmods.damage.extraDice + tmptempdice);
 			var tmpdmgroll = await rollFormula(tmpdice, tmpsit.maxDamage ? { maximize: true } : {});
 			tmprolls.push(tmpdmgroll);
 			tmpcardrolls.push(tmpdmgroll);
@@ -258,7 +263,7 @@ export async function rollMartialAttack(tmpactor, tmpname) {
 			if (tmpdoubled) { tmpmultipliers.push(2); }
 			var tmpresolved = resolveMartialAttackDamage({
 				rolled: tmpdmgroll.total, dice: tmpdice, strength: tmpstr, weight: tmpweight,
-				flat: tmpmods.damage.flat + tmpsit.damage, perDie: tmpmods.damage.perDie + tmpsit.perDie,
+				flat: tmpmods.damage.flat + tmpsit.damage, perDie: tmpmods.damage.perDie + tmpsit.perDie + tmptempperdie,
 				multipliers: tmpmultipliers, skillMade: tmpskill.made,
 				halve: (tmpoptions.calledShot && !tmpentry.result.isCalledShot) || tmpsit.halfDamage
 			});

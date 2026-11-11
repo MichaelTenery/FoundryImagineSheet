@@ -1,0 +1,81 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG martial discipline test</title>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+<pre id="out">running...</pre>
+<div id="window" hidden></div>
+<script type="module">
+// Tests for his "Select Martial Know. Discipline" panel: module/martial-know-view.mjs and its template.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/martial-know-test.html
+const V = await import("../module/martial-know-view.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+// --- the boxes --------------------------------------------------------------------------------------
+check("his eleven attacks, in his order, first and last", [V.getMartialChoices("attacks").length, V.getMartialChoices("attacks")[0], V.getMartialChoices("attacks")[10]], [11, "Martial Punch", "Scissor Strike"]);
+check("holds: his five boxes, Torso being one of them", V.getMartialChoices("holds"), ["Half Neck", "Full Neck", "Arm", "Leg", "Torso"]);
+check("three blocks, eight moves, five throws", ["blocks", "moves", "throws"].map(f => V.getMartialChoices(f).length), [3, 8, 5]);
+
+// --- a preset limits what is known ------------------------------------------------------------------
+const none = { hasKnowledge: true, discipline: "" };
+const fresh = V.newMartialKnowWorking(none);
+check("with nothing chosen, nothing is ticked", Object.values(fresh.picks).flat(), []);
+const offensive = V.buildMartialKnowView({ characterName: "Kai", martial: none, working: { ...fresh, discipline: "Offensive" } });
+check("Offensive shows its own lists only", offensive.lines.map(l => l.names), [
+	"Martial Punch, Martial Kick, Elbow Smash, Knee Smash, Head Butt, Heel Strike, Rake, Finger Punch",
+	"Arm Block, Leg Block", "None", "Jump, Spinning, Sweep, Tension, Double Attack", "Arm Throw"]);
+check("...and no grid", offensive.isCustom, false);
+const noneView = V.buildMartialKnowView({ characterName: "Kai", martial: none, working: fresh });
+check("nothing chosen: no lines to show, and the dropdown has a blank", [noneView.hasDiscipline, noneView.disciplineChoices[0].selected], [false, true]);
+
+// --- Custom -----------------------------------------------------------------------------------------
+const custom = V.buildMartialKnowView({ characterName: "Kai", martial: none,
+	working: { discipline: "Custom", picks: { attacks: ["Rake"], blocks: [], holds: ["Torso"], moves: [], throws: [] } } });
+check("Custom shows a grid of five columns", [custom.isCustom, custom.families.map(f => f.options.length)], [true, [11, 3, 5, 8, 5]]);
+check("...with the ticks on", custom.families[0].options.filter(o => o.checked).map(o => o.name), ["Rake"]);
+const held = V.newMartialKnowWorking({ discipline: "Balanced", learnedAttacks: "Rake", learnedHolds: "" });
+check("going from a preset to Custom starts from what is known, nothing lost",
+	[held.picks.attacks.includes("Rake"), held.picks.attacks.includes("Heel Strike"), held.picks.moves.includes("Snap")], [true, true, true]);
+const torsoHeld = V.newMartialKnowWorking({ discipline: "Contact" });
+check("Contact's three Torso holds are one box", torsoHeld.picks.holds.filter(n => n.startsWith("Torso")), ["Torso"]);
+
+// --- who may ----------------------------------------------------------------------------------------
+const unheld = { hasKnowledge: false, discipline: "" };
+check("a character without the skill is told so, in his words",
+	[V.buildMartialKnowView({ characterName: "Kai", martial: unheld }).usable, V.buildMartialKnowView({ characterName: "Kai", martial: unheld }).notAcquiredMessage],
+	[false, "Kai has not acquired Martial Knowledge. Cannot select a discipline, yet."]);
+check("a Game Master may set one anyway", [V.buildMartialKnowView({ martial: unheld, isGM: true }).usable, V.buildMartialKnowView({ martial: unheld, isGM: true }).gmOverride], [true, true]);
+
+// --- COMMIT -----------------------------------------------------------------------------------------
+check("nothing chosen is refused, not a wiped character", V.resolveMartialKnowCommit("Kai", { discipline: "", picks: {} }, none).ok, false);
+const preset = V.resolveMartialKnowCommit("Kai", { discipline: "Defensive", picks: {} }, { discipline: "Offensive", learnedAttacks: "Rake" });
+check("a preset after a preset writes the discipline, and leaves what Martial Lore taught", preset.update, { "system.martial.discipline": "Defensive" });
+check("...and his line to chat", preset.message, "Kai selected Defensive as their Martial Knowledge discipline");
+const afterCustom = V.resolveMartialKnowCommit("Kai", { discipline: "Balanced", picks: {} }, { discipline: "Custom", learnedAttacks: "Rake" });
+check("a preset after Custom empties the ticks", [afterCustom.update["system.martial.discipline"], afterCustom.update["system.martial.learnedAttacks"], afterCustom.update["system.martial.learnedThrows"]], ["Balanced", "", ""]);
+const made = V.resolveMartialKnowCommit("Kai", { discipline: "Custom", picks: { attacks: ["Rake", "Martial Kick"], blocks: [], holds: ["Arm", "Torso"], moves: [], throws: [] } }, none);
+check("Custom writes the ticks in his order", made.update["system.martial.learnedAttacks"], "Martial Kick,Rake");
+check("his one Torso box writes the three holds", made.update["system.martial.learnedHolds"], "Arm,Torso,Torso(1 Arm),Torso(2 Arms)");
+check("Custom with nothing ticked is refused", V.resolveMartialKnowCommit("Kai", { discipline: "Custom", picks: {} }, none).ok, false);
+check("a discipline he has not got is refused", V.resolveMartialKnowCommit("Kai", { discipline: "Drunken", picks: {} }, none).ok, false);
+
+// --- the template -----------------------------------------------------------------------------------
+Handlebars.registerHelper("eq", (a, b) => a === b);
+const source = await (await fetch("../templates/apps/martial-know.hbs", { cache: "no-store" })).text();
+const render = (view) => { document.getElementById("window").innerHTML = Handlebars.compile(source)(view); return document.getElementById("window").textContent; };
+check("the window renders a preset's lists", ["Discipline", "Attacks:", "Rake", "Commit"].map(t => render(offensive).includes(t)), [true, true, true, true]);
+check("the window renders Custom's grid", ["Custom Martial Knowledge Selections", "Scissor Strike", "Spin Throw"].map(t => render(custom).includes(t)), [true, true, true]);
+check("the window says when it cannot be used", render(V.buildMartialKnowView({ characterName: "Kai", martial: unheld })).includes("has not acquired"), true);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>

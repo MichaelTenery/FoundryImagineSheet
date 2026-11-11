@@ -11,5 +11,18 @@
       "description": "Listeners feel at home; +10% to Affinity checks with the singer while the song lasts."
     }
   },
-  "entries": {}
+  "entries": {
+    "Injury": {
+      "kind": "hymn",
+      "subsystem": "hymns",
+      "memorized": false,
+      "rating": 18,
+      "modifier": 0,
+      "startTime": "5 sec.",
+      "duration": "Instant",
+      "alignment": "Unaligned",
+      "sourcebook": "XXX",
+      "description": "Inflicts 1d4+1 smashing damage per Practitioner Title to one body area named in the hymn on each listener who does not follow the hymnist's deity. For instance, the hymnist could mention 'head' and inflict damage to each target's head. Targets are afforded a Magic Resistance to avoid taking damage."
+    }
+  }
 }

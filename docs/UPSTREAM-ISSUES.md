@@ -4,7 +4,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 
 **Reconciled with the code on 2026-10-07, then closed out.** Every issue was checked against what the port does today. Each section's status line carries **Status** (where the question stands with him) and **Port** (what the port does about it); a dated **Update** at the foot of a section says what had gone stale, with the original wording left above it as the record of what was found.
 
-**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 87 of 124 are (re-sorted 2026-10-28). They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **37 issues remain active** above it, **ordered by what is needed from him**: first the five the port cannot act on until he answers (group A), then the thirty-two it has worked around meanwhile (group B).
+**Resolved.** On the user's instruction every issue that is **withdrawn**, a **duplicate**, **solved in the port**, or where the port **follows his code on purpose** is closed. 96 of 124 are (re-sorted 2026-11-10, with his answers of 2026-10-27). They are not deleted: they sit under *Resolved issues* at the foot of the file, each marked, with their full text, because the file is also the record of what was found in his sheet and when. A resolved entry may still carry a question to him (a Follows-his-code item often does); closing it here means the port will not act on the answer unless it is reopened, not that he has answered. **28 issues remain active** above it, **ordered by what is needed from him**: first the 4 the port cannot act on until he answers (group A), then the 24 it has worked around meanwhile (group B).
 
 **Status** (his side): `open` -- not yet answered. `answered` -- he, or his own book or code, has settled it (the date and who are on the line; **Daryl** is the tester at his table, whose answers are taken as the table's but are not the developer's). `withdrawn` -- our misreading. `duplicate` -- see the other item. A fifth value the file once promised, `fixed upstream`, has **no entries: nothing in the repository records him fixing any of these in his sheet.**
 
@@ -15,10 +15,10 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | | |
 |---|---|
 | Issues | 124 |
-| **Active** | **37** |
-| A. Needs your answer before the port can act | 5 |
-| B. Open, worked around meanwhile | 32 |
-| **Resolved** | **87** |
+| **Active** | **28** |
+| A. Needs your answer before the port can act | 4 |
+| B. Open, worked around meanwhile | 24 |
+| **Resolved** | **96** |
 
 ## Found while reconciling
 
@@ -37,7 +37,6 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | | **A. Needs your answer before the port can act** | | | |
 | 3 | Is this sheet the current ruleset? | Open | Nothing for the port to do | Active |
 | 5 | Data edge cases found while converting 2,814 entries | Open | Not handled (except the Gaunt row, item 2) | Active |
-| 65 | Customizing a whole stack can stop on an undeclared name | Open | Nothing for the port to do | Active |
 | 96 | setCreatureWeaponProfValues splits the skill list with no separator | Open | Not handled yet | Active |
 | 105 | Step 7: a failed confirm resets the wrong step | Open | Nothing for the port to do | Active |
 | | **B. Open: the port works around it meanwhile** | | | |
@@ -54,18 +53,10 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 50 | Does a Dark Fairy have Animal Shape? | Open | Worked around | Active |
 | 51 | Is `Mixed` flexibility meant to be Semi-Flexible? | Open | Worked around | Active |
 | 56 | Martial arts: where your code and your own martial prose disagree | Open | Worked around; lost limbs are not modelled | Active |
-| 58 | Two names your starting-lore lists draw that your dictionaries do not hold | Open | Worked around | Active |
 | 61 | The round clock: two readings the port had to make | Open | Worked around | Active |
-| 62 | Seven poison types last hours when used, minutes on their row | Open | Worked around | Active |
-| 63 | A rune's damage: the weapon's own dice, or d6? | Open | Worked around | Active |
 | 64 | A Doubling Blade changes nothing on the combat sheet | Open | Worked around | Active |
 | 66 | A positive Gravity rune makes a weapon lighter | Open | Worked around | Active |
-| 69 | The Segmented Worm's body chart names Left and Right Foot12 twice | Open | Worked around | Active |
-| 70 | The starting-kit switches spell Brachara "Bracharia" | Open | Worked around | Active |
-| 83 | `getExtraClassRacialMods` always returns 0: it returns before its `getAttrs` callback runs | Open | Worked around | Active |
-| 85 | The "only add the excess" rule on racial and class skills: three results worth a look | Open | Worked around (case 1); follows his code (2, 3) | Active |
 | 88 | Learning a social skill later reads your social-to-social table backwards | Open | Worked around | Active |
-| 99 | The Standard kit's social 12-13 weapon roll has no breaks | Open | Worked around | Active |
 | 114 | Class skills: slots needed, and the REMOVE button | Open | Worked around | Active |
 | 115 | Two hands: "+2 to hit" in bug report 0.20.10, +2 damage in your code and the book | Answered in part 2026-10-05 | Worked around | Active |
 | 116 | Full Shirt and Long Shirt: Leather and Padding rows look swapped | Open | Worked around | Active |
@@ -116,10 +107,16 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 54 | A critically failed Perfect Shot halves damage only when something else multiplies it | Open | Solved in the port | Resolved (solved in the port) |
 | 55 | Three Situation Mods whose label and code disagree, kept as the code has them | Open | Follows his code (1-3); solved (4) | Resolved (follows his code on purpose) |
 | 57 | Starting lore: Poison Lore held twice gives one recipe, not two | Open | Solved in the port | Resolved (solved in the port) |
+| 58 | Two names your starting-lore lists draw that your dictionaries do not hold | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 59 | Two slips in the potion code | Open | Solved in the port | Resolved (solved in the port) |
 | 60 | Starting lore counts class skills the character has not reached | Open | Follows his code | Resolved (follows his code on purpose) |
+| 62 | Seven poison types last hours when used, minutes on their row | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
+| 63 | A rune's damage: the weapon's own dice, or d6? | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
+| 65 | Customizing a whole stack can stop on an undeclared name | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 67 | Nobles' starting money is never multiplied by 5 or 10 | Open | Solved in the port | Resolved (solved in the port) |
 | 68 | The starting-money Fortune roll uses a Fortune without its race or class bonus | Answered 2026-09-25 (Daryl) | Follows his code | Resolved (follows his code on purpose) |
+| 69 | The Segmented Worm's body chart names Left and Right Foot12 twice | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
+| 70 | The starting-kit switches spell Brachara "Bracharia" | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 71 | Spell Lore's +2 Aura Control is counted twice | Open | Follows his code | Resolved (follows his code on purpose) |
 | 72 | Regenerating Aura by hours does nothing at "1/per Hour" | Open | Solved in the port | Resolved (solved in the port) |
 | 73 | Raging and Continuous Chaos never cast a spell of two words | Open | Solved in the port | Resolved (solved in the port) |
@@ -132,7 +129,9 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 80 | Two typos in the price strings: "1O cp" and "3 bp" | Open | Solved in the port | Resolved (solved in the port) |
 | 81 | 45 price rows climb out of order across the seven columns | Open | Follows his code | Resolved (follows his code on purpose) |
 | 82 | Price and value tables disagree on some names, and some price rows are duplicated | Open | Solved (aliases, launcher rows); follows his duplicate rows | Resolved (solved in the port) |
+| 83 | `getExtraClassRacialMods` always returns 0: it returns before its `getAttrs` callback runs | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 84 | The Loud disability is written to `tmp_tmp_disabilities_loud`, so Surprise Attack's -20 never applies | Open | Solved in the port | Resolved (solved in the port) |
+| 85 | The "only add the excess" rule on racial and class skills: three results worth a look | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 86 | Four slips in your social-skill tables that stop a bonus working | Open (one question answered 2026-09-30) | Solved in the port | Resolved (solved in the port) |
 | 87 | Only the first race's social-skill modifiers and BLOCKs count for a Half Race | Open | Follows his code | Resolved (follows his code on purpose) |
 | 89 | Famorian evokes whose skill bonus is only text, and Instinct(Navigation) frozen at creation | Open | Follows his code | Resolved (follows his code on purpose) |
@@ -142,15 +141,16 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 93 | Should a creature's natural attack take a martial move's extra die or damage per die? | Open | Follows his code | Resolved (follows his code on purpose) |
 | 94 | The creature movement rebuild writes the hourly figure into the one-second slot, and re-adds its modifiers | Open | Solved in the port | Resolved (solved in the port) |
 | 95 | The creature Fortune "+mod" roll adds the modifier to the chance as text | Open | Solved in the port | Resolved (solved in the port) |
-| 97 | The temporary "Extra Damage per Die": two slips | Open | Solved in the port | Resolved (solved in the port) |
+| 97 | The temporary "Extra Damage per Die": two slips | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 98 | A natural 01 on a skill roll | Open | Follows his code | Resolved (follows his code on purpose) |
+| 99 | The Standard kit's social 12-13 weapon roll has no breaks | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 100 | Two more rows break the ten-times movement rule: Midfolk(Town) and Testudara | Open | Follows his code | Resolved (follows his code on purpose) |
 | 101 | The Wilder's Aura Control: are all its modifiers halved, or only the +1 a title your sheet gives? | Open | Follows his code | Resolved (follows his code on purpose) |
 | 102 | Piety Control jumps by twice the class figure on the title after a late invoker start | Open | Follows his code | Resolved (follows his code on purpose) |
 | 103 | useSpell's "Reduce N by M" sentence has its subtraction the wrong way round | Open | Solved in the port | Resolved (solved in the port) |
 | 104 | Refill: back to full, or a chosen amount added? | Open | Follows his code | Resolved (follows his code on purpose) |
 | 106 | The Order and Immoral classes lose their default tendency | Open | Solved in the port | Resolved (solved in the port) |
-| 107 | GM Tools "Alignment Color": one option has the wrong value | Open | Solved in the port | Resolved (solved in the port) |
+| 107 | GM Tools "Alignment Color": one option has the wrong value | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 | 108 | Alignment dropdowns offer more than their requirement strings say | Open | Follows his code | Resolved (follows his code on purpose) |
 | 109 | Class alignments where the books and the sheet disagree | Open | Follows his code | Resolved (follows his code on purpose) |
 | 110 | Step 6: only some Required social skills are enforced | Open | Solved in the port | Resolved (solved in the port) |
@@ -160,7 +160,7 @@ Defects and open questions found in the Roll20 sheet while porting it. These are
 | 119 | Smashing damage between half and full armour: his table says a quarter, the book says half | Answered 2026-10-07 (bug report 0.22.7:1) | Solved in the port | Resolved (solved in the port) |
 | 120 | calcCreatureExp counts one immunity on a creature that has none | Open | Solved in the port | Resolved (solved in the port) |
 | 121 | A failed Force Twist(Small) rolls no damage at all | Open | Solved (the Weapon Twist row of the same size) | Resolved (solved in the port) |
-| 124 | Two random tables that cannot reach one of their rows | Open | Solved in the port | Resolved (solved in the port) |
+| 124 | Two random tables that cannot reach one of their rows | Answered 2026-10-27 | Solved in the port | Resolved (solved in the port) |
 
 ---
 
@@ -199,17 +199,6 @@ The conversion runs 99.75% clean. These seven entries do not convert to a plain 
 - Composite flexibility (`Rigid/Flexible`, `Rigid/Semi-Flexible`, `Rigid/Rigid`, `Mixed`) is the data encoding of the built-in-padding rule, which lets a rigid piece with a flexible inner face sit against the body. `Rigid/Rigid` is legitimate too: "a few suits allow two sections of rigid armor because they do not touch."
 
 **Update 2026-10-07:** Counts are the early ones: "These seven entries" introduces four rows, and "2,814 entries / 99.75%" predates the later packs. The Gaunt row is settled by item 2. A Centaur's `Special` jump modifier still reads as 0 (`to_number`, `build_documents.py`, logged each build), so a Centaur jumps at the full base, not half.
-
-## 65. Customizing a whole stack can stop on an undeclared name
-
-**Status:** open · **Port:** Nothing for the port to do · **Severity:** real, but narrow -- the customize does nothing
-
-In `customizeItem`, the two branches for customizing every item of a stack of more than one
-(`currentitems==tmpitemnumber`, 79102 and 79106) build the new name with
-`...+tmpbasepietytmpnewweaprune+...` -- a missing `+` between `tmpbasepiety` and `tmpnewweaprune`.
-Reading an undeclared name throws, so when that stack is the first weapon in the list the whole
-customize stops there. The `else` half of the same lines has the `+`. The port does not share the
-code; noted for your sheet.
 
 ## 96. setCreatureWeaponProfValues splits the skill list with no separator
 
@@ -799,24 +788,6 @@ back (`MARTIAL_MOVE_CORRECTIONS`, `MARTIAL_STANCE_CORRECTIONS`, `MARTIAL_SKILLMO
   are not ported, because the port does not track lost limbs yet. One of them tests a hold named
   "Leg Block" (67446), which is a block; "Leg" is presumably meant.
 
-## 58. Two names your starting-lore lists draw that your dictionaries do not hold
-
-**Status:** open · **Port:** Worked around · **Severity:** low -- a blank row, or nothing, where a herb or a hymn should be
-
-Found 2026-09-22 by checking every name in the fourteen `get<Lore>List` functions against the
-dictionary it is looked up in. Two miss:
-
-- **`Zebra Gras`** in `getHerbLoreList` (147313). `herblist` has **Zebra Grass** (128747) and so does
-  the herb dropdown. A new herbalist who draws it gets `getHerbDetails("Zebra Gras")`, which finds
-  nothing.
-- **`Injury`** in `getUnalignedHymnList` (146920). It is in the hymn dropdown (sheet HTML) and has a
-  case in `doHymnAction` (139894), but `hymnlorelist` has no row for it, so there is no rating,
-  modifier or description to add.
-
-The port reports both when drawn and adds nothing rather than an empty item
-(`tools/extract/extract_lore_tables.py` prints them on every run). Is Zebra Gras just the typo it
-looks like, and what are Injury's rating, modifier, start time, duration and description?
-
 ## 61. The round clock: two readings the port had to make
 
 **Status:** open · **Port:** Worked around · **Severity:** questions -- neither changes a normal round
@@ -843,30 +814,6 @@ the extra seconds, the off hand and carry-over. Two places needed a reading.
    effect starts at the first second whatever they rolled ("always wins initiative", as the Speed
    potion puts it).
 
-## 62. Seven poison types last hours when used, minutes on their row
-
-**Status:** open · **Port:** Worked around · **Severity:** real, when a poison is used -- a poison meant to last minutes lasts hours
-
-`doPoisonAction` (sheet-worker.js:135358) writes the duration of types IV, VIII, IX, X, XI, XII and
-XX as "Effects last 1d6=N hour(s)" (IV "1d10 ... hour(s)"). Your own `getPoisonDetails` (135117), the
-text the poison carries on its row, says **minutes** for all seven, and so does the Master's Manual's
-poison table. A type IX at 1d6 hours of 1d6 Endurance a minute is sixty times the poison it reads as.
-The hours may have come across from III, V and VI, which are hours on every source (135455-135467).
-
-The port follows the row and the book: minutes. Are they minutes?
-
-## 63. A rune's damage: the weapon's own dice, or d6?
-
-**Status:** open · **Port:** Worked around · **Severity:** a question -- changes every runed weapon's damage
-
-Your rune dictionary, and the tag your Customize panel writes, give a weapon rune as "+Nd6+N"
-damage for a rune of level N. Your attack code does something else: it adds N to the **weapon's**
-dice count (64973 -- a 1d8 sword with a rune of 2 rolls 3d8) and adds the flat +N only inside the
-verbose damage listing (65040), so the card shows "Rune (+2)" but the total never includes it.
-
-The port follows the dictionary and the tag: +Nd6+N, flat bonus included, since that is what a
-player reading the rune is told it does. Which did you mean -- and is the flat +N meant to be rolled?
-
 ## 64. A Doubling Blade changes nothing on the combat sheet
 
 **Status:** open · **Port:** Worked around · **Severity:** low -- one customization has no effect
@@ -887,76 +834,6 @@ OF the weight -- so +30% makes a weapon 0.3 of its weight. Only from +100% up do
 Negative levels come out right (-50% is half). The port takes the rune's words: +30% is x1.3. If the
 "200 = double" reading was meant for runes too, say so and it comes back.
 
-## 69. The Segmented Worm's body chart names Left and Right Foot12 twice
-
-**Status:** open · **Port:** Worked around · **Severity:** small — only a creature given that body chart, and the port works around it
-
-Your Segmented Worm chart (`bodyAreaNamesByType`, source HTML line 273987; `BODY_CHARTS` in the port)
-runs its feet Foot1 to Foot12, then Foot12 again after Body Segment7, then Foot13 to Foot16. The
-second pair was surely meant to be 13, with the rest numbered on. On your sheet the two pairs share a
-name; in Foundry an area's name is where its wounds are kept, and two inputs of one name broke every
-edit of such a creature. **What the port does:** keeps the second pair as its own areas, named
-"Left Foot12 (2)" and "Right Foot12 (2)", in their place in the chart (`parseBodyChart`). If you
-renumber the chart, the port takes it as it comes.
-
-## 70. The starting-kit switches spell Brachara "Bracharia"
-
-**Status:** open · **Port:** Worked around · **Severity:** small — a Brachara got no wilderness kit and no clothing
-
-Your three starting-kit switches — `setMoneyEquipmentByRace`, `setWildernessEquipmentByRace` and
-`setClothing` (sheet-worker.js:73492, 73836, 75501) — have `case "Bracharia":`, where the other seventy places in
-your sheet spell the race Brachara. As the sheet runs, a Brachara falls through to no kit at all.
-**What the port does:** looks a Brachara up under your kit switches' spelling
-(`KIT_RACE_SPELLINGS` in module/starting-kit.mjs), so it gets the kit those cases give. If the
-switches are corrected, the alias does no harm.
-
-## 83. `getExtraClassRacialMods` always returns 0: it returns before its `getAttrs` callback runs
-
-**Status:** open · **Port:** Worked around · **Severity:** high. No Famorian evoke, Climbing, Enhanced Hearing/Smell, Loud or
-social-skill bonus ever reaches a racial or class skill.
-
-```
-53468   tmpextramods=0;
-53471   getAttrs([...'famorian_evoke_hooves_final', ... 'title'], function (values) {
-            ... the whole trait switch, and the social-skill loop ...
-53545   });
-53546   return tmpextramods;
-```
-
-Roll20's `getAttrs` is asynchronous. The callback runs after the function has already returned, so
-the value returned is the `0` from 53468. Every caller gets 0:
-- `setRacialSkillAbility` (53462)
-- `setClassSkillAbility` (63786), including every title's pre-rolled class skills from 63288 onward
-
-Three things say these bonuses should apply: your comment at 63786 ("Some social skills provide mods
-to race/class skills, this will add them"), your evoke text ("+40% Climb", "+30% to Listen"), and
-the Player's Guide p.xv step 9C. Your learn flows already wait on `getAttrs` properly
-(125537-125540, 126030-126033).
-
-**How to check on your sheet:** give a Famorian the Enhanced Hearing evoke and Listen as a racial
-skill. It should show dice x2 + 30. Expect to see dice x2 alone.
-
-**What the port does:** applies what the function was written to add. This is provisional, pending
-your answer.
-
-## 85. The "only add the excess" rule on racial and class skills: three results worth a look
-
-**Status:** open · **Port:** Worked around (case 1); follows his code (2, 3) · **Severity:** small, but one case turns a penalty into a bonus
-
-`if (tmpextramods>=tmpmod) { tmpextramods=tmpextramods-tmpmod; }` (53524). `tmpmod` is the race's
-bonus on a racial skill. On a class skill it is CORE 30, or 0 (63786).
-
-1. **With no trait at all, a negative race bonus is cancelled.** A Brok's Tame Animal -10%: `0 >=
-   -10`, so `0 - (-10) = +10`, which exactly cancels the published penalty. The port skips the rule
-   when no trait applied.
-2. **A trait smaller than the race bonus adds in full.** A Brachara's Climb +20 with the Climbing
-   ability +10 comes out at +30. A trait larger than the bonus adds only the difference: a Cervara's
-   Listen +30 with Enhanced Hearing +30 comes out at +30. Is that the intent? The port keeps it as
-   written.
-3. **On class skills it compares against CORE +30**, which is not a like-for-like bonus. A
-   Famorian's Climbing evoke (+40) adds 10 on a core Climb and 40 on a non-core Climb. The port
-   keeps it as written.
-
 ## 88. Learning a social skill later reads your social-to-social table backwards
 
 **Status:** open · **Port:** Worked around · **Severity:** small
@@ -976,30 +853,6 @@ The port has no learn flow yet. When it gets one, it will use the creation direc
 
 **Update 2026-10-27:** it has one now (Add Social Skill, bug report 0.25.1:3), and it uses the creation
 direction, adds the race's modifier and refuses a BLOCKED skill. Still worth your word on which way you meant it.
-
-## 99. The Standard kit's social 12-13 weapon roll has no breaks
-
-**Status:** open · **Port:** Worked around · **Severity:** a character of social class 12 or 13 on the Standard kit always
-gets the last weapon set
-
-In `setStandardWildernessEquipment` (sheet-worker.js:74391-74406), the social 12-13 band rolls
-`getDieRoll(4)` and switches on it, but none of the four cases ends in `break`:
-
-```
-case 1: setAttrs({start_weapons: "Spear,War Club,Short Sword" });
-case 2: setAttrs({start_weapons: "Battle Axe,Dagger,Broad Sword" });
-case 3: setAttrs({start_weapons: "Battle Axe,Hand Axe,Long Sword" });
-case 4: setAttrs({start_weapons: "Battle Axe,Hand Axe,Bastard Sword" });
-```
-
-So whatever the die says, the character leaves with Battle Axe, Hand Axe and Bastard Sword. The same
-switch in social 14-20 (74417) has all four breaks. Player's Guide errata p.31 (Saurian, who take
-this kit) prints 12-13 as a choice: "spear or war club or battle axe and dagger or hand axe, also
-any sword".
-
-**What the port does meanwhile:** reads it as the four-way choice, as it always has (the other
-kits' missing breaks are item 42). Since 2026-09-23 the extractor prints that reading on every run.
-Four `break;` statements would settle it.
 
 ## 114. Class skills: slots needed, and the REMOVE button
 
@@ -2531,6 +2384,26 @@ ends with the last recipe drawn and its doses, and nothing for the first. Its ow
 (and one stock) per instance. If only one was meant, say so and it is one line in `rollStartingLore`
 (`module/lore-rules.mjs`, @MARKER POISON STEP).
 
+## 58. Two names your starting-lore lists draw that your dictionaries do not hold
+
+**His answer, 2026-10-27:** Zebra Grass is what he meant, and he supplied Injury's row (rating 18, modifier 0, 5 sec., Instant). Both are in the port now.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** low -- a blank row, or nothing, where a herb or a hymn should be
+
+Found 2026-09-22 by checking every name in the fourteen `get<Lore>List` functions against the
+dictionary it is looked up in. Two miss:
+
+- **`Zebra Gras`** in `getHerbLoreList` (147313). `herblist` has **Zebra Grass** (128747) and so does
+  the herb dropdown. A new herbalist who draws it gets `getHerbDetails("Zebra Gras")`, which finds
+  nothing.
+- **`Injury`** in `getUnalignedHymnList` (146920). It is in the hymn dropdown (sheet HTML) and has a
+  case in `doHymnAction` (139894), but `hymnlorelist` has no row for it, so there is no rating,
+  modifier or description to add.
+
+The port reports both when drawn and adds nothing rather than an empty item
+(`tools/extract/extract_lore_tables.py` prints them on every run). Is Zebra Gras just the typo it
+looks like, and what are Injury's rating, modifier, start time, duration and description?
+
 ## 59. Two slips in the potion code
 
 **RESOLVED 2026-10-07 -- Solved in the port.** Closed by the user's instruction and kept below as the record; a question to him that this entry carries, if any, stands in the text.
@@ -2570,6 +2443,47 @@ Two smaller things the port does differently, neither of which changes what can 
   list runs out.
 
 **Update 2026-10-07:** The port also skips class-skill rows removed at creation (`lore-rules.mjs:686-688`, the whole-career plan of 2026-09-26), which postdates this issue.
+
+## 62. Seven poison types last hours when used, minutes on their row
+
+**His answer, 2026-10-27:** Poisons should match the Master's Manual tables. All 25 types were checked against the table and do.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** real, when a poison is used -- a poison meant to last minutes lasts hours
+
+`doPoisonAction` (sheet-worker.js:135358) writes the duration of types IV, VIII, IX, X, XI, XII and
+XX as "Effects last 1d6=N hour(s)" (IV "1d10 ... hour(s)"). Your own `getPoisonDetails` (135117), the
+text the poison carries on its row, says **minutes** for all seven, and so does the Master's Manual's
+poison table. A type IX at 1d6 hours of 1d6 Endurance a minute is sixty times the poison it reads as.
+The hours may have come across from III, V and VI, which are hours on every source (135455-135467).
+
+The port follows the row and the book: minutes. Are they minutes?
+
+## 63. A rune's damage: the weapon's own dice, or d6?
+
+**His answer, 2026-10-27:** Runes use the weapon's dice type. The port now adds level dice of the weapon's own die. The flat +level is kept; he has not ruled on it.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** a question -- changes every runed weapon's damage
+
+Your rune dictionary, and the tag your Customize panel writes, give a weapon rune as "+Nd6+N"
+damage for a rune of level N. Your attack code does something else: it adds N to the **weapon's**
+dice count (64973 -- a 1d8 sword with a rune of 2 rolls 3d8) and adds the flat +N only inside the
+verbose damage listing (65040), so the card shows "Rune (+2)" but the total never includes it.
+
+The port follows the dictionary and the tag: +Nd6+N, flat bonus included, since that is what a
+player reading the rune is told it does. Which did you mean -- and is the flat +N meant to be rolled?
+
+## 65. Customizing a whole stack can stop on an undeclared name
+
+**His answer, 2026-10-27:** Customizing a stack did not work for him on Roll20 either, and he would like it to. The port customizes a whole stack as one item.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** real, but narrow -- the customize does nothing
+
+In `customizeItem`, the two branches for customizing every item of a stack of more than one
+(`currentitems==tmpitemnumber`, 79102 and 79106) build the new name with
+`...+tmpbasepietytmpnewweaprune+...` -- a missing `+` between `tmpbasepiety` and `tmpnewweaprune`.
+Reading an undeclared name throws, so when that stack is the first weapon in the list the whole
+customize stops there. The `else` half of the same lines has the `+`. The port does not share the
+code; noted for your sheet.
 
 ## 67. Nobles' starting money is never multiplied by 5 or 10
 
@@ -2628,6 +2542,33 @@ the field name were right. The port rolls on its Equipment step (its Details ste
 after the class, for that reason.
 
 **Update 2026-10-07:** Stale: "what the port does: rolls against that whole Fortune, by the user's ruling of 2026-09-23". It now uses the average of Aura, Piety and Will Force only -- no race modifier, no `+5% Fortune`, no first-title +1 -- per the 2026-09-25 ruling (`starting-money.mjs:104-110`). The header comment at `starting-money.mjs:19-23` listed this item among the departures from his code; corrected 2026-10-07.
+
+## 69. The Segmented Worm's body chart names Left and Right Foot12 twice
+
+**His answer, 2026-10-27:** Too many body names; the port's fix stands.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** small — only a creature given that body chart, and the port works around it
+
+Your Segmented Worm chart (`bodyAreaNamesByType`, source HTML line 273987; `BODY_CHARTS` in the port)
+runs its feet Foot1 to Foot12, then Foot12 again after Body Segment7, then Foot13 to Foot16. The
+second pair was surely meant to be 13, with the rest numbered on. On your sheet the two pairs share a
+name; in Foundry an area's name is where its wounds are kept, and two inputs of one name broke every
+edit of such a creature. **What the port does:** keeps the second pair as its own areas, named
+"Left Foot12 (2)" and "Right Foot12 (2)", in their place in the chart (`parseBodyChart`). If you
+renumber the chart, the port takes it as it comes.
+
+## 70. The starting-kit switches spell Brachara "Bracharia"
+
+**His answer, 2026-10-27:** Always Brachara. The port's tables now say so, and the alias is gone.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** small — a Brachara got no wilderness kit and no clothing
+
+Your three starting-kit switches — `setMoneyEquipmentByRace`, `setWildernessEquipmentByRace` and
+`setClothing` (sheet-worker.js:73492, 73836, 75501) — have `case "Bracharia":`, where the other seventy places in
+your sheet spell the race Brachara. As the sheet runs, a Brachara falls through to no kit at all.
+**What the port does:** looks a Brachara up under your kit switches' spelling
+(`KIT_RACE_SPELLINGS` in module/starting-kit.mjs), so it gets the kit those cases give. If the
+switches are corrected, the alias does no harm.
 
 ## 71. Spell Lore's +2 Aura Control is counted twice
 
@@ -2845,6 +2786,37 @@ or made and never matched to their launcher.
 - charges the later duplicate row, as your sheet does;
 - sells "10 Nails" as ten Nails, as your sheet reads it once bought.
 
+## 83. `getExtraClassRacialMods` always returns 0: it returns before its `getAttrs` callback runs
+
+**His answer, 2026-10-27:** The fix should work the way the port did it.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** high. No Famorian evoke, Climbing, Enhanced Hearing/Smell, Loud or
+social-skill bonus ever reaches a racial or class skill.
+
+```
+53468   tmpextramods=0;
+53471   getAttrs([...'famorian_evoke_hooves_final', ... 'title'], function (values) {
+            ... the whole trait switch, and the social-skill loop ...
+53545   });
+53546   return tmpextramods;
+```
+
+Roll20's `getAttrs` is asynchronous. The callback runs after the function has already returned, so
+the value returned is the `0` from 53468. Every caller gets 0:
+- `setRacialSkillAbility` (53462)
+- `setClassSkillAbility` (63786), including every title's pre-rolled class skills from 63288 onward
+
+Three things say these bonuses should apply: your comment at 63786 ("Some social skills provide mods
+to race/class skills, this will add them"), your evoke text ("+40% Climb", "+30% to Listen"), and
+the Player's Guide p.xv step 9C. Your learn flows already wait on `getAttrs` properly
+(125537-125540, 126030-126033).
+
+**How to check on your sheet:** give a Famorian the Enhanced Hearing evoke and Listen as a racial
+skill. It should show dice x2 + 30. Expect to see dice x2 alone.
+
+**What the port does:** applies what the function was written to add. This is provisional, pending
+your answer.
+
 ## 84. The Loud disability is written to `tmp_tmp_disabilities_loud`, so Surprise Attack's -20 never applies
 
 **RESOLVED 2026-10-07 -- Solved in the port.** Closed by the user's instruction and kept below as the record; a question to him that this entry carries, if any, stands in the text.
@@ -2858,6 +2830,26 @@ prefix doubled. Everything else reads `tmp_disabilities_loud` (63914) or `disabi
 
 **What the port does:** a race with Loud (Giant(True)) takes Surprise Attack -20. Loud Flier is a
 different disability and does not.
+
+## 85. The "only add the excess" rule on racial and class skills: three results worth a look
+
+**His answer, 2026-10-27:** A penalty on one race with none on the other still applies, it is not erased; of two bonuses only the larger applies; the core explanation is right. A Brachara's Climb is now +20, not +30.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** small, but one case turns a penalty into a bonus
+
+`if (tmpextramods>=tmpmod) { tmpextramods=tmpextramods-tmpmod; }` (53524). `tmpmod` is the race's
+bonus on a racial skill. On a class skill it is CORE 30, or 0 (63786).
+
+1. **With no trait at all, a negative race bonus is cancelled.** A Brok's Tame Animal -10%: `0 >=
+   -10`, so `0 - (-10) = +10`, which exactly cancels the published penalty. The port skips the rule
+   when no trait applied.
+2. **A trait smaller than the race bonus adds in full.** A Brachara's Climb +20 with the Climbing
+   ability +10 comes out at +30. A trait larger than the bonus adds only the difference: a Cervara's
+   Listen +30 with Enhanced Hearing +30 comes out at +30. Is that the intent? The port keeps it as
+   written.
+3. **On class skills it compares against CORE +30**, which is not a like-for-like bonus. A
+   Famorian's Climbing evoke (+40) adds 10 on a core Climb and 40 on a non-core Climb. The port
+   keeps it as written.
 
 ## 86. Four slips in your social-skill tables that stop a bonus working
 
@@ -3023,7 +3015,9 @@ none of your other characteristic rolls are held there.
 
 **RESOLVED 2026-10-27 -- Solved in the port.** The Temporary Modifiers window (bug report 0.25.1:6) reads each box as its label says.
 
-**Status:** open · **Port:** Solved in the port · **Severity:** the modifier is set from the wrong box, and on martial attacks is
+**His answer, 2026-10-27:** Both extra dice and extra damage per die should work, and martial damage goes by the number of dice. Both now reach weapon, martial, brawling and grappling attacks.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** the modifier is set from the wrong box, and on martial attacks is
 scaled by the die's size.
 
 - `setExtraCombatDamageModifiers` (sheet-worker.js:124608) reads the per-die input from the dice
@@ -3057,6 +3051,32 @@ of 01 ("Failure", or "Critical Failure" at -20% or lower).
 **What the port does meanwhile:** follows your function (`resolveSkillRoll`,
 `module/skills-rules.mjs`), because the sheet outranks the book. If the 01 rule should apply, it is
 a one-line addition after the 100 test.
+
+## 99. The Standard kit's social 12-13 weapon roll has no breaks
+
+**His answer, 2026-10-27:** The kit should have had breaks, so the port's reading stands.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** a character of social class 12 or 13 on the Standard kit always
+gets the last weapon set
+
+In `setStandardWildernessEquipment` (sheet-worker.js:74391-74406), the social 12-13 band rolls
+`getDieRoll(4)` and switches on it, but none of the four cases ends in `break`:
+
+```
+case 1: setAttrs({start_weapons: "Spear,War Club,Short Sword" });
+case 2: setAttrs({start_weapons: "Battle Axe,Dagger,Broad Sword" });
+case 3: setAttrs({start_weapons: "Battle Axe,Hand Axe,Long Sword" });
+case 4: setAttrs({start_weapons: "Battle Axe,Hand Axe,Bastard Sword" });
+```
+
+So whatever the die says, the character leaves with Battle Axe, Hand Axe and Bastard Sword. The same
+switch in social 14-20 (74417) has all four breaks. Player's Guide errata p.31 (Saurian, who take
+this kit) prints 12-13 as a choice: "spear or war club or battle axe and dagger or hand axe, also
+any sword".
+
+**What the port does meanwhile:** reads it as the four-way choice, as it always has (the other
+kits' missing breaks are item 42). Since 2026-09-23 the extractor prints that reading on every run.
+Four `break;` statements would settle it.
 
 ## 100. Two more rows break the ten-times movement rule: Midfolk(Town) and Testudara
 
@@ -3164,7 +3184,9 @@ the class changes and the tendency is blank.
 
 **RESOLVED 2026-10-27 -- Solved in the port.** His GM Tools Randoms/Extras are ported (bug report 0.25.1:11) with the option's value corrected; see also item 124.
 
-**Status:** open · **Port:** Solved in the port · **Severity:** minor; a label and its value disagree
+**His answer, 2026-10-27:** Fanatical Good (Passive) is Golden Yellow; Fanatical Good (Active) is Pure Incandescent White. As built.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** minor; a label and its value disagree
 
 **Where:** HTML:92650. The option labelled Fanatical Good (Passive) has the value
 "Fanatical Good (Active)".
@@ -3356,7 +3378,9 @@ rather than as this one does:
 
 ## 124. Two random tables that cannot reach one of their rows
 
-**Status:** open · **Port:** Solved in the port · **Severity:** minor
+**His answer, 2026-10-27:** Fanatical Good (Passive) is Golden Yellow; Fanatical Good (Active) is Pure Incandescent White. As built.
+
+**Status:** answered 2026-10-27 · **Port:** Solved in the port · **Severity:** minor
 
 - **Random insanity, neurotic:** the chain tests `<71` twice, so Hypochondria can never be rolled. The
   port follows the Master's Manual's table: Hypochondria 71-80, Nervous Tic 81-85, Stammering 86-90.

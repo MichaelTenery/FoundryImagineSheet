@@ -155,7 +155,11 @@ export async function rollBrawlingAttack(tmpactor, tmpoptions, tmptarget) {
 	if (tmpresult.isHit) {
 		// A stance's extra die goes onto the dice (a flat "1" takes none -- addMartialDice keeps his
 		// "cannot add dice to '1'"), and everything flat is added after the roll, in his order.
-		var tmpdice = addMartialDice(tmpdamagerow.damage, tmpmartial.damage.extraDice);
+		// The Temporary Modifiers panel's extra dice and per-die figure as well (his tmp_extra_dice and
+		// tmp_extra_per_die, sheet-worker.js:69681-69682). A flat "1" takes neither.
+		var tmptempdice = parseInt(tmpsys.combat.extraDice) || 0;
+		var tmptempperdie = isFlatDamage(tmpdamagerow.damage) ? 0 : (parseInt(tmpsys.combat.extraPerDie) || 0);
+		var tmpdice = addMartialDice(tmpdamagerow.damage, tmpmartial.damage.extraDice + tmptempdice);
 		var tmpdmgroll = await rollFormula(tmpdice, tmpsitmods.maxDamage ? { maximize: true } : {});
 		tmprolls.push(tmpdmgroll);
 		// His combat_mod_damage on a brawl is Strength and body weight (setCombatModifierValues,
@@ -171,7 +175,7 @@ export async function rollBrawlingAttack(tmpactor, tmpoptions, tmptarget) {
 		var tmpresolved = resolveBrawlingDamage({
 			rolled: tmpdmgroll.total, dice: tmpdice, strength: tmpstr, weight: tmpweight, misc: tmpmisc,
 			flat: tmpmartial.damage.flat + tmpsitmods.damage,
-			perDie: tmpmartial.damage.perDie + tmpsitmods.perDie,
+			perDie: tmpmartial.damage.perDie + tmpsitmods.perDie + tmptempperdie,
 			multipliers: tmpmultipliers,
 			halve: (!tmptwist && !!tmpo.calledShot) || tmpsitmods.halfDamage
 		});

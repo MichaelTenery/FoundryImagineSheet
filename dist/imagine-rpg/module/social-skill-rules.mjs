@@ -230,6 +230,12 @@ import { SOCIAL_SKILL_RACE_MODS, SOCIAL_FROM_SOCIAL_BONUS, SOCIAL_TO_RACE_CLASS_
 		if (tmpParts.length && tmpExtra >= tmpMod && tmpMod != 0) {
 			tmpExtra = tmpExtra - tmpMod;
 			tmpParts.push({ label: `only the part over the ${(tmpMod < 0 ? "" : "+") + tmpMod}% already there counts`, percent: -tmpMod });
+		} else if (tmpParts.length && tmpExtra > 0 && tmpMod > 0) {
+			// His ruling of 2026-10-27 (UPSTREAM 85): "if there are two bonuses only the larger one
+			// applies". His code added a smaller trait in full: a Brachara's Climb +20 and Climbing +10
+			// came to +30, and is +20 now.
+			tmpParts.push({ label: `the +${tmpMod}% already there is the larger, so this adds nothing`, percent: -tmpExtra });
+			tmpExtra = 0;
 		}
 		return { total: tmpExtra, parts: tmpParts };
 	}

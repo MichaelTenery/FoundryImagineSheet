@@ -57,8 +57,12 @@ export function buildAddView(tmpf) {
 	tmpview.chosen = tmpchosen;
 	tmpview.hasChosen = !!tmpchosen;
 	tmpview.blocked = !!tmpf?.details?.blocked;
-	tmpview.blockedMessage = tmpview.blocked
-		? `${tmpf.details.raceName || "This race"} cannot acquire ${tmpchosen}: his race table marks it BLOCKED.` : "";
+	// BLOCKED binds at creation only. After it, his ruling of 2026-10-27: "I want that option in the
+	// hands of the GM" -- a dwarf may never swim, or the Game Master may hand them floaties.
+	tmpview.isGM = !!tmpf?.isGM;
+	tmpview.blockedMessage = !tmpview.blocked ? "" : tmpview.isGM
+		? `${tmpf.details.raceName || "This race"} cannot take ${tmpchosen} at creation. As Game Master you may allow it now.`
+		: `${tmpf.details.raceName || "This race"} cannot take ${tmpchosen} without the Game Master's say-so: they can open this window on your character and add it.`;
 	if (!tmpchosen) { return tmpview; }
 
 	var tmpd = tmpf?.details ?? {};
@@ -83,7 +87,7 @@ export function buildAddView(tmpf) {
 	tmpview.hoursShort = Math.max(0, tmpview.hoursNeeded - (parseInt(tmprec.hours) || 0));
 	tmpview.modifierText = tmpd.modifier?.total ? `${tmpd.modifier.total >= 0 ? "+" : ""}${tmpd.modifier.total}% from skills held (${describeParts(
 		(tmpd.modifier.parts ?? []).map(tmppart => ({ label: tmppart.label, value: tmppart.percent })))})` : "";
-	tmpview.canLearn = !tmpview.blocked;
+	tmpview.canLearn = !tmpview.blocked || tmpview.isGM;
 	return tmpview;
 }
 

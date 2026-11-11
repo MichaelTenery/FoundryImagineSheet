@@ -52,8 +52,7 @@ check("the five casting skills", T.CASTING_SKILLS, ["Hermetic Lore", "Scroll Kno
 check("every spell ladder ends in his else (below 101)", Object.values(T.STARTING_SPELL_LADDERS).map(l => l[l.length - 1][0]), [101, 101, 101]);
 check("every ladder climbs", Object.values(T.STARTING_SPELL_LADDERS).map(l => l.every((r, i) => i == 0 || r[0] > l[i - 1][0])), [true, true, true]);
 check("twelve spell primers", Object.keys(T.SPELL_PRIMERS).length, 12);
-check("the two names his dictionaries do not hold are reported", T.LORE_NAMES_NOT_FOUND,
-	{ getUnalignedHymnList: ["Injury"], getHerbLoreList: ["Zebra Gras"] });
+check("no name is left that his dictionaries do not hold (Zebra Grass and Injury settled by him)", T.LORE_NAMES_NOT_FOUND, {});
 
 // --- kinds -----------------------------------------------------------------------------------------
 // The 21 switches since the 2026-09-24 split (bardic and herbalism divided by kind).
@@ -276,7 +275,7 @@ var tmpheld = [{ id: "h1", type: "consumable", name: "Aloe Vera", system: { kind
 	{ id: "h2", type: "lore", name: "Anger", system: { kind: "poem" } }];
 var tmpmade = S.buildStartingLoreItems({ entries: [
 		{ kind: "song", name: "Anger" }, { kind: "poem", name: "Anger" }, { kind: "herb", name: "Aloe Vera", doses: 3 },
-		{ kind: "herb", name: "Zebra Gras", doses: 2 }, { kind: "potionrecipe", name: "Healing" },
+		{ kind: "herb", name: "No Such Herb", doses: 2 }, { kind: "potionrecipe", name: "Healing" },
 		{ kind: "potion", name: "Healing", doses: 2 }, { kind: "spell", name: "Chill" },
 		{ kind: "poison", name: "Type: I, Potency: A", poisonType: "I", poisonPotency: "A", form: "Contact", doses: 2 },
 		{ kind: "poison", name: "Type: I, Potency: A", poisonType: "I", poisonPotency: "A", form: "Contact", doses: 1 }],
@@ -284,7 +283,7 @@ var tmpmade = S.buildStartingLoreItems({ entries: [
 check("looked up by kind AND name: the song Anger, not the poem", tmpmade.create[0].system.kind, "song");
 check("the poem Anger is already known, so not added again", tmpmade.issues.some(i => i.includes("already known")), true);
 check("doses of a herb already carried go on its stack", tmpmade.update, [{ _id: "h1", "system.doses": 5 }]);
-check("his misspelt Zebra Gras is reported, not invented", tmpmade.issues.some(i => i.includes("Zebra Gras")), true);
+check("a name with no document is reported, not invented", tmpmade.issues.some(i => i.includes("No Such Herb")), true);
 check("a potion recipe is made from the potion, at rating 15", tmpmade.create.filter(c => c.system.kind == "potionrecipe").map(c => [c.type, c.system.rating]), [["lore", 15]]);
 check("two stocks of one poison in one run are one stack", tmpmade.create.filter(c => c.system.kind == "poison").map(c => c.system.doses), [3]);
 check("the primer is equipment, carried", tmpmade.create.filter(c => c.type == "equipment").map(c => [c.name, c.system.location]), [["A Primer", "carried"]]);
@@ -325,8 +324,8 @@ var tmpconsumables = await tmpload("consumables");
 var tmplore = await tmpload("lore");
 var tmpspellsdocs = await tmpload("spells");
 var tmpinvocations = await tmpload("invocations");
-check("built: 515 consumables, 961 lore entries, 550 spells, 460 invocations",
-	[tmpconsumables.length, tmplore.length, tmpspellsdocs.length, tmpinvocations.length], [515, 961, 550, 460]);
+check("built: 515 consumables, 962 lore entries, 550 spells, 460 invocations",
+	[tmpconsumables.length, tmplore.length, tmpspellsdocs.length, tmpinvocations.length], [515, 962, 550, 460]);
 var tmpkindof = { getBalladLoreList: "ballad", getCandleLoreList: "candlelore", getEmpathyMagicList: "empathymagic",
 	getGlyphList: "glyph", getGoodHymnList: "hymn", getEvilHymnList: "hymn", getNeutralHymnList: "hymn",
 	getUnalignedHymnList: "hymn", getPoemLoreList: "poem", getRitualLoreList: "ritual", getRuneLoreList: "rune",
@@ -346,7 +345,7 @@ for (const tmpname of T.STARTING_LORE_LISTS.getPotionLoreList) {
 for (const tmpladder of Object.values(T.STARTING_SPELL_LADDERS)) {
 	for (const [, tmpname] of tmpladder) { if (!tmpspellsdocs.some(d => d.name == tmpname)) { tmpunfound.push(tmpname); } }
 }
-check("every name his starting lists can draw is a built document, but his two", tmpunfound, ["Injury", "Zebra Gras"]);
+check("every name his starting lists can draw is a built document", tmpunfound, []);
 check("every built lore entry carries a kind and its switch", tmplore.every(d => L.MAGIC_KINDS[d.system.kind]?.subsystem == d.system.subsystem), true);
 check("...and every built consumable, in the split switches' names", [tmpconsumables.every(d => L.MAGIC_KINDS[d.system.kind]?.subsystem == d.system.subsystem),
 	[...new Set(tmpconsumables.map(d => d.system.subsystem))].sort()], [true, ["charms", "elixirs", "herbs", "potions"]]);

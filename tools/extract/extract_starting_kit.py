@@ -94,6 +94,10 @@ def function_body(name):
 
 # @MARKER GEAR BY CULTURE
 
+# @MARKER HIS RULING ON THE SPELLING (2026-10-27, UPSTREAM 70): "should always be Brachara".
+RACE_SPELLING_REPAIRS = {"Bracharia": "Brachara"}
+
+
 def race_to_kit():
     """
     Which wilderness kit each race takes, from setWildernessEquipmentByRace.
@@ -106,7 +110,7 @@ def race_to_kit():
     for line in body:
         m = re.search(r'case\s+"([^"]*)"\s*:', line)
         if m:
-            pending.append(m.group(1))
+            pending.append(RACE_SPELLING_REPAIRS.get(m.group(1), m.group(1)))
             continue
         m = re.search(r'(set[A-Za-z]*WildernessEquipment)\s*\(\s*\)', line)
         if m and pending:
@@ -330,7 +334,7 @@ def clothing_table():
             if out.get(pending[0] if pending else None):
                 pending, style, gender, band = [], "any", "any", None
             if m.group(1):
-                pending.append(m.group(1))
+                pending.append(RACE_SPELLING_REPAIRS.get(m.group(1), m.group(1)))
             continue
         m = re.search(r'tempstyle\s*==\s*"([a-z]+)"', line)
         if m:

@@ -148,7 +148,8 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 			learnMartialStance: ImagineCreatureSheet.#onLearnMartialStance,
 			masterMartialStance: ImagineCreatureSheet.#onMasterMartialStance,
 			learnMartialSubskill: ImagineCreatureSheet.#onLearnMartialSubskill,
-			learnMartialLoreValue: ImagineCreatureSheet.#onLearnMartialLoreValue
+			learnMartialLoreValue: ImagineCreatureSheet.#onLearnMartialLoreValue,
+			openMartialKnow: ImagineCreatureSheet.#onOpenMartialKnow
 		}
 	};
 
@@ -900,6 +901,7 @@ export default class ImagineCreatureSheet extends HandlebarsApplicationMixin(Act
 	static async #onLearnMartialStance(event, target) { await learnMartialStance(this.document); }
 	static async #onMasterMartialStance(event, target) { await masterMartialStance(this.document); }
 	static async #onLearnMartialSubskill(event, target) { await learnMartialSubskill(this.document); }
+	static async #onOpenMartialKnow(event, target) { event.preventDefault(); game.imagine.martialKnow(this.document); }
 	static async #onLearnMartialLoreValue(event, target) { await learnMartialLoreValue(this.document); }
 }
 // @END (CODE)

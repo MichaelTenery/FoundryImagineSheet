@@ -365,7 +365,7 @@ export async function rollWeaponAttack(tmpactor, tmpweapon) {
 	// and the Game Master's own temporary effects. The magical plus is already "Magic" above. See
 	// module/weapon-custom-rules.mjs and the weapon mods window.
 	var tmpcustom = getWeaponAttackExtras({ system: tmpw, mode: tmpmode, alignment: tmpsys.identity?.alignment,
-		worldTime: game.time?.worldTime ?? 0 });
+		worldTime: game.time?.worldTime ?? 0, dice: getWeaponDamageDice(tmpw, tmpmode) });
 	for (const tmpentry of tmpcustom.toHit) {
 		tmpmods.list.push(tmpentry);
 		tmpmods.total = tmpmods.total + tmpentry.value;

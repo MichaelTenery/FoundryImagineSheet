@@ -169,7 +169,8 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 			learnMartialStance: ImagineCharacterSheet.#onLearnMartialStance,
 			masterMartialStance: ImagineCharacterSheet.#onMasterMartialStance,
 			learnMartialSubskill: ImagineCharacterSheet.#onLearnMartialSubskill,
-			learnMartialLoreValue: ImagineCharacterSheet.#onLearnMartialLoreValue
+			learnMartialLoreValue: ImagineCharacterSheet.#onLearnMartialLoreValue,
+			openMartialKnow: ImagineCharacterSheet.#onOpenMartialKnow
 		}
 	};
 
@@ -303,6 +304,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 		// The clickable body above the body table (module/body-view.mjs). Which area is selected is
 		// kept on the sheet, like the martial panel's open state: it is how this window is laid out,
 		// not a fact about the actor, so it survives the re-render every wound change causes.
+		tmpcontext.isGM = !!game.user?.isGM;
 		tmpcontext.bodyFigure = buildBodyFigure(this.document.system.body?.areas, {
 			bodyType: this.document.system.body?.type || this.document.system.body?.bodyType,
 			selected: this._bodyArea,
@@ -1679,6 +1681,7 @@ export default class ImagineCharacterSheet extends HandlebarsApplicationMixin(Ac
 
 	// These are the functions which learn something new, each one roll.
 	static async #onLearnMartialStance(event, target) { await learnMartialStance(this.document); }
+	static async #onOpenMartialKnow(event, target) { event.preventDefault(); game.imagine.martialKnow(this.document); }
 	static async #onMasterMartialStance(event, target) { await masterMartialStance(this.document); }
 	static async #onLearnMartialSubskill(event, target) { await learnMartialSubskill(this.document); }
 	static async #onLearnMartialLoreValue(event, target) { await learnMartialLoreValue(this.document); }

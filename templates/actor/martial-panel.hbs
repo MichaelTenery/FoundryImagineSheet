@@ -29,10 +29,9 @@
 		<div class="martial-row">
 			<span class="martial-stat">Martial Knowledge <strong>{{martial.knowChance}}%</strong></span>
 			{{#if martial.hasLore}}<span class="martial-stat">Martial Lore <strong>{{martial.loreChance}}%</strong></span>{{/if}}
-			<label class="martial-stat">Discipline
-				<select name="system.martial.discipline">
-					{{#each martial.disciplineChoices as |d|}}<option value="{{d.value}}" {{#if d.selected}}selected{{/if}}>{{d.label}}</option>{{/each}}
-				</select></label>
+			{{!-- Chosen in his panel, not here: a discipline is a commitment with a list behind it. --}}
+			<span class="martial-stat">Discipline <strong>{{#if system.martial.discipline}}{{system.martial.discipline}}{{else}}none chosen{{/if}}</strong>
+				<button type="button" data-action="openMartialKnow">Choose</button></span>
 			<span class="martial-stat muted">From prone: {{martial.standFromProne}}</span>
 		</div>
 		{{#unless martial.hasKnowledge}}
@@ -40,7 +39,7 @@
 		{{/unless}}
 		{{#if martial.needsDiscipline}}
 		<p class="hint">Choose a discipline: it decides which attacks, blocks, holds, moves and throws are known.
-			Custom knows only what is written in the lists below.</p>
+			Press Choose.</p>
 		{{/if}}
 
 		{{!-- One stance at a time, entered in 3 seconds without a roll. A stance must be learned
@@ -158,8 +157,9 @@
 		{{/if}}
 
 		{{!-- His lists, as he keeps them: comma-separated names. A Custom discipline's picks live
-		      here, and so does anything learned beyond the discipline; the Game Master can put a
-		      slip right by hand. --}}
+		      here, and so does anything learned beyond the discipline. For the Game Master only, to put
+		      a slip right by hand: a player's list is what the discipline and the skill rolls gave them. --}}
+		{{#if isGM}}
 		<h4 class="martial-sub">Lists <span class="muted">comma-separated, as his sheet keeps them</span></h4>
 		<div class="martial-lists">
 			<div class="lore-lists">
@@ -174,6 +174,7 @@
 			</div>
 			{{#if martial.unknown}}<p class="martial-note alarm">Not in his tables, so ignored: {{martial.unknown}}</p>{{/if}}
 		</div>
+		{{/if}}
 	</div>
 	{{/if}}
 </div>

@@ -1,0 +1,43 @@
+{{!--
+	His "Select Martial Know. Discipline" panel. One root element, as the framework requires. Everything
+	here comes from buildMartialKnowView (module/martial-know-view.mjs).
+--}}
+<div class="martial-know-window">
+	{{#unless usable}}
+	<p class="hint">{{notAcquiredMessage}}</p>
+	{{else}}
+	{{#if gmOverride}}<p class="hint alarm">{{notAcquiredMessage}} As Game Master you may set one anyway.</p>{{/if}}
+	<p>Current discipline: <b>{{current}}</b></p>
+	<label class="mk-pick">Discipline
+		<select name="discipline">
+			{{#each disciplineChoices as |d|}}<option value="{{d.value}}" {{#if d.selected}}selected{{/if}}>{{d.label}}</option>{{/each}}
+		</select></label>
+
+	{{#if isCustom}}
+	<p class="hint">Custom Martial Knowledge Selections: tick what this martial artist has learned.</p>
+	<div class="mk-grid">
+		{{#each families as |f|}}
+		<div class="mk-column">
+			<h4>{{f.label}}</h4>
+			{{#each f.options as |o|}}
+			<label><input type="checkbox" data-family="{{f.key}}" data-name="{{o.name}}" {{#if o.checked}}checked{{/if}}> {{o.name}}</label>
+			{{/each}}
+		</div>
+		{{/each}}
+	</div>
+	{{else}}
+	{{#if hasDiscipline}}
+	<dl class="mk-lines">
+		{{#each lines as |l|}}<dt>{{l.label}}:</dt><dd>{{l.names}}</dd>{{/each}}
+	</dl>
+	{{else}}
+	<p class="hint">Choose a discipline: it decides which attacks, blocks, holds, moves and throws are known.</p>
+	{{/if}}
+	{{/if}}
+	<footer class="mk-foot">
+		<button type="button" data-action="commit">Commit</button>
+		<span class="hint">Final commit of Martial Knowledge discipline choices.</span>
+	</footer>
+	{{/unless}}
+	<footer class="mk-foot"><button type="button" data-action="done">Close</button></footer>
+</div>

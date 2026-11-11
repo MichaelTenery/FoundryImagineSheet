@@ -67,12 +67,20 @@ def function_body(name):
 
 # @MARKER LORE LISTS
 # Every get<Lore>List is the same two lines: tempLoreList="a,b,c"; return tempLoreList;
+# @MARKER HIS RULINGS ON THE LISTS (2026-10-27, UPSTREAM 58)
+# Zebra Grass is what he meant ("missing the S"). Injury's row was never in his hymn dictionary; he
+# supplied it, and it is in src/packs/manual/lore.json, so it is not reported as missing.
+LORE_NAME_REPAIRS = {"Zebra Gras": "Zebra Grass"}
+LORE_NAMES_SUPPLIED = ["Injury"]
+
+
 def lore_list(name):
     tmpline, tmpbody = function_body(name)
     for tmptext in tmpbody:
         tmpmatch = re.search(r'tempLoreList\s*=\s*"([^"]*)"', tmptext)
         if tmpmatch:
-            return [clean_text(n) for n in tmpmatch.group(1).split(",") if n.strip()]
+            tmpnames = [clean_text(n) for n in tmpmatch.group(1).split(",") if n.strip()]
+            return [LORE_NAME_REPAIRS.get(n, n) for n in tmpnames]
     raise SystemExit("no list in " + name)
 
 
@@ -284,7 +292,7 @@ def main():
         if not tmpkind:
             continue
         tmpknown = dictionary_names(KIND_DICTIONARIES[tmpkind])
-        tmpabsent = [n for n in tmpnames if n not in tmpknown]
+        tmpabsent = [n for n in tmpnames if n not in tmpknown and n not in LORE_NAMES_SUPPLIED]
         if tmpabsent:
             tmpmissing[tmplistname] = tmpabsent
 

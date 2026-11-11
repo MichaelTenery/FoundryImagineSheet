@@ -1237,6 +1237,14 @@ check("racial skills merge: each once, the first race's order then the second's"
 	["Climb", "Listen+20%", "Track"]);
 check("...a shared skill keeps the better bonus even when it is the FIRST race's (his code takes the second's)",
 	RR.mergeRacialSkills([{ name: "Listen", bonus: "+20%" }], [{ name: "Listen", bonus: "" }])[0].bonus, "+20%");
+// His ruling of 2026-10-27 (UPSTREAM 85): a penalty against no penalty is not erased; of two bonuses only the larger.
+check("Half Race: a penalty against no penalty still applies", [RR.getHalfRaceSkillBonus(-10, 0), RR.getHalfRaceSkillBonus(0, -10)], [-10, -10]);
+check("Half Race: of two bonuses only the larger", RR.getHalfRaceSkillBonus(20, 10), 20);
+check("Half Race: a penalty against a bonus takes the larger, the nearest he ruled", RR.getHalfRaceSkillBonus(-10, 20), 20);
+check("Half Race: merged lists keep a penalty the other race has no figure for",
+	RR.mergeRacialSkills([{ name: "Tame Animal", bonus: "-10%" }], [{ name: "Tame Animal", bonus: "" }])[0].bonus, "-10%");
+check("...in either order",
+	RR.mergeRacialSkills([{ name: "Tame Animal", bonus: "" }], [{ name: "Tame Animal", bonus: "-10%" }])[0].bonus, "-10%");
 check("ability lists merge with duplicates removed",
 	RR.mergeNameLists(["Night Vision", "Climbing"], ["Climbing", "Flight(Wings)"]),
 	["Climbing", "Flight(Wings)", "Night Vision"]);

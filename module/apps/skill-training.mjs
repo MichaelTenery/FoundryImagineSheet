@@ -127,7 +127,7 @@ export default class ImagineSkillTraining extends HandlebarsApplicationMixin(App
 			Object.assign(tmpcontext, buildAddView({
 				characterName: tmpactor.name, kind: this.#kind, skillSlots: tmpactor.system.skillSlots,
 				options: tmpoptions.map(tmpoption => tmpoption.name), dropdown: tmpw.dropdown || tmpw.chosen,
-				chosen: tmpw.chosen, details: tmpdetails, record: tmprecord, working: tmpworking
+				chosen: tmpw.chosen, details: tmpdetails, record: tmprecord, working: tmpworking, isGM: !!game.user?.isGM
 			}));
 		} else {
 			var tmpheld = getTrainableSkills(tmpactor, this.#kind);

@@ -197,8 +197,8 @@ export function getLearnStartModifier(tmpkind, tmpskillname, tmpcontext) {
 }
 
 // This is the function which says whether the race may take a social skill at all. His copy button
-// refuses a skill his race table marks BLOCKED (sheet-worker.js:7420); the learn code never asks, so
-// without this a character could add what creation refuses.
+// refuses a skill his race table marks BLOCKED (sheet-worker.js:7420); the learn code never asks. After
+// creation it is the Game Master's call, by his ruling of 2026-10-27, so this only says it needs one.
 export function isBlockedSocialSkill(tmpskillname, tmpracename) {
 	return !!getSocialSkillRaceMod(tmpskillname, tmpracename).blocked;
 }

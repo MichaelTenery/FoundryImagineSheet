@@ -206,8 +206,8 @@ check("...and nothing unless Swimming is taken: the ability does not grant the s
 // --- the trait switch and his excess rule --------------------------------------------------------
 check("10. a Cervara's Listen: race +30, Enhanced Hearing +30 is not over it, so +30 in all",
 	make(["Cervara"], { racial: ["Listen"] }).bonus["racial:Listen"], 30);
-check("...a Brachara's Climb: race +20, Climbing +10 is under it, so it adds in full: +30 (his rule, literal)",
-	make(["Brachara"], { racial: ["Climb"] }).bonus["racial:Climb"], 30);
+check("...a Brachara's Climb: race +20, Climbing +10: of two bonuses only the larger applies (his ruling): +20",
+	make(["Brachara"], { racial: ["Climb"] }).bonus["racial:Climb"], 20);
 check("11. a Brok's Tame Animal keeps its -10%: the excess rule is skipped when no trait applies",
 	make(["Brok"], { racial: ["Tame Animal"] }).bonus["racial:Tame Animal"], -10);
 const fam = (evokes, racial, className) => make(["Famorian"], { racial, famorian: { evokes, evokesAllowed: 4 } });

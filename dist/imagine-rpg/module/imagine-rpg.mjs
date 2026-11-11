@@ -58,6 +58,7 @@ import ImagineSoldiering from "./apps/soldiering.mjs";
 import ImagineWeaponChoices from "./apps/weapon-choices.mjs";
 import ImagineGrappling from "./apps/grappling.mjs";
 import ImagineUpdater from "./apps/updater.mjs";
+import ImagineMartialKnow from "./apps/martial-know.mjs";
 import ImagineShapeChange from "./apps/shape-change.mjs";
 import ImagineAvailabilityConfig from "./apps/availability-config.mjs";
 import ImagineAlignmentConfig from "./apps/alignment-config.mjs";
@@ -412,6 +413,10 @@ Hooks.once("init", function () {
 		// opens the right window. Also the Updater button in the sheet header.
 		//     game.imagine.updater(actor)
 		updater: (tmpactor) => ImagineUpdater.open(tmpactor),
+		// @MARKER MARTIAL DISCIPLINE
+		// His "Select Martial Know. Discipline": the discipline, or a Custom one ticked box by box.
+		//     game.imagine.martialKnow(actor)
+		martialKnow: (tmpactor) => ImagineMartialKnow.open(tmpactor),
 		// @MARKER SHAPE CHANGE
 		// A Changeling's form and a Formless's host: his four Updater panels as one window.
 		//     game.imagine.shapeChange(actor, "changeling" | "formlessHost" | "formlessRetention" | "formlessPsyche")

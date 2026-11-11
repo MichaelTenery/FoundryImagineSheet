@@ -98,13 +98,27 @@
 	// "Better" is the evident intent rather than what his code does. His getBestModifierPercent
 	// declares both its parameters as numberString1, so the second shadows the first and a shared
 	// skill always takes the SECOND race's bonus. UPSTREAM-ISSUES.md item 32.
+	//
+	// This is the function which says what a skill two races both list is worth to a Half Race. His
+	// ruling of 2026-10-27 (UPSTREAM 85): a penalty against no penalty still applies, "it is not just
+	// erased"; of two bonuses only the larger applies. A penalty against a bonus was not ruled on: the
+	// larger is taken there too, the nearest thing he said.
+	export function getHalfRaceSkillBonus(tmpBonus1, tmpBonus2) {
+		var tmpa = parseInt(tmpBonus1) || 0;
+		var tmpb = parseInt(tmpBonus2) || 0;
+		if (tmpa < 0 && tmpb == 0) { return tmpa; }
+		if (tmpb < 0 && tmpa == 0) { return tmpb; }
+		return Math.max(tmpa, tmpb);
+	}
+
 	export function mergeRacialSkills(tmpSkills1, tmpSkills2) {
 		var tmpOut = [];
 		var tmpSeen = {};
 		for (const tmpSkill of [...(tmpSkills1 ?? []), ...(tmpSkills2 ?? [])]) {
 			if (tmpSeen[tmpSkill.name] !== undefined) {
 				var tmpKept = tmpOut[tmpSeen[tmpSkill.name]];
-				if (percentToNumber(tmpSkill.bonus) > percentToNumber(tmpKept.bonus)) { tmpKept.bonus = tmpSkill.bonus; }
+				var tmpKeptBonus = percentToNumber(tmpKept.bonus);
+				if (getHalfRaceSkillBonus(tmpKeptBonus, percentToNumber(tmpSkill.bonus)) != tmpKeptBonus) { tmpKept.bonus = tmpSkill.bonus; }
 				continue;
 			}
 			tmpSeen[tmpSkill.name] = tmpOut.length;

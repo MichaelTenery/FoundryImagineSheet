@@ -65,19 +65,14 @@ import {
 	// His kit switches are keyed by HIS race names, and the port has names of its own for the forms he
 	// split with a second dropdown -- "Fairy(Winged)" is his "Fairy". Looked up by the port's name alone,
 	// the eight faerie forms had no kit and no clothing at all (bug sweep 2026-09-23). A race is looked
-	// for under its own name first (his tables do list "Maginos(Clay)"), then under its sourceRace, then
-	// under the spelling his three kit switches use for it.
+	// for under its own name first (his tables do list "Maginos(Clay)"), then under its sourceRace.
 	//
-	// His kit switches spell Brachara "Bracharia" (sheet-worker.js:73492, 73836, 75501), where the rest
-	// of his sheet -- seventy places -- spells it Brachara. UPSTREAM-ISSUES.
-	const KIT_RACE_SPELLINGS = {
-	//	  the port's name         his kit switches'
-		"Brachara":               "Bracharia"
-	};
+	// His kit switches spelled Brachara "Bracharia" (sheet-worker.js:73492, 73836, 75501). He ruled it
+	// "should always be Brachara" (UPSTREAM 70), so tools/extract/extract_starting_kit.py writes it so.
 
 	// This is the function which finds the name a race is listed under in one of his kit tables.
 	export function getKitRaceName(tmpTable, tmpRaceName, tmpSourceRace) {
-		for (const tmpName of [tmpRaceName, tmpSourceRace, KIT_RACE_SPELLINGS[tmpRaceName], KIT_RACE_SPELLINGS[tmpSourceRace]]) {
+		for (const tmpName of [tmpRaceName, tmpSourceRace]) {
 			if (tmpName && tmpTable[tmpName]) { return tmpName; }
 		}
 		return tmpRaceName;

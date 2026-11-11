@@ -7021,3 +7021,29 @@ Rulings (port choices, each also noted in its module's header):
 
 **Not verified in a running Foundry V14:** every new window's render and clicks, the chat cards, and
 the item and flag writes. The headless suites stub Foundry: 40 suites, 4,143 checks.
+
+## His answers to the upstream list (2026-10-27, relayed 2026-11-10)
+
+Twenty points from him on Discord, most of them answers to `UPSTREAM-ISSUES.md`. His word settles each;
+each item there now says what he said. Built as 0.27.0. The calls that were ours, not his:
+
+- **Martial discipline (his point 1).** The port had a bare dropdown and, for Custom, typed lists. His own
+  panel (`update_martial_know_art`, HTML 50661; `setMartialKnowArts` 98801, `commitMartialKnowArts` 98895) is
+  now `module/martial-know-view.mjs` and `apps/martial-know.mjs`, for characters and creatures. His COMMIT
+  replaces the whole list. The port keeps the discipline apart from what is learned beyond it, so a preset
+  after a preset leaves what Martial Lore taught; only a preset after Custom empties the strings. An
+  empty commit is refused, where his clears the character. The panel's dropdown is gone, because it changed
+  the discipline without dealing with the strings. The free-text lists are the Game Master's only. Not in the
+  character generator: the panel's Choose button is the way in.
+- **Runes (UPSTREAM 63).** Level dice of the weapon's own die, the sides read from the damage this attack
+  rolls. The flat +level stays: his ruling did not touch it. It is added as its own term rather than
+  folded into the die count as his code does, so a per-die figure does not count rune dice.
+- **Half Race (UPSTREAM 85).** He ruled a penalty against nothing, and two bonuses. A penalty against a
+  bonus he did not; `getHalfRaceSkillBonus` takes the larger, the nearest thing he said. Two penalties
+  keep the lesser, as before.
+- **Two bonuses (his 13) applies to class skills too**, CORE +30 being the bonus already there: Climbing
+  +10 on a core Climb now adds nothing.
+- **BLOCKED after creation (his 15).** A player is stopped and told to ask; a Game Master opening the same
+  window may add it. He wrote "in the hands of the GM", so this is a gate rather than a warning.
+- **Martial per-die (his 17)** he wrote as "the number of sides". His own issue compared it with the
+  paths that multiply by the number of DICE, which is what the port does; read so.

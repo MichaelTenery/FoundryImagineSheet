@@ -28,10 +28,9 @@
 //
 // NUMBERS FOLLOW HIS ATTACK CODE, with one correction taken from his own prose. A rune on the
 // weapon gives +level to hit (only +1 if the weapon already has a magical to-hit, his "Rune + to
-// hit can only stack 1 with magic +") and, by his rune dictionary and by the tag his own panel
-// writes, "+level d6 + level" damage. His damage code instead adds level dice of the WEAPON'S die,
-// and adds the flat +level only in verbose mode. The dictionary and the tag agree with each other
-// and the Player's Guide, so they are taken as what he meant; UPSTREAM-ISSUES.
+// hit can only stack 1 with magic +") and level dice of the WEAPON'S OWN die in damage, as his attack
+// code adds them (64971-64978) and as he ruled on 2026-10-27: "Runes use the weapons dice type"
+// (UPSTREAM 63). The flat +level his dictionary and tag print is kept; his ruling did not touch it.
 //==================================================================================================================
 
 import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIETY, ABILITY_MODES, RUNE_MODES,
@@ -378,8 +377,8 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 	// one attack BEFORE the dice are rolled -- the to-hit entries (labelled as the card lists them),
 	// the extra damage dice a rune adds, and the flat damage.
 	//
-	//   tmpInput = { system, mode, alignment, worldTime }
-	// Returns { toHit: [{ label, value }], runeDice: "2d6+2" or "", damage: [{ label, value }],
+	//   tmpInput = { system, mode, alignment, worldTime, dice }   dice: the damage this attack rolls
+	// Returns { toHit: [{ label, value }], runeDice: "2d8+2" or "", damage: [{ label, value }],
 	//           blessed: bool }
 	export function getWeaponAttackExtras(tmpInput) {
 		var tmpSystem = tmpInput.system ?? {};
@@ -399,7 +398,9 @@ import { WEAPON_CUSTOMIZATION_RULES, ENERGY_DICE, PLUS_FROM_AURA, PLUS_FROM_PIET
 			if (tmpLevel < 1) { continue; }
 			var tmpHit = (parseInt(tmpSystem.magicBonus) || 0) > 0 ? 1 : tmpLevel;
 			tmpOut.toHit.push({ label: `Rune of ${tmpRune.name}`, value: tmpHit });
-			tmpOut.runeDice = `${tmpLevel}d6+${tmpLevel}`;
+			// His "cannot add dice to '1' damage" (64971): a weapon with no die keeps the flat part only.
+			var tmpRuneDamage = readDamage(tmpInput.dice ?? tmpSystem.damage);
+			tmpOut.runeDice = tmpRuneDamage ? `${tmpLevel}d${tmpRuneDamage.sides}+${tmpLevel}` : `${tmpLevel}`;
 			break;
 		}
 

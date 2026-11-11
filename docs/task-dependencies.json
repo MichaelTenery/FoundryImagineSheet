@@ -605,6 +605,11 @@
       "dependsOn": [
         "Character sheet: Updater"
       ]
+    },
+    "His answers to the upstream list": {
+      "dependsOn": [
+        "His Missing Feature reports 0.25.1"
+      ]
     }
   }
 }

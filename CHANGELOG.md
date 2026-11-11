@@ -18,6 +18,30 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.27.0 — 2026-11-10
+
+**His answers of 10/27 to the upstream list, and a real way to choose a martial discipline.**
+
+- **Martial Arts: choose your discipline.** His panel is in: Offensive, Defensive, Balanced or Contact
+  shows what that discipline knows and nothing else; Custom gives a box for every attack, block, hold,
+  move and throw; Commit writes it. Press **Choose** in the Martial Arts panel on the Combat tab, or use
+  the Updater. The typed-in lists below it are now the Game Master's only.
+- **Runes roll the weapon's own die.** A rune of 2 on a 1d8 sword adds 2d8, not 2d6, plus its flat +2.
+- **Double Blade is a second faster.** The starting speed, not the minimum. Double Head is unchanged.
+- **Extra Dice and Extra Damage per Die** now reach martial and brawling attacks as well as weapons and
+  grappling, and count the dice rolled.
+- **Two figures on one skill.** A Half Race keeps a penalty the other race has no figure for, and of two
+  bonuses only the larger applies. A Brachara's Climb, race +20 and Climbing +10, is +20, not +30.
+- **A social skill the race cannot take** is barred at creation only. Afterward a Game Master can open
+  Add Social Skill on the character and allow it; a player is told to ask.
+- **The Injury hymn** is in, with his text. **Zebra Grass** has its S, so a new herbalist can draw it.
+  The starting-kit tables spell **Brachara** correctly.
+
+**What to look at if you are testing:** commit a preset and a Custom discipline and watch the Martial Arts
+panel's lists change; attack with a runed weapon and read the dice on the card; put a Double Blade on an
+axe; roll a martial attack with Extra Dice set; try Add Social Skill on a blocked skill as player and as
+Game Master.
+
 ## 0.26.0 — 2026-10-28
 
 **His eleven Missing Feature reports of 10/27 (0.25.1:1-11), all built, plus what the first pass left
