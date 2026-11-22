@@ -7047,3 +7047,26 @@ each item there now says what he said. Built as 0.27.0. The calls that were ours
   window may add it. He wrote "in the hands of the GM", so this is a gate rather than a warning.
 - **Martial per-die (his 17)** he wrote as "the number of sides". His own issue compared it with the
   paths that multiply by the number of DICE, which is what the port does; read so.
+
+## A forgiving item search (2026-11-22)
+
+Feature request: searching for the recurve bow should accept "bow", "recurve", "recurve bow",
+"bow, recurve" and so on: "Enable fuzzy searching." His names put the kind first and the variety
+in brackets, `Bow(Recurve)`, so the picker's plain substring test found none of the natural ways of
+asking, and the shop's every-word test failed on punctuation and word order.
+
+- **One matcher, `module/search-rules.mjs`**, used by both name boxes: the Add-item picker and the
+  character generator's shop (`listShopOffers`). Foundry's own compendium sidebar search is
+  Foundry's and is left alone.
+- **Words, any order.** Brackets, commas, slashes and dashes are gaps; an apostrophe joins. Every
+  typed word must match a different word of the name. "a", "an", "the", "of", "and", "with", "for"
+  are dropped from the search.
+- **What counts as a match:** the same word; its start (so the list narrows as you type); one plural
+  off; or a typing slip: one for a word of 4-7 letters, two from 8 up, and for a three-letter word
+  only two letters swapped ("bwo" is bow, "box" is not). Short words get no slack because "bow"
+  would otherwise find box, cow and row.
+- **Ranked, not just filtered.** Exact beats plural beats prefix beats slip; matching the name's
+  first word (its kind) earns a bonus; each unasked-for word of the name costs a point. So "recurve
+  bow" lists `Bow(Recurve)` before its twenty arrows. Ties keep the list's order: alphabetical in
+  the picker, his order in the shop. An empty search changes nothing.
+- Tested against his real 594 weapon names in `tools/search-test.html`.

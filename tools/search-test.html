@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Imagine RPG item search test</title>
+<style>body{font:13px monospace;padding:1rem;background:#fdfbf6}</style>
+<pre id="out">running...</pre>
+<script type="module">
+// Tests for the forgiving name search: module/search-rules.mjs, as the item picker and the shop use it.
+// Run against his real weapon and equipment names, from src/packs/documents.
+//
+// Must be served over HTTP:
+//     python -m http.server 8777 --bind 127.0.0.1
+//     open http://127.0.0.1:8777/tools/search-test.html
+const S = await import("../module/search-rules.mjs");
+const Shop = await import("../module/shop-rules.mjs");
+
+const results = [];
+function check(label, actual, expected) {
+	const ok = JSON.stringify(actual) === JSON.stringify(expected);
+	results.push(`${ok ? "PASS" : "FAIL"}  ${label}\n        expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
+const weapons = (await (await fetch("../src/packs/documents/weapons.json")).json());
+const weaponList = (Array.isArray(weapons) ? weapons : weapons.documents ?? Object.values(weapons))
+	.map(d => ({ name: d.name })).sort((a, b) => a.name.localeCompare(b.name));
+const first = (q) => S.searchItemList(weaponList, q)[0]?.name;
+
+// --- words ------------------------------------------------------------------------------------------
+check("brackets, slashes and commas are gaps", S.getSearchWords("Arrow(Recurve Bow/Heavy), x"), ["arrow", "recurve", "bow", "heavy", "x"]);
+check("an apostrophe joins, curly or straight", [S.getSearchWords("Cobbler's Tools"), S.getSearchWords("Cobbler’s")], [["cobblers", "tools"], ["cobblers"]]);
+
+// --- the request: every way of asking for the recurve bow finds it, first ----------------------------
+for (const q of ["recurve bow", "bow recurve", "bow, recurve", "Bow(Recurve)", "recurve", "RECURVE BOW", "recurv bow", "recrve bow", "recurve bwo", "rec bow", "a recurve bow"]) {
+	check(`"${q}" finds Bow(Recurve) first`, first(q), "Bow(Recurve)");
+}
+check("...and its arrows after it", S.searchItemList(weaponList, "recurve bow").slice(1, 3).every(e => e.name.startsWith("Arrow(Recurve Bow")), true);
+check("plurals: \"recurve bows\" and \"arrows recurve\"", [first("recurve bows"), first("arrows recurve heavy").startsWith("Arrow(Recurve Bow/Heavy")], ["Bow(Recurve)", true]);
+
+// --- what it must not do ----------------------------------------------------------------------------
+check("a short word is spelled right or not at all: \"bow\" does not find a Box or Cow", S.scoreItemSearch("Box(Wood)", "bow"), 0);
+check("every word must match: \"recurve sword\" finds nothing", S.searchItemList(weaponList, "recurve sword").length, 0);
+check("one name word answers one typed word: \"bow bow\" does not find Bow(Recurve)", S.scoreItemSearch("Bow(Recurve)", "bow bow"), 0);
+check("an empty search keeps the whole list, in its order", S.searchItemList(weaponList, "  ").map(e => e.name), weaponList.map(e => e.name));
+check("an exact word outranks a typing slip", S.scoreItemSearch("Bow(Recurve)", "recurve") > S.scoreItemSearch("Bow(Recurve)", "recurv"), true);
+check("ties keep the list's own order", S.searchItemList([{ name: "Dagger(B)" }, { name: "Dagger(A)" }], "dagger").map(e => e.name), ["Dagger(B)", "Dagger(A)"]);
+
+// --- the shop ---------------------------------------------------------------------------------------
+const catalog = { offers: [
+	{ type: "weapons", subtypes: ["Missile"], label: "Arrow(Recurve Bow/Normal)" },
+	{ type: "weapons", subtypes: ["Missile"], label: "Bow(Recurve)" },
+	{ type: "weapons", subtypes: ["Melee"],   label: "Sword(Long)" },
+	{ type: "equipment", subtypes: ["Gear"],  label: "Bow Saw" }] };
+check("the shop finds \"bow, recurve\" first, within its Type", Shop.listShopOffers(catalog, "weapons", "", "bow, recurve", 60).offers.map(o => o.label), ["Bow(Recurve)", "Arrow(Recurve Bow/Normal)"]);
+check("the shop with no search keeps his order", Shop.listShopOffers(catalog, "weapons", "", "", 60).offers.map(o => o.label), ["Arrow(Recurve Bow/Normal)", "Bow(Recurve)", "Sword(Long)"]);
+check("the shop: \"long sword\" finds Sword(Long)", Shop.listShopOffers(catalog, "weapons", "Melee", "long sword", 60).total, 1);
+
+const failed = results.filter(r => r.startsWith("FAIL")).length;
+document.getElementById("out").textContent =
+	`${results.length - failed} passed, ${failed} failed\n\n` + results.join("\n");
+</script>
