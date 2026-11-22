@@ -18,6 +18,18 @@ install found it. That remains the standing caveat on the whole project.
 
 ---
 
+## 0.27.1 — 2026-11-22
+
+**Search forgives.**
+
+- **Find an item however you ask for it.** In the Add-item window and the character generator's shop,
+  "recurve bow", "bow, recurve", "recurve", "recurve bows" and "recurv bow" all find Bow(Recurve), and
+  put it first, ahead of its arrows. Words can come in any order; brackets and commas don't matter;
+  plurals and a typing slip are forgiven; the closest match is listed first.
+
+**What to look at if you are testing:** open Add weapon on a character and type "recurve bow", then
+"bow, recurve". Bow(Recurve) should be the first row both times.
+
 ## 0.27.0 — 2026-11-10
 
 **His answers of 10/27 to the upstream list, and a real way to choose a martial discipline.**

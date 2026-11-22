@@ -20,6 +20,7 @@
 
 import { explainAvailability } from "../availability.mjs";
 import { applySheetTheme } from "../sheet-theme.mjs";
+import { searchItemList } from "../search-rules.mjs";
 import { getNonAcquiredLookup } from "../non-acquired.mjs";
 import { MAGIC_KINDS, getItemKind, getSkillStanding, describeStanding, resolveLoreLearn, isLoreSuccess,
          makePotionRecipe } from "../lore-rules.mjs";
@@ -143,10 +144,9 @@ export default class ImagineItemPicker extends HandlebarsApplicationMixin(Applic
 	async _prepareContext(options) {
 		var tmpcontext = await super._prepareContext(options);
 		var tmpall = await this.#loadEntries();
-		var tmpneedle = this.#search.trim().toLowerCase();
-		var tmpmatched = tmpneedle
-			? tmpall.filter(tmpentry => tmpentry.name.toLowerCase().includes(tmpneedle))
-			: tmpall;
+		// The forgiving search (module/search-rules.mjs): "recurve bow", "bow, recurve" and "recurv"
+		// all find Bow(Recurve), and find it first. Once a plain "the name contains what was typed".
+		var tmpmatched = searchItemList(tmpall, this.#search);
 
 		tmpcontext.label = PICKER_PACKS[this.#type].label;
 		// What a row shows beside the name: a spell's or invocation's level, a lore's rating.

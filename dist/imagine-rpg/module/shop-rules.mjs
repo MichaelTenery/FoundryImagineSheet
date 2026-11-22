@@ -35,6 +35,7 @@
 import { SHOP_CATEGORIES, WEAPON_COSTS, EQUIPMENT_COSTS, ARMOR_COSTS } from "./shop-tables.mjs";
 import { COIN_ABBREVIATIONS } from "./starting-money.mjs";
 import { isProjectileWeapon } from "./combat/combat-rules.mjs";
+import { searchItemList } from "./search-rules.mjs";
 
 	// @MARKER PRICE LEVELS
 	// His Set Cost select (HTML 17761-17770), less "Free", in his order, and the column of his price
@@ -749,11 +750,13 @@ import { isProjectileWeapon } from "./combat/combat-rules.mjs";
 	// a search on the name. At most tmpLimit are returned -- the item picker's cap -- with the full count,
 	// so the shop can say how many more a narrower search would show. His order within a kind; across a
 	// whole Type, his order kind by kind.
+	// The search is the forgiving one (module/search-rules.mjs, feature request 2026-11-22): words in
+	// any order, brackets and commas ignored, plurals and a typing slip forgiven, the closest match
+	// first and his order among equals.
 	export function listShopOffers(tmpCatalog, tmpType, tmpSubtype, tmpSearch, tmpLimit) {
-		var tmpWords = normalizeItemName(tmpSearch).toLowerCase().split(" ").filter(tmpWord => tmpWord);
-		var tmpMatches = (tmpCatalog?.offers ?? []).filter(tmpOffer => tmpOffer.type == tmpType
-			&& (!tmpSubtype || tmpOffer.subtypes.includes(tmpSubtype))
-			&& tmpWords.every(tmpWord => (tmpOffer.searchText ?? normalizeItemName(tmpOffer.label).toLowerCase()).includes(tmpWord)));
+		var tmpKind = (tmpCatalog?.offers ?? []).filter(tmpOffer => tmpOffer.type == tmpType
+			&& (!tmpSubtype || tmpOffer.subtypes.includes(tmpSubtype)));
+		var tmpMatches = searchItemList(tmpKind, tmpSearch, tmpOffer => tmpOffer.searchText ?? normalizeItemName(tmpOffer.label));
 		var tmpCap = parseInt(tmpLimit) || 60;
 		return { offers: tmpMatches.slice(0, tmpCap), total: tmpMatches.length };
 	}
